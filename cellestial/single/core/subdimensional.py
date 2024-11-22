@@ -14,7 +14,7 @@ def umap(
     key: Literal["leiden", "louvain"] | str = "leiden",
     *,
     size: float = 0.8,
-    point_shape: int = 3,
+    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -50,7 +50,7 @@ def tsne(
     key: Literal["leiden", "louvain"] | str = "leiden",
     *,
     size: float = 0.8,
-    point_shape: int = 3,
+    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -86,7 +86,7 @@ def pca(
     key: Literal["leiden", "louvain"] | str = "leiden",
     *,
     size: float = 0.8,
-    point_shape: int = 3,
+    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",

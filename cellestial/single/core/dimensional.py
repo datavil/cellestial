@@ -35,7 +35,7 @@ def dimensional(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
-    point_shape: int = 3,
+    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -131,7 +131,7 @@ def expression(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
-    point_shape: int = 3,
+    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     cluster_type: Literal["leiden", "louvain"] | None = None,

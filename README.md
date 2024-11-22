@@ -24,10 +24,15 @@ import cellestial as cl
 
 Interactive tooltips of individual data points
 ```python
-umap = cl.umap(data, size=1, axis_type="arrow")+ggsize(700,500)
+umap = cl.umap(data, size=1, axis_type="arrow")
 umap
 ```
-<img src="./assets/tooltips.png" alt="Customized" width="700">
+<img src="./assets/tooltips.png" alt="tooltips" width="500">
+
+or with Zooming and Paning Options
+```python
+umap = cl.umap(data, size=1, interactive=True)
+```
 
 
 ### Plots are exteremly customizable
@@ -35,7 +40,7 @@ umap
 ```python
 umap + scale_color_hue() + ggsize(500,400)
 ```
-<img src="./assets/customized.png" alt="Customized" width="500">
+<img src="./assets/customized.png" alt="Customized" width="400">
 
 
 ### Multi plots are different function
@@ -44,5 +49,13 @@ Instead of singular function names (`umap`), multi-grid plots requires the plura
 
 Which are valid for all `dimensional` subsets (`expression`,`pca`,`umap`, `tsne`).
 
-
-
+```python
+cl.umaps(
+    data,
+    keys=["leiden", "HBD", "NEAT1", "IGKC"],
+    ncol=2,
+    size=1,
+    color_high="red",
+) + ggsize(900, 600)
+```
+<img src="./assets/multi_umap.png" alt="multi" width="700">
