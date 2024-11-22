@@ -22,14 +22,16 @@ pip install cellestial
 import cellestial as cl
 ```
 
-Interactive tooltips of individual data points
+### Interactive tooltips of individual data points
 ```python
 umap = cl.umap(data, size=1, axis_type="arrow")
 umap
 ```
 <img src="./assets/tooltips.png" alt="tooltips" width="500">
 
-or with Zooming and Paning Options
+and tooltips can be extended with other features..
+
+### Zooming and Paning Options
 ```python
 umap = cl.umap(data, size=1, axis_type="arrow", interactive=True)
 ```
