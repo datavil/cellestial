@@ -31,8 +31,10 @@ umap
 
 or with Zooming and Paning Options
 ```python
-umap = cl.umap(data, size=1, interactive=True)
+umap = cl.umap(data, size=1, axis_type="arrow", interactive=True)
 ```
+
+<img src="./assets/interactive.gif" width="500" />
 
 
 ### Plots are exteremly customizable
@@ -43,7 +45,7 @@ umap + scale_color_hue() + ggsize(500,400)
 <img src="./assets/customized.png" alt="Customized" width="400">
 
 
-### Multi plots are different function
+### Multi plots are distinct functions
 
 Instead of singular function names (`umap`), multi-grid plots requires the plural (`umaps`),providing predictability which guarentees the reproducibility.
 
