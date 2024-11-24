@@ -1,0 +1,24 @@
+project:
+  type: book
+  output-dir: docs 
+
+book:
+  title: "Cellestial"
+  author: "Zafer Kosar"
+  date: "25/11/2024"
+  chapters:
+    - index.qmd
+    - part: Introduction
+      chapters:
+        - examples/overall.ipynb
+
+
+format:
+  html:
+    theme: 
+      light: Cosmo
+      dark: Vapor
+    highlight-style: github-dark
+    css: custom.css
+    monofont: "CascadiaLessBold"
+    # code-block-bg: "#262335" 

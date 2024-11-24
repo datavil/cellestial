@@ -28,6 +28,7 @@ LetsPlot.setup_html()
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
+
 @interactive
 def dimensional(
     data: AnnData,
@@ -110,6 +111,10 @@ def dimensional(
         msg = f"'{key}' is not present in `cluster names` nor `gene names`"
         raise ValueError(msg)
 
+    # special case for labels
+    if dimensions == "tsne":
+        scttr += labs(x="tSNE1", y="tSNE2")
+
     # handle arrow axis
     scttr += _add_arrow_axis(
         frame=frame,
@@ -191,10 +196,15 @@ def expression(
                 x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
             )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
         ) + _THEME_DIMENSION
+
     # -------------------------- NOT A GENE OR CLUSTER --------------------------
     else:
         msg = f"'{gene}' is not present in `gene names`"
         raise ValueError(msg)
+    # special case for labels
+    if dimensions == "tsne":
+        scttr += labs(x="tSNE1", y="tSNE2")
+
 
     # handle arrow axis
     scttr += _add_arrow_axis(
@@ -231,7 +241,9 @@ def test_expression():
 
     os.chdir(Path(__file__).parent.parent.parent.parent)  # to project root
     data = sc.read("data/pbmc3k_pped.h5ad")
-    plot = expression(data, gene="MT-ND2", cluster_type="leiden").to_html("plots/test_expression.html")
+    plot = expression(data, gene="MT-ND2", cluster_type="leiden").to_html(
+        "plots/test_expression.html"
+    )
     plot.to_html("plots/test_expression.svg")
     plot.to_svg("plots/test_expression.svg")
 

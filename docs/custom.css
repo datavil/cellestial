@@ -1,0 +1,12 @@
+@font-face {
+    font-family: "CascadiaSemiBold";
+    src: url("MonoFont/CascadiaMono-SemiBold.otf");
+  }
+
+
+@font-face {
+    font-family: "CascadiaLessBold";
+    src: url("MonoFont/CascadiaMono.ttf");
+    font-weight: 500;
+}
+
