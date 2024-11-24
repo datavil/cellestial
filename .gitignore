@@ -16,5 +16,5 @@ wheels/
 token
 
 # figures
-*.html
-*.svg
+test_plots/
+/.quarto/

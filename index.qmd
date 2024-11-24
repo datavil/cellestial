@@ -1,0 +1,7 @@
+# Preface {.unnumbered}
+
+Cellestial
+
+<p align="center">
+    <img src="https://github.com/datavil/cellestial/blob/master/assets/cellestial_logo.png?raw=true" alt="Cellestial Logo" width="250">
+</p>
