@@ -26,7 +26,7 @@
     "href": "examples/overall.html#high-customizability",
     "title": "1  Cellestial Overview",
     "section": "1.3 High Customizability",
-    "text": "1.3 High Customizability\nCellestial uses Lets-Plot, a ggplot2 impelementation in Pyton. As such, it allows adding or changing layers. Including color palettes, titles, labels, size etc., .\nHere an example with switching color palette to hue which is also the ggplot2 and Seurat defaults, .\n\ngggrid(\n    [\n        plot + scale_color_hue() + labs(title=\"Change color palette\"),\n        plot + theme(legend_text=element_text(size=15)) + labs(title=\"Change legend text size\"),\n        plot + theme(axis_title=element_blank()) + labs(title=\"Remove axis titles\"),\n    ]\n) + ggsize(1400, 450)\n\n   \n   \n\n\nIndeed, you can modify the size.\n\nplot += ggsize(500, 400)\nplot",
+    "text": "1.3 High Customizability\nCellestial uses Lets-Plot, a ggplot2 impelementation in Pyton. As such, it allows adding or changing layers. Including color palettes, titles, labels, size etc., .\nHere an example with switching color palette to hue which is also the ggplot2 and Seurat defaults, .\n\ngggrid(\n    [\n        plot + scale_color_hue() + labs(title=\"Change color palette\"),\n        plot + theme(legend_text=element_text(size=15)) + labs(title=\"Change legend text size\"),\n        plot + theme(axis_title=element_blank()) + labs(title=\"Remove axis titles\"),\n    ],\n    ncol=2,\n) + ggsize(1000, 800)\n\n   \n   \n\n\nIndeed, you can modify the size.\n\nplot += ggsize(500, 400)\nplot",
     "crumbs": [
       "Introduction",
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Cellestial Overview</span>"
