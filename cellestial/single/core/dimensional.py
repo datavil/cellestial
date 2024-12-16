@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import ceil
 from typing import TYPE_CHECKING, Literal
 
 # Core scverse libraries
@@ -12,6 +13,8 @@ from lets_plot import (
     aes,
     geom_point,
     ggplot,
+    guide_legend,
+    guides,
     labs,
     layer_tooltips,
     scale_color_brewer,
@@ -81,7 +84,13 @@ def dimensional(
             )
             + _THEME_DIMENSION
             + scale_color_brewer(palette="Set2")
-        )  #
+        )
+        # wrap the legend
+        n_distinct = frame.select(cluster_name).unique().height
+        if n_distinct > 10:
+            ncol = ceil(n_distinct / 10)
+            scttr = scttr + guides(color=guide_legend(ncol=ncol))
+
     # -------------------------- IF IT IS A GENE --------------------------
     elif key in data.var_names:  # if it is a gene
         # adata.X is a sparse matrix , axis0 is cells, axis1 is genes
@@ -204,7 +213,6 @@ def expression(
     # special case for labels
     if dimensions == "tsne":
         scttr += labs(x="tSNE1", y="tSNE2")
-
 
     # handle arrow axis
     scttr += _add_arrow_axis(

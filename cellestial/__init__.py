@@ -10,6 +10,8 @@ from cellestial.single import (
     tsnes,
     umap,
     umaps,
+    violin,
+    violins,
 )
 from cellestial.util import _add_arrow_axis, interactive
 
@@ -27,4 +29,6 @@ __all__ = [
     "tsnes",
     "expression",
     "expressions",
+    "violin",
+    "violins",
 ]
