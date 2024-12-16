@@ -10,6 +10,8 @@ from cellestial.single.core import (
     tsnes,
     umap,
     umaps,
+    violin,
+    violins,
 )
 
 __all__ = [
@@ -24,4 +26,6 @@ __all__ = [
     "tsnes",
     "expression",
     "expressions",
+    "violin",
+    "violins",
 ]

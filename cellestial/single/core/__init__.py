@@ -1,4 +1,5 @@
 from cellestial.single.core.dimensional import dimensional, expression
+from cellestial.single.core.distribution import violin, violins
 from cellestial.single.core.grids import dimensionals, expressions, pcas, tsnes, umaps
 from cellestial.single.core.subdimensional import pca, tsne, umap
 
@@ -17,4 +18,6 @@ __all__ = [
     "tsnes",
     "expression",
     "expressions",
+    "violin",
+    "violins",
 ]
