@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
     from scanpy import AnnData
 
-def _share_labels(plot, i:int, keys:list[str], ncol:int):
+
+def _share_labels(plot, i: int, keys: list[str], ncol: int):
     total = len(keys)
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
@@ -20,12 +21,50 @@ def _share_labels(plot, i:int, keys:list[str], ncol:int):
     if len(bottom_places) < ncol:
         penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
         bottom_places.extend(penultimate_row)
-    if i not in bottom_places: # remove x axis title except for bottom row
+    if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_title_x=element_blank())
-    if i not in left_places: # remove y axis title except for left column
+    if i not in left_places:  # remove y axis title except for left column
         plot = plot + theme(axis_title_y=element_blank())
 
     return plot
+
+
+def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
+    total = len(keys)
+    nrow = ceil(total / ncol)
+    left_places = [i for i in range(total) if i % ncol == 0]
+    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
+    if len(bottom_places) < ncol:
+        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
+        bottom_places.extend(penultimate_row)
+
+    if axis_type == "axis":
+        if i not in bottom_places:  # remove x axis title except for bottom row
+            plot = plot + theme(
+                # remove axis elements
+                axis_text_x=element_blank(),
+                axis_text_y=element_blank(),
+                axis_ticks_y=element_blank(),
+                axis_ticks_x=element_blank(),
+                axis_line=element_blank(),
+            )
+        if i not in left_places:  # remove y axis title except for left column
+            plot = plot + theme(
+                # remove axis elements
+                axis_text_x=element_blank(),
+                axis_text_y=element_blank(),
+                axis_ticks_y=element_blank(),
+                axis_ticks_x=element_blank(),
+                axis_line=element_blank(),
+            )
+    elif axis_type == "arrow":
+        pass
+    else:
+        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
+        raise ValueError(msg)
+
+    return plot
+
 
 def dimensionals(
     data: AnnData,
@@ -57,7 +96,7 @@ def dimensionals(
     align: bool | None = None,
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
-    grid = []
+    plots = []
 
     for i, key in enumerate(keys):
         plot = dimensional(
@@ -84,9 +123,20 @@ def dimensionals(
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
 
-        grid.append(plot)
+        plots.append(plot)
 
-    return gggrid(grid, ncol=ncol)
+    return gggrid(
+        plots,
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+    )
 
 
 def umaps(
@@ -147,17 +197,18 @@ def umaps(
         plots.append(plot)
 
     return gggrid(
-            plots,
-            ncol=ncol,
-            sharex=sharex,
-            sharey=sharey,
-            widths=widths,
-            heights=heights,
-            hspace=hspace,
-            vspace=vspace,
-            fit=fit,
-            align=align,
-        )
+        plots,
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+    )
+
 
 def tsnes(
     data: AnnData,
@@ -218,17 +269,17 @@ def tsnes(
         plots.append(plot)
 
     return gggrid(
-            plots,
-            ncol=ncol,
-            sharex=sharex,
-            sharey=sharey,
-            widths=widths,
-            heights=heights,
-            hspace=hspace,
-            vspace=vspace,
-            fit=fit,
-            align=align,
-        )
+        plots,
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+    )
 
 
 def pcas(
@@ -289,17 +340,17 @@ def pcas(
         plots.append(plot)
 
     return gggrid(
-            plots,
-            ncol=ncol,
-            sharex=sharex,
-            sharey=sharey,
-            widths=widths,
-            heights=heights,
-            hspace=hspace,
-            vspace=vspace,
-            fit=fit,
-            align=align,
-        )
+        plots,
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+    )
 
 
 def expressions(
@@ -362,14 +413,14 @@ def expressions(
         plots.append(plot)
 
     return gggrid(
-            plots,
-            ncol=ncol,
-            sharex=sharex,
-            sharey=sharey,
-            widths=widths,
-            heights=heights,
-            hspace=hspace,
-            vspace=vspace,
-            fit=fit,
-            align=align,
-        )
+        plots,
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+    )
