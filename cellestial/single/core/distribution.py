@@ -119,6 +119,7 @@ def violin(
             color=violin_color,
             trim=trim,
             tooltips=layer_tooltips(violin_tooltips),
+            **violin_kwargs,
         )
         + _THEME_VIOLIN
     )
@@ -131,6 +132,7 @@ def violin(
             alpha=point_alpha,
             size=point_size,
             tooltips=layer_tooltips(tooltips),
+            **point_kwargs,
         )
 
     # wrap the legend
@@ -347,6 +349,7 @@ def boxplot(
             alpha=point_alpha,
             size=point_size,
             tooltips=layer_tooltips(tooltips),
+            **point_kwargs,
         )
 
     # wrap the legend
