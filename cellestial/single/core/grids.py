@@ -48,7 +48,7 @@ def dimensionals(
     arrow_angle: float = 20,
     layers: list | tuple | Iterable | None = None,
 ) -> SupPlotsSpec:
-    grid = list()
+    grid = []
 
     for i, key in enumerate(keys):
         plot = dimensional(
@@ -101,7 +101,7 @@ def umaps(
     layers: list | tuple | Iterable | None = None,
     **kwargs
 ) -> SupPlotsSpec:
-    grid = list()
+    grid = []
 
     for i, key in enumerate(keys):
         plot = umap(
@@ -151,7 +151,7 @@ def tsnes(
     arrow_angle: float = 20,
     layers: list | tuple | Iterable | None = None,
 ) -> SupPlotsSpec:
-    grid = list()
+    grid = []
 
     for i, key in enumerate(keys):
         plot = tsne(
@@ -203,7 +203,7 @@ def pcas(
     arrow_angle: float = 20,
     layers: list | tuple | Iterable | None = None,
 ) -> SupPlotsSpec:
-    grid = list()
+    grid = []
 
     for i, key in enumerate(keys):
         plot = pca(
@@ -256,7 +256,7 @@ def expressions(
     arrow_angle: float = 20,
     layers: list | tuple | Iterable | None = None,
 ) -> SupPlotsSpec:
-    grid = list()
+    grid = []
 
     for i, gene in enumerate(genes):
         plot = expression(
