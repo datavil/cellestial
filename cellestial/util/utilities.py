@@ -1,34 +1,12 @@
 import polars as pl
 from lets_plot import *
 from lets_plot import (
-    LetsPlot,
-    aes,
     arrow,
     element_blank,
-    element_line,
     element_text,
     geom_blank,
-    geom_jitter,
-    geom_point,
     geom_segment,
-    geom_violin,
-    gggrid,
-    ggplot,
-    ggsize,
-    ggtb,
-    guide_colorbar,
-    guide_legend,
-    guides,
-    labs,
-    layer_tooltips,
-    scale_color_brewer,
-    scale_color_continuous,
-    scale_color_gradient,
-    scale_color_hue,
-    scale_color_viridis,
-    scale_shape,
     theme,
-    theme_classic,
 )
 
 
