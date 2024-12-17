@@ -150,7 +150,7 @@ def violins(
     **grid_kwargs,
 ):
     if multi_panel:  # standard grid plotting
-        plots = list()
+        plots = []
         for key in keys:
             vln = violin(
                 data,
@@ -315,7 +315,7 @@ def boxplots(
     **grid_kwargs,
 ):
     if multi_panel:  # standard grid plotting
-        plots = list()
+        plots = []
         for key in keys:
             bxplt = boxplot(
                 data,

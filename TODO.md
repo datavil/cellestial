@@ -15,8 +15,11 @@
     - dims
     - expressions
 
+## Distributions:
 
-## Violin:   
+### Violin:   
   - Violin   
   - Violins 
-
+### Boxplot:
+  - Boxplot
+  - Boxplots
