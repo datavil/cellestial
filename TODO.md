@@ -23,3 +23,9 @@
 ### Boxplot:
   - Boxplot
   - Boxplots
+
+
+additional dicts for non-customizable parts of the plots:
+  - aes
+  - geoms
+  - grids
