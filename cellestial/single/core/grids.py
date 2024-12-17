@@ -41,21 +41,17 @@ def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["ax
     if axis_type == "axis":
         if i not in bottom_places:  # remove x axis title except for bottom row
             plot = plot + theme(
-                # remove axis elements
+                # remove x axis elements
                 axis_text_x=element_blank(),
-                axis_text_y=element_blank(),
-                axis_ticks_y=element_blank(),
                 axis_ticks_x=element_blank(),
-                axis_line=element_blank(),
+                axis_line_x=element_blank(),
             )
         if i not in left_places:  # remove y axis title except for left column
             plot = plot + theme(
-                # remove axis elements
-                axis_text_x=element_blank(),
+                # remove y axis elements
                 axis_text_y=element_blank(),
                 axis_ticks_y=element_blank(),
-                axis_ticks_x=element_blank(),
-                axis_line=element_blank(),
+                axis_line_y=element_blank(),
             )
     elif axis_type == "arrow":
         pass
@@ -154,6 +150,7 @@ def umaps(
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     share_labels: bool = True,
+    share_axis: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -197,7 +194,9 @@ def umaps(
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
-
+        if share_axis:
+            if axis_type is not None:
+                plot = _share_axis(plot, i, keys, ncol, axis_type)
         plots.append(plot)
 
     return gggrid(
@@ -225,6 +224,7 @@ def tsnes(
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     share_labels: bool = True,
+    share_axis: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -270,6 +270,10 @@ def tsnes(
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
 
+        if share_axis:
+            if axis_type is not None:
+                plot = _share_axis(plot, i, keys, ncol, axis_type)
+
         plots.append(plot)
 
     return gggrid(
@@ -297,6 +301,7 @@ def pcas(
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     share_labels: bool = True,
+    share_axis: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -341,6 +346,9 @@ def pcas(
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
 
+        if share_axis:
+            if axis_type is not None:
+                plot = _share_axis(plot, i, keys, ncol, axis_type)
         plots.append(plot)
 
     return gggrid(
@@ -370,6 +378,7 @@ def expressions(
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     share_labels: bool = True,
+    share_axis: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -413,6 +422,10 @@ def expressions(
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, genes, ncol)
+
+        if share_axis:
+            if axis_type is not None:
+                plot = _share_axis(plot, i, genes, ncol, axis_type)
 
         plots.append(plot)
 
