@@ -13,6 +13,7 @@ from lets_plot import (
     aes,
     geom_point,
     ggplot,
+    ggtb,
     guide_legend,
     guides,
     labs,
@@ -24,7 +25,7 @@ from lets_plot.plot.core import PlotSpec
 from scanpy import AnnData
 
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _add_arrow_axis, interactive
+from cellestial.util import _add_arrow_axis
 
 LetsPlot.setup_html()
 
@@ -32,7 +33,6 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
 
-@interactive
 def dimensional(
     data: AnnData,
     key: Literal["leiden", "louvain"] | str = "leiden",
@@ -135,10 +135,13 @@ def dimensional(
         dimensions=dimensions,
     )
 
+    # handle interactive
+    if interactive:
+        scttr += ggtb()
+
     return scttr
 
 
-@interactive
 def expression(
     data: AnnData,
     gene: str,
@@ -224,6 +227,10 @@ def expression(
         arrow_length=arrow_length,
         dimensions=dimensions,
     )
+
+    # handle interactive
+    if interactive:
+        scttr += ggtb()
 
     return scttr
 
