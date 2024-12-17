@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from math import ceil
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 # Core scverse libraries
 import polars as pl
@@ -40,36 +40,49 @@ def dimensional(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
-    point_shape: int = 16,
-    interactive: bool = False,  # used by interactive decorator
+    interactive: bool = False,
     cluster_name: str = "Cluster",
-    barcode_name: str = "Barcode",
+    barcode_name: str = "CellID",
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     # Handling Data tpyes
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
-    # get the coordinates of the cells in the dimension reduced space
-
     # only take the first two dimensions (pca comes with more dimensions)
     frame = pl.from_numpy(
         data.obsm[f"X_{dimensions}"][:, :2], schema=[f"{dimensions}1", f"{dimensions}2"]
     ).with_columns(pl.Series(barcode_name, data.obs_names))
 
+    # handle point_kwargs
+    if point_kwargs is None:
+        point_kwargs = {}
+    else:
+        if "size" in point_kwargs:
+            size = point_kwargs.get("size")
+            msg = "use `size = value` instead of adding `'size' : 'value'` to `point_kwargs`\n"
+            msg += f"size args will overwritten by the value `{size}` in the point_kwargs, "
+            raise Warning(msg)
+        if "tooltips" in point_kwargs:
+            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
+            raise KeyError(msg)
 
     # handle tooltips
-    base_tooltips = [barcode_name, key]
+    if key in ["leiden", "louvain"]:
+        base_tooltips = [barcode_name, cluster_name]
+    else:
+        base_tooltips = [barcode_name, key]
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
@@ -79,6 +92,9 @@ def dimensional(
             tooltips = base_tooltips + list(add_tooltips)
         else:
             tooltips = base_tooltips
+
+
+    # get the coordinates of the cells in the dimension reduced space
     # -------------------------- IF IT IS A CLUSTER --------------------------
     if key in ["leiden", "louvain"]:  # if it is a clustering
         # update the key column name if it is a cluster
@@ -93,6 +109,7 @@ def dimensional(
                     aes(x=f"{dimensions}1", y=f"{dimensions}2", color=cluster_name),
                     size=size,
                     tooltips=layer_tooltips(tooltips),
+                    **point_kwargs,
                 )
                 + labs(
                     x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
@@ -124,7 +141,7 @@ def dimensional(
                 aes(x=f"{dimensions}1", y=f"{dimensions}2", color=key),
                 size=size,
                 tooltips=layer_tooltips(tooltips),
-                shape=point_shape,
+                **point_kwargs,
             )
             + scale_color_continuous(low=color_low, high=color_high)
             + labs(
@@ -164,28 +181,26 @@ def expression(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
-    point_shape: int = 16,
-    interactive: bool = False,  # used by interactive decorator
+    interactive: bool = False,
     cluster_name: str = "Cluster",
     cluster_type: Literal["leiden", "louvain"] | None = None,
-    barcode_name: str = "Barcode",
+    barcode_name: str = "CellID",
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     axis_type: Literal["axis", "arrow"] | None = "arrow",
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     # Handling Data tpyes
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
-
-    # get the coordinates of the cells in the dimension reduced space
 
     # only take the first two dimensions (pca comes with more dimensions)
     frame = pl.from_numpy(
@@ -198,7 +213,18 @@ def expression(
         else:
             msg = f"'{cluster_type}' is not a valid cluster type"
             raise ValueError(msg)
-
+    # handle point_kwargs
+    if point_kwargs is None:
+        point_kwargs = {}
+    else:
+        if "size" in point_kwargs:
+            size = point_kwargs.get("size")
+            msg = "use `size = value` instead of adding `'size' : 'value'` to `point_kwargs`\n"
+            msg += f"size args will overwritten by the value `{size}` in the point_kwargs, "
+            raise Warning(msg)
+        if "tooltips" in point_kwargs:
+            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
+            raise KeyError(msg)
     # handle tooltips
     base_tooltips = [barcode_name, gene]
     if not show_tooltips:
@@ -210,6 +236,7 @@ def expression(
             tooltips = base_tooltips + list(add_tooltips)
         else:
             tooltips = base_tooltips
+    # get the coordinates of the cells in the dimension reduced space
     # -------------------------- IF IT IS A GENE --------------------------
     if gene in data.var_names:  # if it is a gene
         # adata.X is a sparse matrix, axis0 is cells, axis1 is genes
@@ -231,7 +258,7 @@ def expression(
                 aes(x=f"{dimensions}1", y=f"{dimensions}2", color=gene),
                 size=size,
                 tooltips=layer_tooltips(tooltips),
-                shape=point_shape,
+                **point_kwargs,
             )
             + scale_color_continuous(low=color_low, high=color_high)
             + labs(
