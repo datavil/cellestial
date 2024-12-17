@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from math import ceil
 from typing import TYPE_CHECKING, Literal
 
@@ -50,6 +51,9 @@ def dimensional(
     arrow_size: float = 3,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 20,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
 ) -> PlotSpec:
     # Handling Data tpyes
     if not isinstance(data, AnnData):
@@ -63,6 +67,18 @@ def dimensional(
         data.obsm[f"X_{dimensions}"][:, :2], schema=[f"{dimensions}1", f"{dimensions}2"]
     ).with_columns(pl.Series(barcode_name, data.obs_names))
 
+
+    # handle tooltips
+    base_tooltips = [barcode_name, key]
+    if not show_tooltips:
+        tooltips = "none"  # for letsplot, this removes the tooltips
+    else:
+        if isinstance(custom_tooltips, Iterable):
+            tooltips = list(custom_tooltips)
+        elif isinstance(add_tooltips, Iterable):
+            tooltips = base_tooltips + list(add_tooltips)
+        else:
+            tooltips = base_tooltips
     # -------------------------- IF IT IS A CLUSTER --------------------------
     if key in ["leiden", "louvain"]:  # if it is a clustering
         # update the key column name if it is a cluster
@@ -76,7 +92,7 @@ def dimensional(
                 + geom_point(
                     aes(x=f"{dimensions}1", y=f"{dimensions}2", color=cluster_name),
                     size=size,
-                    tooltips=layer_tooltips([barcode_name, cluster_name]),
+                    tooltips=layer_tooltips(tooltips),
                 )
                 + labs(
                     x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
@@ -107,7 +123,7 @@ def dimensional(
             + geom_point(
                 aes(x=f"{dimensions}1", y=f"{dimensions}2", color=key),
                 size=size,
-                tooltips=layer_tooltips([barcode_name, key]),
+                tooltips=layer_tooltips(tooltips),
                 shape=point_shape,
             )
             + scale_color_continuous(low=color_low, high=color_high)
@@ -160,6 +176,9 @@ def expression(
     arrow_size: float = 3,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 20,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
 ) -> PlotSpec:
     # Handling Data tpyes
     if not isinstance(data, AnnData):
@@ -180,6 +199,17 @@ def expression(
             msg = f"'{cluster_type}' is not a valid cluster type"
             raise ValueError(msg)
 
+    # handle tooltips
+    base_tooltips = [barcode_name, gene]
+    if not show_tooltips:
+        tooltips = "none"  # for letsplot, this removes the tooltips
+    else:
+        if isinstance(custom_tooltips, Iterable):
+            tooltips = list(custom_tooltips)
+        elif isinstance(add_tooltips, Iterable):
+            tooltips = base_tooltips + list(add_tooltips)
+        else:
+            tooltips = base_tooltips
     # -------------------------- IF IT IS A GENE --------------------------
     if gene in data.var_names:  # if it is a gene
         # adata.X is a sparse matrix, axis0 is cells, axis1 is genes
