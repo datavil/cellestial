@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal
 
 from cellestial.single.core.dimensional import dimensional
@@ -25,6 +26,9 @@ def umap(
     arrow_size: float = 3,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 20,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
 ) -> PlotSpec:
     return dimensional(
         data=data,
@@ -42,6 +46,9 @@ def umap(
         arrow_size=arrow_size,
         arrow_color=arrow_color,
         arrow_angle=arrow_angle,
+        show_tooltips=show_tooltips,
+        add_tooltips=add_tooltips, 
+        custom_tooltips=custom_tooltips,
     )
 
 
@@ -61,6 +68,9 @@ def tsne(
     arrow_size: float = 3,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 20,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
 ) -> PlotSpec:
     return dimensional(
         data=data,
@@ -78,6 +88,9 @@ def tsne(
         arrow_size=arrow_size,
         arrow_color=arrow_color,
         arrow_angle=arrow_angle,
+        show_tooltips=show_tooltips,
+        add_tooltips=add_tooltips, 
+        custom_tooltips=custom_tooltips,
     )
 
 
@@ -97,6 +110,9 @@ def pca(
     arrow_size: float = 3,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 20,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
 ) -> PlotSpec:
     return dimensional(
         data=data,
@@ -114,4 +130,7 @@ def pca(
         arrow_size=arrow_size,
         arrow_color=arrow_color,
         arrow_angle=arrow_angle,
+        show_tooltips=show_tooltips,
+        add_tooltips=add_tooltips, 
+        custom_tooltips=custom_tooltips,
     )
