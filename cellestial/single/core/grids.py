@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import TYPE_CHECKING, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Iterable, Literal
 
 from lets_plot import element_blank, gggrid, theme
 
@@ -30,11 +30,9 @@ def _share_labels(plot, i:int, keys:list[str], ncol:int):
 def dimensionals(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
-    ncol: int | None = None,
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
-    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -43,10 +41,21 @@ def dimensionals(
     share_labels: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     layers: list | tuple | Iterable | None = None,
+    # grid args
+    ncol: int | None = None,
+    sharex: str | None = None,
+    sharey: str | None = None,
+    widths: list | None = None,
+    heights: list | None = None,
+    hspace: float | None = None,
+    vspace: float | None = None,
+    fit: bool | None = None,
+    align: bool | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     grid = []
 
@@ -56,7 +65,6 @@ def dimensionals(
             key=key,
             dimensions=dimensions,
             size=size,
-            point_shape=point_shape,
             interactive=interactive,
             cluster_name=cluster_name,
             barcode_name=barcode_name,
@@ -67,6 +75,7 @@ def dimensionals(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            **point_kwargs,
         )
 
         if layers is not None:
@@ -83,10 +92,8 @@ def dimensionals(
 def umaps(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
-    ncol: int | None = None,
     *,
     size: float = 0.8,
-    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -95,20 +102,29 @@ def umaps(
     share_labels: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     layers: list | tuple | Iterable | None = None,
-    **kwargs
+    # grid args
+    ncol: int | None = None,
+    sharex: str | None = None,
+    sharey: str | None = None,
+    widths: list | None = None,
+    heights: list | None = None,
+    hspace: float | None = None,
+    vspace: float | None = None,
+    fit: bool | None = None,
+    align: bool | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
-    grid = []
+    plots = []
 
     for i, key in enumerate(keys):
         plot = umap(
             data=data,
             key=key,
             size=size,
-            point_shape=point_shape,
             interactive=interactive,
             cluster_name=cluster_name,
             barcode_name=barcode_name,
@@ -119,6 +135,7 @@ def umaps(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            **point_kwargs,
         )
 
         if layers is not None:
@@ -127,17 +144,26 @@ def umaps(
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
 
-        grid.append(plot)
+        plots.append(plot)
 
-    return gggrid(grid, ncol=ncol, **kwargs)
+    return gggrid(
+            plots,
+            ncol=ncol,
+            sharex=sharex,
+            sharey=sharey,
+            widths=widths,
+            heights=heights,
+            hspace=hspace,
+            vspace=vspace,
+            fit=fit,
+            align=align,
+        )
 
 def tsnes(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
-    ncol: int | None = None,
     *,
     size: float = 0.8,
-    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -146,19 +172,29 @@ def tsnes(
     share_labels: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     layers: list | tuple | Iterable | None = None,
+    # grid args
+    ncol: int | None = None,
+    sharex: str | None = None,
+    sharey: str | None = None,
+    widths: list | None = None,
+    heights: list | None = None,
+    hspace: float | None = None,
+    vspace: float | None = None,
+    fit: bool | None = None,
+    align: bool | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
-    grid = []
+    plots = []
 
     for i, key in enumerate(keys):
         plot = tsne(
             data=data,
             key=key,
             size=size,
-            point_shape=point_shape,
             interactive=interactive,
             cluster_name=cluster_name,
             barcode_name=barcode_name,
@@ -169,6 +205,7 @@ def tsnes(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            **point_kwargs,
         )
 
         if layers is not None:
@@ -178,18 +215,27 @@ def tsnes(
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
 
-        grid.append(plot)
+        plots.append(plot)
 
-    return gggrid(grid, ncol=ncol)
+    return gggrid(
+            plots,
+            ncol=ncol,
+            sharex=sharex,
+            sharey=sharey,
+            widths=widths,
+            heights=heights,
+            hspace=hspace,
+            vspace=vspace,
+            fit=fit,
+            align=align,
+        )
 
 
 def pcas(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
-    ncol: int | None = None,
     *,
     size: float = 0.8,
-    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
@@ -198,19 +244,29 @@ def pcas(
     share_labels: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     layers: list | tuple | Iterable | None = None,
+    # grid args
+    ncol: int | None = None,
+    sharex: str | None = None,
+    sharey: str | None = None,
+    widths: list | None = None,
+    heights: list | None = None,
+    hspace: float | None = None,
+    vspace: float | None = None,
+    fit: bool | None = None,
+    align: bool | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
-    grid = []
+    plots = []
 
     for i, key in enumerate(keys):
         plot = pca(
             data=data,
             key=key,
             size=size,
-            point_shape=point_shape,
             interactive=interactive,
             cluster_name=cluster_name,
             barcode_name=barcode_name,
@@ -221,6 +277,7 @@ def pcas(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            **point_kwargs,
         )
 
         if layers is not None:
@@ -229,19 +286,28 @@ def pcas(
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
 
-        grid.append(plot)
+        plots.append(plot)
 
-    return gggrid(grid, ncol=ncol)
+    return gggrid(
+            plots,
+            ncol=ncol,
+            sharex=sharex,
+            sharey=sharey,
+            widths=widths,
+            heights=heights,
+            hspace=hspace,
+            vspace=vspace,
+            fit=fit,
+            align=align,
+        )
 
 
 def expressions(
     data: AnnData,
     genes: list[str] | tuple[str] | Iterable[str] = ("leiden",),
-    ncol: int | None = None,
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
-    point_shape: int = 16,
     interactive: bool = False,  # used by interactive decorator
     cluster_name: str = "Cluster",
     cluster_type: Literal["leiden", "louvain"] | None = None,
@@ -251,12 +317,22 @@ def expressions(
     share_labels: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
-    arrow_size: float = 3,
+    arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
-    arrow_angle: float = 20,
+    arrow_angle: float = 10,
     layers: list | tuple | Iterable | None = None,
+    # grid args
+    ncol: int | None = None,
+    sharex: str | None = None,
+    sharey: str | None = None,
+    widths: list | None = None,
+    heights: list | None = None,
+    hspace: float | None = None,
+    vspace: float | None = None,
+    fit: bool | None = None,
+    align: bool | None = None,
 ) -> SupPlotsSpec:
-    grid = []
+    plots = []
 
     for i, gene in enumerate(genes):
         plot = expression(
@@ -264,7 +340,6 @@ def expressions(
             gene=gene,
             dimensions=dimensions,
             size=size,
-            point_shape=point_shape,
             interactive=interactive,
             cluster_name=cluster_name,
             cluster_type=cluster_type,
@@ -284,6 +359,17 @@ def expressions(
         if share_labels:
             plot = _share_labels(plot, i, genes, ncol)
 
-        grid.append(plot)
+        plots.append(plot)
 
-    return gggrid(grid, ncol=ncol)
+    return gggrid(
+            plots,
+            ncol=ncol,
+            sharex=sharex,
+            sharey=sharey,
+            widths=widths,
+            heights=heights,
+            hspace=hspace,
+            vspace=vspace,
+            fit=fit,
+            align=align,
+        )
