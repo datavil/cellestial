@@ -18,6 +18,7 @@ from lets_plot import (
     gggrid,
     ggplot,
     ggsize,
+    ggtb,
     guide_legend,
     guides,
     layer_tooltips,
@@ -26,7 +27,6 @@ from lets_plot.plot.core import PlotSpec
 from scanpy import AnnData
 
 from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
-from cellestial.util import interactive
 
 LetsPlot.setup_html()
 
@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
 
-@interactive
 def violin(
     data: AnnData,
     key: str,
@@ -51,7 +50,6 @@ def violin(
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    layers: list[str] | tuple[str] | Iterable[str] | None = None,
     interactive: bool = False,
 ) -> PlotSpec:
     # check if data is an AnnData object
@@ -107,10 +105,6 @@ def violin(
             size=point_size,
             tooltips=layer_tooltips(tooltips),
         )
-    # handle additional layers
-    if layers is not None:
-        for layer in layers:
-            vln += layer
 
     # wrap the legend
     if fill is not None:
@@ -124,10 +118,13 @@ def violin(
             ncol = ceil(n_distinct / 10)
             vln = vln + guides(color=guide_legend(ncol=ncol))
 
+    # handle interactive
+    if interactive:
+        vln += ggtb()
+
     return vln
 
 
-@interactive
 def violins(
     data,
     keys: list[str] | tuple[str] | Iterable[str],
@@ -167,7 +164,6 @@ def violins(
                 show_points=show_points,
                 add_tooltips=add_tooltips,
                 custom_tooltips=custom_tooltips,
-                layers=layers,
                 interactive=interactive,
             )
             # handle the layers
@@ -194,10 +190,13 @@ def violins(
             for layer in layers:
                 vlns += layer
 
+    # handle interactive
+    if interactive:
+        vlns += ggtb()
+
     return vlns
 
 
-@interactive
 def boxplot(
     data: AnnData,
     key: str,
@@ -289,10 +288,13 @@ def boxplot(
             ncol = ceil(n_distinct / 10)
             bxplt = bxplt + guides(color=guide_legend(ncol=ncol))
 
+    # handle interactive
+    if interactive:
+        bxplt += ggtb()
+
     return bxplt
 
 
-@interactive
 def boxplots(
     data,
     keys: list[str] | tuple[str] | Iterable[str],
@@ -357,5 +359,9 @@ def boxplots(
         if layers is not None:
             for layer in layers:
                 bxplts += layer
+
+    # handle interactive
+    if interactive:
+        bxplts += ggtb()
 
     return bxplts
