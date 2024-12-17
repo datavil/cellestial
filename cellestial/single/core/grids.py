@@ -78,6 +78,7 @@ def dimensionals(
     color_low: str = "#e6e6e6",
     color_high: str = "#377eb8",
     share_labels: bool = True,
+    share_axis: bool = True,
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -122,6 +123,9 @@ def dimensionals(
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
+        if share_axis:
+            if axis_type is not None:
+                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
