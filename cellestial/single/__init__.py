@@ -1,4 +1,6 @@
 from cellestial.single.core import (
+    boxplot,
+    boxplots,
     dim,
     dimensional,
     dimensionals,
@@ -28,4 +30,6 @@ __all__ = [
     "expressions",
     "violin",
     "violins",
+    "boxplot",
+    "boxplots",
 ]

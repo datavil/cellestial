@@ -1,35 +1,14 @@
+import polars as pl
 from lets_plot import *
 from lets_plot import (
     LetsPlot,
-    aes,
     arrow,
     element_blank,
-    element_line,
-    element_text,
-    geom_blank,
-    geom_jitter,
-    geom_point,
     geom_segment,
-    geom_violin,
-    gggrid,
-    ggplot,
-    ggsize,
     ggtb,
-    guide_colorbar,
-    guide_legend,
-    guides,
     labs,
-    layer_tooltips,
-    scale_color_brewer,
-    scale_color_continuous,
-    scale_color_gradient,
-    scale_color_hue,
-    scale_color_viridis,
-    scale_shape,
     theme,
-    theme_classic,
 )
-import polars as pl
 
 LetsPlot.setup_html()
 
@@ -87,7 +66,7 @@ def arrow_axis(func):
         all_kwargs = func.__kwdefaults__
         all_kwargs.update(kwargs)
         # ------------------------------------------------------
-        
+
         # base plot
         plot = func(*args, **kwargs)
 
@@ -170,7 +149,7 @@ def arrow_axis(func):
                 x = f"{dimensions}1".upper(),
                 y = f"{dimensions}2".upper(),
             )
-                        
+
 
         elif axis_type == "axis":
             pass
