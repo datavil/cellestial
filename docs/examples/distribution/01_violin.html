@@ -184,37 +184,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/dimensional/01_umap.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">UMAP</span></span></a>
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">umap</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/dimensional/01_umaps.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">UMAPS</span></span></a>
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">umaps</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/dimensional/02_tsne.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">tSNE</span></span></a>
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">tsne</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/dimensional/02_tsnes.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">TSNES</span></span></a>
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">tsnes</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/dimensional/03_pca.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">PCA</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">pca</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/dimensional/03_pcas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">PCAS</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">pcas</span></span></a>
   </div>
 </li>
       </ul>
@@ -237,7 +237,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/distribution/01_violins.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Violins</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">violins</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -249,7 +249,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../examples/distribution/02_boxplots.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boxplot</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boxplots</span></span></a>
   </div>
 </li>
       </ul>
@@ -406,30 +406,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             
 </div>
 </div>
-<div id="cell-2" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data.obs.columns</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="2">
-<pre><code>Index(['sample', 'n_genes_by_counts', 'log1p_n_genes_by_counts',
-       'total_counts', 'log1p_total_counts', 'pct_counts_in_top_50_genes',
-       'pct_counts_in_top_100_genes', 'pct_counts_in_top_200_genes',
-       'pct_counts_in_top_500_genes', 'total_counts_mt',
-       'log1p_total_counts_mt', 'pct_counts_mt', 'total_counts_ribo',
-       'log1p_total_counts_ribo', 'pct_counts_ribo', 'total_counts_hb',
-       'log1p_total_counts_hb', 'pct_counts_hb', 'n_genes', 'leiden'],
-      dtype='object')</code></pre>
-</div>
-</div>
 <section id="a-simple-violin-plot" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="a-simple-violin-plot"><span class="header-section-number">8.1</span> A simple Violin Plot</h2>
-<div id="cell-4" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>cl.violin(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pct_counts_in_top_50_genes"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    fill<span class="op">=</span><span class="st">"sample"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    boxplot_color<span class="op">=</span><span class="st">"#3f3f3f"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    show_points<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    outlier_shape <span class="op">=</span> <span class="dv">1</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-3" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>cl.violin(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pct_counts_in_top_50_genes"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    fill<span class="op">=</span><span class="st">"sample"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    boxplot_color<span class="op">=</span><span class="st">"#3f3f3f"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    show_points<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    outlier_shape <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
    <div id="0Po28q"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -757,16 +744,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="fill-splits-the-data-as-in-ggplot2" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="fill-splits-the-data-as-in-ggplot2"><span class="header-section-number">8.2</span> Fill splits the data as in ggplot2</h2>
-<div id="cell-6" class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">=</span> cl.violin(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pct_counts_in_top_50_genes"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    fill<span class="op">=</span><span class="st">"leiden"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    show_points<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    scale<span class="op">=</span><span class="st">"width"</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)<span class="op">+</span>ggsize(<span class="dv">1000</span>,<span class="dv">400</span>)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-5" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">=</span> cl.violin(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pct_counts_in_top_50_genes"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    fill<span class="op">=</span><span class="st">"leiden"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    show_points<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    scale<span class="op">=</span><span class="st">"width"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)<span class="op">+</span>ggsize(<span class="dv">1000</span>,<span class="dv">400</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
    <div id="176Krt"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -1099,9 +1086,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="customize-the-plot" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="customize-the-plot"><span class="header-section-number">8.3</span> Customize the plot</h2>
-<div id="cell-8" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+=</span>scale_fill_brewer(palette<span class="op">=</span><span class="st">"Set2"</span>)<span class="op">+</span>scale_y_log2()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-7" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+=</span>scale_fill_brewer(palette<span class="op">=</span><span class="st">"Set2"</span>)<span class="op">+</span>scale_y_log2()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
    <div id="nOGdc1"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -1442,9 +1429,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="turn-it-into-a-interactive-plot" class="level2" data-number="8.4">
 <h2 data-number="8.4" class="anchored" data-anchor-id="turn-it-into-a-interactive-plot"><span class="header-section-number">8.4</span> Turn it into a interactive plot</h2>
 <p>Even if you did not create the plot with <code>interactive = True</code> you can still make it interactive with <code>+ggtb()</code> by lets_plot.</p>
-<div id="cell-11" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+=</span> ggtb()</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-10" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+=</span> ggtb()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
    <div id="S4KQ9r"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -1793,13 +1780,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    </script>
 </div>
 </div>
-<div id="cell-12" class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"lets_plot: </span><span class="sc">{</span>lets_plot<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"scanpy: </span><span class="sc">{</span>sc<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>,</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"cellestial: </span><span class="sc">{</span>cl<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    sep<span class="op">=</span><span class="st">"</span><span class="ch">\n</span><span class="st">"</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-11" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"lets_plot: </span><span class="sc">{</span>lets_plot<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"scanpy: </span><span class="sc">{</span>sc<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"cellestial: </span><span class="sc">{</span>cl<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    sep<span class="op">=</span><span class="st">"</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>lets_plot: 4.5.2
 scanpy: 1.10.4
@@ -2377,13 +2364,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../examples/dimensional/03_pcas.html" class="pagination-link" aria-label="PCAS">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">PCAS</span></span>
+      <a href="../../examples/dimensional/03_pcas.html" class="pagination-link" aria-label="pcas">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">pcas</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../examples/distribution/01_violins.html" class="pagination-link" aria-label="Violins">
-        <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Violins</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../examples/distribution/01_violins.html" class="pagination-link" aria-label="violins">
+        <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">violins</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

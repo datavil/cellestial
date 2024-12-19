@@ -44,6 +44,138 @@
     ]
   },
   {
+    "objectID": "examples/dimensional/01_umap.html",
+    "href": "examples/dimensional/01_umap.html",
+    "title": "2  umap",
+    "section": "",
+    "text": "2.0.1 By default, the umap function will use “leiden” as the key\nplot = cl.umap(data,axis_type=\"arrow\",size=0.6, interactive=True)\nplot",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>umap</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/01_umap.html#of-course-it-is-possible-to-customize-the-plot",
+    "href": "examples/dimensional/01_umap.html#of-course-it-is-possible-to-customize-the-plot",
+    "title": "2  umap",
+    "section": "2.1 Of course, it is possible to customize the plot",
+    "text": "2.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>umap</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/01_umap.html#you-can-also-use-a-gene-a-key.",
+    "href": "examples/dimensional/01_umap.html#you-can-also-use-a-gene-a-key.",
+    "title": "2  umap",
+    "section": "2.2 You can also use a gene a key.",
+    "text": "2.2 You can also use a gene a key.\n\ncl.umap(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>umap</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/01_umaps.html",
+    "href": "examples/dimensional/01_umaps.html",
+    "title": "3  umaps",
+    "section": "",
+    "text": "3.1 umaps is a multi-grid plot function and accepts multiple keys list or any iterable.\numap_grid = cl.umaps(\n    data,\n    keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n    ncol=2,\n    size=0.8,\n    color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n) + ggsize(900, 700)\numap_grid\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>umaps</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/02_tsne.html",
+    "href": "examples/dimensional/02_tsne.html",
+    "title": "4  tsne",
+    "section": "",
+    "text": "4.0.1 By default, the tsne function will use “leiden” as the key\nplot = cl.tsne(data,axis_type=\"arrow\",size=0.6, interactive=True)\nplot",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>tsne</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/02_tsne.html#of-course-it-is-possible-to-customize-the-plot",
+    "href": "examples/dimensional/02_tsne.html#of-course-it-is-possible-to-customize-the-plot",
+    "title": "4  tsne",
+    "section": "4.1 Of course, it is possible to customize the plot",
+    "text": "4.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>tsne</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/02_tsne.html#you-can-also-use-a-gene-a-key.",
+    "href": "examples/dimensional/02_tsne.html#you-can-also-use-a-gene-a-key.",
+    "title": "4  tsne",
+    "section": "4.2 You can also use a gene a key.",
+    "text": "4.2 You can also use a gene a key.\n\ncl.tsne(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>tsne</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/02_tsnes.html",
+    "href": "examples/dimensional/02_tsnes.html",
+    "title": "5  tsnes",
+    "section": "",
+    "text": "5.1 tsnes is a multi-grid plot function and accepts multiple keys list or any iterable.\ntsne_grid = cl.tsnes(\n    data,\n    keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n    ncol=2,\n    size=0.8,\n    color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n) + ggsize(900, 700)\ntsne_grid\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsnes</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/03_pca.html",
+    "href": "examples/dimensional/03_pca.html",
+    "title": "6  pca",
+    "section": "",
+    "text": "6.0.1 By default, the pca function will use “leiden” as the key\nplot = cl.pca(data,axis_type=\"arrow\",size=0.6, interactive=True)\nplot",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>pca</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/03_pca.html#of-course-it-is-possible-to-customize-the-plot",
+    "href": "examples/dimensional/03_pca.html#of-course-it-is-possible-to-customize-the-plot",
+    "title": "6  pca",
+    "section": "6.1 Of course, it is possible to customize the plot",
+    "text": "6.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>pca</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/03_pca.html#you-can-also-use-a-gene-a-key.",
+    "href": "examples/dimensional/03_pca.html#you-can-also-use-a-gene-a-key.",
+    "title": "6  pca",
+    "section": "6.2 You can also use a gene a key.",
+    "text": "6.2 You can also use a gene a key.\n\ncl.pca(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>pca</span>"
+    ]
+  },
+  {
+    "objectID": "examples/dimensional/03_pcas.html",
+    "href": "examples/dimensional/03_pcas.html",
+    "title": "7  pcas",
+    "section": "",
+    "text": "7.1 pcas is a multi-grid plot function and accepts multiple keys list or any iterable.\numap_grid = cl.pcas(\n    data,\n    keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n    ncol=2,\n    size=0.8,\n    color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n) + ggsize(900, 700)\numap_grid\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Dimensional Reduction",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>pcas</span>"
+    ]
+  },
+  {
     "objectID": "examples/distribution/01_violin.html",
     "href": "examples/distribution/01_violin.html",
     "title": "8  Violin",
@@ -85,6 +217,28 @@
     "crumbs": [
       "Distribution",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Violin</span>"
+    ]
+  },
+  {
+    "objectID": "examples/distribution/01_violins.html",
+    "href": "examples/distribution/01_violins.html",
+    "title": "9  violins",
+    "section": "",
+    "text": "9.1 Instead of a single key, violins expects a list (iterable) of keys.",
+    "crumbs": [
+      "Distribution",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violins</span>"
+    ]
+  },
+  {
+    "objectID": "examples/distribution/01_violins.html#instead-of-a-single-key-violins-expects-a-list-iterable-of-keys.",
+    "href": "examples/distribution/01_violins.html#instead-of-a-single-key-violins-expects-a-list-iterable-of-keys.",
+    "title": "9  violins",
+    "section": "",
+    "text": "9.1.1 it will split the plot into ncol columns\n\ncl.violins(\n    data,\n    [\"n_genes_by_counts\", \"pct_counts_in_top_100_genes\", \"log1p_total_counts_mt\",\"pct_counts_hb\"],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
+    "crumbs": [
+      "Distribution",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violins</span>"
     ]
   },
   {
@@ -134,23 +288,23 @@
   {
     "objectID": "examples/distribution/02_boxplots.html",
     "href": "examples/distribution/02_boxplots.html",
-    "title": "11  Boxplot",
+    "title": "11  Boxplots",
     "section": "",
     "text": "11.1 Instead of a single key, boxplots expects a list (iterable) of keys.",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Boxplot</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Boxplots</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplots.html#instead-of-a-single-key-boxplots-expects-a-list-iterable-of-keys.",
     "href": "examples/distribution/02_boxplots.html#instead-of-a-single-key-boxplots-expects-a-list-iterable-of-keys.",
-    "title": "11  Boxplot",
+    "title": "11  Boxplots",
     "section": "",
     "text": "11.1.1 it will split the plot into ncol columns\n\ncl.boxplots(\n    data,\n    [\"n_genes_by_counts\", \"pct_counts_in_top_100_genes\", \"log1p_total_counts_mt\",\"pct_counts_hb\"],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Boxplot</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Boxplots</span>"
     ]
   },
   {
