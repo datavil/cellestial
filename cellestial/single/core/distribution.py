@@ -114,7 +114,7 @@ def violin(
         ggplot(data=frame)
         + geom_violin(
             data=frame,
-            mapping=aes(x=fill,y=key, color=color, fill=fill),
+            mapping=aes(x=fill, y=key, color=color, fill=fill),
             fill=violin_fill,
             color=violin_color,
             trim=trim,
@@ -127,7 +127,7 @@ def violin(
     if show_points:
         vln += geom_jitter(
             data=frame,
-            mapping=aes(x=fill,y=key),
+            mapping=aes(x=fill, y=key),
             color=point_color,
             alpha=point_alpha,
             size=point_size,
@@ -332,7 +332,7 @@ def boxplot(
         ggplot(data=frame)
         + geom_boxplot(
             data=frame,
-            mapping=aes(y=key, color=color, fill=fill),
+            mapping=aes(x=fill, y=key, color=color, fill=fill),
             fill=boxplot_fill,
             color=boxplot_color,
             tooltips=layer_tooltips(boxplot_tooltips),
@@ -344,7 +344,7 @@ def boxplot(
     if show_points:
         bxplt += geom_jitter(
             data=frame,
-            mapping=aes(y=key),
+            mapping=aes(x=fill, y=key),
             color=point_color,
             alpha=point_alpha,
             size=point_size,
@@ -382,7 +382,6 @@ def boxplots(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
-    trim: bool = False,
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
@@ -417,7 +416,6 @@ def boxplots(
                 point_color=point_color,
                 point_alpha=point_alpha,
                 point_size=point_size,
-                trim=trim,
                 show_tooltips=show_tooltips,
                 show_points=show_points,
                 add_tooltips=add_tooltips,

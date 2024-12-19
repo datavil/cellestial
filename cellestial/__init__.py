@@ -1,3 +1,5 @@
+import importlib.metadata
+
 from cellestial.single import (
     boxplot,
     boxplots,
@@ -16,6 +18,8 @@ from cellestial.single import (
     violins,
 )
 from cellestial.util import _add_arrow_axis, interactive
+
+__version__ = importlib.metadata.version("cellestial")
 
 __all__ = [
     "interactive",
