@@ -22,6 +22,6 @@ _THEME_DIMENSION = (
         # customize legend columns
 
     )
-    + ggsize(600, 400)
+    + ggsize(500, 400)
     + guides(color=guide_legend(ncol=2))
 )
