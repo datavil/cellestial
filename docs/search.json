@@ -178,45 +178,45 @@
   {
     "objectID": "examples/distribution/01_violin.html",
     "href": "examples/distribution/01_violin.html",
-    "title": "8  Violin",
+    "title": "8  violin",
     "section": "",
     "text": "8.1 A simple Violin Plot\ncl.violin(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"sample\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape = 1,\n)",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Violin</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html#fill-splits-the-data-as-in-ggplot2",
     "href": "examples/distribution/01_violin.html#fill-splits-the-data-as-in-ggplot2",
-    "title": "8  Violin",
+    "title": "8  violin",
     "section": "8.2 Fill splits the data as in ggplot2",
     "text": "8.2 Fill splits the data as in ggplot2\n\nplot = cl.violin(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"leiden\",\n    show_points=True,\n    scale=\"width\",\n)+ggsize(1000,400)\n\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Violin</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html#customize-the-plot",
     "href": "examples/distribution/01_violin.html#customize-the-plot",
-    "title": "8  Violin",
+    "title": "8  violin",
     "section": "8.3 Customize the plot",
     "text": "8.3 Customize the plot\n\nplot +=scale_fill_brewer(palette=\"Set2\")+scale_y_log2()\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Violin</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html#turn-it-into-a-interactive-plot",
     "href": "examples/distribution/01_violin.html#turn-it-into-a-interactive-plot",
-    "title": "8  Violin",
+    "title": "8  violin",
     "section": "8.4 Turn it into a interactive plot",
     "text": "8.4 Turn it into a interactive plot\nEven if you did not create the plot with interactive = True you can still make it interactive with +ggtb() by lets_plot.\n\nplot += ggtb()\nplot\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Violin</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
@@ -244,67 +244,67 @@
   {
     "objectID": "examples/distribution/02_boxplot.html",
     "href": "examples/distribution/02_boxplot.html",
-    "title": "10  Boxplot",
+    "title": "10  boxplot",
     "section": "",
     "text": "10.1 A simple boxplot\ncl.boxplot(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"sample\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape = 1,\n)",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Boxplot</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html#fill-splits-the-data-as-in-ggplot2",
     "href": "examples/distribution/02_boxplot.html#fill-splits-the-data-as-in-ggplot2",
-    "title": "10  Boxplot",
+    "title": "10  boxplot",
     "section": "10.2 Fill splits the data as in ggplot2",
     "text": "10.2 Fill splits the data as in ggplot2\n\nplot = cl.boxplot(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"leiden\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape = 1,\n)+ggsize(1000,400)\n\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Boxplot</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html#customize-the-plot",
     "href": "examples/distribution/02_boxplot.html#customize-the-plot",
-    "title": "10  Boxplot",
+    "title": "10  boxplot",
     "section": "10.3 Customize the plot",
     "text": "10.3 Customize the plot\n\nplot +=scale_fill_brewer(palette=\"Set2\")+scale_y_log2()\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Boxplot</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html#turn-it-into-a-interactive-plot",
     "href": "examples/distribution/02_boxplot.html#turn-it-into-a-interactive-plot",
-    "title": "10  Boxplot",
+    "title": "10  boxplot",
     "section": "10.4 Turn it into a interactive plot",
     "text": "10.4 Turn it into a interactive plot\nEven if you did not create the plot with interactive = True you can still make it interactive with +ggtb() by lets_plot.\n\nplot += ggtb()\nplot\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Boxplot</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplots.html",
     "href": "examples/distribution/02_boxplots.html",
-    "title": "11  Boxplots",
+    "title": "11  boxplots",
     "section": "",
     "text": "11.1 Instead of a single key, boxplots expects a list (iterable) of keys.",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Boxplots</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplots</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplots.html#instead-of-a-single-key-boxplots-expects-a-list-iterable-of-keys.",
     "href": "examples/distribution/02_boxplots.html#instead-of-a-single-key-boxplots-expects-a-list-iterable-of-keys.",
-    "title": "11  Boxplots",
+    "title": "11  boxplots",
     "section": "",
     "text": "11.1.1 it will split the plot into ncol columns\n\ncl.boxplots(\n    data,\n    [\"n_genes_by_counts\", \"pct_counts_in_top_100_genes\", \"log1p_total_counts_mt\",\"pct_counts_hb\"],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\nprint(\n    f\"lets_plot: {lets_plot.__version__}\",\n    f\"scanpy: {sc.__version__}\",\n    f\"cellestial: {cl.__version__}\",\n    sep=\"\\n\"\n)\n\nlets_plot: 4.5.2\nscanpy: 1.10.4\ncellestial: 0.1.4",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Boxplots</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplots</span>"
     ]
   },
   {
