@@ -10,7 +10,21 @@ book:
     - index.qmd
     - part: Introduction
       chapters:
-        - examples/overall.ipynb
+        - examples/00_overview.ipynb
+    - part: Dimensional Reduction
+      chapters:
+        - examples/dimensional/01_umap.ipynb
+        - examples/dimensional/01_umaps.ipynb
+        - examples/dimensional/02_tsne.ipynb
+        - examples/dimensional/02_tsnes.ipynb
+        - examples/dimensional/03_pca.ipynb
+        - examples/dimensional/03_pcas.ipynb
+    - part: Distribution
+      chapters:
+        - examples/distribution/01_violin.ipynb
+        - examples/distribution/01_violins.ipynb
+        - examples/distribution/02_boxplot.ipynb
+        - examples/distribution/02_boxplots.ipynb
 
 
 format:
@@ -21,4 +35,3 @@ format:
     highlight-style: github
     css: custom.css
     monofont: "CascadiaLessBold"
-    # code-block-bg: "#262335" 
