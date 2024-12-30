@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Iterable
+
 import polars as pl
 from lets_plot import *
 from lets_plot import (
@@ -17,8 +21,8 @@ def _add_arrow_axis(
     arrow_size: float,
     arrow_color: str,
     arrow_angle: float,
-    arrow_length:float,
-    dimensions:str
+    arrow_length: float,
+    dimensions: str,
 ):
     if axis_type is None:
         return theme(
@@ -88,3 +92,25 @@ def _add_arrow_axis(
         raise ValueError(msg)
 
     return new_layer
+
+
+def _decide_tooltips(
+    base_tooltips: Iterable[str],
+    add_tooltips: Iterable[str],
+    custom_tooltips: Iterable[str],
+    *,
+    show_tooltips: bool,
+) -> list[str]:
+    # handle tooltips
+    base_tooltips = []
+    if not show_tooltips:
+        tooltips = "none"  # for letsplot, this removes the tooltips
+    else:
+        if isinstance(custom_tooltips, Iterable):
+            tooltips = list(custom_tooltips)
+        elif isinstance(add_tooltips, Iterable):
+            tooltips = base_tooltips + list(add_tooltips)
+        else:
+            tooltips = base_tooltips
+
+    return tooltips
