@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import log10
 from typing import Iterable
 
 import polars as pl
@@ -114,3 +115,20 @@ def _decide_tooltips(
             tooltips = base_tooltips
 
     return tooltips
+
+def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
+    decimals = 0
+    if stop - start < 1:
+        if stop - start == 0:
+            return [start]
+        decimals = -round(log10(stop - start)) + 1
+
+    diff = round(stop - start, decimals)
+    increment = round(diff / (step - 1), decimals + 1)
+    inc_list = []
+
+    for i in range(step):
+        inc_list.append(round(start + increment * i, decimals + 2))
+    # make unique
+    inc_list = list(set(inc_list))
+    return sorted(inc_list)
