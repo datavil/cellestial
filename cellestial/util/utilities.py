@@ -102,8 +102,6 @@ def _decide_tooltips(
     *,
     show_tooltips: bool,
 ) -> list[str]:
-    # handle tooltips
-    base_tooltips = []
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
