@@ -34,4 +34,10 @@ format:
       dark: Vapor
     highlight-style: github
     css: custom.css
-    monofont: "CascadiaLessBold"
+
+website:
+  page-footer: "Copyright 2024, Zafer Kosar" 
+  navbar:
+    tools:
+      - icon: github
+      - href: https://github.com/DataVil/Cellestial

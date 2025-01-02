@@ -5,3 +5,7 @@ Cellestial
 <p align="center">
     <img src="https://github.com/datavil/cellestial/blob/master/assets/cellestial_logo.png?raw=true" alt="Cellestial Logo" width="250">
 </p>
+
+<p align="center">
+    <img src="https://github.com/datavil/cellestial/blob/master/assets/overall.png?raw=true" alt="Cellestial Logo" width="800">
+</p>
