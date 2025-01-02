@@ -18,7 +18,7 @@ Name Encuplates: Space (of Spatial), Scatters of Stars, and of course Cells.
 pip install cellestial
 ```
 
-<img src="./assets/overall.png" alt="tooltips" width="500">
+<img src="./assets/overall.png" alt="multipanel" width="600">
 
 ## Usage
 
