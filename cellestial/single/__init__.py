@@ -15,6 +15,7 @@ from cellestial.single.core import (
     violin,
     violins,
 )
+from cellestial.single.special import dotplot
 
 __all__ = [
     "dimensional",
@@ -32,4 +33,5 @@ __all__ = [
     "violins",
     "boxplot",
     "boxplots",
+    "dotplot",
 ]
