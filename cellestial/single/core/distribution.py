@@ -79,7 +79,7 @@ def violin(
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
-    else:
+    else: # overwrite by point_kwargs
         if "color" in point_kwargs:
             point_color = point_kwargs.get("color")
         if "alpha" in point_kwargs:
