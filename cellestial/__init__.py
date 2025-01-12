@@ -1,5 +1,4 @@
-import importlib.metadata
-
+from cellestial._version import __version__, versions
 from cellestial.single import (
     boxplot,
     boxplots,
@@ -20,8 +19,6 @@ from cellestial.single import (
 )
 from cellestial.util import _add_arrow_axis, interactive
 
-__version__ = importlib.metadata.version("cellestial")
-
 __all__ = [
     "interactive",
     "_add_arrow_axis",
@@ -41,4 +38,5 @@ __all__ = [
     "boxplot",
     "boxplots",
     "dotplot",
+    "versions",
 ]
