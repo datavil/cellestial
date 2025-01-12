@@ -1,15 +1,4 @@
 @font-face {
-    font-family: "CascadiaSemiBold";
-    src: url("/MonoFont/CascadiaMono-SemiBold.otf");
-  }
-
-
-@font-face {
-    font-family: "CascadiaMono";
-    src: url("/MonoFont/CascadiaMono.ttf");
-}
-
-@font-face {
     font-family: "JetBrainsMono";
     src: url("/MonoFont/JetBrainsMono-Regular.ttf");
 }
@@ -20,12 +9,11 @@
 }
 
 .cell {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important; /* Ensure shadow applies */
-    border-radius: 5px !important; /* Override rounded corners */
-    border-color: #ffffff !important;
-  }
-  
-  .cell .sourceCode {
-    background-color: #ffffff !important; /* Override source code background */
-  }
-  
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important; /* Ensure shadow applies */
+  border-radius: 5px !important; /* Override rounded corners */
+  border-color: #ffffff !important;
+}
+
+/* .cell .sourceCode {
+  background-color: #ffffff !important; 
+} */

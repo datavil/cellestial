@@ -43,7 +43,7 @@ format:
       dark: darkly
     highlight-style: github
     monofont: "JetBrainsMonoSemiBold"
-    code-fold: show
+    code-fold: false
     css: custom.css
 
 
