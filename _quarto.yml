@@ -25,19 +25,26 @@ book:
         - examples/distribution/01_violins.ipynb
         - examples/distribution/02_boxplot.ipynb
         - examples/distribution/02_boxplots.ipynb
+  page-footer: "Copyright 2024, Zafer Kosar"
+  page-navigation: true
+  navbar:
+    logo: assets/cellestial_logo.png
+    background: primary
+    search: true
+    right:
+      - icon: github
+        href: https://github.com/DataVil/Cellestial
 
 
 format:
   html:
     theme: 
-      light: Cosmo
-      dark: Vapor
+      light: cosmo
+      dark: darkly
     highlight-style: github
+    monofont: "JetBrainsMonoSemiBold"
+    code-fold: show
     css: custom.css
 
-website:
-  page-footer: "Copyright 2024, Zafer Kosar" 
-  navbar:
-    tools:
-      - icon: github
-      - href: https://github.com/DataVil/Cellestial
+
+    
