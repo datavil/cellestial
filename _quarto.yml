@@ -41,10 +41,11 @@ format:
     theme: 
       light: cosmo
       dark: darkly
-    highlight-style: github
+    highlight-style: github-light
     monofont: "JetBrainsMonoSemiBold"
     code-fold: false
     css: custom.css
+    code-copy: true
 
 
     
