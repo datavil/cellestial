@@ -305,8 +305,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <div id="cell-1" class="cell" data-execution_count="7">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cellestial <span class="im">as</span> cl</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> scanpy <span class="im">as</span> sc</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lets_plot <span class="im">import</span> <span class="op">*</span></span>
@@ -314,7 +312,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>LetsPlot.setup_html()</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> sc.read(<span class="st">"data/pbmc3k_pped.h5ad"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display">
 
             <div id="a4rgti"></div>
@@ -353,11 +350,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="by-default-the-pca-function-will-use-leiden-as-the-key" class="level3" data-number="6.0.1">
 <h3 data-number="6.0.1" class="anchored" data-anchor-id="by-default-the-pca-function-will-use-leiden-as-the-key"><span class="header-section-number">6.0.1</span> By default, the <code>pca</code> function will use “leiden” as the key</h3>
 <div id="cell-3" class="cell" data-execution_count="8">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">=</span> cl.pca(data, axis_type<span class="op">=</span><span class="st">"arrow"</span>, size<span class="op">=</span><span class="fl">0.6</span>, interactive<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="8">
    <div id="4SCjEm"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -573,10 +567,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="of-course-it-is-possible-to-customize-the-plot" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="of-course-it-is-possible-to-customize-the-plot"><span class="header-section-number">6.1</span> Of course, it is possible to customize the plot</h2>
 <div id="cell-5" class="cell" data-execution_count="9">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+</span> scale_color_hue()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="9">
    <div id="NrPndX"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -795,10 +786,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="you-can-also-use-a-gene-a-key." class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="you-can-also-use-a-gene-a-key."><span class="header-section-number">6.2</span> You can also use a gene a key.</h2>
 <div id="cell-7" class="cell" data-execution_count="10">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>cl.pca(data, <span class="st">"NEAT1"</span>, color_high<span class="op">=</span><span class="st">"#D2042D"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="10">
    <div id="jfboBR"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -956,10 +944,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div id="cell-8" class="cell" data-execution_count="11">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>cl.versions()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>cellestial: 0.2.0
 scanpy: 1.10.4

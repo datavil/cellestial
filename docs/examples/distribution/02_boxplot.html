@@ -306,8 +306,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <div id="cell-1" class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cellestial <span class="im">as</span> cl</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> scanpy <span class="im">as</span> sc</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lets_plot <span class="im">import</span> <span class="op">*</span></span>
@@ -315,7 +313,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>LetsPlot.setup_html()</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> sc.read(<span class="st">"data/pbmc3k_mini.h5ad"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display">
 
             <div id="67v2KL"></div>
@@ -422,8 +419,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="a-simple-boxplot" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="a-simple-boxplot"><span class="header-section-number">10.1</span> A simple boxplot</h2>
 <div id="cell-3" class="cell" data-execution_count="3">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>cl.boxplot(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pct_counts_in_top_50_genes"</span>,</span>
@@ -432,7 +427,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    show_points<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    outlier_shape<span class="op">=</span><span class="dv">1</span>,</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="3">
    <div id="dkmBUJ"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -847,8 +841,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="fill-splits-the-data-as-in-ggplot2" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="fill-splits-the-data-as-in-ggplot2"><span class="header-section-number">10.2</span> Fill splits the data as in ggplot2</h2>
 <div id="cell-5" class="cell" data-execution_count="4">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">=</span> cl.boxplot(</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pct_counts_in_top_50_genes"</span>,</span>
@@ -859,7 +851,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>) <span class="op">+</span> ggsize(<span class="dv">1000</span>, <span class="dv">400</span>)</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="4">
    <div id="KopAfN"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -1280,11 +1271,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="customize-the-plot" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="customize-the-plot"><span class="header-section-number">10.3</span> Customize the plot</h2>
 <div id="cell-7" class="cell" data-execution_count="5">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+=</span> scale_fill_brewer(palette<span class="op">=</span><span class="st">"Set2"</span>) <span class="op">+</span> scale_y_log2()</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="5">
    <div id="B3vjMv"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -1713,11 +1701,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="10.4" class="anchored" data-anchor-id="turn-it-into-a-interactive-plot"><span class="header-section-number">10.4</span> Turn it into a interactive plot</h2>
 <p>Even if you did not create the plot with <code>interactive = True</code> you can still make it interactive with <code>+ggtb()</code> by lets_plot.</p>
 <div id="cell-10" class="cell" data-execution_count="6">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>plot <span class="op">+=</span> ggtb()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="6">
    <div id="vo0jxR"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
@@ -2154,10 +2139,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div id="cell-11" class="cell" data-execution_count="7">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cl.versions()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>cellestial: 0.2.0
 scanpy: 1.10.4
