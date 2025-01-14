@@ -6,6 +6,10 @@ book:
   title: "Cellestial"
   author: "Zafer Kosar"
   date: "25/11/2024"
+  sidebar:
+    style: "docked"
+    search: true
+
   chapters:
     - index.qmd
     - part: Introduction
@@ -46,6 +50,10 @@ format:
     code-fold: false
     css: custom.css
     code-copy: true
+    grid:
+      sidebar-width: 400px
+
+
 
 
     

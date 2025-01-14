@@ -17,3 +17,7 @@
 .cell .sourceCode {
   border-color: #6f6f6f !important; 
 }
+
+.sidebar {
+  font-size: 1.4em !important; /* Adjust the value as needed */
+}
