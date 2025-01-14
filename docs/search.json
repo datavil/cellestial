@@ -2,45 +2,45 @@
   {
     "objectID": "examples/00_overview.html",
     "href": "examples/00_overview.html",
-    "title": "1  Cellestial Overview",
+    "title": "1  Overview",
     "section": "",
     "text": "1.1 Tooltips\nBy default, cellestial produces HTML plots with geoms reveal tooltips when hovering.\nplot = cl.dimensional(\n    data, dimensions=\"umap\", key=\"leiden\", size=0.6, axis_type=\"arrow\"\n)\nplot\ndimensional plot produces dimensionalilty reduction plots by taking dimensions argument. Yet, the subset of plots pca, umap and tsne are also available.\nAlso, the expression plot is also a subset of dimensional plot but it only works with genes.",
     "crumbs": [
       "Introduction",
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Cellestial Overview</span>"
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Overview</span>"
     ]
   },
   {
     "objectID": "examples/00_overview.html#zooming-and-paning",
     "href": "examples/00_overview.html#zooming-and-paning",
-    "title": "1  Cellestial Overview",
+    "title": "1  Overview",
     "section": "1.2 Zooming and Paning",
     "text": "1.2 Zooming and Paning\nThere are also zoomable and panable if specified.\n\nplot = cl.dimensional(\n    data,\n    dimensions=\"umap\",\n    key=\"leiden\",\n    size=0.6,\n    interactive=True,\n    axis_type=\"arrow\",\n)\nplot\n\n   \n   \n\n\nNote that this functionality can be added via + ggtb() layer of lets_plot.",
     "crumbs": [
       "Introduction",
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Cellestial Overview</span>"
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Overview</span>"
     ]
   },
   {
     "objectID": "examples/00_overview.html#high-customizability",
     "href": "examples/00_overview.html#high-customizability",
-    "title": "1  Cellestial Overview",
+    "title": "1  Overview",
     "section": "1.3 High Customizability",
     "text": "1.3 High Customizability\nCellestial uses Lets-Plot, a ggplot2 impelementation in Pyton. As such, it allows adding or changing layers. Including color palettes, titles, labels, size etc., .\nHere an example with switching color palette to hue which is also the ggplot2 and Seurat defaults. Also, other theme() based customizations are given as examples.\n\ngggrid(\n    [\n        plot + scale_color_hue() + labs(title=\"Change color palette\"),\n        plot\n        + theme(legend_text=element_text(size=15))\n        + labs(title=\"Change legend text size\"),\n        plot\n        + theme(axis_title=element_blank())\n        + labs(title=\"Remove axis titles\"),\n    ],\n    ncol=2,\n) + ggsize(1000, 800)\n\n   \n   \n\n\nIndeed, you can modify the size.\n\nplot += ggsize(500, 400)\nplot",
     "crumbs": [
       "Introduction",
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Cellestial Overview</span>"
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Overview</span>"
     ]
   },
   {
     "objectID": "examples/00_overview.html#multi-plots",
     "href": "examples/00_overview.html#multi-plots",
-    "title": "1  Cellestial Overview",
+    "title": "1  Overview",
     "section": "1.4 Multi-Plots",
     "text": "1.4 Multi-Plots\nMulti-plots uses dimensional plot and grids list of keys given.\nWhile single-plot functions which generate a single-plot object, Multi-plot functions have plural names which provides predictable behaviors.\nSo, pca becomes pcas, umap becomes umaps, tsne becomes tsnes etc., for multi-plots.\n\numap_grid = (\n    cl.umaps(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.6,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\numap_grid\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Introduction",
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Cellestial Overview</span>"
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Overview</span>"
     ]
   },
   {
