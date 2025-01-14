@@ -39,7 +39,7 @@ book:
 format:
   html:
     theme: 
-      light: cosmo
+      light: flatly
       dark: darkly
     highlight-style: github-light
     monofont: "JetBrainsMonoSemiBold"
