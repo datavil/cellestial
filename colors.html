@@ -1,0 +1,419 @@
+<html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <style> html, body { margin: 0; padding: 0; } </style>
+       <script type="text/javascript" data-lets-plot-script="library" src="https://cdn.jsdelivr.net/gh/JetBrains/lets-plot@v4.5.2/js-package/distr/lets-plot.min.js"></script>
+   </head>
+   <body>
+          <div id="XF0Hq1"></div>
+   <script type="text/javascript" data-lets-plot-script="plot">
+   
+   (function() {
+   // ----------
+   
+   var containerDiv = document.getElementById("XF0Hq1");
+   var observer = new ResizeObserver(function(entries) {
+       for (let entry of entries) {
+           var width = containerDiv.clientWidth
+           if (entry.contentBoxSize && width > 0) {
+           
+               // Render plot
+               if (observer) {
+                   observer.disconnect();
+                   observer = null;
+               }
+
+               var plotSpec={
+"ggsize":{
+"width":600.0,
+"height":400.0
+},
+"kind":"subplots",
+"layout":{
+"ncol":3.0,
+"nrow":2.0,
+"hspace":0.0,
+"vspace":0.0,
+"name":"grid"
+},
+"figures":[{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank"
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#219B9D",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"TEAL\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#219B9D",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"1"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank"
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#D2042D",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"RED\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#D2042D",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"2"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank"
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#AF1740",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"CHERRY\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#AF1740",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"3"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank"
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#377EB8",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"BLUE\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#377EB8",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"4"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank"
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#E6E6E6",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"LIGHT_GRAY\n",
+"color":"black",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#E6E6E6",
+"color":"black",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"5"
+},"blank"]
+};
+       
+               var toolbar = null;
+               var plotContainer = containerDiv;               
+               
+               var options = {
+                   sizing: {
+                       width_mode: "min",
+                       height_mode: "scaled",
+                       width: width
+                   }
+               };
+               var fig = LetsPlot.buildPlotFromProcessedSpecs(plotSpec, -1, -1, plotContainer, options);
+               if (toolbar) {
+                 toolbar.bind(fig);
+               }
+               
+               break;
+           }
+       }
+   });
+   
+   observer.observe(containerDiv);
+   
+   // ----------
+   })();
+   
+   </script>
+   </body>
+</html>
