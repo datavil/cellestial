@@ -4,6 +4,15 @@ LetsPlot.setup_html()
 
 # Hand-picked colors for cellestial
 TEAL = "#219B9D"
+BLUE = "#377EB8"
+RED = "#D2042D"
+CHERRY = "#AF1740"
+LIGHT_GRAY = "#E6E6E6"
+SNOW = "#F9F9F9"
+PURPLE = "#640D5F"
+PINK = "#E73879"
+ORANGE = "#F14A00"
+TEAL = "#219B9D"
 RED = "#D2042D"
 CHERRY = "#AF1740"
 BLUE = "#377EB8"
@@ -11,11 +20,21 @@ LIGHT_GRAY = "#E6E6E6"
 
 
 def show_colors():
-    colors = {"TEAL": TEAL, "RED": RED, "CHERRY": CHERRY, "BLUE": BLUE, "LIGHT_GRAY": LIGHT_GRAY}
+    colors = {
+        "TEAL": TEAL,
+        "RED": RED,
+        "LIGHT_GRAY": LIGHT_GRAY,
+        "BLUE": BLUE,
+        "CHERRY": CHERRY,
+        "SNOW": SNOW,
+        "PURPLE": PURPLE,
+        "PINK": PINK,
+        "ORANGE": ORANGE,
+    }
 
     plots = []
     for color in colors:
-        text_color = "white" if color != "LIGHT_GRAY" else "black"
+        text_color = "white" if color != "LIGHT_GRAY" and color != "SNOW" else "black"
 
         plot = (
             ggplot({"x": [1], "y": [1]})
@@ -37,6 +56,7 @@ def show_colors():
                 family="sans-serif",
             )
             + theme_void()
+            + theme(panel_background=element_rect(color=colors[color], size=13))
         )
         plots.append(plot)
 
@@ -46,6 +66,8 @@ def show_colors():
         nrow += 1
 
     return gggrid(plots, ncol=3, hspace=0, vspace=0) + ggsize(ncol * 200, nrow * 200)
+
+
 
 
 if __name__ == "__main__":
