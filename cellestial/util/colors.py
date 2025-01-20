@@ -1,4 +1,15 @@
-from lets_plot import *
+from lets_plot import (
+    LetsPlot,
+    aes,
+    element_rect,
+    geom_point,
+    geom_text,
+    gggrid,
+    ggplot,
+    ggsize,
+    theme,
+    theme_void,
+)
 
 LetsPlot.setup_html()
 
