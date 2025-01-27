@@ -10,6 +10,7 @@ from cellestial.single import (
     expressions,
     pca,
     pcas,
+    scatter,
     tsne,
     tsnes,
     umap,
@@ -46,4 +47,5 @@ __all__ = [
     "BLUE",
     "LIGHT_GRAY",
     "show_colors",
+    "scatters",
 ]
