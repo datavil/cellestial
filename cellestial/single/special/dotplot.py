@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any
 
 import polars as pl
-import scanpy as sc
+from anndata import AnnData
 from lets_plot import (
     LetsPlot,
     aes,
@@ -26,7 +26,6 @@ from lets_plot import (
     theme_classic,
 )
 from lets_plot.plot.core import PlotSpec
-from scanpy import AnnData
 
 from cellestial.util import _decide_tooltips, _range_inclusive
 
@@ -172,7 +171,7 @@ def dotplot(
         show_tooltips=show_tooltips,
     )
 
-    if use_raw:
+    if use_raw: # TO BE CHANGED (to layer)
         matrix = data.raw.X.toarray()
         if threshold is None:
             threshold = 0
@@ -205,11 +204,17 @@ def dotplot(
     return dtplt
 
 
-if __name__ == "__main__":
+def test():
+    import scanpy as sc
+
     LetsPlot.setup_html()
     data = sc.read("data/pbmc3k_pped.h5ad")
     keys = data.var_names[-10:].tolist()
     group_by = "leiden"
     gene_indexes = data.var_names.get_indexer(keys)
     frame = dotplot(data, keys, group_by, use_raw=True, stroke=0.5)
-    frame.to_svg("dotplot.svg")
+    frame.to_svg("testplots/dotplot.svg")
+
+
+if __name__ == "__main__":
+    test()

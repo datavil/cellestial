@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 # Core scverse libraries
 import polars as pl
+from anndata import AnnData
 
 # Data retrieval
-import scanpy as sc
 from lets_plot import (
     LetsPlot,
     aes,
@@ -24,7 +24,6 @@ from lets_plot import (
     layer_tooltips,
 )
 from lets_plot.plot.core import PlotSpec
-from scanpy import AnnData
 
 from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
 
@@ -55,7 +54,7 @@ def violin(
     **violin_kwargs: dict[str, Any],
 ) -> PlotSpec:
     # check if data is an AnnData object
-    if not isinstance(data, sc.AnnData):
+    if not isinstance(data, AnnData):
         msg = "data must be an AnnData object"
         raise TypeError(msg)
     else:
@@ -271,7 +270,7 @@ def boxplot(
     **boxplot_kwargs: dict[str, Any],
 ) -> PlotSpec:
     # check if data is an AnnData object
-    if not isinstance(data, sc.AnnData):
+    if not isinstance(data, AnnData):
         msg = "data must be an AnnData object"
         raise TypeError(msg)
     else:

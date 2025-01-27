@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Literal
 
 from cellestial.single.core.dimensional import dimensional
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from anndata import AnnData
     from lets_plot.plot.core import PlotSpec
-    from scanpy import AnnData
 
 
 def umap(
