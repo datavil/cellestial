@@ -9,8 +9,8 @@ from cellestial.single.core.dimensional import dimensional, expression
 from cellestial.single.core.subdimensional import pca, tsne, umap
 
 if TYPE_CHECKING:
+    from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
-    from scanpy import AnnData
 
 
 def _share_labels(plot, i: int, keys: list[str], ncol: int):

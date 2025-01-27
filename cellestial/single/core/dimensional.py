@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any, Literal
 
 # Core scverse libraries
 import polars as pl
+from anndata import AnnData
 
 # Data retrieval
-import scanpy as sc
 from lets_plot import (
     LetsPlot,
     aes,
@@ -23,7 +23,6 @@ from lets_plot import (
     scale_color_continuous,
 )
 from lets_plot.plot.core import PlotSpec
-from scanpy import AnnData
 
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis
@@ -92,7 +91,6 @@ def dimensional(
             tooltips = base_tooltips + list(add_tooltips)
         else:
             tooltips = base_tooltips
-
 
     # get the coordinates of the cells in the dimension reduced space
     # -------------------------- IF IT IS A CLUSTER --------------------------
@@ -296,6 +294,8 @@ def test_dimension():
     import os
     from pathlib import Path
 
+    import scanpy as sc
+
     os.chdir(Path(__file__).parent.parent.parent.parent)  # to project root
     data = sc.read("data/pbmc3k_pped.h5ad")
 
@@ -310,6 +310,8 @@ def test_dimension():
 def test_expression():
     import os
     from pathlib import Path
+
+    import scanpy as sc
 
     os.chdir(Path(__file__).parent.parent.parent.parent)  # to project root
     data = sc.read("data/pbmc3k_pped.h5ad")

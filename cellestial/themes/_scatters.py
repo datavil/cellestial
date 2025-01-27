@@ -1,8 +1,7 @@
 from lets_plot import (
     element_text,
     ggsize,
-    guide_legend,
-    guides,
+    scale_color_viridis,
     theme,
     theme_classic,
 )
@@ -10,7 +9,6 @@ from lets_plot import (
 _THEME_DIMENSION = (
     theme_classic()
     + theme(
-
         # customize all text
         text=element_text(color="#1f1f1f", family="Arial"),
         # customize all titles (includes legend)
@@ -20,16 +18,13 @@ _THEME_DIMENSION = (
         # customize legend text
         legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
         # customize legend columns
-
     )
     + ggsize(500, 400)
-    + guides(color=guide_legend(ncol=2))
 )
 
 _THEME_SCATTER = (
     theme_classic()
     + theme(
-
         # customize all text
         text=element_text(color="#1f1f1f", family="Arial"),
         # customize all titles (includes legend)
@@ -39,7 +34,7 @@ _THEME_SCATTER = (
         # customize legend text
         legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
         # customize legend columns
-
     )
     + ggsize(500, 400)
+    + scale_color_viridis()
 )

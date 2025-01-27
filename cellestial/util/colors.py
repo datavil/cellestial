@@ -79,7 +79,5 @@ def show_colors():
     return gggrid(plots, ncol=3, hspace=0, vspace=0) + ggsize(ncol * 200, nrow * 200)
 
 
-
-
 if __name__ == "__main__":
     show_colors().to_html("colors.html")
