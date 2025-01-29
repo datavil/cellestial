@@ -1,20 +1,10 @@
 [
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Cellestial",
-    "section": "",
-    "text": "Preface\nCellestial is a single-cell and spatial biology data visualization library. It produces publication-quality figures through a ggplot2-like API of Lets-Plot and provides extensive customization options and creates interactive figures for exploration.",
-    "crumbs": [
-      "Preface"
-    ]
-  },
-  {
     "objectID": "examples/00_overview.html",
     "href": "examples/00_overview.html",
     "title": "1  Overview",
     "section": "",
-    "text": "1.1 Tooltips\nCellestial is an interactive single-cell plotting library.\nBy default, cellestial produces HTML plots with geoms reveal tooltips when hovering.\nplot = cl.dimensional(\n    data, dimensions=\"umap\", key=\"leiden\", size=0.6, axis_type=\"arrow\"\n)\nplot\ndimensional plot produces dimensionalilty reduction plots by taking dimensions argument. Yet, the subset of plots pca, umap and tsne are also available.\nAlso, the expression plot is also a subset of dimensional plot but it only works with genes.",
+    "text": "1.1 Tooltips\nBy default, cellestial produces HTML plots with geoms reveal tooltips when hovering.\nplot = cl.dimensional(\n    data, dimensions=\"umap\", key=\"leiden\", size=0.6, axis_type=\"arrow\"\n)\nplot\ndimensional plot produces dimensionalilty reduction plots by taking dimensions argument. Yet, the subset of plots pca, umap and tsne are also available.\nAlso, the expression plot is also a subset of dimensional plot but it only works with genes.",
     "crumbs": [
       "Introduction",
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Overview</span>"
@@ -326,6 +316,16 @@
     "crumbs": [
       "Distribution",
       "<span class='chapter-number'>12</span>  <span class='chapter-title'>boxplots</span>"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Cellestial",
+    "section": "",
+    "text": "Preface\nCellestial is a single-cell and spatial biology data visualization library. It produces publication-quality figures through a ggplot2-like API of Lets-Plot and provides extensive customization options and creates interactive figures for exploration.",
+    "crumbs": [
+      "Preface"
     ]
   }
 ]
