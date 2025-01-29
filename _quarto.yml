@@ -15,6 +15,9 @@ book:
     - part: Introduction
       chapters:
         - examples/00_overview.ipynb
+    - part: Basic
+      chapters:
+        - examples/basic/01_scatter.ipynb
     - part: Dimensional Reduction
       chapters:
         - examples/dimensional/01_umap.ipynb
