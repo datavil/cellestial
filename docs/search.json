@@ -1,10 +1,20 @@
 [
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Cellestial",
+    "section": "",
+    "text": "Preface\nCellestial is a single-cell and spatial biology data visualization library. It produces publication-quality figures through a ggplot2-like API of Lets-Plot and provides extensive customization options and creates interactive figures for exploration.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
     "objectID": "examples/00_overview.html",
     "href": "examples/00_overview.html",
     "title": "1  Overview",
     "section": "",
-    "text": "1.1 Tooltips\nBy default, cellestial produces HTML plots with geoms reveal tooltips when hovering.\nplot = cl.dimensional(\n    data, dimensions=\"umap\", key=\"leiden\", size=0.6, axis_type=\"arrow\"\n)\nplot\ndimensional plot produces dimensionalilty reduction plots by taking dimensions argument. Yet, the subset of plots pca, umap and tsne are also available.\nAlso, the expression plot is also a subset of dimensional plot but it only works with genes.",
+    "text": "1.1 Tooltips\nCellestial is an interactive single-cell plotting library.\nBy default, cellestial produces HTML plots with geoms reveal tooltips when hovering.\nplot = cl.dimensional(\n    data, dimensions=\"umap\", key=\"leiden\", size=0.6, axis_type=\"arrow\"\n)\nplot\ndimensional plot produces dimensionalilty reduction plots by taking dimensions argument. Yet, the subset of plots pca, umap and tsne are also available.\nAlso, the expression plot is also a subset of dimensional plot but it only works with genes.",
     "crumbs": [
       "Introduction",
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Overview</span>"
@@ -44,277 +54,278 @@
     ]
   },
   {
+    "objectID": "examples/basic/01_scatter.html",
+    "href": "examples/basic/01_scatter.html",
+    "title": "2  scatter",
+    "section": "",
+    "text": "2.1 A simple scatter plot\nA scatter plot is a type of plot that displays the relationship between two quantitative variables. The scatter plot is useful for visualizing the relationship between two continuous variables.\ncl.scatter(\n    data,\n    x=\"pct_counts_mt\",\n    y=\"total_counts_ribo\",\n    aes_color=\"n_genes_by_counts\",\n    size=3,\n) + scale_y_log10() + ggsize(600, 400)\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "crumbs": [
+      "Basic",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>scatter</span>"
+    ]
+  },
+  {
     "objectID": "examples/dimensional/01_umap.html",
     "href": "examples/dimensional/01_umap.html",
-    "title": "2  umap",
+    "title": "3  umap",
     "section": "",
-    "text": "2.0.1 By default, the umap function will use “leiden” as the key\nplot = cl.umap(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
+    "text": "3.0.1 By default, the umap function will use “leiden” as the key\nplot = cl.umap(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>umap</span>"
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>umap</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/01_umap.html#of-course-it-is-possible-to-customize-the-plot",
     "href": "examples/dimensional/01_umap.html#of-course-it-is-possible-to-customize-the-plot",
-    "title": "2  umap",
-    "section": "2.1 Of course, it is possible to customize the plot",
-    "text": "2.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
+    "title": "3  umap",
+    "section": "3.1 Of course, it is possible to customize the plot",
+    "text": "3.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>umap</span>"
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>umap</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/01_umap.html#you-can-also-use-a-gene-a-key.",
     "href": "examples/dimensional/01_umap.html#you-can-also-use-a-gene-a-key.",
-    "title": "2  umap",
-    "section": "2.2 You can also use a gene a key.",
-    "text": "2.2 You can also use a gene a key.\n\ncl.umap(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "title": "3  umap",
+    "section": "3.2 You can also use a gene a key.",
+    "text": "3.2 You can also use a gene a key.\n\ncl.umap(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>umap</span>"
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>umap</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/01_umaps.html",
     "href": "examples/dimensional/01_umaps.html",
-    "title": "3  umaps",
+    "title": "4  umaps",
     "section": "",
-    "text": "3.1 umaps is a multi-grid plot function and accepts multiple keys list or any iterable.\numap_grid = (\n    cl.umaps(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.8,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\numap_grid\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "4.1 umaps is a multi-grid plot function and accepts multiple keys list or any iterable.\numap_grid = (\n    cl.umaps(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.8,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\numap_grid\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>3</span>  <span class='chapter-title'>umaps</span>"
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>umaps</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/02_tsne.html",
     "href": "examples/dimensional/02_tsne.html",
-    "title": "4  tsne",
+    "title": "5  tsne",
     "section": "",
-    "text": "4.0.1 By default, the tsne function will use “leiden” as the key\nplot = cl.tsne(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
+    "text": "5.0.1 By default, the tsne function will use “leiden” as the key\nplot = cl.tsne(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>tsne</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsne</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/02_tsne.html#of-course-it-is-possible-to-customize-the-plot",
     "href": "examples/dimensional/02_tsne.html#of-course-it-is-possible-to-customize-the-plot",
-    "title": "4  tsne",
-    "section": "4.1 Of course, it is possible to customize the plot",
-    "text": "4.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
+    "title": "5  tsne",
+    "section": "5.1 Of course, it is possible to customize the plot",
+    "text": "5.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>tsne</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsne</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/02_tsne.html#you-can-also-use-a-gene-a-key.",
     "href": "examples/dimensional/02_tsne.html#you-can-also-use-a-gene-a-key.",
-    "title": "4  tsne",
-    "section": "4.2 You can also use a gene a key.",
-    "text": "4.2 You can also use a gene a key.\n\ncl.tsne(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "title": "5  tsne",
+    "section": "5.2 You can also use a gene a key.",
+    "text": "5.2 You can also use a gene a key.\n\ncl.tsne(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>tsne</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsne</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/02_tsnes.html",
     "href": "examples/dimensional/02_tsnes.html",
-    "title": "5  tsnes",
+    "title": "6  tsnes",
     "section": "",
-    "text": "5.1 tsnes is a multi-grid plot function and accepts multiple keys list or any iterable.\ntsne_grid = (\n    cl.tsnes(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.8,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\ntsne_grid\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "6.1 tsnes is a multi-grid plot function and accepts multiple keys list or any iterable.\ntsne_grid = (\n    cl.tsnes(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.8,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\ntsne_grid\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsnes</span>"
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>tsnes</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/03_pca.html",
     "href": "examples/dimensional/03_pca.html",
-    "title": "6  pca",
+    "title": "7  pca",
     "section": "",
-    "text": "6.0.1 By default, the pca function will use “leiden” as the key\nplot = cl.pca(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
+    "text": "7.0.1 By default, the pca function will use “leiden” as the key\nplot = cl.pca(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>pca</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>pca</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/03_pca.html#of-course-it-is-possible-to-customize-the-plot",
     "href": "examples/dimensional/03_pca.html#of-course-it-is-possible-to-customize-the-plot",
-    "title": "6  pca",
-    "section": "6.1 Of course, it is possible to customize the plot",
-    "text": "6.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
+    "title": "7  pca",
+    "section": "7.1 Of course, it is possible to customize the plot",
+    "text": "7.1 Of course, it is possible to customize the plot\n\nplot + scale_color_hue()",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>pca</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>pca</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/03_pca.html#you-can-also-use-a-gene-a-key.",
     "href": "examples/dimensional/03_pca.html#you-can-also-use-a-gene-a-key.",
-    "title": "6  pca",
-    "section": "6.2 You can also use a gene a key.",
-    "text": "6.2 You can also use a gene a key.\n\ncl.pca(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "title": "7  pca",
+    "section": "7.2 You can also use a gene a key.",
+    "text": "7.2 You can also use a gene a key.\n\ncl.pca(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>pca</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>pca</span>"
     ]
   },
   {
     "objectID": "examples/dimensional/03_pcas.html",
     "href": "examples/dimensional/03_pcas.html",
-    "title": "7  pcas",
+    "title": "8  pcas",
     "section": "",
-    "text": "7.1 pcas is a multi-grid plot function and accepts multiple keys list or any iterable.\numap_grid = (\n    cl.pcas(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.8,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\numap_grid\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "8.1 pcas is a multi-grid plot function and accepts multiple keys list or any iterable.\numap_grid = (\n    cl.pcas(\n        data,\n        keys=[\"leiden\", \"HBD\", \"NEAT1\", \"IGKC\"],\n        ncol=2,\n        size=0.8,\n        color_high=\"#D2042D\",  # works with hex codes, rgb codes, and names (red, blue, etc.)\n    )\n    + ggsize(900, 700)\n)\numap_grid\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>pcas</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>pcas</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html",
     "href": "examples/distribution/01_violin.html",
-    "title": "8  violin",
+    "title": "9  violin",
     "section": "",
-    "text": "8.1 A simple Violin Plot\ncl.violin(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"sample\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape=1,\n)",
+    "text": "9.1 A simple Violin Plot\ncl.violin(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"sample\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape=1,\n)",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html#fill-splits-the-data-as-in-ggplot2",
     "href": "examples/distribution/01_violin.html#fill-splits-the-data-as-in-ggplot2",
-    "title": "8  violin",
-    "section": "8.2 Fill splits the data as in ggplot2",
-    "text": "8.2 Fill splits the data as in ggplot2\n\nplot = cl.violin(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"leiden\",\n    show_points=True,\n    scale=\"width\",\n) + ggsize(1000, 400)\n\nplot",
+    "title": "9  violin",
+    "section": "9.2 Fill splits the data as in ggplot2",
+    "text": "9.2 Fill splits the data as in ggplot2\n\nplot = cl.violin(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"leiden\",\n    show_points=True,\n    scale=\"width\",\n) + ggsize(1000, 400)\n\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html#customize-the-plot",
     "href": "examples/distribution/01_violin.html#customize-the-plot",
-    "title": "8  violin",
-    "section": "8.3 Customize the plot",
-    "text": "8.3 Customize the plot\n\nplot += scale_fill_brewer(palette=\"Set2\") + scale_y_log2()\nplot",
+    "title": "9  violin",
+    "section": "9.3 Customize the plot",
+    "text": "9.3 Customize the plot\n\nplot += scale_fill_brewer(palette=\"Set2\") + scale_y_log2()\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violin.html#turn-it-into-a-interactive-plot",
     "href": "examples/distribution/01_violin.html#turn-it-into-a-interactive-plot",
-    "title": "8  violin",
-    "section": "8.4 Turn it into a interactive plot",
-    "text": "8.4 Turn it into a interactive plot\nEven if you did not create the plot with interactive = True you can still make it interactive with +ggtb() by lets_plot.\n\nplot += ggtb()\nplot\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "title": "9  violin",
+    "section": "9.4 Turn it into a interactive plot",
+    "text": "9.4 Turn it into a interactive plot\nEven if you did not create the plot with interactive = True you can still make it interactive with +ggtb() by lets_plot.\n\nplot += ggtb()\nplot\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>violin</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violin</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violins.html",
     "href": "examples/distribution/01_violins.html",
-    "title": "9  violins",
+    "title": "10  violins",
     "section": "",
-    "text": "9.1 Instead of a single key, violins expects a list (iterable) of keys.",
+    "text": "10.1 Instead of a single key, violins expects a list (iterable) of keys.",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violins</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>violins</span>"
     ]
   },
   {
     "objectID": "examples/distribution/01_violins.html#instead-of-a-single-key-violins-expects-a-list-iterable-of-keys.",
     "href": "examples/distribution/01_violins.html#instead-of-a-single-key-violins-expects-a-list-iterable-of-keys.",
-    "title": "9  violins",
+    "title": "10  violins",
     "section": "",
-    "text": "9.1.1 it will split the plot into ncol columns\n\ncl.violins(\n    data,\n    [\n        \"n_genes_by_counts\",\n        \"pct_counts_in_top_100_genes\",\n        \"log1p_total_counts_mt\",\n        \"pct_counts_hb\",\n    ],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "10.1.1 it will split the plot into ncol columns\n\ncl.violins(\n    data,\n    [\n        \"n_genes_by_counts\",\n        \"pct_counts_in_top_100_genes\",\n        \"log1p_total_counts_mt\",\n        \"pct_counts_hb\",\n    ],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>violins</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>violins</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html",
     "href": "examples/distribution/02_boxplot.html",
-    "title": "10  boxplot",
+    "title": "11  boxplot",
     "section": "",
-    "text": "10.1 A simple boxplot\ncl.boxplot(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"sample\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape=1,\n)",
+    "text": "11.1 A simple boxplot\ncl.boxplot(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"sample\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape=1,\n)",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html#fill-splits-the-data-as-in-ggplot2",
     "href": "examples/distribution/02_boxplot.html#fill-splits-the-data-as-in-ggplot2",
-    "title": "10  boxplot",
-    "section": "10.2 Fill splits the data as in ggplot2",
-    "text": "10.2 Fill splits the data as in ggplot2\n\nplot = cl.boxplot(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"leiden\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape=1,\n) + ggsize(1000, 400)\n\nplot",
+    "title": "11  boxplot",
+    "section": "11.2 Fill splits the data as in ggplot2",
+    "text": "11.2 Fill splits the data as in ggplot2\n\nplot = cl.boxplot(\n    data,\n    \"pct_counts_in_top_50_genes\",\n    fill=\"leiden\",\n    boxplot_color=\"#3f3f3f\",\n    show_points=True,\n    outlier_shape=1,\n) + ggsize(1000, 400)\n\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html#customize-the-plot",
     "href": "examples/distribution/02_boxplot.html#customize-the-plot",
-    "title": "10  boxplot",
-    "section": "10.3 Customize the plot",
-    "text": "10.3 Customize the plot\n\nplot += scale_fill_brewer(palette=\"Set2\") + scale_y_log2()\nplot",
+    "title": "11  boxplot",
+    "section": "11.3 Customize the plot",
+    "text": "11.3 Customize the plot\n\nplot += scale_fill_brewer(palette=\"Set2\") + scale_y_log2()\nplot",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplot.html#turn-it-into-a-interactive-plot",
     "href": "examples/distribution/02_boxplot.html#turn-it-into-a-interactive-plot",
-    "title": "10  boxplot",
-    "section": "10.4 Turn it into a interactive plot",
-    "text": "10.4 Turn it into a interactive plot\nEven if you did not create the plot with interactive = True you can still make it interactive with +ggtb() by lets_plot.\n\nplot += ggtb()\nplot\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "title": "11  boxplot",
+    "section": "11.4 Turn it into a interactive plot",
+    "text": "11.4 Turn it into a interactive plot\nEven if you did not create the plot with interactive = True you can still make it interactive with +ggtb() by lets_plot.\n\nplot += ggtb()\nplot\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>boxplot</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplot</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplots.html",
     "href": "examples/distribution/02_boxplots.html",
-    "title": "11  boxplots",
+    "title": "12  boxplots",
     "section": "",
-    "text": "11.1 Instead of a single key, boxplots expects a list (iterable) of keys.",
+    "text": "12.1 Instead of a single key, boxplots expects a list (iterable) of keys.",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplots</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>boxplots</span>"
     ]
   },
   {
     "objectID": "examples/distribution/02_boxplots.html#instead-of-a-single-key-boxplots-expects-a-list-iterable-of-keys.",
     "href": "examples/distribution/02_boxplots.html#instead-of-a-single-key-boxplots-expects-a-list-iterable-of-keys.",
-    "title": "11  boxplots",
+    "title": "12  boxplots",
     "section": "",
-    "text": "11.1.1 it will split the plot into ncol columns\n\ncl.boxplots(\n    data,\n    [\n        \"n_genes_by_counts\",\n        \"pct_counts_in_top_100_genes\",\n        \"log1p_total_counts_mt\",\n        \"pct_counts_hb\",\n    ],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "12.1.1 it will split the plot into ncol columns\n\ncl.boxplots(\n    data,\n    [\n        \"n_genes_by_counts\",\n        \"pct_counts_in_top_100_genes\",\n        \"log1p_total_counts_mt\",\n        \"pct_counts_hb\",\n    ],\n    ncol=2,\n    fill=\"sample\",\n    show_points=False,\n    layers=[scale_y_log10()],\n)\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Distribution",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>boxplots</span>"
-    ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Cellestial",
-    "section": "",
-    "text": "Preface\nCellestial is a single-cell and spatial biology data visualization library. It produces publication-quality figures through a ggplot2-like API of Lets-Plot and provides extensive customization options and creates interactive figures for exploration.",
-    "crumbs": [
-      "Preface"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>boxplots</span>"
     ]
   }
 ]
