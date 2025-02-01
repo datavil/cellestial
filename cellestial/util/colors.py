@@ -11,8 +11,6 @@ from lets_plot import (
     theme_void,
 )
 
-LetsPlot.setup_html()
-
 # Hand-picked colors for cellestial
 TEAL = "#219B9D"
 BLUE = "#377EB8"
@@ -80,4 +78,5 @@ def show_colors():
 
 
 if __name__ == "__main__":
+    LetsPlot.setup_html()
     show_colors().to_html("colors.html")

@@ -9,7 +9,6 @@ import polars as pl
 # Data retrieval
 from anndata import AnnData
 from lets_plot import (
-    LetsPlot,
     aes,
     geom_point,
     ggplot,
@@ -23,8 +22,6 @@ from lets_plot.plot.core import PlotSpec
 
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import _decide_tooltips
-
-LetsPlot.setup_html()
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
