@@ -48,7 +48,18 @@
     "href": "examples/basic/01_scatter.html",
     "title": "2  scatter",
     "section": "",
-    "text": "2.1 A simple scatter plot\nA scatter plot is a type of plot that displays the relationship between two quantitative variables. The scatter plot is useful for visualizing the relationship between two continuous variables.\ncl.scatter(\n    data,\n    x=\"pct_counts_mt\",\n    y=\"total_counts_ribo\",\n    aes_color=\"n_genes_by_counts\",\n    size=3,\n) + scale_y_log10() + ggsize(600, 400)\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "2.1 A simple scatter plot\nA scatter plot is a type of plot that displays the relationship between two quantitative variables. The scatter plot is useful for visualizing the relationship between two continuous variables.\nplot = (\n    cl.scatter(\n        data,\n        x=\"pct_counts_mt\",\n        y=\"total_counts_ribo\",\n        aes_color=\"n_genes_by_counts\",\n        size=3,\n    )\n    + scale_y_log10()\n    + ggsize(600, 400)\n)\n\nplot",
+    "crumbs": [
+      "Basic",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>scatter</span>"
+    ]
+  },
+  {
+    "objectID": "examples/basic/01_scatter.html#customizations",
+    "href": "examples/basic/01_scatter.html#customizations",
+    "title": "2  scatter",
+    "section": "2.2 Customizations",
+    "text": "2.2 Customizations\nAdd any layer you desire, from color palettes to size of the plot to theme components.\nFor example, you can simply modify or ‘ovewrite’ the color palette.\n\nplot + scale_color_continuous(low=\"blue\", high=\"red\")\n\n   \n   \n\n\nor make the plot interactive. note that it is also possible to make it zoomable and panable by setting the interactive argument to True when calling the function.\n\nplot + ggtb()\n# you can use the buttons from the toolbar to zoom in and out or move around the plot\n\n   \n   \n\n\nand of course you can modify the theme componenents of the plot.\n\nplot = (\n    plot\n    + labs(x=\"PCM\", y=\"TCR\", title=\"TCR vs PCM\")  # modify labels\n    + theme(\n        axis_title=element_text(size=18, color=\"#6f6f6f\"),  # modify axis titles\n        title=element_text(\n            family=\"monospace\", size=20, color=\"#3f3f3f\", face=\"bold\"\n        ),  # modify title elements\n        axis_line=element_blank(),  # remove axis lines\n        axis_ticks=element_blank(),  # remove axis ticks\n        axis_text=element_text(size=16, face=\"italic\"),  # remove axis text\n        legend_position=\"bottom\",  # move legend to bottom\n    )\n    + ggsize(700, 600)\n    + ggtb()\n)\nplot\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
     "crumbs": [
       "Basic",
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>scatter</span>"
