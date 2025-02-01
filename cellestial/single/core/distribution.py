@@ -10,7 +10,6 @@ from anndata import AnnData
 
 # Data retrieval
 from lets_plot import (
-    LetsPlot,
     aes,
     geom_boxplot,
     geom_jitter,
@@ -26,8 +25,6 @@ from lets_plot import (
 from lets_plot.plot.core import PlotSpec
 
 from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
-
-LetsPlot.setup_html()
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec

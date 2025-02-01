@@ -2,6 +2,10 @@ from lets_plot import (
     ggtb,
 )
 
+"""
+This file is deprecated...
+Preserved for reference...
+"""
 
 # ------------------------------ EXAMPLE STRUCTURE ------------------------------
 def example(func):

@@ -10,7 +10,6 @@ from anndata import AnnData
 
 # Data retrieval
 from lets_plot import (
-    LetsPlot,
     aes,
     geom_point,
     ggplot,
@@ -26,8 +25,6 @@ from lets_plot.plot.core import PlotSpec
 
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis
-
-LetsPlot.setup_html()
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -290,7 +287,7 @@ def expression(
     return scttr
 
 
-def test_dimension():
+def _test_dimension():
     import os
     from pathlib import Path
 
@@ -307,7 +304,7 @@ def test_dimension():
     return
 
 
-def test_expression():
+def _test_expression():
     import os
     from pathlib import Path
 
@@ -323,5 +320,5 @@ def test_expression():
 
 
 if __name__ == "__main__":
-    test_dimension()
-    test_expression()
+    _test_dimension()
+    _test_expression()

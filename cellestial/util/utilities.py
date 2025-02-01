@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from math import log10
-from typing import Iterable
+from typing import Iterable, Literal
 
 import polars as pl
-from lets_plot import *
 from lets_plot import (
     arrow,
     element_blank,
@@ -18,13 +17,42 @@ from lets_plot import (
 def _add_arrow_axis(
     frame: pl.DataFrame,
     *,
-    axis_type: str | None,
+    axis_type: Literal["axis", "arrow"] | None,
     arrow_size: float,
     arrow_color: str,
     arrow_angle: float,
     arrow_length: float,
     dimensions: str,
 ):
+    """
+    Adds arrows as the X and Y axis to the plot.
+
+    Parameters
+    ----------
+    frame : `polars.DataFrame`
+        DataFrame copied from the single cell data.
+    axis_type : Literal["axis", "arrow"] | None
+        Whether to use regular axis or arrows as the axis.
+    arrow_size : float
+        Size of the arrow.
+    arrow_color : str
+        Color of the arrow.
+    arrow_angle : float
+        Angle of the arrow head in degrees.
+    arrow_length : float
+        Length of the arrow head (px).
+    dimensions : str
+        Dimensions of the plot also the prefix of the arrow axis names.
+        Accepted values are 'umap', 'pca', 'tsne'.
+
+    Returns
+    -------
+    `FeatureSpec` or `FeatureSpecArray`
+        Theme feature specification.
+
+    for more information on the arrow parameters, see:
+    https://lets-plot.org/python/pages/api/lets_plot.arrow.html
+    """
     if axis_type is None:
         return theme(
             # remove axis elements
@@ -102,6 +130,26 @@ def _decide_tooltips(
     *,
     show_tooltips: bool,
 ) -> list[str]:
+    """
+    Decide on the tooltips.
+
+    Parameters
+    ----------
+    base_tooltips : list[str]
+        Base tooltips, default ones by the function.
+    add_tooltips : list[str]
+        Additional tooltips, will be appended to the base_tooltips.
+    custom_tooltips : list[str]
+        Custom tooltips, will overwrite the base_tooltips.
+    show_tooltips : bool
+        Whether to show tooltips at all.
+        Set tooltip to the Literal 'none' if False.
+
+    Returns
+    -------
+    list[str]
+        Tooltips.
+    """
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
@@ -115,6 +163,7 @@ def _decide_tooltips(
     return tooltips
 
 def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
+    """Return a list of rounded numbers between start and stop, inclusive."""
     decimals = 0
     if stop - start < 1:
         if stop - start == 0:
