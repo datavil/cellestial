@@ -10,6 +10,7 @@ from anndata import AnnData
 
 # Data retrieval
 from lets_plot import (
+    LetsPlot,
     aes,
     geom_point,
     ggplot,
@@ -24,7 +25,9 @@ from lets_plot import (
 from lets_plot.plot.core import PlotSpec
 
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _add_arrow_axis
+from cellestial.util import _add_arrow_axis, _decide_tooltips
+
+LetsPlot.setup_html()
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -51,7 +54,7 @@ def dimensional(
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
-    # Handling Data tpyes
+    # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
@@ -75,49 +78,50 @@ def dimensional(
             raise KeyError(msg)
 
     # handle tooltips
-    if key in ["leiden", "louvain"]:
+    if key.startswith(("leiden", "louvain")):
         base_tooltips = [barcode_name, cluster_name]
     else:
         base_tooltips = [barcode_name, key]
-    if not show_tooltips:
-        tooltips = "none"  # for letsplot, this removes the tooltips
-    else:
-        if isinstance(custom_tooltips, Iterable):
-            tooltips = list(custom_tooltips)
-        elif isinstance(add_tooltips, Iterable):
-            tooltips = base_tooltips + list(add_tooltips)
-        else:
-            tooltips = base_tooltips
+
+    tooltips = _decide_tooltips(
+        base_tooltips=base_tooltips,
+        add_tooltips=add_tooltips,
+        custom_tooltips=custom_tooltips,
+        show_tooltips=show_tooltips,
+    )
 
     # get the coordinates of the cells in the dimension reduced space
-    # -------------------------- IF IT IS A CLUSTER --------------------------
-    if key in ["leiden", "louvain"]:  # if it is a clustering
-        # update the key column name if it is a cluster
-        frame = frame.with_columns(
-            pl.Series(barcode_name, data.obs_names), pl.Series(cluster_name, data.obs[key])
-        )
+    # -------------------------- IF IT IS A CELL ANNOTATION --------------------------
+    if key in data.obs.columns:
+        if key.startswith(("leiden", "louvain")):  # if it is a clustering
+            # update the key column name if it is a cluster
+            frame = frame.with_columns(pl.Series(cluster_name, data.obs[key]))
+            color_key = cluster_name
+        else:
+            frame = frame.with_columns(pl.Series(data.obs[key]))
+            color_key = key
         # cluster scatter
         scttr = (
-            (
-                ggplot(data=frame)
-                + geom_point(
-                    aes(x=f"{dimensions}1", y=f"{dimensions}2", color=cluster_name),
-                    size=size,
-                    tooltips=layer_tooltips(tooltips),
-                    **point_kwargs,
-                )
-                + labs(
-                    x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
-                )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+            ggplot(data=frame)
+            + geom_point(
+                aes(x=f"{dimensions}1", y=f"{dimensions}2", color=color_key),
+                size=size,
+                tooltips=layer_tooltips(tooltips),
+                **point_kwargs,
             )
-            + _THEME_DIMENSION
-            + scale_color_brewer(palette="Set2")
-        )
+            + labs(
+                x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
+            )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+        ) + _THEME_DIMENSION
         # wrap the legend
-        n_distinct = frame.select(cluster_name).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            scttr = scttr + guides(color=guide_legend(ncol=ncol))
+        if frame.schema[color_key] == pl.Categorical:
+            scttr += scale_color_brewer(palette="Set2")
+            n_distinct = frame.select(color_key).unique().height
+            if n_distinct > 10:
+                ncol = ceil(n_distinct / 10)
+                scttr = scttr + guides(color=guide_legend(ncol=ncol))
+        else:
+            scttr += scale_color_continuous(low=color_low, high=color_high)
 
     # -------------------------- IF IT IS A GENE --------------------------
     elif key in data.var_names:  # if it is a gene
@@ -127,7 +131,6 @@ def dimensional(
             data.var_names[data.var_names.str.startswith(key)]
         )  # get the index of the gene
         frame = frame.with_columns(
-            pl.Series(barcode_name, data.obs_names),
             pl.Series(key, data.X[:, index].flatten().astype("float32")),
         )
         scttr = (
@@ -145,7 +148,7 @@ def dimensional(
         ) + _THEME_DIMENSION
     # -------------------------- NOT A GENE OR CLUSTER --------------------------
     else:
-        msg = f"'{key}' is not present in `cluster names` nor `gene names`"
+        msg = f"'{key}' is not present in `observation (.obs) names` nor `gene (.var) names`"
         raise ValueError(msg)
 
     # special case for labels
@@ -192,7 +195,7 @@ def expression(
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
-    # Handling Data tpyes
+    # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
@@ -203,7 +206,7 @@ def expression(
     ).with_columns(pl.Series(barcode_name, data.obs_names))
 
     if cluster_type is not None:
-        if cluster_type in ["leiden", "louvain"]:
+        if cluster_type.startswith(("leiden", "louvain")):
             frame = frame.with_columns(pl.Series(cluster_name, data.obs[cluster_type]))
         else:
             msg = f"'{cluster_type}' is not a valid cluster type"
@@ -222,15 +225,12 @@ def expression(
             raise KeyError(msg)
     # handle tooltips
     base_tooltips = [barcode_name, gene]
-    if not show_tooltips:
-        tooltips = "none"  # for letsplot, this removes the tooltips
-    else:
-        if isinstance(custom_tooltips, Iterable):
-            tooltips = list(custom_tooltips)
-        elif isinstance(add_tooltips, Iterable):
-            tooltips = base_tooltips + list(add_tooltips)
-        else:
-            tooltips = base_tooltips
+    tooltips = _decide_tooltips(
+        base_tooltips=base_tooltips,
+        add_tooltips=add_tooltips,
+        custom_tooltips=custom_tooltips,
+        show_tooltips=show_tooltips,
+    )
     # get the coordinates of the cells in the dimension reduced space
     # -------------------------- IF IT IS A GENE --------------------------
     if gene in data.var_names:  # if it is a gene
@@ -240,7 +240,6 @@ def expression(
             data.var_names[data.var_names.str.startswith(gene)]
         )  # get the index of the gene
         frame = frame.with_columns(
-            pl.Series(barcode_name, data.obs_names),
             pl.Series(gene, data.X[:, index].flatten().astype("float32")),
         )
         if cluster_type is not None:
@@ -287,7 +286,7 @@ def expression(
     return scttr
 
 
-def _test_dimension():
+def test_dimension():
     import os
     from pathlib import Path
 
@@ -304,7 +303,7 @@ def _test_dimension():
     return
 
 
-def _test_expression():
+def test_expression():
     import os
     from pathlib import Path
 
@@ -320,5 +319,5 @@ def _test_expression():
 
 
 if __name__ == "__main__":
-    _test_dimension()
-    _test_expression()
+    test_dimension()
+    test_expression()
