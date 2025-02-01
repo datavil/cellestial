@@ -1,15 +1,15 @@
 @font-face {
     font-family: "JetBrainsMono";
-    src: url("/MonoFont/JetBrainsMono-Regular.ttf");
+    src: url("/assets/JetBrainsMono-Regular.ttf");
 }
 
 @font-face {
   font-family: "JetBrainsMonoSemiBold";
-  src: url("/MonoFont/JetBrainsMono-SemiBold.ttf");
+  src: url("assets/JetBrainsMono-SemiBold.ttf");
 }
 
 .cell {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important; /* Ensure shadow applies */
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.25) !important; /* Ensure shadow applies */
   border-radius: 5px !important; /* Override rounded corners */
   border-color: #ffffff !important;
 }
