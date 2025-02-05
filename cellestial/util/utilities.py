@@ -10,8 +10,11 @@ from lets_plot import (
     element_text,
     geom_blank,
     geom_segment,
+    scale_color_continuous,
+    scale_color_gradient2,
     theme,
 )
+from lets_plot.plot.core import FeatureSpec
 
 
 def _add_arrow_axis(
@@ -179,3 +182,54 @@ def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     # make unique
     inc_list = list(set(inc_list))
     return sorted(inc_list)
+
+def _color_gradient(
+    series,
+    color_low=None,
+    color_mid=None,
+    color_high=None,
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
+) -> FeatureSpec:
+    """
+    Create a gradient color feature.
+
+    Parameters
+    ----------
+    series : polars.Series
+        Series to find the mid point of.
+    color_low : str
+        The color to use for the low end of the color gradient.
+    color_mid : str
+       The color to use for the mid part of the color gradient.
+    color_high : str
+        The color to use for the high end of the color gradient.
+    mid_point : float, default='median'
+        The midpoint (in data value) of the color gradient.
+        Can be 'mean', 'median' and 'mid' or a number (float or int).
+        If 'mean', the midpoint is the mean of the data.
+        If 'median', the midpoint is the median of the data.
+        If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+
+    Returns
+    -------
+    FeatureSpec
+        FeatureSpec object with the gradient color feature.
+    """
+    if color_mid is None:
+        return scale_color_continuous(low=color_low, high=color_high)
+    else:
+        if isinstance(mid_point, (float, int)):
+            mid_value = mid_point
+        elif mid_point == "mean":
+            mid_value = series.mean()
+        elif mid_point == "median":
+            mid_value = series.median()
+        elif mid_point == "mid":
+            mid_value = (series.max() + series.min()) / 2
+
+        return scale_color_gradient2(
+            low=color_low,
+            mid=color_mid,
+            high=color_high,
+            midpoint=mid_value,
+        )

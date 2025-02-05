@@ -10,7 +10,6 @@ from anndata import AnnData
 
 # Data retrieval
 from lets_plot import (
-    LetsPlot,
     aes,
     geom_point,
     ggplot,
@@ -20,14 +19,11 @@ from lets_plot import (
     labs,
     layer_tooltips,
     scale_color_brewer,
-    scale_color_continuous,
 )
 from lets_plot.plot.core import PlotSpec
 
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _add_arrow_axis, _decide_tooltips
-
-LetsPlot.setup_html()
+from cellestial.util import _add_arrow_axis, _color_gradient, _decide_tooltips
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -43,7 +39,9 @@ def dimensional(
     cluster_name: str = "Cluster",
     barcode_name: str = "CellID",
     color_low: str = "#e6e6e6",
+    color_mid: str | None = None,
     color_high: str = "#377eb8",
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -54,6 +52,112 @@ def dimensional(
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
+    """
+    Dimensional reduction plot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    key : Literal['leiden', 'louvain'] | str, default='leiden'
+        The key (cell feature) to color the points by.
+        e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
+        The dimensional reduction method to use.
+        e.g., 'umap' or 'pca' or 'tsne'.
+    size : float, default=0.8
+        The size of the points.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    cluster_name : str, default='Cluster'
+        The name to overwrite the clustering key in the dataframe and the plot.
+    barcode_name : str, default='CellID'
+        The name to give the barcode (or index) column in the dataframe.
+    color_low : str, default='#e6e6e6'
+        The color to use for the low end of the color gradient.
+        Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+        Applies to continuous (non-categorical) data.
+    color_mid : str, default=None
+        The color to use for the mid part of the color gradient.
+        If provided, color scale will have 3 colors.
+        Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA (e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)').
+        Applies to continuous (non-categorical) data.
+    color_high : str, default='#377EB8'
+        The color to use for the high end of the color gradient.
+        Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA (e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)').
+        Applies to continuous (non-categorical) data.
+    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+        The midpoint (in data value) of the color gradient.
+        Can be 'mean', 'median' and 'mid' or a number (float or int).
+        If 'mean', the midpoint is the mean of the data.
+        If 'median', the midpoint is the median of the data.
+        If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+    axis_type : Literal["axis", "arrow"] | None
+        Whether to use regular axis or arrows as the axis.
+    arrow_length : float, default=0.25
+        Length of the arrow head (px).
+    arrow_size : float, default=1
+        Size of the arrow.
+    arrow_color : str, default='#3f3f3f'
+        Color of the arrow.
+        Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA (e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)').
+    arrow_angle : float, default=10
+        Angle of the arrow head in degrees.
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Additional tooltips, will be appended to the base_tooltips.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Custom tooltips, will overwrite the base_tooltips.
+    **point_kwargs : dict[str, Any]
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+    Returns
+    -------
+    PlotSpec
+        Dimensional reduction plot.
+
+    Examples
+    --------
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10
+
+        import scanpy as sc
+        import cellestial as cl
+
+        data = sc.read("data/pbmc3k_pped.h5ad")
+        plot = cl.dimensional(data, key="leiden", dimensions="umap", size=0.6)
+        plot
+
+    |
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10
+
+        import scanpy as sc
+        import cellestial as cl
+
+        data = sc.read("data/pbmc3k_pped.h5ad")
+        plot = cl.dimensional(data, key="leiden", dimensions="pca", size=0.8)
+        plot
+
+    """
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
@@ -121,15 +225,19 @@ def dimensional(
                 ncol = ceil(n_distinct / 10)
                 scttr = scttr + guides(color=guide_legend(ncol=ncol))
         else:
-            scttr += scale_color_continuous(low=color_low, high=color_high)
+            scttr += _color_gradient(
+                frame[color_key],
+                color_low=color_low,
+                color_mid=color_mid,
+                color_high=color_high,
+                mid_point=mid_point,
+            )
 
     # -------------------------- IF IT IS A GENE --------------------------
     elif key in data.var_names:  # if it is a gene
         # adata.X is a sparse matrix , axis0 is cells, axis1 is genes
         # find the index of the gene
-        index = data.var_names.get_indexer(
-            data.var_names[data.var_names.str.startswith(key)]
-        )  # get the index of the gene
+        index = data.var_names.get_indexer([key])  # get the index of the gene
         frame = frame.with_columns(
             pl.Series(key, data.X[:, index].flatten().astype("float32")),
         )
@@ -141,7 +249,13 @@ def dimensional(
                 tooltips=layer_tooltips(tooltips),
                 **point_kwargs,
             )
-            + scale_color_continuous(low=color_low, high=color_high)
+            + _color_gradient(
+                frame[key],
+                color_low=color_low,
+                color_mid=color_mid,
+                color_high=color_high,
+                mid_point=mid_point,
+            )
             + labs(
                 x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
             )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
@@ -172,7 +286,7 @@ def dimensional(
 
     return scttr
 
-
+''' old implementation of expression function
 def expression(
     data: AnnData,
     gene: str,
@@ -184,7 +298,9 @@ def expression(
     cluster_type: Literal["leiden", "louvain"] | None = None,
     barcode_name: str = "CellID",
     color_low: str = "#e6e6e6",
+    color_mid: str | None = None,
     color_high: str = "#377eb8",
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = "arrow",
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -236,9 +352,7 @@ def expression(
     if gene in data.var_names:  # if it is a gene
         # adata.X is a sparse matrix, axis0 is cells, axis1 is genes
         # find the index of the gene
-        index = data.var_names.get_indexer(
-            data.var_names[data.var_names.str.startswith(gene)]
-        )  # get the index of the gene
+        index = data.var_names.get_indexer([gene])  # get the index of the gene
         frame = frame.with_columns(
             pl.Series(gene, data.X[:, index].flatten().astype("float32")),
         )
@@ -254,7 +368,13 @@ def expression(
                 tooltips=layer_tooltips(tooltips),
                 **point_kwargs,
             )
-            + scale_color_continuous(low=color_low, high=color_high)
+            + _color_gradient(
+                frame[gene],
+                color_low=color_low,
+                color_mid=color_mid,
+                color_high=color_high,
+                mid_point=mid_point,
+            )
             + labs(
                 x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
             )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
@@ -284,7 +404,7 @@ def expression(
         scttr += ggtb()
 
     return scttr
-
+'''
 
 def test_dimension():
     import os
