@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cellestial"
-version = "0.2.0"
+version = "0.4.0"
 description = ""
 authors = ["Zaf4 <zafermolbio@gmail.com>"]
 readme = "README.md"
@@ -14,7 +14,6 @@ lets-plot = "^4.5.1"
 polars = "1.12.0"
 pyarrow = "^18.0.0"
 scanpy = {extras = ["leiden"], version = "^1.10.4"}
-
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any, Iterable, Literal
 
 from lets_plot import element_blank, gggrid, theme
 
-from cellestial.single.core.dimensional import dimensional, expression
-from cellestial.single.core.subdimensional import pca, tsne, umap
+from cellestial.single.core.dimensional import dimensional
+from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 
 if TYPE_CHECKING:
     from anndata import AnnData
@@ -367,7 +367,7 @@ def pcas(
 
 def expressions(
     data: AnnData,
-    genes: list[str] | tuple[str] | Iterable[str] = ("leiden",),
+    keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
@@ -398,15 +398,14 @@ def expressions(
 ) -> SupPlotsSpec:
     plots = []
 
-    for i, gene in enumerate(genes):
+    for i, key in enumerate(keys):
         plot = expression(
             data=data,
-            gene=gene,
+            key=key,
             dimensions=dimensions,
             size=size,
             interactive=interactive,
             cluster_name=cluster_name,
-            cluster_type=cluster_type,
             barcode_name=barcode_name,
             color_low=color_low,
             color_high=color_high,
@@ -421,11 +420,11 @@ def expressions(
             for layer in layers:
                 plot += layer
         if share_labels:
-            plot = _share_labels(plot, i, genes, ncol)
+            plot = _share_labels(plot, i, key, ncol)
 
         if share_axis:
             if axis_type is not None:
-                plot = _share_axis(plot, i, genes, ncol, axis_type)
+                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
