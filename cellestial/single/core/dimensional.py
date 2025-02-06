@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterable
 from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
@@ -12,6 +13,7 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     geom_point,
+    geom_text,
     ggplot,
     ggtb,
     guide_legend,
@@ -19,6 +21,7 @@ from lets_plot import (
     labs,
     layer_tooltips,
     scale_color_brewer,
+    theme,
 )
 from lets_plot.plot.core import PlotSpec
 
@@ -26,7 +29,32 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis, _color_gradient, _decide_tooltips
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
+    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+
+
+def _legend_ondata(
+    frame: pl.DataFrame,
+    dimensions: str,
+    cluster_name: str,
+    size: float = 12,
+    color: str = "#3f3f3f",
+    fontface: str = "bold",
+    family: str = "sans",
+    alpha: float = 1,
+) -> FeatureSpec | FeatureSpecArray:
+    # group by cluster names and find X and Y mean for midpoints
+    grouped = frame.group_by(cluster_name).agg(
+        pl.col(f"{dimensions}1").mean(), pl.col(f"{dimensions}2").mean()
+    )
+    return geom_text(
+        data=grouped,
+        mapping=aes(x=f"{dimensions}1", y=f"{dimensions}2", label=cluster_name),
+        size=size,
+        color=color,
+        fontface=fontface,
+        family=family,
+        alpha=alpha,
+    ) + theme(legend_position="none")
 
 
 def dimensional(
@@ -50,10 +78,16 @@ def dimensional(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    legend_ondata: bool = False,
+    ondata_size: float = 12,
+    ondata_color: str = "#3f3f3f",
+    ondata_fontface: str = "bold",
+    ondata_family: str = "sans",
+    ondata_alpha: float = 1,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     """
-    Dimensional reduction plot.
+    Dimensionality reduction plot.
 
     Parameters
     ----------
@@ -75,32 +109,35 @@ def dimensional(
         The name to give the barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
-        Accepts:
+        - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        Applies to continuous (non-categorical) data.
+        - Applies to continuous (non-categorical) data.
+
     color_mid : str, default=None
-        The color to use for the mid part of the color gradient.
-        If provided, color scale will have 3 colors.
-        Accepts:
+        The color to use for the middle part of the color gradient.
+        - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
-            - RGB/RGBA (e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)').
-        Applies to continuous (non-categorical) data.
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+        - Applies to continuous (non-categorical) data.
+
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-        Accepts:
+        - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
-            - RGB/RGBA (e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)').
-        Applies to continuous (non-categorical) data.
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+        - Applies to continuous (non-categorical) data.
+
     mid_point : Literal["mean", "median", "mid"] | float, default="median"
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
-        If 'mean', the midpoint is the mean of the data.
-        If 'median', the midpoint is the median of the data.
-        If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+        - If 'mean', the midpoint is the mean of the data.
+        - If 'median', the midpoint is the median of the data.
+        - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+
     axis_type : Literal["axis", "arrow"] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
@@ -108,11 +145,13 @@ def dimensional(
     arrow_size : float, default=1
         Size of the arrow.
     arrow_color : str, default='#3f3f3f'
-        Color of the arrow.
-        Accepts:
+        Color of the arrows.
+        - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
-            - RGB/RGBA (e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)').
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+        - Applies to continuous (non-categorical) data.
+
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
@@ -121,6 +160,20 @@ def dimensional(
         Additional tooltips, will be appended to the base_tooltips.
     custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    legend_ondata: bool, default=False
+        whether to show legend on data
+    ondata_size: float, default=12
+        size of the legend (text) on data.
+    ondata_color: str, default='#3f3f3f'
+        color of the legend (text) on data
+    ondata_fontface: str, default='bold'
+        fontface of the legend (text) on data.
+        https://lets-plot.org/python/pages/aesthetics.html#font-face
+    ondata_family: str, default='sans'
+        family of the legend (text) on data.
+        https://lets-plot.org/python/pages/aesthetics.html#font-family
+    ondata_alpha: float, default=1
+        alpha (transparency) of the legend on data.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -163,6 +216,7 @@ def dimensional(
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
+    # get the coordinates of the cells in the dimension reduced space
     # only take the first two dimensions (pca comes with more dimensions)
     frame = pl.from_numpy(
         data.obsm[f"X_{dimensions}"][:, :2], schema=[f"{dimensions}1", f"{dimensions}2"]
@@ -175,14 +229,17 @@ def dimensional(
         if "size" in point_kwargs:
             size = point_kwargs.get("size")
             msg = "use `size = value` instead of adding `'size' : 'value'` to `point_kwargs`\n"
-            msg += f"size args will overwritten by the value `{size}` in the point_kwargs, "
+            msg += f"size arg will be overwritten by the value `{size}` in the point_kwargs, "
             raise Warning(msg)
         if "tooltips" in point_kwargs:
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
+    # truth value clustering
+    clustering: bool = key.startswith(("leiden", "louvain"))
+
     # handle tooltips
-    if key.startswith(("leiden", "louvain")):
+    if clustering:
         base_tooltips = [barcode_name, cluster_name]
     else:
         base_tooltips = [barcode_name, key]
@@ -194,10 +251,9 @@ def dimensional(
         show_tooltips=show_tooltips,
     )
 
-    # get the coordinates of the cells in the dimension reduced space
     # -------------------------- IF IT IS A CELL ANNOTATION --------------------------
     if key in data.obs.columns:
-        if key.startswith(("leiden", "louvain")):  # if it is a clustering
+        if clustering:  # if it is a clustering
             # update the key column name if it is a cluster
             frame = frame.with_columns(pl.Series(cluster_name, data.obs[key]))
             color_key = cluster_name
@@ -284,9 +340,28 @@ def dimensional(
     if interactive:
         scttr += ggtb()
 
+    # handle legend on data
+    if legend_ondata:
+        cluster_key = cluster_name if clustering else key
+        if frame.schema[cluster_key] == pl.Categorical:
+            scttr += _legend_ondata(
+                frame=frame,
+                dimensions=dimensions,
+                cluster_name=cluster_key,
+                size=ondata_size,
+                color=ondata_color,
+                fontface=ondata_fontface,
+                family=ondata_family,
+                alpha=ondata_alpha,
+            )
+        else:
+            msg = f"key `{key}` is not categorical, legend on data will not be added"
+            warnings.warn(msg, stacklevel=1)
+
     return scttr
 
-''' old implementation of expression function
+
+""" old implementation of expression function
 def expression(
     data: AnnData,
     gene: str,
@@ -404,9 +479,10 @@ def expression(
         scttr += ggtb()
 
     return scttr
-'''
+"""
 
-def test_dimension():
+
+def _test_dimension():
     import os
     from pathlib import Path
 
@@ -423,21 +499,5 @@ def test_dimension():
     return
 
 
-def test_expression():
-    import os
-    from pathlib import Path
-
-    import scanpy as sc
-
-    os.chdir(Path(__file__).parent.parent.parent.parent)  # to project root
-    data = sc.read("data/pbmc3k_pped.h5ad")
-    plot = expression(data, gene="MT-ND2", cluster_type="leiden").to_html(
-        "plots/test_expression.html"
-    )
-    plot.to_html("plots/test_expression.svg")
-    plot.to_svg("plots/test_expression.svg")
-
-
 if __name__ == "__main__":
-    test_dimension()
-    test_expression()
+    _test_dimension()
