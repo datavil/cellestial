@@ -1,6 +1,4 @@
-add `color_mid` paramter to scatterplots.
-    - dimensional
-    - scatter
+~~add `color_mid` paramter to scatterplots.~~
 
-add `on_data` parameter to dimensional plots.
+~~add `on_data` parameter to dimensional plots.~~
 
