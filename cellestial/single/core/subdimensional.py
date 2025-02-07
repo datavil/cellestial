@@ -510,7 +510,7 @@ def expression(
     data : AnnData
         The AnnData object of the single cell data.
     key : Literal['leiden', 'louvain'] | str, default='leiden'
-        The key (cell feature) to color the points by.
+        The key (genes) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
