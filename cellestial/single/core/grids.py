@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
 
+# TODO: make layers accept a single layer
 
 def _share_labels(plot, i: int, keys: list[str], ncol: int):
     total = len(keys)
@@ -120,7 +121,7 @@ def dimensionals(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -343,7 +344,7 @@ def umaps(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -564,7 +565,7 @@ def tsnes(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -788,7 +789,7 @@ def pcas(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -1010,7 +1011,7 @@ def expressions(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
