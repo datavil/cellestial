@@ -276,11 +276,6 @@ def dimensional(
         show_tooltips=show_tooltips,
     )
 
-    print(frame.columns)
-    print(tooltips)
-
-
-
     # CASE1 ---------------------- IF IT IS A CELL ANNOTATION ----------------------
     if key in data.obs.columns:
         if clustering:  # if it is a clustering
