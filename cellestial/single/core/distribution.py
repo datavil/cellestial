@@ -4,11 +4,8 @@ from collections.abc import Iterable
 from math import ceil
 from typing import TYPE_CHECKING, Any
 
-# Core scverse libraries
 import polars as pl
 from anndata import AnnData
-
-# Data retrieval
 from lets_plot import (
     aes,
     geom_boxplot,
@@ -28,6 +25,11 @@ from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
+
+# TODO: add barcode_name to the arguments of the functions
+# TODO: add the expansion of the frame
+# TODO: pop already used arguments from dicts
+# TODO: make layers accept a single layer
 
 
 def violin(
@@ -75,7 +77,7 @@ def violin(
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
-    else: # overwrite by point_kwargs
+    else:  # overwrite by point_kwargs
         if "color" in point_kwargs:
             point_color = point_kwargs.get("color")
         if "alpha" in point_kwargs:
