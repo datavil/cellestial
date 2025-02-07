@@ -31,6 +31,7 @@ from cellestial.util import _add_arrow_axis, _color_gradient, _decide_tooltips
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
+# TODO: add the expansion of the frame 
 
 def _legend_ondata(
     frame: pl.DataFrame,
@@ -55,6 +56,35 @@ def _legend_ondata(
         family=family,
         alpha=alpha,
     ) + theme(legend_position="none")
+
+
+def _expand_frame(data: AnnData, frame: pl.DataFrame, to_add: list[str]) -> pl.DataFrame:
+    # TODO: add the expansion of the frame
+    """
+    frame already has dimensions, cellID and key (or cluster).
+
+    expand the frame with:
+    - given tooltips
+       - it can be in obs
+           - check if the key is in obs
+       - it can be a gene expression level
+           - check if the key is in var_names
+    add the columns to frame
+    return the frame
+    """
+    for key in to_add:
+        if key not in frame.columns:
+            if key in data.obs.columns:
+                frame = frame.with_columns(pl.Series(key, data.obs[key]))
+            elif key in data.var_names:
+                index = data.var_names.get_indexer([key])  # get the index of the gene
+                frame = frame.with_columns(
+                    pl.Series(key, data.X[:, index].flatten().astype("float32")),
+                )
+            else:
+                msg = f"key '{key}' to expand is not present in `observation (.obs) names` nor `gene (.var) names`"
+                raise ValueError(msg)
+    return frame
 
 
 def dimensional(
@@ -106,7 +136,7 @@ def dimensional(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -226,16 +256,11 @@ def dimensional(
     if point_kwargs is None:
         point_kwargs = {}
     else:
-        if "size" in point_kwargs:
-            size = point_kwargs.get("size")
-            msg = "use `size = value` instead of adding `'size' : 'value'` to `point_kwargs`\n"
-            msg += f"size arg will be overwritten by the value `{size}` in the point_kwargs, "
-            raise Warning(msg)
         if "tooltips" in point_kwargs:
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
-    # truth value clustering
+    # truth value of clustering
     clustering: bool = key.startswith(("leiden", "louvain"))
 
     # handle tooltips
@@ -251,7 +276,12 @@ def dimensional(
         show_tooltips=show_tooltips,
     )
 
-    # -------------------------- IF IT IS A CELL ANNOTATION --------------------------
+    print(frame.columns)
+    print(tooltips)
+
+
+
+    # CASE1 ---------------------- IF IT IS A CELL ANNOTATION ----------------------
     if key in data.obs.columns:
         if clustering:  # if it is a clustering
             # update the key column name if it is a cluster
@@ -260,6 +290,8 @@ def dimensional(
         else:
             frame = frame.with_columns(pl.Series(data.obs[key]))
             color_key = key
+        # handle the expansion of the frame
+        frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
         # cluster scatter
         scttr = (
             ggplot(data=frame)
@@ -289,7 +321,7 @@ def dimensional(
                 mid_point=mid_point,
             )
 
-    # -------------------------- IF IT IS A GENE --------------------------
+    # CASE2 ---------------------- IF IT IS A VARIABLE (GENE) ----------------------
     elif key in data.var_names:  # if it is a gene
         # adata.X is a sparse matrix , axis0 is cells, axis1 is genes
         # find the index of the gene
@@ -297,6 +329,8 @@ def dimensional(
         frame = frame.with_columns(
             pl.Series(key, data.X[:, index].flatten().astype("float32")),
         )
+        # handle the expansion of the frame
+        frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
         scttr = (
             ggplot(data=frame)
             + geom_point(
@@ -316,7 +350,7 @@ def dimensional(
                 x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
             )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
         ) + _THEME_DIMENSION
-    # -------------------------- NOT A GENE OR CLUSTER --------------------------
+    # ---------------------- NOT A GENE OR CLUSTER ----------------------
     else:
         msg = f"'{key}' is not present in `observation (.obs) names` nor `gene (.var) names`"
         raise ValueError(msg)

@@ -56,7 +56,7 @@ def umap(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -210,7 +210,7 @@ def tsne(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -364,7 +364,7 @@ def pca(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
@@ -522,7 +522,7 @@ def expression(
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='CellID'
-        The name to give the barcode (or index) column in the dataframe.
+        The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
         - Accepts:
