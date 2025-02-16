@@ -89,6 +89,7 @@ def dimensionals(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -196,6 +197,10 @@ def dimensionals(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha : float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -259,6 +264,7 @@ def dimensionals(
             ondata_fontface=ondata_fontface,
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
+            ondata_weighted=ondata_weighted,
             **point_kwargs,
         )
 
@@ -312,6 +318,7 @@ def umaps(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -419,6 +426,10 @@ def umaps(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha : float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -481,6 +492,7 @@ def umaps(
             ondata_fontface=ondata_fontface,
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
+            ondata_weighted=ondata_weighted,
             **point_kwargs,
         )
 
@@ -533,6 +545,7 @@ def tsnes(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -640,6 +653,10 @@ def tsnes(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha : float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -702,6 +719,7 @@ def tsnes(
             ondata_fontface=ondata_fontface,
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
+            ondata_weighted=ondata_weighted,
             **point_kwargs,
         )
 
@@ -757,6 +775,7 @@ def pcas(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -864,6 +883,10 @@ def pcas(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha : float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -926,6 +949,7 @@ def pcas(
             ondata_fontface=ondata_fontface,
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
+            ondata_weighted=ondata_weighted,
             **point_kwargs,
         )
 
@@ -980,6 +1004,7 @@ def expressions(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -990,6 +1015,7 @@ def expressions(
     vspace: float | None = None,
     fit: bool | None = None,
     align: bool | None = None,
+    **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots of expression.
@@ -1086,6 +1112,10 @@ def expressions(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha : float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -1149,6 +1179,8 @@ def expressions(
             ondata_fontface=ondata_fontface,
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
+            ondata_weighted=ondata_weighted,
+            **point_kwargs,
         )
 
         if layers is not None:

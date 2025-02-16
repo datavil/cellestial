@@ -37,6 +37,7 @@ def umap(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     """
@@ -124,6 +125,10 @@ def umap(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -161,6 +166,7 @@ def umap(
         ondata_fontface=ondata_fontface,
         ondata_family=ondata_family,
         ondata_alpha=ondata_alpha,
+        ondata_weighted=ondata_weighted,
         **point_kwargs,
     )
 
@@ -191,6 +197,7 @@ def tsne(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     """
@@ -278,6 +285,10 @@ def tsne(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -315,6 +326,7 @@ def tsne(
         ondata_fontface=ondata_fontface,
         ondata_family=ondata_family,
         ondata_alpha=ondata_alpha,
+        ondata_weighted=ondata_weighted,
         **point_kwargs,
     )
 
@@ -345,6 +357,7 @@ def pca(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     """
@@ -432,6 +445,10 @@ def pca(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -469,6 +486,7 @@ def pca(
         ondata_fontface=ondata_fontface,
         ondata_family=ondata_family,
         ondata_alpha=ondata_alpha,
+        ondata_weighted=ondata_weighted,
         **point_kwargs,
     )
 
@@ -500,6 +518,7 @@ def expression(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     """
@@ -590,6 +609,10 @@ def expression(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -630,5 +653,6 @@ def expression(
         ondata_fontface=ondata_fontface,
         ondata_family=ondata_family,
         ondata_alpha=ondata_alpha,
+        ondata_weighted=ondata_weighted,
         **point_kwargs,
     )
