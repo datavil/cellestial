@@ -31,9 +31,9 @@ from cellestial.util import _add_arrow_axis, _color_gradient, _decide_tooltips
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
-# TODO: add the expansion of the frame 
 
 def _legend_ondata(
+    *,
     frame: pl.DataFrame,
     dimensions: str,
     cluster_name: str,
@@ -42,11 +42,34 @@ def _legend_ondata(
     fontface: str = "bold",
     family: str = "sans",
     alpha: float = 1,
+    weighted: bool = True,
 ) -> FeatureSpec | FeatureSpecArray:
     # group by cluster names and find X and Y mean for midpoints
-    grouped = frame.group_by(cluster_name).agg(
-        pl.col(f"{dimensions}1").mean(), pl.col(f"{dimensions}2").mean()
-    )
+    x = f"{dimensions}1"
+    y = f"{dimensions}2"
+    if weighted:
+        group_means = frame.group_by(cluster_name).agg(
+            pl.col(x).mean().alias("mean_x"), pl.col(y).mean().alias("mean_y")
+        )
+        # join the group means to the frame
+        frame = frame.join(group_means, on=cluster_name, how="left")
+        # calculate the distance between the group means and the frame
+        frame = frame.with_columns(
+            ((pl.col(x) - pl.col("mean_x")) ** 2 + (pl.col(y) - pl.col("mean_y")) ** 2)
+            .sqrt()
+            .alias("distance")
+        )
+        # assign weights to the individual points
+        frame = frame.with_columns((1 / pl.col("distance").sqrt()).alias("weight"))
+        # calculate the weighted mean of the group means
+        grouped = frame.group_by(cluster_name).agg(
+            (pl.col(x) * pl.col("weight")).sum() / pl.col("weight").sum(),
+            (pl.col(y) * pl.col("weight")).sum() / pl.col("weight").sum(),
+        )
+    else:
+        grouped = frame.group_by(cluster_name).agg(
+            pl.col(f"{dimensions}1").mean(), pl.col(f"{dimensions}2").mean()
+        )
     return geom_text(
         data=grouped,
         mapping=aes(x=f"{dimensions}1", y=f"{dimensions}2", label=cluster_name),
@@ -114,6 +137,7 @@ def dimensional(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
+    ondata_weighted: bool = True,
     **point_kwargs: dict[str, Any],
 ) -> PlotSpec:
     """
@@ -204,6 +228,10 @@ def dimensional(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
+    ondata_weighted: bool, default=True
+        whether to use weighted mean for the legend on data.
+        If True, the weighted mean of the group means is used.
+        If False, the arithmetic mean of the group means is used.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -382,6 +410,7 @@ def dimensional(
                 fontface=ondata_fontface,
                 family=ondata_family,
                 alpha=ondata_alpha,
+                weighted=ondata_weighted,
             )
         else:
             msg = f"key `{key}` is not categorical, legend on data will not be added"
