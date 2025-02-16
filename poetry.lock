@@ -344,6 +344,22 @@ files = [
 ]
 
 [[package]]
+name = "click"
+version = "8.1.8"
+description = "Composable command line interface toolkit"
+optional = false
+python-versions = ">=3.7"
+groups = ["dev"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2"},
+    {file = "click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -1196,6 +1212,27 @@ files = [
 ]
 
 [[package]]
+name = "loompy"
+version = "3.0.8"
+description = "Work with Loom files for single-cell RNA-seq data"
+optional = false
+python-versions = ">=3.6"
+groups = ["dev"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "loompy-3.0.8.tar.gz", hash = "sha256:c1f48d0bf21aa2bbdeee21a0577553cba9609d9435d7c32b687686bbb5869ca7"},
+]
+
+[package.dependencies]
+click = "*"
+h5py = "*"
+numba = "*"
+numpy = "*"
+numpy-groupies = "*"
+scipy = "*"
+setuptools = "*"
+
+[[package]]
 name = "matplotlib"
 version = "3.9.2"
 description = "Python plotting package"
@@ -1486,6 +1523,26 @@ files = [
     {file = "numpy-2.0.2-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:a46288ec55ebbd58947d31d72be2c63cbf839f0a63b49cb755022310792a3385"},
     {file = "numpy-2.0.2.tar.gz", hash = "sha256:883c987dee1880e2a864ab0dc9892292582510604156762362d9326444636e78"},
 ]
+
+[[package]]
+name = "numpy-groupies"
+version = "0.11.2"
+description = "Optimised tools for group-indexing operations: aggregated sum and more."
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "numpy_groupies-0.11.2-py3-none-any.whl", hash = "sha256:8d0d686160f860c12d97f12f457116f8b8bebfa33a68b8efcd24dcfedc2837f1"},
+    {file = "numpy_groupies-0.11.2.tar.gz", hash = "sha256:2fda978c4d28d2f1633a63972f425d0a7f2f12a75505d215b41b6de712e2ec4b"},
+]
+
+[package.dependencies]
+numpy = "*"
+
+[package.extras]
+dev = ["numba", "pandas", "pytest"]
+fast = ["numba"]
 
 [[package]]
 name = "packaging"
@@ -2458,6 +2515,38 @@ doc = ["jupyterlite-pyodide-kernel", "jupyterlite-sphinx (>=0.13.1)", "jupytext"
 test = ["Cython", "array-api-strict (>=2.0)", "asv", "gmpy2", "hypothesis (>=6.30)", "meson", "mpmath", "ninja", "pooch", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "scikit-umfpack", "threadpoolctl"]
 
 [[package]]
+name = "scvelo"
+version = "0.3.3"
+description = "RNA velocity generalized through dynamical modeling"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "scvelo-0.3.3-py3-none-any.whl", hash = "sha256:cb9821a86d0c6b9cb79d9fd867480d7caece27530d1d30b49052a0fa9d94a187"},
+    {file = "scvelo-0.3.3.tar.gz", hash = "sha256:9383a8712f81f0f2d2f1bddcfc81889ede06a0027de537b5b9af83ed821390c7"},
+]
+
+[package.dependencies]
+anndata = ">=0.7.5"
+loompy = ">=2.0.12"
+matplotlib = ">=3.3.0"
+numba = ">=0.41.0"
+numpy = ">=1.17"
+pandas = ">=1.1.1,<1.4.0 || >1.4.0"
+scanpy = ">=1.5"
+scikit-learn = ">=0.21.2"
+scipy = ">=1.4.1"
+umap-learn = ">=0.3.10"
+
+[package.extras]
+dev = ["black", "hnswlib", "hypothesis", "igraph", "isort", "louvain", "pre-commit (>=2.9.0)", "pybind11", "pytest-cov", "ruff", "setuptools_scm"]
+docs = ["importlib_metadata", "ipykernel", "nbsphinx (>=0.7,<0.8.7)", "scanpy", "setuptools", "setuptools_scm", "sphinx (>=1.7,<8.0)", "sphinx_autodoc_typehints (>=1.10.3)", "sphinx_rtd_theme (>=0.3)", "sphinxcontrib-bibtex (>=2.3.0)"]
+hnswlib = ["hnswlib", "pybind11"]
+louvain = ["igraph", "louvain"]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "seaborn"
 version = "0.13.2"
 description = "Statistical data visualization"
@@ -2494,6 +2583,28 @@ files = [
 
 [package.dependencies]
 stdlib_list = "*"
+
+[[package]]
+name = "setuptools"
+version = "75.8.0"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "setuptools-75.8.0-py3-none-any.whl", hash = "sha256:e3982f444617239225d675215d51f6ba05f845d4eec313da4418fdbb56fb27e3"},
+    {file = "setuptools-75.8.0.tar.gz", hash = "sha256:c5afc8f407c626b8313a86e10311dd3f661c6cd9c09d4bf8c15c0e11f9f2b0e6"},
+]
+
+[package.extras]
+check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1)", "ruff (>=0.8.0)"]
+core = ["importlib_metadata (>=6)", "jaraco.collections", "jaraco.functools (>=4)", "jaraco.text (>=3.7)", "more_itertools", "more_itertools (>=8.8)", "packaging", "packaging (>=24.2)", "platformdirs (>=4.2.2)", "tomli (>=2.0.1)", "wheel (>=0.43.0)"]
+cover = ["pytest-cov"]
+doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier", "towncrier (<24.7)"]
+enabler = ["pytest-enabler (>=2.2)"]
+test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.7.2)", "jaraco.test (>=5.5)", "packaging (>=24.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-home (>=0.5)", "pytest-perf", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
+type = ["importlib_metadata (>=7.0.2)", "jaraco.develop (>=7.21)", "mypy (==1.14.*)", "pytest-mypy"]
 
 [[package]]
 name = "six"
@@ -2823,4 +2934,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "0f0573c9c008ea75b50d56ffd819cec5b4e56b5c84cb8e1aafafd2952e74c402"
+content-hash = "0a6156be1816e0bf350438979bb570efcf02d499ac2b8294ad9f3c020971496f"
