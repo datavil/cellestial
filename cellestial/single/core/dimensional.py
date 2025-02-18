@@ -289,10 +289,13 @@ def dimensional(
             raise KeyError(msg)
 
     # truth value of clustering
-    clustering: bool = key.startswith(("leiden", "louvain"))
+    if key is not None:
+        clustering: bool = key.startswith(("leiden", "louvain"))
 
     # handle tooltips
-    if clustering:
+    if key is None:
+        base_tooltips = [barcode_name]
+    elif clustering:
         base_tooltips = [barcode_name, cluster_name]
     else:
         base_tooltips = [barcode_name, key]
@@ -368,6 +371,23 @@ def dimensional(
                 color_mid=color_mid,
                 color_high=color_high,
                 mid_point=mid_point,
+            )
+            + labs(
+                x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
+            )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+        ) + _THEME_DIMENSION
+    # ---------------------- IF IT IS NONE ----------------------
+    elif key is None:
+        # handle the expansion of the frame
+        frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
+        # cluster scatter
+        scttr = (
+            ggplot(data=frame)
+            + geom_point(
+                aes(x=f"{dimensions}1", y=f"{dimensions}2"),
+                size=size,
+                tooltips=layer_tooltips(tooltips),
+                **point_kwargs,
             )
             + labs(
                 x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
