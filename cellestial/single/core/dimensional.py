@@ -112,7 +112,7 @@ def _expand_frame(data: AnnData, frame: pl.DataFrame, to_add: list[str]) -> pl.D
 
 def dimensional(
     data: AnnData,
-    key: Literal["leiden", "louvain"] | str = "leiden",
+    key: str | None = None,
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
@@ -147,7 +147,7 @@ def dimensional(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : Literal['leiden', 'louvain'] | str, default='leiden'
+    key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
