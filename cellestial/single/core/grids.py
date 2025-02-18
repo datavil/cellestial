@@ -65,7 +65,7 @@ def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["ax
 
 def dimensionals(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
+    keys: list[str] | tuple[str] | Iterable[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
@@ -109,7 +109,7 @@ def dimensionals(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str], default=("leiden",),
+    keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
@@ -239,8 +239,11 @@ def dimensionals(
         Grid of dimensionality reduction plots.
 
     """
-    plots = []
+    if not isinstance(keys, Iterable):
+        msg = "keys must be an iterable of strings"
+        raise TypeError(msg)
 
+    plots = []
     for i, key in enumerate(keys):
         plot = dimensional(
             data=data,
@@ -295,7 +298,7 @@ def dimensionals(
 
 def umaps(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
+    keys: list[str] | tuple[str] | Iterable[str],
     *,
     size: float = 0.8,
     interactive: bool = False,
@@ -338,7 +341,7 @@ def umaps(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str], default=("leiden",),
+    keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
@@ -468,8 +471,11 @@ def umaps(
         Grid of dimensionality reduction plots of umap.
 
     """
-    plots = []
+    if not isinstance(keys, Iterable):
+        msg = "keys must be an iterable of strings"
+        raise TypeError(msg)
 
+    plots = []
     for i, key in enumerate(keys):
         plot = umap(
             data=data,
@@ -522,7 +528,7 @@ def umaps(
 
 def tsnes(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
+    keys: list[str] | tuple[str] | Iterable[str],
     *,
     size: float = 0.8,
     interactive: bool = False,
@@ -565,7 +571,7 @@ def tsnes(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str], default=("leiden",),
+    keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
@@ -695,8 +701,11 @@ def tsnes(
         Grid of dimensional reduction plots of tsne.
 
     """
-    plots = []
+    if not isinstance(keys, Iterable):
+        msg = "keys must be an iterable of strings"
+        raise TypeError(msg)
 
+    plots = []
     for i, key in enumerate(keys):
         plot = tsne(
             data=data,
@@ -726,10 +735,8 @@ def tsnes(
         if layers is not None:
             for layer in layers:
                 plot += layer
-
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
-
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
@@ -752,7 +759,7 @@ def tsnes(
 
 def pcas(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str] = ("leiden",),
+    keys: list[str] | tuple[str] | Iterable[str],
     *,
     size: float = 0.8,
     interactive: bool = False,
@@ -795,7 +802,7 @@ def pcas(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str], default=("leiden",),
+    keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
@@ -925,8 +932,11 @@ def pcas(
         Grid of dimensional reduction plots of pca.
 
     """
-    plots = []
+    if not isinstance(keys, Iterable):
+        msg = "keys must be an iterable of strings"
+        raise TypeError(msg)
 
+    plots = []
     for i, key in enumerate(keys):
         plot = pca(
             data=data,
@@ -958,7 +968,6 @@ def pcas(
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
-
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
@@ -1024,7 +1033,7 @@ def expressions(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str], default=None,
+    keys : list[str] | tuple[str] | Iterable[str]
         The keys (genes) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
@@ -1154,8 +1163,11 @@ def expressions(
         Grid of dimensional reduction plots of expression.
 
     """
-    plots = []
+    if not isinstance(keys, Iterable):
+        msg = "keys must be an iterable of strings"
+        raise TypeError(msg)
 
+    plots = []
     for i, key in enumerate(keys):
         plot = expression(
             data=data,
@@ -1188,7 +1200,6 @@ def expressions(
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, key, ncol)
-
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)

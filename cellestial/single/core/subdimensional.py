@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 def umap(
     data: AnnData,
-    key: Literal["leiden", "louvain"] | str = "leiden",
+    key: str | None = None,
     *,
     size: float = 0.8,
     interactive: bool = False,
@@ -47,7 +47,7 @@ def umap(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : Literal['leiden', 'louvain'] | str, default='leiden'
+    key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     size : float, default=0.8
@@ -173,7 +173,7 @@ def umap(
 
 def tsne(
     data: AnnData,
-    key: Literal["leiden", "louvain"] | str = "leiden",
+    key: str | None = None,
     *,
     size: float = 0.8,
     interactive: bool = False,
@@ -207,7 +207,7 @@ def tsne(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : Literal['leiden', 'louvain'] | str, default='leiden'
+    key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     size : float, default=0.8
@@ -333,7 +333,7 @@ def tsne(
 
 def pca(
     data: AnnData,
-    key: Literal["leiden", "louvain"] | str = "leiden",
+    key: str | None = None,
     *,
     size: float = 0.8,
     interactive: bool = False,
@@ -367,7 +367,7 @@ def pca(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : Literal['leiden', 'louvain'] | str, default='leiden'
+    key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     size : float, default=0.8
@@ -528,7 +528,7 @@ def expression(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : Literal['leiden', 'louvain'] | str, default='leiden'
+    key : str
         The key (genes) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
