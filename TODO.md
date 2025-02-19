@@ -42,5 +42,10 @@ Dimensional
 Distribution
 Special
 
+# Limits
+extremely large datasets > 1M cells ✅
 
-extremely large datasets > 1M cells
+
+# Stream
+Stream flow as in velocity_embedding_stream
+https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embedding_stream.py
