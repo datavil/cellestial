@@ -36,6 +36,7 @@ def _legend_ondata(
     *,
     frame: pl.DataFrame,
     dimensions: str,
+    xy: tuple[int, int] = (1, 2),
     cluster_name: str,
     size: float = 12,
     color: str = "#3f3f3f",
@@ -45,8 +46,8 @@ def _legend_ondata(
     weighted: bool = True,
 ) -> FeatureSpec | FeatureSpecArray:
     # group by cluster names and find X and Y mean for midpoints
-    x = f"{dimensions}1"
-    y = f"{dimensions}2"
+    x = f"{dimensions}{xy[0]}"  # e.g. umap1
+    y = f"{dimensions}{xy[1]}"  # e.g. umap2
     if weighted:
         group_means = frame.group_by(cluster_name).agg(
             pl.col(x).mean().alias("mean_x"), pl.col(y).mean().alias("mean_y")
@@ -67,12 +68,10 @@ def _legend_ondata(
             (pl.col(y) * pl.col("weight")).sum() / pl.col("weight").sum(),
         )
     else:
-        grouped = frame.group_by(cluster_name).agg(
-            pl.col(f"{dimensions}1").mean(), pl.col(f"{dimensions}2").mean()
-        )
+        grouped = frame.group_by(cluster_name).agg(pl.col(x).mean(), pl.col(y).mean())
     return geom_text(
         data=grouped,
-        mapping=aes(x=f"{dimensions}1", y=f"{dimensions}2", label=cluster_name),
+        mapping=aes(x=x, y=y, label=cluster_name),
         size=size,
         color=color,
         fontface=fontface,
@@ -115,6 +114,7 @@ def dimensional(
     key: str | None = None,
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -275,9 +275,12 @@ def dimensional(
         raise TypeError(msg)
 
     # get the coordinates of the cells in the dimension reduced space
-    # only take the first two dimensions (pca comes with more dimensions)
+    # only take the xy dimensions (pca comes with more dimensions)
+    x = f"{dimensions}{xy[0]}"  # e.g. umap1
+    y = f"{dimensions}{xy[1]}"  # e.g. umap2
+    xy_index = (xy[0] - 1, xy[1] - 1)
     frame = pl.from_numpy(
-        data.obsm[f"X_{dimensions}"][:, :2], schema=[f"{dimensions}1", f"{dimensions}2"]
+        data.obsm[f"X_{dimensions}"][:, xy_index], schema=[x, y]
     ).with_columns(pl.Series(barcode_name, data.obs_names))
 
     # handle point_kwargs
@@ -314,7 +317,7 @@ def dimensional(
             frame = frame.with_columns(pl.Series(cluster_name, data.obs[key]))
             color_key = cluster_name
         else:
-            frame = frame.with_columns(pl.Series(data.obs[key]))
+            frame = frame.with_columns(pl.Series(key, data.obs[key]))
             color_key = key
         # handle the expansion of the frame
         frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
@@ -322,15 +325,12 @@ def dimensional(
         scttr = (
             ggplot(data=frame)
             + geom_point(
-                aes(x=f"{dimensions}1", y=f"{dimensions}2", color=color_key),
+                aes(x=x, y=y, color=color_key),
                 size=size,
                 tooltips=layer_tooltips(tooltips),
                 **point_kwargs,
             )
-            + labs(
-                x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
-            )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
-        ) + _THEME_DIMENSION
+        )
         # wrap the legend
         if frame.schema[color_key] == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
@@ -360,7 +360,7 @@ def dimensional(
         scttr = (
             ggplot(data=frame)
             + geom_point(
-                aes(x=f"{dimensions}1", y=f"{dimensions}2", color=key),
+                aes(x=x, y=y, color=key),
                 size=size,
                 tooltips=layer_tooltips(tooltips),
                 **point_kwargs,
@@ -372,10 +372,7 @@ def dimensional(
                 color_high=color_high,
                 mid_point=mid_point,
             )
-            + labs(
-                x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
-            )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
-        ) + _THEME_DIMENSION
+        )
     # ---------------------- IF IT IS NONE ----------------------
     elif key is None:
         # handle the expansion of the frame
@@ -384,15 +381,13 @@ def dimensional(
         scttr = (
             ggplot(data=frame)
             + geom_point(
-                aes(x=f"{dimensions}1", y=f"{dimensions}2"),
+                aes(x=x, y=y),
                 size=size,
                 tooltips=layer_tooltips(tooltips),
                 **point_kwargs,
             )
-            + labs(
-                x=f"{dimensions}1".upper(), y=f"{dimensions}2".upper()
-            )  # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
-        ) + _THEME_DIMENSION
+            + labs(x=x.upper(), y=y.upper())
+        )
     # ---------------------- NOT A GENE OR CLUSTER ----------------------
     else:
         msg = f"'{key}' is not present in `observation (.obs) names` nor `gene (.var) names`"
@@ -413,6 +408,16 @@ def dimensional(
         dimensions=dimensions,
     )
 
+    # add common layers
+    scttr += (
+        labs(
+            x=x.upper(),
+            y=y.upper(),
+            # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+        )
+        + _THEME_DIMENSION
+    )
+
     # handle interactive
     if interactive:
         scttr += ggtb()
@@ -424,6 +429,7 @@ def dimensional(
             scttr += _legend_ondata(
                 frame=frame,
                 dimensions=dimensions,
+                xy=xy,
                 cluster_name=cluster_key,
                 size=ondata_size,
                 color=ondata_color,

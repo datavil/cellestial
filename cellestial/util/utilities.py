@@ -165,6 +165,7 @@ def _decide_tooltips(
 
     return tooltips
 
+
 def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     """Return a list of rounded numbers between start and stop, inclusive."""
     decimals = 0
@@ -182,6 +183,7 @@ def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     # make unique
     inc_list = list(set(inc_list))
     return sorted(inc_list)
+
 
 def _color_gradient(
     series,
