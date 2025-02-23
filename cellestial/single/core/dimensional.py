@@ -25,6 +25,7 @@ from lets_plot import (
 )
 from lets_plot.plot.core import PlotSpec
 
+from cellestial.frames import _construct_cell_frame, _construct_var_frame
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis, _color_gradient, _decide_tooltips
 
@@ -80,40 +81,12 @@ def _legend_ondata(
     ) + theme(legend_position="none")
 
 
-def _expand_frame(data: AnnData, frame: pl.DataFrame, to_add: list[str]) -> pl.DataFrame:
-    # TODO: add the expansion of the frame
-    """
-    frame already has dimensions, cellID and key (or cluster).
-
-    expand the frame with:
-    - given tooltips
-       - it can be in obs
-           - check if the key is in obs
-       - it can be a gene expression level
-           - check if the key is in var_names
-    add the columns to frame
-    return the frame
-    """
-    for key in to_add:
-        if key not in frame.columns:
-            if key in data.obs.columns:
-                frame = frame.with_columns(pl.Series(key, data.obs[key]))
-            elif key in data.var_names:
-                index = data.var_names.get_indexer([key])  # get the index of the gene
-                frame = frame.with_columns(
-                    pl.Series(key, data.X[:, index].flatten().astype("float32")),
-                )
-            else:
-                msg = f"key '{key}' to expand is not present in `observation (.obs) names` nor `gene (.var) names`"
-                raise ValueError(msg)
-    return frame
-
-
 def dimensional(
     data: AnnData,
     key: str | None = None,
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    use_key: str | None = None,
     xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
@@ -153,6 +126,10 @@ def dimensional(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
@@ -242,46 +219,15 @@ def dimensional(
     PlotSpec
         Dimensional reduction plot.
 
-    Examples
-    --------
-    .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10
-
-        import scanpy as sc
-        import cellestial as cl
-
-        data = sc.read("data/pbmc3k_pped.h5ad")
-        plot = cl.dimensional(data, key="leiden", dimensions="umap", size=0.6)
-        plot
-
-    |
-
-    .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10
-
-        import scanpy as sc
-        import cellestial as cl
-
-        data = sc.read("data/pbmc3k_pped.h5ad")
-        plot = cl.dimensional(data, key="leiden", dimensions="pca", size=0.8)
-        plot
-
     """
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
-    # get the coordinates of the cells in the dimension reduced space
-    # only take the xy dimensions (pca comes with more dimensions)
+    #  declare x and y
     x = f"{dimensions}{xy[0]}"  # e.g. umap1
     y = f"{dimensions}{xy[1]}"  # e.g. umap2
-    xy_index = (xy[0] - 1, xy[1] - 1)
-    frame = pl.from_numpy(
-        data.obsm[f"X_{dimensions}"][:, xy_index], schema=[x, y]
-    ).with_columns(pl.Series(barcode_name, data.obs_names))
 
     # handle point_kwargs
     if point_kwargs is None:
@@ -294,12 +240,12 @@ def dimensional(
     # truth value of clustering
     if key is not None:
         clustering: bool = key.startswith(("leiden", "louvain"))
+    else:
+        clustering = False
 
     # handle tooltips
     if key is None:
         base_tooltips = [barcode_name]
-    elif clustering:
-        base_tooltips = [barcode_name, cluster_name]
     else:
         base_tooltips = [barcode_name, key]
 
@@ -310,37 +256,44 @@ def dimensional(
         show_tooltips=show_tooltips,
     )
 
+    # construct the frame
+    all_keys = []
+    if tooltips != "none":
+        if key is not None:
+            all_keys.append(key)
+    else:
+        for tooltip in tooltips:
+            if tooltip != barcode_name:
+                all_keys.append(tooltip)
+
+    frame = _construct_cell_frame(
+        data=data,
+        keys=all_keys,
+        dimensions=dimensions,
+        xy=xy,
+        use_key=use_key,
+        barcode_name=barcode_name,
+    )
+
     # CASE1 ---------------------- IF IT IS A CELL ANNOTATION ----------------------
     if key in data.obs.columns:
-        if clustering:  # if it is a clustering
-            # update the key column name if it is a cluster
-            frame = frame.with_columns(pl.Series(cluster_name, data.obs[key]))
-            color_key = cluster_name
-        else:
-            frame = frame.with_columns(pl.Series(key, data.obs[key]))
-            color_key = key
-        # handle the expansion of the frame
-        frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
         # cluster scatter
-        scttr = (
-            ggplot(data=frame)
-            + geom_point(
-                aes(x=x, y=y, color=color_key),
-                size=size,
-                tooltips=layer_tooltips(tooltips),
-                **point_kwargs,
-            )
+        scttr = ggplot(data=frame) + geom_point(
+            aes(x=x, y=y, color=key),
+            size=size,
+            tooltips=layer_tooltips(tooltips),
+            **point_kwargs,
         )
         # wrap the legend
-        if frame.schema[color_key] == pl.Categorical:
+        if frame.schema[key] == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
-            n_distinct = frame.select(color_key).unique().height
+            n_distinct = frame.select(key).unique().height
             if n_distinct > 10:
                 ncol = ceil(n_distinct / 10)
-                scttr = scttr + guides(color=guide_legend(ncol=ncol))
+                scttr += guides(color=guide_legend(ncol=ncol))
         else:
             scttr += _color_gradient(
-                frame[color_key],
+                frame[key],
                 color_low=color_low,
                 color_mid=color_mid,
                 color_high=color_high,
@@ -349,14 +302,6 @@ def dimensional(
 
     # CASE2 ---------------------- IF IT IS A VARIABLE (GENE) ----------------------
     elif key in data.var_names:  # if it is a gene
-        # adata.X is a sparse matrix , axis0 is cells, axis1 is genes
-        # find the index of the gene
-        index = data.var_names.get_indexer([key])  # get the index of the gene
-        frame = frame.with_columns(
-            pl.Series(key, data.X[:, index].flatten().astype("float32")),
-        )
-        # handle the expansion of the frame
-        frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
         scttr = (
             ggplot(data=frame)
             + geom_point(
@@ -375,18 +320,12 @@ def dimensional(
         )
     # ---------------------- IF IT IS NONE ----------------------
     elif key is None:
-        # handle the expansion of the frame
-        frame = _expand_frame(data=data, frame=frame, to_add=tooltips)
         # cluster scatter
-        scttr = (
-            ggplot(data=frame)
-            + geom_point(
-                aes(x=x, y=y),
-                size=size,
-                tooltips=layer_tooltips(tooltips),
-                **point_kwargs,
-            )
-            + labs(x=x.upper(), y=y.upper())
+        scttr = ggplot(data=frame) + geom_point(
+            aes(x=x, y=y),
+            size=size,
+            tooltips=layer_tooltips(tooltips),
+            **point_kwargs,
         )
     # ---------------------- NOT A GENE OR CLUSTER ----------------------
     else:
@@ -396,17 +335,6 @@ def dimensional(
     # special case for labels
     if dimensions == "tsne":
         scttr += labs(x="tSNE1", y="tSNE2")
-
-    # handle arrow axis
-    scttr += _add_arrow_axis(
-        frame=frame,
-        axis_type=axis_type,
-        arrow_size=arrow_size,
-        arrow_color=arrow_color,
-        arrow_angle=arrow_angle,
-        arrow_length=arrow_length,
-        dimensions=dimensions,
-    )
 
     # add common layers
     scttr += (
@@ -418,19 +346,29 @@ def dimensional(
         + _THEME_DIMENSION
     )
 
+    # handle arrow axis
+    scttr += _add_arrow_axis(
+        frame=frame,
+        axis_type=axis_type,
+        arrow_size=arrow_size,
+        arrow_color=arrow_color,
+        arrow_angle=arrow_angle,
+        arrow_length=arrow_length,
+        dimensions=dimensions,
+    )
     # handle interactive
     if interactive:
         scttr += ggtb()
 
     # handle legend on data
-    if legend_ondata:
-        cluster_key = cluster_name if clustering else key
-        if frame.schema[cluster_key] == pl.Categorical:
+    if legend_ondata and key is not None:
+
+        if frame.schema[key] == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
                 dimensions=dimensions,
                 xy=xy,
-                cluster_name=cluster_key,
+                cluster_name=key,
                 size=ondata_size,
                 color=ondata_color,
                 fontface=ondata_fontface,
