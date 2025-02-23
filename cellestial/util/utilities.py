@@ -132,7 +132,7 @@ def _decide_tooltips(
     custom_tooltips: Iterable[str],
     *,
     show_tooltips: bool,
-) -> list[str]:
+) -> list[str] | str:
     """
     Decide on the tooltips.
 
