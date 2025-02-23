@@ -44,6 +44,7 @@ def violin(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     trim: bool = False,
+    barcode_name: str = "CellID",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
@@ -57,7 +58,10 @@ def violin(
         msg = "data must be an AnnData object"
         raise TypeError(msg)
     else:
-        frame = pl.from_pandas(data.obs, include_index=True).rename({"None": "CellID"})
+        if key in data.obs.columns:
+            frame = pl.from_pandas(data.obs.reset_index()).rename({"index": barcode_name})
+        elif key in data.var_names:
+            frame = pl.from_pandas(data.var.reset_index()).rename({"index": barcode_name})
     # check if key is in the columns
     if key not in frame.columns:
         msg = f"key must be a column in the AnnData object, but {key} is not in the columns"
@@ -65,12 +69,6 @@ def violin(
 
     # handle violin_kwargs
     if violin_kwargs:
-        if "fill" in violin_kwargs:
-            violin_fill = violin_kwargs.get("fill")
-        if "color" in violin_kwargs:
-            violin_color = violin_kwargs.get("color")
-        if "trim" in violin_kwargs:
-            trim = violin_kwargs.get("trim")
         if "tooltips" in violin_kwargs:
             msg = "violin tooltips are non-customizable by `violin_kwargs`"
             raise KeyError(msg)
