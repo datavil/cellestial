@@ -10,6 +10,7 @@ from lets_plot import (
     element_text,
     geom_blank,
     geom_segment,
+    layer_tooltips,
     scale_color_continuous,
     scale_color_gradient2,
     theme,
@@ -164,6 +165,34 @@ def _decide_tooltips(
             tooltips = base_tooltips
 
     return tooltips
+
+
+def _build_tooltips(
+    *,
+    tooltips: list[str],
+    cluster_name: str,
+    key: str,
+    title: str | None = None,
+    clustering: bool = False,
+) -> FeatureSpec:
+    """Crete the tooltips for the plot."""
+    if tooltips == "none":
+        return "none"
+
+    tooltips_object = layer_tooltips()
+    for tooltip in tooltips:
+        if clustering:
+            if tooltip != key:
+                tooltips_object.line(f"{tooltip}|@{tooltip}")
+            elif tooltip == key:
+                tooltips_object.line(f"{cluster_name}|@{key}")
+        else:
+            tooltips_object.line(f"{tooltip}|@{tooltip}")
+    if title is not None:
+        tooltips_object.title(title)
+
+
+    return tooltips_object
 
 
 def _range_inclusive(start: float, stop: float, step: int) -> list[float]:

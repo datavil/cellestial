@@ -200,10 +200,11 @@ def _construct_var_frame(
         for key in keys:
             if key in data.var.columns:
                 frame = frame.with_columns(pl.Series(key, data.var[key]))
-                # add the variable index to the frame
-                frame = frame.with_columns(pl.Series(var_name, data.var_names))
             else:
                 msg = f"key '{key}' not found in the data"
                 raise KeyNotFoundError(msg)
+
+        # add the variable index to the frame
+        frame = frame.with_columns(pl.Series(var_name, data.var_names))
 
     return frame
