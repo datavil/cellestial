@@ -19,19 +19,26 @@ from lets_plot import (
     guide_legend,
     guides,
     labs,
-    layer_tooltips,
     scale_color_brewer,
     theme,
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.frames import _construct_cell_frame, _construct_var_frame
+from cellestial.frames import _construct_cell_frame
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _add_arrow_axis, _color_gradient, _decide_tooltips
+from cellestial.util import _add_arrow_axis, _build_tooltips, _color_gradient, _decide_tooltips
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
+
+# TODO: add docstrings for : DONE
+# xy
+# tooltips_title
+
+# TODO: apply changes to other functions
+
+# TODO: cellID to barcode, DONE
 
 def _legend_ondata(
     *,
@@ -91,7 +98,7 @@ def dimensional(
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
-    barcode_name: str = "CellID",
+    barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -104,6 +111,7 @@ def dimensional(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -126,6 +134,9 @@ def dimensional(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
@@ -191,6 +202,8 @@ def dimensional(
         Additional tooltips, will be appended to the base_tooltips.
     custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -255,10 +268,17 @@ def dimensional(
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
+    tooltips_object = _build_tooltips(
+        tooltips=tooltips,
+        cluster_name=cluster_name,
+        key=key,
+        title=tooltips_title,
+        clustering=clustering,
+    )
 
     # construct the frame
     all_keys = []
-    if tooltips != "none":
+    if tooltips == "none":
         if key is not None:
             all_keys.append(key)
     else:
@@ -281,7 +301,7 @@ def dimensional(
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y, color=key),
             size=size,
-            tooltips=layer_tooltips(tooltips),
+            tooltips=tooltips_object,
             **point_kwargs,
         )
         # wrap the legend
@@ -307,7 +327,7 @@ def dimensional(
             + geom_point(
                 aes(x=x, y=y, color=key),
                 size=size,
-                tooltips=layer_tooltips(tooltips),
+                tooltips=tooltips_object,
                 **point_kwargs,
             )
             + _color_gradient(
@@ -324,7 +344,7 @@ def dimensional(
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y),
             size=size,
-            tooltips=layer_tooltips(tooltips),
+            tooltips=tooltips_object,
             **point_kwargs,
         )
     # ---------------------- NOT A GENE OR CLUSTER ----------------------
@@ -362,7 +382,6 @@ def dimensional(
 
     # handle legend on data
     if legend_ondata and key is not None:
-
         if frame.schema[key] == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,

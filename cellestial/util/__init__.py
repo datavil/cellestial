@@ -4,6 +4,7 @@ from cellestial.util.utilities import (
     _color_gradient,
     _decide_tooltips,
     _range_inclusive,
+    _build_tooltips,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "_decide_tooltips",
     "_range_inclusive",
     "_color_gradient",
+    "_build_tooltips",
 ]
