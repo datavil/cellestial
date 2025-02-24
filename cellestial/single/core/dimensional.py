@@ -147,7 +147,7 @@ def dimensional(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.

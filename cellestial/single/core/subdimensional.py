@@ -15,10 +15,12 @@ def umap(
     data: AnnData,
     key: str | None = None,
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
-    barcode_name: str = "CellID",
+    barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -31,6 +33,7 @@ def umap(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -50,13 +53,20 @@ def umap(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -111,6 +121,8 @@ def umap(
         Additional tooltips, will be appended to the base_tooltips.
     custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -144,6 +156,8 @@ def umap(
         data=data,
         key=key,
         dimensions="umap",
+        use_key=use_key,
+        xy=xy,
         size=size,
         interactive=interactive,
         cluster_name=cluster_name,
@@ -160,6 +174,7 @@ def umap(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
+        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -175,10 +190,12 @@ def tsne(
     data: AnnData,
     key: str | None = None,
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
-    barcode_name: str = "CellID",
+    barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -191,6 +208,7 @@ def tsne(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -210,13 +228,20 @@ def tsne(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -271,6 +296,8 @@ def tsne(
         Additional tooltips, will be appended to the base_tooltips.
     custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -304,6 +331,8 @@ def tsne(
         data=data,
         key=key,
         dimensions="tsne",
+        use_key=use_key,
+        xy=xy,
         size=size,
         interactive=interactive,
         cluster_name=cluster_name,
@@ -320,6 +349,7 @@ def tsne(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
+        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -335,10 +365,12 @@ def pca(
     data: AnnData,
     key: str | None = None,
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
-    barcode_name: str = "CellID",
+    barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -351,6 +383,7 @@ def pca(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -370,13 +403,20 @@ def pca(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -431,6 +471,8 @@ def pca(
         Additional tooltips, will be appended to the base_tooltips.
     custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -464,6 +506,8 @@ def pca(
         data=data,
         key=key,
         dimensions="pca",
+        use_key=use_key,
+        xy=xy,
         size=size,
         interactive=interactive,
         cluster_name=cluster_name,
@@ -480,6 +524,7 @@ def pca(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
+        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -496,10 +541,12 @@ def expression(
     key: str,
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
-    barcode_name: str = "CellID",
+    barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -512,6 +559,7 @@ def expression(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -534,13 +582,20 @@ def expression(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -595,6 +650,8 @@ def expression(
         Additional tooltips, will be appended to the base_tooltips.
     custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -631,6 +688,8 @@ def expression(
         data=data,
         key=key,
         dimensions=dimensions,
+        use_key=use_key,
+        xy=xy,
         size=size,
         interactive=interactive,
         cluster_name=cluster_name,
@@ -647,6 +706,7 @@ def expression(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
+        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
