@@ -15,7 +15,8 @@ from lets_plot import (
     scale_color_gradient2,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec
+from lets_plot.plot.core import FeatureSpec, PlotSpec
+from lets_plot.plot.subplots import SupPlotsSpec
 
 
 def _add_arrow_axis(
@@ -79,8 +80,8 @@ def _add_arrow_axis(
             axis_ticks_x=element_blank(),
             axis_line=element_blank(),
             # position axis titles according to arrow size
-            axis_title_x=element_text(hjust=arrow_length / 2),
-            axis_title_y=element_text(hjust=arrow_length / 2),
+            axis_title_x=element_text(hjust=arrow_length / 2.5),  # better than 2
+            axis_title_y=element_text(hjust=arrow_length / 2.5),
         )
         x_max = frame.select(f"{dimensions}1").max().item()
         x_min = frame.select(f"{dimensions}1").min().item()
@@ -191,7 +192,6 @@ def _build_tooltips(
     if title is not None:
         tooltips_object.title(title)
 
-
     return tooltips_object
 
 
@@ -264,3 +264,76 @@ def _color_gradient(
             high=color_high,
             midpoint=mid_value,
         )
+
+
+def retrieve(plot: PlotSpec | SupPlotsSpec, index:int=0) -> pl.DataFrame:
+    """
+    Retrieves the dataframe from a plot.
+
+    plot : PlotSpec | SupPlotsSpec
+        The plot to retrieve the dataframe from.
+    index : int, optional
+        The index of the figure to retrieve the dataframe from, by default 0
+
+    Returns
+    -------
+    pl.DataFrame
+        The dataframe utilized in the plot.
+
+    Raises
+    ------
+    TypeError
+        If the plot is not a PlotSpec or SupPlotsSpec object.
+    """
+    if isinstance(plot, PlotSpec):
+        frame = vars(plot).get("_FeatureSpec__props").get("data")
+    if isinstance(plot, SupPlotsSpec):
+        frame = (
+            vars(vars(plot).get("_SupPlotsSpec__figures")[index])
+            .get("_FeatureSpec__props")
+            .get("data")
+        )
+    else:
+        msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
+        raise TypeError(msg)
+
+    return frame
+
+def slice(grid: SupPlotsSpec, index: int | Iterable[int]) -> PlotSpec | SupPlotsSpec:
+    """
+    Slice a ggrid (SupPlotsSpec) objects with given index.
+
+    Parameters
+    ----------
+    grid : SupPlotsSpec
+        The grid to slice.
+    index : int | Iterable[int]
+        The index or indices of the plots to slice.
+
+    Returns
+    -------
+    PlotSpec | SupPlotsSpec
+        The sliced grid.
+
+    Raises
+    ------
+    TypeError
+        If the grid is not a SupPlotsSpec object.
+        If the index is not an int or Iterable[int].
+    """
+    if isinstance(grid, SupPlotsSpec):
+        if isinstance(index, int):
+            plot = vars(grid).get('_SupPlotsSpec__figures')[index]
+            return plot
+        elif isinstance(index, Iterable):
+            list_plots = []
+            for i in index:
+                list_plots.append(vars(grid).get('_SupPlotsSpec__figures')[i])
+                grid = list_plots
+            return grid
+        else:
+            msg = f"Expected int or Iterable for index, but received {type(index)}"
+            raise TypeError(msg)
+    else:
+        msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
+        raise TypeError(msg)

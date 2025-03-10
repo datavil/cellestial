@@ -1,31 +1,48 @@
 # Principles
 
+Cellestial is built on 4 main principles:
+1. Simplicity  
+    - Simple and memorable function names.
+    - No additional classes.
+2. Predictability
+    - Function retuns types are fixed ergo predictable.
+3. Customizability
+    - Plots are very customizable.
+    - Layers can be added/overwritten later.
+4. Interactivity
+    - Plots are interactive HTML widgets that can be redented to a static image.
+    - Zooming, panning, hovering to see tooltips, etc.
+
 ## Naming
 
-### Plotting Functions
+### Plotting Functions (Simplicity)
 
 This is already a plotting library, Function names should not include "plot" suffix/prefix
 
 e.g., instead of `plot_scatter` use `scatter`,
 e,g., instead of `plot_violin` use `violin`
 
-## Explicit over Implicit
+## Explicit over Implicit 
 
 Function names, variable names including the constants should have short but explicit and descriptive names.
 
 e.g., instead of `vlnplot` use `violin`
 
 
-### Multi vs Single Plotting Names
+### Multi vs Single Plotting Names (Predictability)
 
 in the case of multi-plots, functions should change to plural form. e.g., `scatter` to `scatters`
+
+ensures that;
+- multi-plots returns a `SupPlotsSpec` i.e. grid object.
+- single plots returns a singular`PlotSpec` object.
 
 ## Generalized vs Specific Plots
 
 For example `umap` plot is a subset of `dimension` plot. 
 
 
-## Abstractions
+## Abstractions (Customizability)
 
 Abstractions should be done **modarately**. they come with cost in the form of **reduction** in *customizability* and *flexibility*.
 
