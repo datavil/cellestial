@@ -68,6 +68,8 @@ def dimensionals(
     keys: list[str] | tuple[str] | Iterable[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -115,6 +117,13 @@ def dimensionals(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
@@ -249,6 +258,8 @@ def dimensionals(
             data=data,
             key=key,
             dimensions=dimensions,
+            use_key=use_key,
+            xy=xy,
             size=size,
             interactive=interactive,
             cluster_name=cluster_name,
@@ -300,6 +311,8 @@ def umaps(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str],
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -347,6 +360,13 @@ def umaps(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
@@ -480,6 +500,8 @@ def umaps(
         plot = umap(
             data=data,
             key=key,
+            use_key=use_key,
+            xy=xy,
             size=size,
             interactive=interactive,
             cluster_name=cluster_name,
@@ -530,6 +552,8 @@ def tsnes(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str],
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -577,6 +601,13 @@ def tsnes(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
@@ -710,6 +741,8 @@ def tsnes(
         plot = tsne(
             data=data,
             key=key,
+            use_key=use_key,
+            xy=xy,
             size=size,
             interactive=interactive,
             cluster_name=cluster_name,
@@ -761,6 +794,8 @@ def pcas(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str],
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -808,6 +843,13 @@ def pcas(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
@@ -941,6 +983,8 @@ def pcas(
         plot = pca(
             data=data,
             key=key,
+            use_key=use_key,
+            xy=xy,
             size=size,
             interactive=interactive,
             cluster_name=cluster_name,
@@ -991,6 +1035,8 @@ def expressions(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str],
     *,
+    use_key: str | None = None,
+    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
     interactive: bool = False,
@@ -1039,6 +1085,13 @@ def expressions(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    use_key : str, default=None
+        The specific key to use for the desired dimensions.
+        e.g., 'X_umap_2d' or 'X_pca_2d'.
+        Otherwise, the function will decide on the key based on the dimensions.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
@@ -1173,6 +1226,8 @@ def expressions(
             data=data,
             key=key,
             dimensions=dimensions,
+            use_key=use_key,
+            xy=xy,
             size=size,
             interactive=interactive,
             cluster_name=cluster_name,

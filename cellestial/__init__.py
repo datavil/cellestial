@@ -18,7 +18,7 @@ from cellestial.single import (
     violin,
     violins,
 )
-from cellestial.util import _add_arrow_axis, interactive
+from cellestial.util import _add_arrow_axis, interactive, retrieve, slice
 from cellestial.util.colors import (
     BLUE,
     CHERRY,
@@ -63,4 +63,6 @@ __all__ = [
     "ORANGE",
     "show_colors",
     "scatter",
+    "retrieve",
+    "slice",
 ]
