@@ -10,6 +10,7 @@ from lets_plot import (
     element_text,
     geom_blank,
     geom_segment,
+    gggrid,
     layer_tooltips,
     scale_color_continuous,
     scale_color_gradient2,
@@ -268,7 +269,7 @@ def _color_gradient(
 
 def retrieve(plot: PlotSpec | SupPlotsSpec, index:int=0) -> pl.DataFrame:
     """
-    Retrieves the dataframe from a plot.
+    Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
 
     plot : PlotSpec | SupPlotsSpec
         The plot to retrieve the dataframe from.
@@ -287,19 +288,21 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index:int=0) -> pl.DataFrame:
     """
     if isinstance(plot, PlotSpec):
         frame = vars(plot).get("_FeatureSpec__props").get("data")
-    if isinstance(plot, SupPlotsSpec):
+    elif isinstance(plot, SupPlotsSpec):
         frame = (
             vars(vars(plot).get("_SupPlotsSpec__figures")[index])
             .get("_FeatureSpec__props")
             .get("data")
         )
     else:
+        print(type(plot))
         msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
         raise TypeError(msg)
 
     return frame
 
-def slice(grid: SupPlotsSpec, index: int | Iterable[int]) -> PlotSpec | SupPlotsSpec:
+
+def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec | SupPlotsSpec:
     """
     Slice a ggrid (SupPlotsSpec) objects with given index.
 
@@ -309,6 +312,9 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int]) -> PlotSpec | SupPlots
         The grid to slice.
     index : int | Iterable[int]
         The index or indices of the plots to slice.
+    **kwargs : dict[str, Any]
+        Additional arguments for the `gggrid` function.
+        see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     Returns
     -------
@@ -322,15 +328,17 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int]) -> PlotSpec | SupPlots
         If the index is not an int or Iterable[int].
     """
     if isinstance(grid, SupPlotsSpec):
+        figures = vars(grid).get('_SupPlotsSpec__figures')
+        print(figures)
         if isinstance(index, int):
-            plot = vars(grid).get('_SupPlotsSpec__figures')[index]
+            plot = figures[index]
             return plot
         elif isinstance(index, Iterable):
             list_plots = []
             for i in index:
-                list_plots.append(vars(grid).get('_SupPlotsSpec__figures')[i])
+                list_plots.append(figures[i])
                 grid = list_plots
-            return grid
+            return gggrid(grid, **kwargs)
         else:
             msg = f"Expected int or Iterable for index, but received {type(index)}"
             raise TypeError(msg)
