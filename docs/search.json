@@ -81,7 +81,7 @@
     "href": "examples/dimensional/01_umap.html",
     "title": "3  umap",
     "section": "",
-    "text": "3.0.1 By default, the umap function will use “leiden” as the key\nplot = cl.umap(data, key=\"leiden\", axis_type=\"arrow\", size=0.6, interactive=True, add_tooltips=[\"sample\"])\nplot",
+    "text": "3.0.1 A simple umap plot\nplot = cl.umap(\n    data,\n    key=\"leiden\",\n    axis_type=\"arrow\",\n    size=0.6,\n    interactive=True,\n    add_tooltips=[\"sample\"],\n)\nplot",
     "crumbs": [
       "Dimensional Reduction",
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>umap</span>"
@@ -114,7 +114,7 @@
     "href": "examples/dimensional/01_umap.html#it-is-possible-to-use-legends-on-the-data",
     "title": "3  umap",
     "section": "3.3 It is possible to use legends on the data",
-    "text": "3.3 It is possible to use legends on the data\nNote that this is only applicable to categorical data.\n\ncl.dimensional(data, key=\"leiden\", size=0.8, legend_ondata=True, ondata_size=15, ondata_fontface=\"plain\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "3.3 It is possible to use legends on the data\nNote that this is only applicable to categorical data.\n\ncl.umap(\n    data,\n    key=\"leiden\",\n    size=0.8,\n    legend_ondata=True,\n    ondata_size=15,\n    ondata_fontface=\"plain\",\n)\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.6.0\nscanpy: 1.10.4\nanndata: 0.11.3\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>umap</span>"
@@ -136,7 +136,7 @@
     "href": "examples/dimensional/02_tsne.html",
     "title": "5  tsne",
     "section": "",
-    "text": "5.0.1 By default, the tsne function will use “leiden” as the key\nplot = cl.tsne(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
+    "text": "5.0.1 A simple tSNE plot\nplot = cl.tsne(data, key=\"leiden\", axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
     "crumbs": [
       "Dimensional Reduction",
       "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsne</span>"
@@ -158,7 +158,7 @@
     "href": "examples/dimensional/02_tsne.html#you-can-also-use-a-gene-a-key.",
     "title": "5  tsne",
     "section": "5.2 You can also use a gene a key.",
-    "text": "5.2 You can also use a gene a key.\n\ncl.tsne(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "5.2 You can also use a gene a key.\n\ncl.tsne(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.6.0\nscanpy: 1.10.4\nanndata: 0.11.3\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
       "<span class='chapter-number'>5</span>  <span class='chapter-title'>tsne</span>"
@@ -180,7 +180,7 @@
     "href": "examples/dimensional/03_pca.html",
     "title": "7  pca",
     "section": "",
-    "text": "7.0.1 By default, the pca function will use “leiden” as the key\nplot = cl.pca(data, axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
+    "text": "7.0.1 A simple PCA plot\nplot = cl.pca(data, key=\"leiden\", axis_type=\"arrow\", size=0.6, interactive=True)\nplot",
     "crumbs": [
       "Dimensional Reduction",
       "<span class='chapter-number'>7</span>  <span class='chapter-title'>pca</span>"
@@ -202,7 +202,7 @@
     "href": "examples/dimensional/03_pca.html#you-can-also-use-a-gene-a-key.",
     "title": "7  pca",
     "section": "7.2 You can also use a gene a key.",
-    "text": "7.2 You can also use a gene a key.\n\ncl.pca(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.2.0\nscanpy: 1.10.4\nanndata: 0.11.0\npolars: 1.12.0",
+    "text": "7.2 You can also use a gene a key.\n\ncl.pca(data, \"NEAT1\", color_high=\"#D2042D\")\n\n   \n   \n\n\n\ncl.versions()\n\ncellestial: 0.6.0\nscanpy: 1.10.4\nanndata: 0.11.3\npolars: 1.12.0",
     "crumbs": [
       "Dimensional Reduction",
       "<span class='chapter-number'>7</span>  <span class='chapter-title'>pca</span>"
