@@ -172,8 +172,8 @@ def _decide_tooltips(
 def _build_tooltips(
     *,
     tooltips: list[str],
-    cluster_name: str,
-    key: str,
+    cluster_name: str | None = None,
+    key: str | None = None,
     title: str | None = None,
     clustering: bool = False,
 ) -> FeatureSpec:

@@ -4,6 +4,7 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Iterable, Literal
 
 from lets_plot import element_blank, gggrid, theme
+from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.core.dimensional import dimensional
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
@@ -84,7 +85,7 @@ def dimensionals(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | None = None,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -283,7 +284,7 @@ def dimensionals(
         )
 
         if layers is not None:
-            for layer in layers:
+            for layer in list(layers):
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -327,7 +328,7 @@ def umaps(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | None = None,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -525,7 +526,7 @@ def umaps(
         )
 
         if layers is not None:
-            for layer in layers:
+            for layer in list(layers):
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -568,7 +569,7 @@ def tsnes(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | None = None,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -766,7 +767,7 @@ def tsnes(
         )
 
         if layers is not None:
-            for layer in layers:
+            for layer in list(layers):
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -810,7 +811,7 @@ def pcas(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | None = None,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -1008,7 +1009,7 @@ def pcas(
         )
 
         if layers is not None:
-            for layer in layers:
+            for layer in list(layers):
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -1052,7 +1053,7 @@ def expressions(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | None = None,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -1251,7 +1252,7 @@ def expressions(
         )
 
         if layers is not None:
-            for layer in layers:
+            for layer in list(layers):
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, key, ncol)

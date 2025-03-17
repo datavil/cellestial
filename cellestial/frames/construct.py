@@ -89,8 +89,8 @@ def _add_dimensions(
     data: AnnData,
     frame: pl.DataFrame,
     use_key: str | None,
-    dimensions: str,
-    xy: tuple[int, int] = (1, 2),
+    dimensions: str | None = None,
+    xy: tuple[int, int] | None = (1, 2),
 ) -> pl.DataFrame:
     """Add the dimensions to the frame."""
     if use_key is None:
@@ -108,8 +108,8 @@ def _construct_cell_frame(
     *,
     data: AnnData,
     keys: Iterable[str],
-    dimensions: str,
-    xy: tuple[int, int] = (1, 2),
+    dimensions: str | None = None,
+    xy: tuple[int, int] | None = (1, 2),
     use_key: str | None = None,
     barcode_name: str = "Barcode",
 ) -> pl.DataFrame:
@@ -157,12 +157,14 @@ def _construct_cell_frame(
         frame = frame.with_columns(pl.Series(barcode_name, data.obs_names))
 
         # add the dimensions to the frame
-        frame = _add_dimensions(
-            data=data,
-            frame=frame,
-            use_key=use_key,
-            dimensions=dimensions,
-        )
+        if dimensions is not None:
+            frame = _add_dimensions(
+                data=data,
+                frame=frame,
+                use_key=use_key,
+                xy=xy,
+                dimensions=dimensions,
+            )
 
     return frame
 

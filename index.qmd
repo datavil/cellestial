@@ -3,6 +3,11 @@
 Cellestial is a single-cell and spatial biology data visualization library.
 It produces publication-quality figures through a ggplot2-like API of Lets-Plot and provides extensive customization options and creates interactive figures for exploration.
 
+Install Cellestial with:
+```shell
+pip install cellestial
+```
+
 
 
 <!-- <p align="center">
