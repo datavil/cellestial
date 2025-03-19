@@ -270,10 +270,9 @@ def dimensional(
 
     # construct the frame
     all_keys = []
-    if tooltips == "none":
-        if key is not None:
-            all_keys.append(key)
-    else:
+    if key is not None:
+        all_keys.append(key)
+    if tooltips != "none":
         for tooltip in tooltips:
             if tooltip != barcode_name:
                 all_keys.append(tooltip)

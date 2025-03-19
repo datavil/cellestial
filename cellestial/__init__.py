@@ -18,7 +18,7 @@ from cellestial.single import (
     violin,
     violins,
 )
-from cellestial.util import _add_arrow_axis, interactive, retrieve, slice
+from cellestial.util import _add_arrow_axis, retrieve, slice
 from cellestial.util.colors import (
     BLUE,
     CHERRY,

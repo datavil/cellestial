@@ -161,10 +161,9 @@ def violin(
 
     # construct the frame
     all_keys = []
-    if tooltips == "none":
-        if key is not None:
-            all_keys.append(key)
-    else:
+    if key is not None:
+        all_keys.append(key)
+    if tooltips != "none":
         for tooltip in tooltips:
             if tooltip != barcode_name:
                 all_keys.append(tooltip)
@@ -356,10 +355,9 @@ def boxplot(
 
     # construct the frame
     all_keys = []
-    if tooltips == "none":
-        if key is not None:
-            all_keys.append(key)
-    else:
+    if key is not None:
+        all_keys.append(key)
+    if tooltips != "none":
         for tooltip in tooltips:
             if tooltip != barcode_name:
                 all_keys.append(tooltip)
@@ -648,11 +646,10 @@ def violins(
         )
 
         # construct the frame
-        all_keys = list(keys)
-        if tooltips == "none":
-            if key is not None:
-                all_keys.append(key)
-        else:
+        all_keys = [key for key in keys if key is not None]
+        if key is not None:
+            all_keys.append(key)
+        if tooltips != "none":
             for tooltip in tooltips:
                 if tooltip != barcode_name:
                     all_keys.append(tooltip)
@@ -744,7 +741,6 @@ def boxplots(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
-    trim: bool = False,
     barcode_name: str = "Barcode",
     show_tooltips: bool = True,
     show_points: bool = True,
@@ -955,11 +951,10 @@ def boxplots(
         )
 
         # construct the frame
-        all_keys = list(keys)
-        if tooltips == "none":
-            if key is not None:
-                all_keys.append(key)
-        else:
+        all_keys = [key for key in keys if key is not None]
+        if key is not None:
+            all_keys.append(key)
+        if tooltips != "none":
             for tooltip in tooltips:
                 if tooltip != barcode_name:
                     all_keys.append(tooltip)
@@ -996,7 +991,6 @@ def boxplots(
                 mapping=aes(x=variable_name, y=value_name, color=color, fill=fill),
                 fill=boxplot_fill,
                 color=boxplot_color,
-                trim=trim,
                 tooltips=layer_tooltips(boxplot_tooltips),
                 **boxplot_kwargs,
             )
