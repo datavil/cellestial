@@ -25,14 +25,7 @@ from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
 from cellestial.util import _build_tooltips, _decide_tooltips
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     from lets_plot.plot.core import PlotSpec
-
-# TODO: add barcode_name to the arguments of the functions
-# TODO: add the expansion of the frame
-# TODO: pop already used arguments from dicts
-# TODO: make layers accept a single layer
 
 
 def violin(
@@ -50,8 +43,8 @@ def violin(
     barcode_name: str = "Barcode",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
     point_kwargs: dict[str, Any] | None = None,
@@ -103,9 +96,9 @@ def violin(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -157,6 +150,7 @@ def violin(
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
+
     tooltips_object = _build_tooltips(
         tooltips=tooltips,
         cluster_name=None,
@@ -249,8 +243,8 @@ def boxplot(
     barcode_name: str = "Barcode",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
     point_kwargs: dict[str, Any] | None = None,
@@ -300,9 +294,9 @@ def boxplot(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -449,8 +443,8 @@ def violins(
     barcode_name: str = "Barcode",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
     layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
@@ -517,9 +511,9 @@ def violins(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -592,6 +586,8 @@ def violins(
             )
             # handle the layers
             if layers is not None:
+                if not isinstance(layers, Iterable):
+                    layers = [layers]
                 for layer in list(layers):
                     vln += layer
 
@@ -725,6 +721,8 @@ def violins(
 
         # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 vlns += layer
 
@@ -750,8 +748,8 @@ def boxplots(
     barcode_name: str = "Barcode",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
     layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
@@ -816,9 +814,9 @@ def boxplots(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -895,6 +893,8 @@ def boxplots(
             )
             # handle the layers
             if layers is not None:
+                if not isinstance(layers, Iterable):
+                    layers = [layers]
                 for layer in list(layers):
                     bxplt += layer
 
@@ -1028,6 +1028,8 @@ def boxplots(
 
         # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 bxplts += layer
 

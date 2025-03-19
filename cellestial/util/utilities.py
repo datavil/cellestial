@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from math import log10
+from math import ceil, log10
 from typing import Iterable, Literal
 
 import polars as pl
@@ -130,9 +130,9 @@ def _add_arrow_axis(
 
 
 def _decide_tooltips(
-    base_tooltips: Iterable[str],
-    add_tooltips: Iterable[str],
-    custom_tooltips: Iterable[str],
+    base_tooltips: Iterable[str] | str,
+    add_tooltips: Iterable[str] | str,
+    custom_tooltips: Iterable[str] | str,
     *,
     show_tooltips: bool,
 ) -> list[str] | str:
@@ -141,11 +141,11 @@ def _decide_tooltips(
 
     Parameters
     ----------
-    base_tooltips : list[str]
+    base_tooltips : list[str] | str
         Base tooltips, default ones by the function.
-    add_tooltips : list[str]
+    add_tooltips : list[str] | str
         Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str]
+    custom_tooltips : list[str] | str
         Custom tooltips, will overwrite the base_tooltips.
     show_tooltips : bool
         Whether to show tooltips at all.
@@ -156,15 +156,22 @@ def _decide_tooltips(
     list[str]
         Tooltips.
     """
+    if isinstance(base_tooltips, str):
+        base_tooltips = [base_tooltips]
+    if isinstance(add_tooltips, str):
+        add_tooltips = [add_tooltips]
+    if isinstance(custom_tooltips, str):
+        custom_tooltips = [custom_tooltips]
+
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
         if isinstance(custom_tooltips, Iterable):
             tooltips = list(custom_tooltips)
         elif isinstance(add_tooltips, Iterable):
-            tooltips = base_tooltips + list(add_tooltips)
+            tooltips = list(base_tooltips) + list(add_tooltips)
         else:
-            tooltips = base_tooltips
+            tooltips = list(base_tooltips)
 
     return tooltips
 
@@ -267,7 +274,7 @@ def _color_gradient(
         )
 
 
-def retrieve(plot: PlotSpec | SupPlotsSpec, index:int=0) -> pl.DataFrame:
+def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     """
     Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
 
@@ -328,7 +335,7 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
         If the index is not an int or Iterable[int].
     """
     if isinstance(grid, SupPlotsSpec):
-        figures = vars(grid).get('_SupPlotsSpec__figures')
+        figures = vars(grid).get("_SupPlotsSpec__figures")
         print(figures)
         if isinstance(index, int):
             plot = figures[index]
@@ -345,3 +352,52 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
     else:
         msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
         raise TypeError(msg)
+
+def _share_labels(plot, i: int, keys: list[str], ncol: int):
+    total = len(keys)
+    nrow = ceil(total / ncol)
+    left_places = [i for i in range(total) if i % ncol == 0]
+    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
+    if len(bottom_places) < ncol:
+        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
+        bottom_places.extend(penultimate_row)
+    if i not in bottom_places:  # remove x axis title except for bottom row
+        plot = plot + theme(axis_title_x=element_blank())
+    if i not in left_places:  # remove y axis title except for left column
+        plot = plot + theme(axis_title_y=element_blank())
+
+    return plot
+
+
+def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
+    total = len(keys)
+    nrow = ceil(total / ncol)
+    left_places = [i for i in range(total) if i % ncol == 0]
+    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
+    if len(bottom_places) < ncol:
+        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
+        bottom_places.extend(penultimate_row)
+
+    if axis_type == "axis":
+        if i not in bottom_places:  # remove x axis title except for bottom row
+            plot = plot + theme(
+                # remove x axis elements
+                axis_text_x=element_blank(),
+                axis_ticks_x=element_blank(),
+                axis_line_x=element_blank(),
+            )
+        if i not in left_places:  # remove y axis title except for left column
+            plot = plot + theme(
+                # remove y axis elements
+                axis_text_y=element_blank(),
+                axis_ticks_y=element_blank(),
+                axis_line_y=element_blank(),
+            )
+    elif axis_type == "arrow":
+        pass
+    else:
+        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
+        raise ValueError(msg)
+
+    return plot
+

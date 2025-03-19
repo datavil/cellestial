@@ -1,68 +1,17 @@
 from __future__ import annotations
 
-from math import ceil
 from typing import TYPE_CHECKING, Any, Iterable, Literal
 
-from lets_plot import element_blank, gggrid, theme
+from lets_plot import gggrid
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.core.dimensional import dimensional
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
+from cellestial.util import _share_axis, _share_labels
 
 if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
-
-# TODO: make layers accept a single layer
-
-def _share_labels(plot, i: int, keys: list[str], ncol: int):
-    total = len(keys)
-    nrow = ceil(total / ncol)
-    left_places = [i for i in range(total) if i % ncol == 0]
-    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    if len(bottom_places) < ncol:
-        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
-        bottom_places.extend(penultimate_row)
-    if i not in bottom_places:  # remove x axis title except for bottom row
-        plot = plot + theme(axis_title_x=element_blank())
-    if i not in left_places:  # remove y axis title except for left column
-        plot = plot + theme(axis_title_y=element_blank())
-
-    return plot
-
-
-def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
-    total = len(keys)
-    nrow = ceil(total / ncol)
-    left_places = [i for i in range(total) if i % ncol == 0]
-    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    if len(bottom_places) < ncol:
-        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
-        bottom_places.extend(penultimate_row)
-
-    if axis_type == "axis":
-        if i not in bottom_places:  # remove x axis title except for bottom row
-            plot = plot + theme(
-                # remove x axis elements
-                axis_text_x=element_blank(),
-                axis_ticks_x=element_blank(),
-                axis_line_x=element_blank(),
-            )
-        if i not in left_places:  # remove y axis title except for left column
-            plot = plot + theme(
-                # remove y axis elements
-                axis_text_y=element_blank(),
-                axis_ticks_y=element_blank(),
-                axis_line_y=element_blank(),
-            )
-    elif axis_type == "arrow":
-        pass
-    else:
-        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
-        raise ValueError(msg)
-
-    return plot
-
 
 def dimensionals(
     data: AnnData,
@@ -78,14 +27,16 @@ def dimensionals(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    share_labels: bool = True,
-    share_axis: bool = False,
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -93,6 +44,10 @@ def dimensionals(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
+    # multi plot args
+    share_labels: bool = True,
+    share_axis: bool = False,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -118,20 +73,20 @@ def dimensionals(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
-        The x and y axes to use for the plot.
-        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -156,12 +111,7 @@ def dimensionals(
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
-    share_labels : bool, default=True
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
-    share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+
     mid_point : Literal["mean", "median", "mid"] | float, default="median"
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -185,32 +135,40 @@ def dimensionals(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
-        Layers to add to all the plots in the grid.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
-    ondata_size : float, default=12
+    ondata_size: float, default=12
         size of the legend (text) on data.
-    ondata_color : str, default='#3f3f3f'
+    ondata_color: str, default='#3f3f3f'
         color of the legend (text) on data
-    ondata_fontface : str, default='bold'
+    ondata_fontface: str, default='bold'
         fontface of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-face
-    ondata_family : str, default='sans'
+    ondata_family: str, default='sans'
         family of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-family
-    ondata_alpha : float, default=1
+    ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
     ondata_weighted: bool, default=True
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
+    share_labels : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+    layers : list[str] | tuple[str] | Iterable[str], default=None
+        Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -268,11 +226,16 @@ def dimensionals(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
+            mid_point=mid_point,
             axis_type=axis_type,
             arrow_length=arrow_length,
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            show_tooltips=show_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -283,7 +246,10 @@ def dimensionals(
             **point_kwargs,
         )
 
+        # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 plot += layer
         if share_labels:
@@ -321,14 +287,16 @@ def umaps(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    share_labels: bool = True,
-    share_axis: bool = False,
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -336,12 +304,16 @@ def umaps(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
+    # multi plot args
+    share_labels: bool = True,
+    share_axis: bool = False,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -349,7 +321,7 @@ def umaps(
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
-    Grid of dimensionality reduction plots of umap.
+    Grid of dimensionality reduction plots.
 
     Parameters
     ----------
@@ -358,23 +330,20 @@ def umaps(
     keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
-        The dimensional reduction method to use.
-        e.g., 'umap' or 'pca' or 'tsne'.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
-        The x and y axes to use for the plot.
-        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -399,12 +368,7 @@ def umaps(
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
-    share_labels : bool, default=True
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
-    share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+
     mid_point : Literal["mean", "median", "mid"] | float, default="median"
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -428,32 +392,40 @@ def umaps(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
-        Layers to add to all the plots in the grid.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
-    ondata_size : float, default=12
+    ondata_size: float, default=12
         size of the legend (text) on data.
-    ondata_color : str, default='#3f3f3f'
+    ondata_color: str, default='#3f3f3f'
         color of the legend (text) on data
-    ondata_fontface : str, default='bold'
+    ondata_fontface: str, default='bold'
         fontface of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-face
-    ondata_family : str, default='sans'
+    ondata_family: str, default='sans'
         family of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-family
-    ondata_alpha : float, default=1
+    ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
     ondata_weighted: bool, default=True
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
+    share_labels : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+    layers : list[str] | tuple[str] | Iterable[str], default=None
+        Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -489,7 +461,7 @@ def umaps(
     Returns
     -------
     SupPlotsSpec
-        Grid of dimensionality reduction plots of umap.
+        Grid of dimensionality reduction plots.
 
     """
     if not isinstance(keys, Iterable):
@@ -510,11 +482,16 @@ def umaps(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
+            mid_point=mid_point,
             axis_type=axis_type,
             arrow_length=arrow_length,
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            show_tooltips=show_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -525,7 +502,10 @@ def umaps(
             **point_kwargs,
         )
 
+        # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 plot += layer
         if share_labels:
@@ -562,14 +542,16 @@ def tsnes(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    share_labels: bool = True,
-    share_axis: bool = False,
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -577,12 +559,16 @@ def tsnes(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
+    # multi plot args
+    share_labels: bool = True,
+    share_axis: bool = False,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -590,7 +576,7 @@ def tsnes(
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
-    Grid of dimensionality reduction plots of tsne.
+    Grid of dimensionality reduction plots.
 
     Parameters
     ----------
@@ -599,23 +585,20 @@ def tsnes(
     keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
-        The dimensional reduction method to use.
-        e.g., 'umap' or 'pca' or 'tsne'.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
-        The x and y axes to use for the plot.
-        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -640,12 +623,7 @@ def tsnes(
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
-    share_labels : bool, default=True
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
-    share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+
     mid_point : Literal["mean", "median", "mid"] | float, default="median"
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -669,32 +647,40 @@ def tsnes(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
-        Layers to add to all the plots in the grid.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
-    ondata_size : float, default=12
+    ondata_size: float, default=12
         size of the legend (text) on data.
-    ondata_color : str, default='#3f3f3f'
+    ondata_color: str, default='#3f3f3f'
         color of the legend (text) on data
-    ondata_fontface : str, default='bold'
+    ondata_fontface: str, default='bold'
         fontface of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-face
-    ondata_family : str, default='sans'
+    ondata_family: str, default='sans'
         family of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-family
-    ondata_alpha : float, default=1
+    ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
     ondata_weighted: bool, default=True
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
+    share_labels : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+    layers : list[str] | tuple[str] | Iterable[str], default=None
+        Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -730,7 +716,7 @@ def tsnes(
     Returns
     -------
     SupPlotsSpec
-        Grid of dimensional reduction plots of tsne.
+        Grid of dimensionality reduction plots.
 
     """
     if not isinstance(keys, Iterable):
@@ -751,11 +737,16 @@ def tsnes(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
+            mid_point=mid_point,
             axis_type=axis_type,
             arrow_length=arrow_length,
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            show_tooltips=show_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -766,7 +757,10 @@ def tsnes(
             **point_kwargs,
         )
 
+        # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 plot += layer
         if share_labels:
@@ -804,14 +798,16 @@ def pcas(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    share_labels: bool = True,
-    share_axis: bool = False,
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -819,12 +815,16 @@ def pcas(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
+    # multi plot args
+    share_labels: bool = True,
+    share_axis: bool = False,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -832,7 +832,7 @@ def pcas(
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
-    Grid of dimensionality reduction plots of pca.
+    Grid of dimensionality reduction plots.
 
     Parameters
     ----------
@@ -841,23 +841,20 @@ def pcas(
     keys : list[str] | tuple[str] | Iterable[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
-        The dimensional reduction method to use.
-        e.g., 'umap' or 'pca' or 'tsne'.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
-        The x and y axes to use for the plot.
-        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -882,12 +879,7 @@ def pcas(
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
-    share_labels : bool, default=True
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
-    share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+
     mid_point : Literal["mean", "median", "mid"] | float, default="median"
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -911,32 +903,40 @@ def pcas(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
-        Layers to add to all the plots in the grid.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
-    ondata_size : float, default=12
+    ondata_size: float, default=12
         size of the legend (text) on data.
-    ondata_color : str, default='#3f3f3f'
+    ondata_color: str, default='#3f3f3f'
         color of the legend (text) on data
-    ondata_fontface : str, default='bold'
+    ondata_fontface: str, default='bold'
         fontface of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-face
-    ondata_family : str, default='sans'
+    ondata_family: str, default='sans'
         family of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-family
-    ondata_alpha : float, default=1
+    ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
     ondata_weighted: bool, default=True
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
+    share_labels : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+    layers : list[str] | tuple[str] | Iterable[str], default=None
+        Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -972,7 +972,7 @@ def pcas(
     Returns
     -------
     SupPlotsSpec
-        Grid of dimensional reduction plots of pca.
+        Grid of dimensionality reduction plots.
 
     """
     if not isinstance(keys, Iterable):
@@ -993,11 +993,16 @@ def pcas(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
+            mid_point=mid_point,
             axis_type=axis_type,
             arrow_length=arrow_length,
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            show_tooltips=show_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -1008,7 +1013,10 @@ def pcas(
             **point_kwargs,
         )
 
+        # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 plot += layer
         if share_labels:
@@ -1036,9 +1044,9 @@ def expressions(
     data: AnnData,
     keys: list[str] | tuple[str] | Iterable[str],
     *,
+    dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Iterable[int, int] = (1, 2),
-    dimensions: Literal["umap", "pca", "tsne"] = "umap",
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -1046,14 +1054,16 @@ def expressions(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    share_labels: bool = True,
-    share_axis: bool = False,
+    mid_point: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    show_tooltips: bool = True,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -1061,12 +1071,16 @@ def expressions(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
+    # multi plot args
+    share_labels: bool = True,
+    share_axis: bool = False,
+    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -1074,32 +1088,31 @@ def expressions(
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
-    Grid of dimensionality reduction plots of expression.
+    Grid of dimensionality reduction plots.
 
     Parameters
     ----------
     data : AnnData
         The AnnData object of the single cell data.
     keys : list[str] | tuple[str] | Iterable[str]
-        The keys (genes) to color the points by.
-        e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+        The keys (gene names) to color the points by.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
+    xy : tuple[int, int], default=(1, 2)
+        The x and y axes to use for the plot.
+        e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
-        The x and y axes to use for the plot.
-        e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='CellID'
+    barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1124,12 +1137,7 @@ def expressions(
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
-    share_labels : bool, default=True
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
-    share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+
     mid_point : Literal["mean", "median", "mid"] | float, default="median"
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -1153,32 +1161,40 @@ def expressions(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
-        Layers to add to all the plots in the grid.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
-    ondata_size : float, default=12
+    ondata_size: float, default=12
         size of the legend (text) on data.
-    ondata_color : str, default='#3f3f3f'
+    ondata_color: str, default='#3f3f3f'
         color of the legend (text) on data
-    ondata_fontface : str, default='bold'
+    ondata_fontface: str, default='bold'
         fontface of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-face
-    ondata_family : str, default='sans'
+    ondata_family: str, default='sans'
         family of the legend (text) on data.
         https://lets-plot.org/python/pages/aesthetics.html#font-family
-    ondata_alpha : float, default=1
+    ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
     ondata_weighted: bool, default=True
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
+    share_labels : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+    layers : list[str] | tuple[str] | Iterable[str], default=None
+        Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -1214,7 +1230,7 @@ def expressions(
     Returns
     -------
     SupPlotsSpec
-        Grid of dimensional reduction plots of expression.
+        Grid of dimensionality reduction plots.
 
     """
     if not isinstance(keys, Iterable):
@@ -1236,11 +1252,16 @@ def expressions(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
+            mid_point=mid_point,
             axis_type=axis_type,
             arrow_length=arrow_length,
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
+            show_tooltips=show_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -1251,7 +1272,10 @@ def expressions(
             **point_kwargs,
         )
 
+        # handle the layers
         if layers is not None:
+            if not isinstance(layers, Iterable):
+                layers = [layers]
             for layer in list(layers):
                 plot += layer
         if share_labels:
