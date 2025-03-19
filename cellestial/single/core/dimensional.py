@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from collections.abc import Iterable
 from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -29,16 +28,9 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis, _build_tooltips, _color_gradient, _decide_tooltips
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
-
-
-# TODO: add docstrings for : DONE
-# xy
-# tooltips_title
-
-# TODO: apply changes to other functions
-
-# TODO: cellID to barcode, DONE
 
 def _legend_ondata(
     *,
@@ -109,8 +101,8 @@ def dimensional(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -198,9 +190,9 @@ def dimensional(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.

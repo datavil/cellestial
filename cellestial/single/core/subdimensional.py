@@ -31,8 +31,8 @@ def umap(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -117,9 +117,9 @@ def umap(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -206,8 +206,8 @@ def tsne(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -292,9 +292,9 @@ def tsne(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -381,8 +381,8 @@ def pca(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -467,9 +467,9 @@ def pca(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -557,8 +557,8 @@ def expression(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
+    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -577,8 +577,7 @@ def expression(
     data : AnnData
         The AnnData object of the single cell data.
     key : str
-        The key (genes) to color the points by.
-        e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+        The key (gene names) to color the points by.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
@@ -646,9 +645,9 @@ def expression(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
