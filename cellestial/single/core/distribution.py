@@ -4,7 +4,6 @@ from collections.abc import Iterable
 from math import ceil
 from typing import TYPE_CHECKING, Any
 
-import polars as pl
 from anndata import AnnData
 from lets_plot import (
     aes,
@@ -13,7 +12,6 @@ from lets_plot import (
     geom_violin,
     gggrid,
     ggplot,
-    ggsize,
     ggtb,
     guide_legend,
     guides,
@@ -27,6 +25,8 @@ from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
 from cellestial.util import _build_tooltips, _decide_tooltips
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from lets_plot.plot.core import PlotSpec
 
 # TODO: add barcode_name to the arguments of the functions
@@ -57,6 +57,74 @@ def violin(
     point_kwargs: dict[str, Any] | None = None,
     **violin_kwargs: dict[str, Any],
 ) -> PlotSpec:
+    """
+    Violin Plot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    key : str
+        The key to get the values (numerical).
+        e.g., 'total_counts' or a gene name.
+    color : str | None, default=None
+        Color aesthetic to split the violin plot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    fill : str | None, default=None
+        Fill aesthetic to split the violin plot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    violin_fill : str, default="#FF00FF"
+        Fill color for all violins in the violin plot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    violin_color : str, default="#2f2f2f"
+        Border color for all violins in the violin plot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_color : str, default="#1f1f1f"
+        Color for the points in the violin plot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_alpha : float, default=0.7
+        Alpha (transparency) for the points in the violin plot.
+    point_size : float, default=0.5
+        Size for the points in the violin plot.
+    trim : bool, default=False
+        Whether to trim the violin plot.
+    barcode_name : str, default="Barcode"
+        The name to give to barcode (or index) column in the dataframe.
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    show_points : bool, default=True
+        Whether to show points.
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Custom tooltips to show.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    point_kwargs : dict[str, Any] | None, default=None
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+    **violin_kwargs : dict[str, Any]
+        Additional parameters for the `geom_violin` layer.
+        For more information on geom_violin parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+
+    Returns
+    -------
+    PlotSpec
+        Violin plot.
+    """
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
@@ -188,6 +256,72 @@ def boxplot(
     point_kwargs: dict[str, Any] | None = None,
     **boxplot_kwargs: dict[str, Any],
 ) -> PlotSpec:
+    """
+    Boxplot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    key : str
+        The key to get the values (numerical).
+        e.g., 'total_counts' or a gene name.
+    color : str | None, default=None
+        Color aesthetic to split the boxplot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    fill : str | None, default=None
+        Fill aesthetic to split the boxplot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    boxplot_fill : str, default="#FF00FF"
+        Fill color for all boxplots in the boxplot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    boxplot_color : str, default="#2f2f2f"
+        Border color for all boxplots in the boxplot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_color : str, default="#1f1f1f"
+        Color for the points in the boxplot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_alpha : float, default=0.7
+        Alpha (transparency) for the points in the boxplot.
+    point_size : float, default=0.5
+        Size for the points in the boxplot.
+    barcode_name : str, default="Barcode"
+        The name to give to barcode (or index) column in the dataframe.
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    show_points : bool, default=True
+        Whether to show points.
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Custom tooltips to show.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    point_kwargs : dict[str, Any] | None, default=None
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+    **boxplot_kwargs : dict[str, Any]
+        Additional parameters for the `geom_boxplot` layer.
+        For more information on geom_boxplot parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
+
+    Returns
+    -------
+    PlotSpec
+        Boxplot.
+    """
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
@@ -337,6 +471,102 @@ def violins(
     point_kwargs: dict[str, Any] | None = None,
     **violin_kwargs: dict[str, Any],
 ) -> SupPlotsSpec | PlotSpec:
+    """
+    Violin Plots.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    keys : list[str] | tuple[str] | Iterable[str]
+        The keys to get the values (numerical).
+        e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    color : str | None, default=None
+        Color aesthetic to split the violin plot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    fill : str | None, default=None
+        Fill aesthetic to split the violin plot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    violin_fill : str, default="#FF00FF"
+        Fill color for all violins in the violin plot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    violin_color : str, default="#2f2f2f"
+        Border color for all violins in the violin plot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_color : str, default="#1f1f1f"
+        Color for the points in the violin plot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_alpha : float, default=0.7
+        Alpha (transparency) for the points in the violin plot.
+    point_size : float, default=0.5
+        Size for the points in the violin plot.
+    trim : bool, default=False
+        Whether to trim the violin plot.
+    barcode_name : str, default="Barcode"
+        The name to give to barcode (or index) column in the dataframe.
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    show_points : bool, default=True
+        Whether to show points.
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Custom tooltips to show.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    layers : list | tuple | Iterable | FeatureSpec | LayerSpec | None, default=None
+        Additional layers to add to the plot.
+    multi_panel : bool, default=True
+        Whether to plot the violin plots in a grid.
+        If True, the violin plots will be plotted in a grid and returns a `SupPlotsSpec` object.
+        If False, the violin plots will be merged into a single panel and retruns a `PlotSpec` object.
+    variable_name : str, default="variable"
+        The name of the variable column in the dataframe.
+    value_name : str, default="value"
+        The name of the value column in the dataframe.
+    ncol : int, default=None
+        Number of columns in grid. If not specified, shows plots horizontally, in one row.
+    sharex, sharey : bool, default=None
+        Controls sharing of axis limits between subplots in the grid.
+        `all`/True - share limits between all subplots.
+        `none`/False - do not share limits between subplots.
+        `row` - share limits between subplots in the same row.
+        `col` - share limits between subplots in the same column.
+    widths : list[float], default=None
+        Relative width of each column of grid, left to right.
+    heights : list[float], default=None
+        Relative height of each row of grid, top-down.
+    hspace : float | None = None
+        Cell horizontal spacing in px.
+    vspace : float | None = None
+        Cell vertical spacing in px.
+    fit : bool, default=True
+        Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+        or to preserve the original aspect ratio of plots (fit=False).
+    align : bool, default=False
+        If True, align inner areas (i.e. “geom” bounds) of plots.
+        However, cells containing other (sub)grids are not participating
+        in the plot “inner areas” layouting.
+    point_kwargs : dict[str, Any] | None, default=None
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+    **violin_kwargs : dict[str, Any]
+        Additional parameters for the `geom_violin` layer.
+        For more information on geom_violin parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+    """
     if multi_panel:  # standard grid plotting
         plots = []
         for key in keys:
@@ -542,6 +772,105 @@ def boxplots(
     point_kwargs: dict[str, Any] | None = None,
     **boxplot_kwargs: dict[str, Any],
 ) -> SupPlotsSpec | PlotSpec:
+    """
+    Boxplots.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    keys : list[str] | tuple[str] | Iterable[str]
+        The keys to get the values (numerical).
+        e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    color : str | None, default=None
+        Color aesthetic to split the boxplot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    fill : str | None, default=None
+        Fill aesthetic to split the boxplot (categorical).
+        e,g., 'cell_type' or 'leiden'.
+    boxplot_fill : str, default="#FF00FF"
+        Fill color for all boxplots in the boxplot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    boxplot_color : str, default="#2f2f2f"
+        Border color for all boxplots in the boxplot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_color : str, default="#1f1f1f"
+        Color for the points in the boxplot.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_alpha : float, default=0.7
+        Alpha (transparency) for the points in the boxplot.
+    point_size : float, default=0.5
+        Size for the points in the boxplot.
+    barcode_name : str, default="Barcode"
+        The name to give to barcode (or index) column in the dataframe.
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    show_points : bool, default=True
+        Whether to show points.
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | None, default=None
+        Custom tooltips to show.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    layers : list | tuple | Iterable | FeatureSpec | LayerSpec | None, default=None
+        Additional layers to add to the plot.
+    multi_panel : bool, default=True
+        Whether to plot the boxplots in a grid.
+        If True, the boxplots will be plotted in a grid and returns a `SupPlotsSpec` object.
+        If False, the boxplots will be merged into a single panel and retruns a `PlotSpec` object.
+    variable_name : str, default="variable"
+        The name of the variable column in the dataframe.
+    value_name : str, default="value"
+        The name of the value column in the dataframe.
+    ncol : int, default=None
+        Number of columns in grid. If not specified, shows plots horizontally, in one row.
+    sharex, sharey : bool, default=None
+        Controls sharing of axis limits between subplots in the grid.
+        `all`/True - share limits between all subplots.
+        `none`/False - do not share limits between subplots.
+        `row` - share limits between subplots in the same row.
+        `col` - share limits between subplots in the same column.
+    widths : list[float], default=None
+        Relative width of each column of grid, left to right.
+    heights : list[float], default=None
+        Relative height of each row of grid, top-down.
+    hspace : float | None = None
+        Cell horizontal spacing in px.
+    vspace : float | None = None
+        Cell vertical spacing in px.
+    fit : bool, default=True
+        Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+        or to preserve the original aspect ratio of plots (fit=False).
+    align : bool, default=False
+        If True, align inner areas (i.e. “geom” bounds) of plots.
+        However, cells containing other (sub)grids are not participating
+        in the plot “inner areas” layouting.
+    point_kwargs : dict[str, Any] | None, default=None
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+    **boxplot_kwargs : dict[str, Any]
+        Additional parameters for the `geom_boxplot` layer.
+        For more information on geom_boxplot parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
+
+    Returns
+    -------
+    SupPlotsSpec | PlotSpec
+        Boxplots.
+    """
     if multi_panel:  # standard grid plotting
         plots = []
         for key in keys:
