@@ -10,7 +10,7 @@ Cellestial is built on 4 main principles:
     - Plots are very customizable.
     - Layers can be added/overwritten later.
 4. Interactivity
-    - Plots are interactive HTML widgets that can be redented to a static image.
+    - Plots are interactive HTML widgets that can be rendered to a static image.
     - Zooming, panning, hovering to see tooltips, etc.
 
 ## Naming
