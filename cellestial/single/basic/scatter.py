@@ -13,7 +13,6 @@ from lets_plot import (
     guide_legend,
     guides,
     labs,
-    layer_tooltips,
 )
 from lets_plot.plot.core import PlotSpec
 
@@ -49,6 +48,68 @@ def scatter(
     tooltips_title: str | None = None,
     **point_kwargs,
 ) -> PlotSpec:
+    """
+    Scatter Plot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    x : str
+        The key for the x-axis.
+    y : str
+        The key for the y-axis.
+    color : str | None, default=None
+        Color aesthetic for the geom_point.
+    fill : str | None, default=None
+        Fill aesthetic for the geom_point.
+    size : str | None, default=None
+        Size aesthetic for the geom_point.
+    shape : str | None, default=None
+        Shape aesthetic for the geom_point.
+    point_color : str | None, default=None
+        Color for all the points.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_fill : str | None, default=None
+        Fill color for all the points.
+        - Accepts:
+            - hex code e.g. '#f1f1f1'
+            - color name (of a limited set of colors).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    point_size : str | None, default=None
+        Size for all the points.
+    point_shape : str | None, default=None
+        Shape of all the points, an integer from 0 to 25.
+        For more information see:
+        https://lets-plot.org/python/pages/aesthetics.html#point-shapes
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    barcode_name : str, default="Barcode"
+        The name to give to barcode (or index) column in the dataframe.
+    var_name : str, default="Gene"
+        The name to give to variable index column in the dataframe.
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Additional tooltips to show.
+    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+        Custom tooltips, will overwrite the base_tooltips.
+    tooltips_title : str | None, default=None
+        Title for the tooltips.
+    **point_kwargs : dict[str, Any]
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+    Returns
+    -------
+    PlotSpec
+        Scatter plot.
+
+    """
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
