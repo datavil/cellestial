@@ -210,3 +210,17 @@ def _construct_var_frame(
         frame = frame.with_columns(pl.Series(var_name, data.var_names))
 
     return frame
+
+
+def _axis_data(data: AnnData, key: str) -> int:
+    """Find the axis of the given key 0 for obs, 1 for var."""
+    if isinstance(data, AnnData):
+        if key in data.obs.columns or key in data.var_names:
+            axis = 0
+        elif key in data.var.columns:
+            axis = 1
+        else:
+            msg = f"key '{key}' not found in the data"
+            raise KeyNotFoundError(msg)
+
+    return axis

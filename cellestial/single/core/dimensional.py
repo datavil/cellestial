@@ -274,7 +274,7 @@ def dimensional(
         all_keys.append(key)
     if tooltips != "none":
         for tooltip in tooltips:
-            if tooltip != barcode_name:
+            if tooltip not in all_keys and tooltip != barcode_name:
                 all_keys.append(tooltip)
 
     frame = _construct_cell_frame(

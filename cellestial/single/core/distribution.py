@@ -20,7 +20,7 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
-from cellestial.frames import _construct_cell_frame
+from cellestial.frames import _axis_data, _construct_cell_frame, _construct_var_frame
 from cellestial.themes import _THEME_BOXPLOT, _THEME_VIOLIN
 from cellestial.util import _build_tooltips, _decide_tooltips
 
@@ -41,6 +41,7 @@ def violin(
     point_size: float = 0.5,
     trim: bool = False,
     barcode_name: str = "Barcode",
+    var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
@@ -92,6 +93,8 @@ def violin(
         Whether to trim the violin plot.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
+    var_name : str, default="Gene"
+        The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     show_points : bool, default=True
@@ -138,7 +141,9 @@ def violin(
             raise KeyError(msg)
 
     # handle tooltips
-    base_tooltips = [barcode_name, key]
+    axis = _axis_data(data=data, key=key)
+    identifier = barcode_name if axis == 0 else var_name
+    base_tooltips = [identifier, key]
     if color is not None:
         base_tooltips.append(color)
     if fill is not None:
@@ -165,17 +170,22 @@ def violin(
         all_keys.append(key)
     if tooltips != "none":
         for tooltip in tooltips:
-            if tooltip != barcode_name:
+            if tooltip not in all_keys and tooltip != identifier:
                 all_keys.append(tooltip)
 
-    frame = _construct_cell_frame(
-        data=data,
-        keys=all_keys,
-        dimensions=None,
-        xy=None,
-        use_key=None,
-        barcode_name=barcode_name,
-    )
+    if axis == 0:  # for obs and var_names
+        frame = _construct_cell_frame(
+            data=data,
+            keys=all_keys,
+            xy=None,
+            barcode_name=barcode_name,
+        )
+    elif axis == 1:  # for var
+        frame = _construct_var_frame(
+            data=data,
+            keys=all_keys,
+            var_name=var_name,
+        )
     # handle fill and color
     violin_fill = None if fill is not None else violin_fill
     violin_color = None if color is not None else violin_color
@@ -240,6 +250,7 @@ def boxplot(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     barcode_name: str = "Barcode",
+    var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
@@ -289,6 +300,8 @@ def boxplot(
         Size for the points in the boxplot.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
+    var_name : str, default="Gene"
+        The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     show_points : bool, default=True
@@ -333,7 +346,9 @@ def boxplot(
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
     # handle tooltips
-    base_tooltips = [barcode_name, key]
+    axis = _axis_data(data=data, key=key)
+    identifier = barcode_name if axis == 0 else var_name
+    base_tooltips = [identifier, key]
     if color is not None:
         base_tooltips.append(color)
     if fill is not None:
@@ -345,6 +360,7 @@ def boxplot(
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
+
     tooltips_object = _build_tooltips(
         tooltips=tooltips,
         cluster_name=None,
@@ -359,17 +375,22 @@ def boxplot(
         all_keys.append(key)
     if tooltips != "none":
         for tooltip in tooltips:
-            if tooltip != barcode_name:
+            if tooltip not in all_keys and tooltip != identifier:
                 all_keys.append(tooltip)
 
-    frame = _construct_cell_frame(
-        data=data,
-        keys=all_keys,
-        dimensions=None,
-        xy=None,
-        use_key=None,
-        barcode_name=barcode_name,
-    )
+    if axis == 0:  # for obs and var_names
+        frame = _construct_cell_frame(
+            data=data,
+            keys=all_keys,
+            xy=None,
+            barcode_name=barcode_name,
+        )
+    elif axis == 1:  # for var
+        frame = _construct_var_frame(
+            data=data,
+            keys=all_keys,
+            var_name=var_name,
+        )
     # handle fill and color
     boxplot_fill = None if fill is not None else boxplot_fill
     boxplot_color = None if color is not None else boxplot_color
@@ -439,6 +460,7 @@ def violins(
     point_size: float = 0.5,
     trim: bool = False,
     barcode_name: str = "Barcode",
+    var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
@@ -505,6 +527,8 @@ def violins(
         Whether to trim the violin plot.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
+    var_name : str, default="Gene"
+        The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     show_points : bool, default=True
@@ -573,6 +597,8 @@ def violins(
                 point_alpha=point_alpha,
                 point_size=point_size,
                 trim=trim,
+                barcode_name=barcode_name,
+                var_name=var_name,
                 show_tooltips=show_tooltips,
                 show_points=show_points,
                 add_tooltips=add_tooltips,
@@ -625,7 +651,9 @@ def violins(
                 raise KeyError(msg)
 
         # handle tooltips
-        base_tooltips = [barcode_name]
+        axis = _axis_data(data=data, key=keys[0])
+        identifier = barcode_name if axis == 0 else var_name
+        base_tooltips = [identifier]
         if color is not None:
             base_tooltips.append(color)
         if fill is not None:
@@ -637,31 +665,36 @@ def violins(
             custom_tooltips=custom_tooltips,
             show_tooltips=show_tooltips,
         )
+
         tooltips_object = _build_tooltips(
             tooltips=tooltips,
             cluster_name=None,
-            key=None,
             title=tooltips_title,
             clustering=False,
         )
 
         # construct the frame
-        all_keys = [key for key in keys if key is not None]
-        if key is not None:
-            all_keys.append(key)
+        all_keys = list(keys)
         if tooltips != "none":
             for tooltip in tooltips:
-                if tooltip != barcode_name:
+                if tooltip not in all_keys and tooltip != identifier:
                     all_keys.append(tooltip)
 
-        frame = _construct_cell_frame(
-            data=data,
-            keys=all_keys,
-            dimensions=None,
-            xy=None,
-            use_key=None,
-            barcode_name=barcode_name,
-        )
+        if axis == 0:  # for obs and var_names
+            frame = _construct_cell_frame(
+                data=data,
+                keys=all_keys,
+                xy=None,
+                barcode_name=barcode_name,
+            )
+        elif axis == 1:  # for var
+            frame = _construct_var_frame(
+                data=data,
+                keys=all_keys,
+                var_name=var_name,
+            )
+
+        print(frame.columns)
         # unpivot the data
         if tooltips != "none":
             frame = frame.unpivot(
@@ -742,6 +775,7 @@ def boxplots(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     barcode_name: str = "Barcode",
+    var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
@@ -806,6 +840,8 @@ def boxplots(
         Size for the points in the boxplot.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
+    var_name : str, default="Gene"
+        The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     show_points : bool, default=True
@@ -878,6 +914,8 @@ def boxplots(
                 point_color=point_color,
                 point_alpha=point_alpha,
                 point_size=point_size,
+                barcode_name=barcode_name,
+                var_name=var_name,
                 show_tooltips=show_tooltips,
                 show_points=show_points,
                 add_tooltips=add_tooltips,
@@ -930,7 +968,9 @@ def boxplots(
                 raise KeyError(msg)
 
         # handle tooltips
-        base_tooltips = [barcode_name]
+        axis = _axis_data(data=data, key=keys[0])
+        identifier = barcode_name if axis == 0 else var_name
+        base_tooltips = [identifier]
         if color is not None:
             base_tooltips.append(color)
         if fill is not None:
@@ -942,31 +982,34 @@ def boxplots(
             custom_tooltips=custom_tooltips,
             show_tooltips=show_tooltips,
         )
+
         tooltips_object = _build_tooltips(
             tooltips=tooltips,
             cluster_name=None,
-            key=None,
             title=tooltips_title,
             clustering=False,
         )
 
         # construct the frame
-        all_keys = [key for key in keys if key is not None]
-        if key is not None:
-            all_keys.append(key)
+        all_keys = list(keys)
         if tooltips != "none":
             for tooltip in tooltips:
-                if tooltip != barcode_name:
+                if tooltip not in all_keys and tooltip != identifier:
                     all_keys.append(tooltip)
 
-        frame = _construct_cell_frame(
-            data=data,
-            keys=all_keys,
-            dimensions=None,
-            xy=None,
-            use_key=None,
-            barcode_name=barcode_name,
-        )
+        if axis == 0:  # for obs and var_names
+            frame = _construct_cell_frame(
+                data=data,
+                keys=all_keys,
+                xy=None,
+                barcode_name=barcode_name,
+            )
+        elif axis == 1:  # for var
+            frame = _construct_var_frame(
+                data=data,
+                keys=all_keys,
+                var_name=var_name,
+            )
         # unpivot the data
         if tooltips != "none":
             frame = frame.unpivot(

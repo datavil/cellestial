@@ -8,3 +8,4 @@
 1. Publication-ready Figures
 1. Convertible to static images
 1. Modular Grids
+1. Future proof

@@ -4,6 +4,7 @@ from math import ceil, log10
 from typing import Iterable, Literal
 
 import polars as pl
+from anndata import AnnData
 from lets_plot import (
     arrow,
     element_blank,
@@ -401,3 +402,11 @@ def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["ax
 
     return plot
 
+def _key_style(data: AnnData, key: str) -> str:
+    """Find the layers with the given key."""
+    if key in data.obs.columns:
+        origin = "obs"
+    elif key in data.var_names:
+        origin = "obs"
+    elif key in data.var.columns:
+        origin = "var"
