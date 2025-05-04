@@ -2,14 +2,14 @@
 # Tests 
 
 ## Scatters:
-  - Single Plots 
+  - Single Plots ✅
     - umap
     - tsne  
     - pca
     - dim
     - expression
     - scatter
-  - Multi Plots
+  - Multi Plots ✅
     - umap
     - tsnes
     - pcas
@@ -19,11 +19,11 @@
 ## Distributions:
 
 ### Violin:   
-  - Violin   
-  - Violins 
+  - Violin ✅  
+  - Violins ✅
 ### Boxplot:
-  - Boxplot
-  - Boxplots
+  - Boxplot  ✅
+  - Boxplots  ✅
 
 
 additional dicts for non-customizable parts of the plots:
@@ -31,9 +31,9 @@ additional dicts for non-customizable parts of the plots:
   - geoms
   - grids
 
-## example
+## DotPlot
+example  
 https://www.cell.com/cms/10.1016/j.cell.2024.09.021/asset/b5ef7a8f-860d-46ba-9c36-4f590e7d67fe/main.assets/figs3_lrg.jpg
-
 panel c
 ## Book chapters
 
