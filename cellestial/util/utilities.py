@@ -355,6 +355,8 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
         raise TypeError(msg)
 
 def _share_labels(plot, i: int, keys: list[str], ncol: int):
+    if ncol is None:
+        ncol = 1
     total = len(keys)
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
@@ -372,6 +374,8 @@ def _share_labels(plot, i: int, keys: list[str], ncol: int):
 
 def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
     total = len(keys)
+    if ncol is None:
+        ncol = 1
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
     bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
@@ -402,6 +406,7 @@ def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["ax
 
     return plot
 
+'''
 def _key_style(data: AnnData, key: str) -> str:
     """Find the layers with the given key."""
     if key in data.obs.columns:
@@ -410,3 +415,4 @@ def _key_style(data: AnnData, key: str) -> str:
         origin = "obs"
     elif key in data.var.columns:
         origin = "var"
+'''
