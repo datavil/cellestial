@@ -207,7 +207,7 @@ def dimensionals(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable):
+    if not isinstance(keys, Iterable) or isinstance(keys, str):
         msg = "keys must be an iterable of strings"
         raise TypeError(msg)
 
@@ -464,7 +464,7 @@ def umaps(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable):
+    if not isinstance(keys, Iterable) or isinstance(keys, str):
         msg = "keys must be an iterable of strings"
         raise TypeError(msg)
 
@@ -719,7 +719,7 @@ def tsnes(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable):
+    if not isinstance(keys, Iterable) or isinstance(keys, str):
         msg = "keys must be an iterable of strings"
         raise TypeError(msg)
 
@@ -975,7 +975,7 @@ def pcas(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable):
+    if not isinstance(keys, Iterable) or isinstance(keys, str):
         msg = "keys must be an iterable of strings"
         raise TypeError(msg)
 
@@ -1233,7 +1233,7 @@ def expressions(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable):
+    if not isinstance(keys, Iterable) or isinstance(keys, str):
         msg = "keys must be an iterable of strings"
         raise TypeError(msg)
 
