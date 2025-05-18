@@ -356,7 +356,7 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
 
 def _share_labels(plot, i: int, keys: list[str], ncol: int):
     if ncol is None:
-        ncol = 1
+        ncol = len(keys)
     total = len(keys)
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
@@ -375,7 +375,7 @@ def _share_labels(plot, i: int, keys: list[str], ncol: int):
 def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
     total = len(keys)
     if ncol is None:
-        ncol = 1
+        ncol = len(keys)
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
     bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
