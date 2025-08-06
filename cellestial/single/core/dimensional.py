@@ -345,7 +345,7 @@ def dimensional(
 
     # special case for labels
     if dimensions == "tsne":
-        scttr += labs(x="tSNE1", y="tSNE2")
+        scttr += labs(x="tSNE1", y="tSNE2") # TODO: fix this to be more general
 
     # add common layers
     scttr += (
