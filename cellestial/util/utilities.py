@@ -179,12 +179,12 @@ def _decide_tooltips(
 
 def _build_tooltips(
     *,
-    tooltips: list[str],
+    tooltips: list[str] | str,
     cluster_name: str | None = None,
     key: str | None = None,
     title: str | None = None,
     clustering: bool = False,
-) -> FeatureSpec:
+) -> FeatureSpec | Literal["none"]:
     """Crete the tooltips for the plot."""
     if tooltips == "none":
         return "none"
@@ -294,11 +294,14 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     TypeError
         If the plot is not a PlotSpec or SupPlotsSpec object.
     """
+    SUP_PLOT_KEY = "_SupPlotsSpec__figures"
+    PLOT_KEY = "_FeatureSpec__props"
+
     if isinstance(plot, PlotSpec):
-        frame = vars(plot).get("_FeatureSpec__props").get("data")
+        frame = vars(plot).get(PLOT_KEY).get("data")
     elif isinstance(plot, SupPlotsSpec):
         frame = (
-            vars(vars(plot).get("_SupPlotsSpec__figures")[index])
+            vars(vars(plot).get(SUP_PLOT_KEY)[index])
             .get("_FeatureSpec__props")
             .get("data")
         )
@@ -335,9 +338,12 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
         If the grid is not a SupPlotsSpec object.
         If the index is not an int or Iterable[int].
     """
+    SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
-        figures = vars(grid).get("_SupPlotsSpec__figures")
+
+        figures = vars(grid).get(SUP_PLOT_KEY)
         print(figures)
+
         if isinstance(index, int):
             plot = figures[index]
             return plot
@@ -345,8 +351,7 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
             list_plots = []
             for i in index:
                 list_plots.append(figures[i])
-                grid = list_plots
-            return gggrid(grid, **kwargs)
+            return gggrid(list_plots, **kwargs)
         else:
             msg = f"Expected int or Iterable for index, but received {type(index)}"
             raise TypeError(msg)

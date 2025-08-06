@@ -43,8 +43,8 @@ def scatter(
     barcode_name: str = "Barcode",
     var_name: str = "Gene",
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: Iterable[str] | str | None = None,
+    custom_tooltips: Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     **point_kwargs,
 ) -> PlotSpec:
