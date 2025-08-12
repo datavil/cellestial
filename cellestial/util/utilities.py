@@ -4,7 +4,6 @@ from math import ceil, log10
 from typing import Iterable, Literal
 
 import polars as pl
-from anndata import AnnData
 from lets_plot import (
     arrow,
     element_blank,
@@ -12,6 +11,8 @@ from lets_plot import (
     geom_blank,
     geom_segment,
     gggrid,
+    guide_legend,
+    guides,
     layer_tooltips,
     scale_color_continuous,
     scale_color_gradient2,
@@ -131,9 +132,9 @@ def _add_arrow_axis(
 
 
 def _decide_tooltips(
-    base_tooltips: Iterable[str] | str,
-    add_tooltips: Iterable[str] | str,
-    custom_tooltips: Iterable[str] | str,
+    base_tooltips: Iterable[str] | str | None,
+    add_tooltips: Iterable[str] | str | None,
+    custom_tooltips: Iterable[str] | str | None,
     *,
     show_tooltips: bool,
 ) -> list[str] | str:
@@ -300,11 +301,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     if isinstance(plot, PlotSpec):
         frame = vars(plot).get(PLOT_KEY).get("data")
     elif isinstance(plot, SupPlotsSpec):
-        frame = (
-            vars(vars(plot).get(SUP_PLOT_KEY)[index])
-            .get("_FeatureSpec__props")
-            .get("data")
-        )
+        frame = vars(vars(plot).get(SUP_PLOT_KEY)[index]).get("_FeatureSpec__props").get("data")
     else:
         print(type(plot))
         msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
@@ -340,7 +337,6 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
     """
     SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
-
         figures = vars(grid).get(SUP_PLOT_KEY)
         print(figures)
 
@@ -358,6 +354,7 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
     else:
         msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
         raise TypeError(msg)
+
 
 def _share_labels(plot, i: int, keys: list[str], ncol: int):
     if ncol is None:
@@ -411,6 +408,7 @@ def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["ax
 
     return plot
 
+
 '''
 def _key_style(data: AnnData, key: str) -> str:
     """Find the layers with the given key."""
@@ -421,3 +419,23 @@ def _key_style(data: AnnData, key: str) -> str:
     elif key in data.var.columns:
         origin = "var"
 '''
+
+
+def _wrap_legend(
+    frame: pl.DataFrame, fill: str | None, color: str | None, nrow: int = 5
+) -> FeatureSpec:
+    legend = guides()
+    # CASE1: LEGEND IS SEPARATED BY FILL
+    if fill is not None:
+        n_distinct = frame.select(fill).unique().height
+        if n_distinct > 10:
+            ncol = ceil(n_distinct / 10)
+            legend = guides(fill=guide_legend(ncol=ncol))
+    # CASE2: LEGEND IS SEPARATED BY COLOR
+    if color is not None:
+        n_distinct = frame.select(color).unique().height
+        if n_distinct > 10:
+            ncol = ceil(n_distinct / 10)
+            legend = guides(color=guide_legend(ncol=ncol))
+
+    return legend
