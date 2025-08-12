@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 def violin(
     data: AnnData,
-    key: str,
+    key: str | Iterable[str],
     *,
     color: str | None = None,
     fill: str | None = None,
@@ -140,84 +140,93 @@ def violin(
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
-    # handle tooltips
-    axis = _axis_data(data=data, key=key)
-    identifier = barcode_name if axis == 0 else var_name
-    base_tooltips = [identifier, key]
-    if color is not None:
-        base_tooltips.append(color)
-    if fill is not None:
-        base_tooltips.append(fill)
+    if isinstance(key,str):
+        # handle tooltips
+        axis = _axis_data(data=data, key=key)
+        identifier = barcode_name if axis == 0 else var_name
+        base_tooltips = [identifier, key]
+        if color is not None:
+            base_tooltips.append(color)
+        if fill is not None:
+            base_tooltips.append(fill)
 
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
+        tooltips = _decide_tooltips(
+            base_tooltips=base_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            show_tooltips=show_tooltips,
+        )
 
-    tooltips_object = _build_tooltips(
-        tooltips=tooltips,
-        cluster_name=None,
-        key=key,
-        title=tooltips_title,
-        clustering=False,
-    )
+        tooltips_object = _build_tooltips(
+            tooltips=tooltips,
+            cluster_name=None,
+            key=key,
+            title=tooltips_title,
+            clustering=False,
+        )
 
-    # construct the frame
-    all_keys = []
-    if key is not None:
-        all_keys.append(key)
-    if tooltips != "none":
-        for tooltip in tooltips:
-            if tooltip not in all_keys and tooltip != identifier:
-                all_keys.append(tooltip)
+        # construct the frame
+        all_keys = []
+        if key is not None:
+            all_keys.append(key)
+        if tooltips != "none":
+            for tooltip in tooltips:
+                if tooltip not in all_keys and tooltip != identifier:
+                    all_keys.append(tooltip)
 
-    if axis == 0:  # for obs and var_names
-        frame = _construct_cell_frame(
-            data=data,
-            keys=all_keys,
-            xy=None,
-            barcode_name=barcode_name,
+        if axis == 0:  # for obs and var_names
+            frame = _construct_cell_frame(
+                data=data,
+                keys=all_keys,
+                xy=None,
+                barcode_name=barcode_name,
+            )
+        elif axis == 1:  # for var
+            frame = _construct_var_frame(
+                data=data,
+                keys=all_keys,
+                var_name=var_name,
+            )
+        # handle fill and color
+        violin_fill = None if fill is not None else violin_fill
+        violin_color = None if color is not None else violin_color
+        # handle violin tooltips
+        violin_tooltips = [key]
+        violin_tooltips.append(color) if color is not None else None
+        violin_tooltips.append(fill) if fill is not None else None
+        # generate the plot
+        vln = (
+            ggplot(data=frame)
+            + geom_violin(
+                data=frame,
+                mapping=aes(x=fill, y=key, color=color, fill=fill),
+                fill=violin_fill,
+                color=violin_color,
+                trim=trim,
+                tooltips=layer_tooltips(violin_tooltips),
+                **violin_kwargs,
+            )
+            + _THEME_VIOLIN
         )
-    elif axis == 1:  # for var
-        frame = _construct_var_frame(
-            data=data,
-            keys=all_keys,
-            var_name=var_name,
-        )
-    # handle fill and color
-    violin_fill = None if fill is not None else violin_fill
-    violin_color = None if color is not None else violin_color
-    # handle violin tooltips
-    violin_tooltips = [key]
-    violin_tooltips.append(color) if color is not None else None
-    violin_tooltips.append(fill) if fill is not None else None
-    # generate the plot
-    vln = (
-        ggplot(data=frame)
-        + geom_violin(
-            data=frame,
-            mapping=aes(x=fill, y=key, color=color, fill=fill),
-            fill=violin_fill,
-            color=violin_color,
-            trim=trim,
-            tooltips=layer_tooltips(violin_tooltips),
-            **violin_kwargs,
-        )
-        + _THEME_VIOLIN
-    )
-    # handle the point (jitter)
-    if show_points:
-        vln += geom_jitter(
-            data=frame,
-            mapping=aes(x=fill, y=key),
-            color=point_color,
-            alpha=point_alpha,
-            size=point_size,
-            tooltips=tooltips_object,
-            **point_kwargs,
-        )
+        # handle the point (jitter)
+        if show_points:
+            vln += geom_jitter(
+                data=frame,
+                mapping=aes(x=fill, y=key),
+                color=point_color,
+                alpha=point_alpha,
+                size=point_size,
+                tooltips=tooltips_object,
+                **point_kwargs,
+            )
+
+
+
+        # handle interactive
+        if interactive:
+            vln += ggtb()
+
+    elif isinstance(key,Iterable):
 
     # wrap the legend
     if fill is not None:
@@ -231,12 +240,7 @@ def violin(
             ncol = ceil(n_distinct / 10)
             vln = vln + guides(color=guide_legend(ncol=ncol))
 
-    # handle interactive
-    if interactive:
-        vln += ggtb()
-
     return vln
-
 
 def boxplot(
     data: AnnData,
