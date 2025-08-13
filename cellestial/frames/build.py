@@ -29,5 +29,5 @@ def anndata_observations_frame(
     frame = frame.with_columns(pl.Series("obs_names", data.obs.index))
     if include_dimensions:
         for X in data.obsm:
-            frame = frame.with_columns(pl.Series(ata.obsm[X]))
+            frame = frame.with_columns(pl.Series(data.obsm[X]))
     return frame
