@@ -81,3 +81,47 @@ def anndata_observations_frame(
     return frame
 
 
+def anndata_variables_frame(
+    data: AnnData,
+    *,
+    variables_name: str = "variable",
+    include_dimensions: bool = False,
+) -> pl.DataFrame:
+    """
+    Build a Variables DataFrame from an AnnData object.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object containing the variables.
+    variables_name : str
+        Name for the variables index column, default is 'variable'
+    include_dimensions : bool
+        Whether to include dimensionality reductions fields.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame containing the variables.
+    """
+    # PART 1: INITIALIZE
+    if not isinstance(data, AnnData):
+        msg = "data must be an `AnnData` object"
+        raise TypeError(msg)
+    frame = pl.DataFrame()
+
+    # PART 2: ADD var_names
+    frame = frame.with_columns(pl.Series("variable", data.var_names))
+
+    # PART 3: ADD AnnData.var
+    for key in data.var.columns:
+        frame = frame.with_columns(pl.Series(key, data.var[key]))
+
+    # PART 4: ADD dimensions if needed
+    if include_dimensions:
+        for X in data.varm:
+            col_count = data.varm[X].shape[1] # Number of dimensions (columns)
+            for col in range(col_count):
+                frame = frame.with_columns(pl.Series(f"{X}_{col+1}", data.varm[X][:, col]))
+
+    return frame
