@@ -158,6 +158,7 @@ def _decide_tooltips(
     list[str]
         Tooltips.
     """
+    # PART 1: CONVERT str TO list
     if isinstance(base_tooltips, str):
         base_tooltips = [base_tooltips]
     if isinstance(add_tooltips, str):
@@ -165,6 +166,7 @@ def _decide_tooltips(
     if isinstance(custom_tooltips, str):
         custom_tooltips = [custom_tooltips]
 
+    # PART 2: HANDLE TOOLTIP LOGIC
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
