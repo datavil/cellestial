@@ -4,7 +4,6 @@ from math import ceil, log10
 from typing import Iterable, Literal
 
 import polars as pl
-from anndata import AnnData
 from lets_plot import (
     arrow,
     element_blank,
@@ -12,6 +11,8 @@ from lets_plot import (
     geom_blank,
     geom_segment,
     gggrid,
+    guide_legend,
+    guides,
     layer_tooltips,
     scale_color_continuous,
     scale_color_gradient2,
@@ -131,9 +132,9 @@ def _add_arrow_axis(
 
 
 def _decide_tooltips(
-    base_tooltips: Iterable[str] | str,
-    add_tooltips: Iterable[str] | str,
-    custom_tooltips: Iterable[str] | str,
+    base_tooltips: Iterable[str] | str | None,
+    add_tooltips: Iterable[str] | str | None,
+    custom_tooltips: Iterable[str] | str | None,
     *,
     show_tooltips: bool,
 ) -> list[str] | str:
@@ -157,6 +158,7 @@ def _decide_tooltips(
     list[str]
         Tooltips.
     """
+    # PART 1: CONVERT str TO list
     if isinstance(base_tooltips, str):
         base_tooltips = [base_tooltips]
     if isinstance(add_tooltips, str):
@@ -164,6 +166,7 @@ def _decide_tooltips(
     if isinstance(custom_tooltips, str):
         custom_tooltips = [custom_tooltips]
 
+    # PART 2: HANDLE TOOLTIP LOGIC
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
@@ -179,12 +182,12 @@ def _decide_tooltips(
 
 def _build_tooltips(
     *,
-    tooltips: list[str],
+    tooltips: list[str] | str,
     cluster_name: str | None = None,
     key: str | None = None,
     title: str | None = None,
     clustering: bool = False,
-) -> FeatureSpec:
+) -> FeatureSpec | Literal["none"]:
     """Crete the tooltips for the plot."""
     if tooltips == "none":
         return "none"
@@ -294,14 +297,13 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     TypeError
         If the plot is not a PlotSpec or SupPlotsSpec object.
     """
+    SUP_PLOT_KEY = "_SupPlotsSpec__figures"
+    PLOT_KEY = "_FeatureSpec__props"
+
     if isinstance(plot, PlotSpec):
-        frame = vars(plot).get("_FeatureSpec__props").get("data")
+        frame = vars(plot).get(PLOT_KEY).get("data")
     elif isinstance(plot, SupPlotsSpec):
-        frame = (
-            vars(vars(plot).get("_SupPlotsSpec__figures")[index])
-            .get("_FeatureSpec__props")
-            .get("data")
-        )
+        frame = vars(vars(plot).get(SUP_PLOT_KEY)[index]).get("_FeatureSpec__props").get("data")
     else:
         print(type(plot))
         msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
@@ -335,9 +337,11 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
         If the grid is not a SupPlotsSpec object.
         If the index is not an int or Iterable[int].
     """
+    SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
-        figures = vars(grid).get("_SupPlotsSpec__figures")
+        figures = vars(grid).get(SUP_PLOT_KEY)
         print(figures)
+
         if isinstance(index, int):
             plot = figures[index]
             return plot
@@ -345,14 +349,14 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
             list_plots = []
             for i in index:
                 list_plots.append(figures[i])
-                grid = list_plots
-            return gggrid(grid, **kwargs)
+            return gggrid(list_plots, **kwargs)
         else:
             msg = f"Expected int or Iterable for index, but received {type(index)}"
             raise TypeError(msg)
     else:
         msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
         raise TypeError(msg)
+
 
 def _share_labels(plot, i: int, keys: list[str], ncol: int):
     if ncol is None:
@@ -406,6 +410,7 @@ def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["ax
 
     return plot
 
+
 '''
 def _key_style(data: AnnData, key: str) -> str:
     """Find the layers with the given key."""
@@ -416,3 +421,23 @@ def _key_style(data: AnnData, key: str) -> str:
     elif key in data.var.columns:
         origin = "var"
 '''
+
+
+def _wrap_legend(
+    frame: pl.DataFrame, fill: str | None, color: str | None, nrow: int = 5
+) -> FeatureSpec:
+    legend = guides()
+    # CASE1: LEGEND IS SEPARATED BY FILL
+    if fill is not None:
+        n_distinct = frame.select(fill).unique().height
+        if n_distinct > 10:
+            ncol = ceil(n_distinct / 10)
+            legend = guides(fill=guide_legend(ncol=ncol))
+    # CASE2: LEGEND IS SEPARATED BY COLOR
+    if color is not None:
+        n_distinct = frame.select(color).unique().height
+        if n_distinct > 10:
+            ncol = ceil(n_distinct / 10)
+            legend = guides(color=guide_legend(ncol=ncol))
+
+    return legend

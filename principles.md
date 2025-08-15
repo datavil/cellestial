@@ -39,7 +39,7 @@ ensures that;
 
 ## Generalized vs Specific Plots
 
-For example `umap` plot is a subset of `dimension` plot. 
+For example `umap` plot is a subset of `dimensional` plot. 
 
 
 ## Abstractions (Customizability)
@@ -58,7 +58,7 @@ e.g., do not take plot size as it can later be changed by the user with `+(ggsiz
 
 ### Multi-Plot Abstractions
 
-For multi-plots though, layers (e.g `scale_color/fill_*`) can be taken as `layers: list | iterable`. 
+For multi-plots though, layers (e.g `scale_color/fill_*`) can be taken to be applied to each layer. 
 
 Since, gggrid is not customizable in terms of color.
 

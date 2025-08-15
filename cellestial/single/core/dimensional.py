@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Sequence
 from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -32,11 +33,12 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
+
 def _legend_ondata(
     *,
     frame: pl.DataFrame,
     dimensions: str,
-    xy: tuple[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     cluster_name: str,
     size: float = 12,
     color: str = "#3f3f3f",
@@ -86,7 +88,7 @@ def dimensional(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -225,16 +227,20 @@ def dimensional(
         Dimensional reduction plot.
 
     """
-    # Handling Data types
+    # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
-    #  declare x and y
-    x = f"{dimensions}{xy[0]}"  # e.g. umap1
-    y = f"{dimensions}{xy[1]}"  # e.g. umap2
+    #  HANDLE: XY
+    if len(xy) == 2:
+        x = f"{dimensions}{xy[0]}"  # e.g. umap1
+        y = f"{dimensions}{xy[1]}"  # e.g. umap2
+    else:
+        msg = f"Length of the xy MUST be 2, (len(xy)=={len(xy)})"
+        raise KeyError(msg)
 
-    # handle point_kwargs
+    # HANDLE: point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
     else:
@@ -242,13 +248,13 @@ def dimensional(
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
-    # truth value of clustering
+    # HANDLE: truth value of clustering
     if key is not None:
         clustering: bool = key.startswith(("leiden", "louvain"))
     else:
         clustering = False
 
-    # handle tooltips
+    # HANDLE: tooltips
     if key is None:
         base_tooltips = [barcode_name]
     else:
@@ -268,7 +274,7 @@ def dimensional(
         clustering=clustering,
     )
 
-    # construct the frame
+    # construct the frame # TODO: IMPROVE
     all_keys = []
     if key is not None:
         all_keys.append(key)
@@ -277,6 +283,7 @@ def dimensional(
             if tooltip not in all_keys and tooltip != barcode_name:
                 all_keys.append(tooltip)
 
+    # TODO: IMPROVE
     frame = _construct_cell_frame(
         data=data,
         keys=all_keys,
@@ -287,7 +294,8 @@ def dimensional(
     )
 
     # CASE1 ---------------------- IF IT IS A CELL ANNOTATION ----------------------
-    if key in data.obs.columns:
+    # TODO: MAKE MORE MODULAR for OTHER POSSIBLE OBJECT TYPES
+    if key in data.obs.columns and key is not None:
         # cluster scatter
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y, color=key),
@@ -311,8 +319,8 @@ def dimensional(
                 mid_point=mid_point,
             )
 
-    # CASE2 ---------------------- IF IT IS A VARIABLE (GENE) ----------------------
-    elif key in data.var_names:  # if it is a gene
+    # CASE2 ---------------------- IF IT IS A FEATURE (e.g., GENE) ----------------------
+    elif key in data.var_names and key is not None:  # if it is a Feature
         scttr = (
             ggplot(data=frame)
             + geom_point(
@@ -340,24 +348,22 @@ def dimensional(
         )
     # ---------------------- NOT A GENE OR CLUSTER ----------------------
     else:
-        msg = f"'{key}' is not present in `observation (.obs) names` nor `gene (.var) names`"
+        msg = f"'{key}' is not present in `observation names` nor `feature names`"
         raise ValueError(msg)
 
-    # special case for labels
+    # HANDLE: tSNE label, a special case for labels
     if dimensions == "tsne":
-        scttr += labs(x="tSNE1", y="tSNE2") # TODO: fix this to be more general
-
-    # add common layers
-    scttr += (
-        labs(
+        x_label = f"tSNE{xy[0]}"
+        y_label = f"tSNE{xy[1]}"
+        scttr += labs(x=x_label, y=y_label)
+    else:
+        # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+        scttr += labs(
             x=x.upper(),
             y=y.upper(),
-            # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
         )
-        + _THEME_DIMENSION
-    )
 
-    # handle arrow axis
+    # HANDLE: arrow axis
     scttr += _add_arrow_axis(
         frame=frame,
         axis_type=axis_type,
@@ -367,11 +373,11 @@ def dimensional(
         arrow_length=arrow_length,
         dimensions=dimensions,
     )
-    # handle interactive
+    # HANDLE: interactive
     if interactive:
         scttr += ggtb()
 
-    # handle legend on data
+    # HANDLE: legend on data
     if legend_ondata and key is not None:
         if frame.schema[key] == pl.Categorical:
             scttr += _legend_ondata(
@@ -390,7 +396,7 @@ def dimensional(
             msg = f"key `{key}` is not categorical, legend on data will not be added"
             warnings.warn(msg, stacklevel=1)
 
-    return scttr
+    return scttr + _THEME_DIMENSION
 
 
 def _test_dimension():
