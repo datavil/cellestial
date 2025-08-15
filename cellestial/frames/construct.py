@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Iterable
 
 import polars as pl
@@ -109,7 +110,7 @@ def _construct_cell_frame(
     data: AnnData,
     keys: Iterable[str],
     dimensions: str | None = None,
-    xy: tuple[int, int] | None = (1, 2),
+    xy: tuple[int, int] | Sequence[int] | None = (1, 2),
     use_key: str | None = None,
     barcode_name: str = "Barcode",
 ) -> pl.DataFrame:
@@ -224,3 +225,5 @@ def _axis_data(data: AnnData, key: str) -> int:
             raise KeyNotFoundError(msg)
 
     return axis
+
+
