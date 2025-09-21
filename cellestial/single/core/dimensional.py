@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from collections.abc import Sequence
 from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -29,7 +28,7 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis, _build_tooltips, _color_gradient, _decide_tooltips
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
 
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
