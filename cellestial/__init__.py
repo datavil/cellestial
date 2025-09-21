@@ -65,4 +65,5 @@ __all__ = [
     "scatter",
     "retrieve",
     "slice",
+    "__version__",
 ]
