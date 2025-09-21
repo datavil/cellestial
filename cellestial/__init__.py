@@ -2,7 +2,6 @@ from cellestial._version import __version__, versions
 from cellestial.single import (
     boxplot,
     boxplots,
-    dim,
     dimensional,
     dimensionals,
     dotplot,
@@ -37,7 +36,6 @@ __all__ = [
     "_add_arrow_axis",
     "dimensional",
     "dimensionals",
-    "dim",
     "umap",
     "umaps",
     "pca",

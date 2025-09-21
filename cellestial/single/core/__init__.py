@@ -3,14 +3,9 @@ from cellestial.single.core.distribution import boxplot, boxplots, violin, violi
 from cellestial.single.core.grids import dimensionals, expressions, pcas, tsnes, umaps
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 
-# alias
-dim = dimensional
-dims = dimensionals
-
-
 __all__ = [
+    "dimensional",
     "dimensionals",
-    "dim",
     "umap",
     "umaps",
     "pca",
