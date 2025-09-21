@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import polars as pl
 from anndata import AnnData
 
 from cellestial.util.errors import ConflictingKeysError, KeyNotFoundError
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _decide_dimensions_key(data: AnnData, dimensions: str) -> str:
@@ -174,7 +177,7 @@ def _construct_var_frame(
     *,
     data: AnnData,
     keys: Iterable[str],
-    var_name: str = "Gene",
+    var_name: str = "Feature",
 ) -> pl.DataFrame:
     """
     Construct a polars DataFrame from data.
