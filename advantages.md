@@ -1,4 +1,4 @@
-# Upsides
+# Advantages
 
 1. Clear and Concise Syntax
 1. Highly customizable
