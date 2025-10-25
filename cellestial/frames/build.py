@@ -9,7 +9,7 @@ from anndata import AnnData
 from cellestial.util.errors import ConflictingKeysError, KeyNotFoundError
 
 
-def _add_variable_columns(frame: pl.DataFrame, keys: str | Sequence[str]) -> pl.DataFrame:
+def _add_variable_columns(data: AnnData,frame: pl.DataFrame, keys: str | Sequence[str]) -> pl.DataFrame:
     """Add variable keys to the DataFrame."""
     if isinstance(keys, str):
         keys = [keys]
@@ -32,7 +32,7 @@ def _add_variable_columns(frame: pl.DataFrame, keys: str | Sequence[str]) -> pl.
 def anndata_observations_frame(
     data: AnnData,
     /,
-    keys: str | Sequence[str] | None = None,
+    variable_keys: str | Sequence[str] | None = None,
     *,
     observations_name="barcode",
     include_dimensions: bool = False,
@@ -44,7 +44,7 @@ def anndata_observations_frame(
     ----------
     data : AnnData
         The AnnData object containing the observations.
-    keys : str or Sequence[str] or None
+    variable_keys : str or Sequence[str] or None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str, optional
         The name of the observations column, by default "barcode".
@@ -63,7 +63,7 @@ def anndata_observations_frame(
     # PART 1: INITIALIZE
     frame = pl.DataFrame()
     # PART 3: ADD obs_names
-    frame = frame.with_columns(pl.Series("obs_names", data.obs_names))
+    frame = frame.with_columns(pl.Series(observations_name, data.obs_names))
     # PART 2: ADD AnnData.obs
     for key in data.obs.columns:
         frame = frame.with_columns(pl.Series(key, data.obs[key]))
@@ -75,8 +75,8 @@ def anndata_observations_frame(
                 frame = frame.with_columns(pl.Series(f"{X}_{col+1}", data.obsm[X][:, col]))
 
     # PART 5: ADD keys if provided
-    if keys is not None:
-        frame = _add_variable_columns(frame, keys)
+    if variable_keys is not None:
+        frame = _add_variable_columns(frame, variable_keys)
 
     return frame
 
@@ -111,7 +111,7 @@ def anndata_variables_frame(
     frame = pl.DataFrame()
 
     # PART 2: ADD var_names
-    frame = frame.with_columns(pl.Series("variable", data.var_names))
+    frame = frame.with_columns(pl.Series(variables_name, data.var_names))
 
     # PART 3: ADD AnnData.var
     for key in data.var.columns:

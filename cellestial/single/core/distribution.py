@@ -227,6 +227,7 @@ def violin(
             vln += ggtb()
 
     elif isinstance(key,Iterable):
+        pass
 
     # wrap the legend
     if fill is not None:
