@@ -23,7 +23,7 @@ from lets_plot import (
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.frames import _construct_cell_frame
+from cellestial.frames import _construct_cell_frame, anndata_observations_frame
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _add_arrow_axis, _build_tooltips, _color_gradient, _decide_tooltips
 
