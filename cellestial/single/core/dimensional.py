@@ -43,8 +43,8 @@ if TYPE_CHECKING:
 def _legend_ondata(
     *,
     frame: pl.DataFrame,
-    dimensions: str,
-    xy: tuple[int, int] | Sequence[int] = (1, 2),
+    x: str,
+    y: str,
     cluster_name: str,
     size: float = 12,
     color: str = "#3f3f3f",
@@ -54,8 +54,7 @@ def _legend_ondata(
     weighted: bool = True,
 ) -> FeatureSpec | FeatureSpecArray:
     # group by cluster names and find X and Y mean for midpoints
-    x = f"{dimensions}{xy[0]}"  # e.g. umap1
-    y = f"{dimensions}{xy[1]}"  # e.g. umap2
+
     if weighted:
         group_means = frame.group_by(cluster_name).agg(
             pl.col(x).mean().alias("mean_x"), pl.col(y).mean().alias("mean_y")
@@ -366,8 +365,8 @@ def dimensional(
         if frame.schema[key] == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
-                dimensions=dimensions,
-                xy=xy,
+                x=x,
+                y=y,
                 cluster_name=key,
                 size=ondata_size,
                 color=ondata_color,
