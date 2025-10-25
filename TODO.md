@@ -17,6 +17,11 @@ https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embeddin
 
 ## MAKE THE FUNCTIONS MORE MODULAR
 
-- ACCEPT possibly different objets other than AnnData.
-- HANDLE operations within separate functions either in utiliy or construct.
-- MAKE dataframe construction more robust.
+- ACCEPT possibly different objets other than AnnData. ✅
+- HANDLE operations within separate functions either in utiliy or construct. ✅
+- MAKE dataframe construction more robust.✅
+
+
+## APPLY MODULAR FUNCTIONS 
+- To Violin, Violins
+- To Boxplot, Boxplots
