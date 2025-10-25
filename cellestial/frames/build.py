@@ -6,6 +6,7 @@ from typing import Literal
 
 import polars as pl
 from anndata import AnnData
+from scipy.sparse import issparse
 
 from cellestial.util.errors import KeyNotFoundError
 
@@ -18,11 +19,17 @@ def _add_anndata_variable_columns(data: AnnData,frame: pl.DataFrame, keys: str |
         if key in frame.columns:
             continue
         elif key in data.var_names:
-            # get the index of the gene
-            index = data.var_names.get_indexer([key])
+            # get the index of the variable
+            index = data.var_names.get_loc(key)
+            # handle sparse matrix
+            if issparse(data.X): # sparse matrix
+                column = data.X[:, index].toarray()
+            else: # numpy array
+                column = data.X[:, index]
+
             # add the variable to the frame
             frame = frame.with_columns(
-                pl.Series(key, data.X[:, index].flatten().astype("float32")),
+                pl.Series(key, column.flatten().astype("float32")),
             )
         else:
             msg = f"Key `{key}` not found in data."
@@ -78,11 +85,11 @@ def anndata_observations_frame(
         for X in data.obsm:
             col_count = data.obsm[X].shape[1]  # Number of dimensions (columns)
             for col in range(col_count):
-                frame = frame.with_columns(pl.Series(f"{X}_{col+1}", data.obsm[X][:, col]))
+                frame = frame.with_columns(pl.Series(f"{X.upper()}{col+1}", data.obsm[X][:, col]))
 
     # PART 5: ADD keys if provided
     if variable_keys is not None:
-        frame = _add_anndata_variable_columns(frame, variable_keys)
+        frame = _add_anndata_variable_columns(data=data, frame=frame, keys=variable_keys)
 
     return frame
 
@@ -133,7 +140,7 @@ def anndata_variables_frame(
         for X in data.varm:
             col_count = data.varm[X].shape[1] # Number of dimensions (columns)
             for col in range(col_count):
-                frame = frame.with_columns(pl.Series(f"{X}_{col+1}", data.varm[X][:, col]))
+                frame = frame.with_columns(pl.Series(f"{X.upper()}{col+1}", data.varm[X][:, col]))
 
     return frame
 
