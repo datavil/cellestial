@@ -23,9 +23,16 @@ from lets_plot import (
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.frames import _construct_cell_frame, anndata_observations_frame
+from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _add_arrow_axis, _build_tooltips, _color_gradient, _decide_tooltips
+from cellestial.util import (
+    _add_arrow_axis,
+    _build_tooltips,
+    _color_gradient,
+    _decide_tooltips,
+    _is_observation,
+    _is_variable,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -232,13 +239,15 @@ def dimensional(
         raise TypeError(msg)
 
     #  HANDLE: XY
-    if len(xy) == 2:
-        x = f"{dimensions}{xy[0]}"  # e.g. umap1
-        y = f"{dimensions}{xy[1]}"  # e.g. umap2
-    else:
-        msg = f"Length of the xy MUST be 2, (len(xy)=={len(xy)})"
+    if len(xy) != 2:
+        msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
         raise KeyError(msg)
-
+    if use_key is None:
+        x = f"X_{dimensions.upper()}{xy[0]}"  # e.g. X_UMAP1
+        y = f"X_{dimensions.upper()}{xy[1]}"  # e.g. X_UMAP2
+    else:
+        x = f"{use_key}_{xy[0]}"  # e.g. X_UMAP1
+        y = f"{use_key}_{xy[1]}"  # e.g. X_UMAP2
     # HANDLE: point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
@@ -273,43 +282,39 @@ def dimensional(
         clustering=clustering,
     )
 
-    # construct the frame # TODO: IMPROVE
-    all_keys = []
-    if key is not None:
-        all_keys.append(key)
-    if tooltips != "none":
-        for tooltip in tooltips:
-            if tooltip not in all_keys and tooltip != barcode_name:
-                all_keys.append(tooltip)
+    # BUILD: dataframe
+    if _is_variable(data, key):
+        variable_keys = key
+    else:
+        variable_keys = None
 
-    # TODO: IMPROVE
-    frame = _construct_cell_frame(
+    frame = build_frame(
         data=data,
-        keys=all_keys,
-        dimensions=dimensions,
-        xy=xy,
-        use_key=use_key,
-        barcode_name=barcode_name,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=barcode_name,
+        include_dimensions=True,
     )
 
-    # CASE1 ---------------------- IF IT IS A CELL ANNOTATION ----------------------
-    # TODO: MAKE MORE MODULAR for OTHER POSSIBLE OBJECT TYPES
-    if key in data.obs.columns and key is not None:
-        # cluster scatter
+    # BUILD: scatter plot
+    if key is not None:
+        # base plot
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y, color=key),
             size=size,
             tooltips=tooltips_object,
             **point_kwargs,
-        )
-        # wrap the legend
+        ) + _THEME_DIMENSION
+        # CASE1 ---------------------- CATEGORICAL DATA ----------------------
         if frame.schema[key] == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
+            # wrap the legend if too many categories
             n_distinct = frame.select(key).unique().height
             if n_distinct > 10:
                 ncol = ceil(n_distinct / 10)
                 scttr += guides(color=guide_legend(ncol=ncol))
-        else:
+        # CASE2 ---------------------- CONTINUOUS DATA ----------------------
+        elif frame[key].dtype.is_numeric():
             scttr += _color_gradient(
                 frame[key],
                 color_low=color_low,
@@ -317,25 +322,8 @@ def dimensional(
                 color_high=color_high,
                 mid_point=mid_point,
             )
+        # else: let letsplot handle it
 
-    # CASE2 ---------------------- IF IT IS A FEATURE (e.g., GENE) ----------------------
-    elif key in data.var_names and key is not None:  # if it is a Feature
-        scttr = (
-            ggplot(data=frame)
-            + geom_point(
-                aes(x=x, y=y, color=key),
-                size=size,
-                tooltips=tooltips_object,
-                **point_kwargs,
-            )
-            + _color_gradient(
-                frame[key],
-                color_low=color_low,
-                color_mid=color_mid,
-                color_high=color_high,
-                mid_point=mid_point,
-            )
-        )
     # ---------------------- IF IT IS NONE ----------------------
     elif key is None:
         # cluster scatter
@@ -344,11 +332,7 @@ def dimensional(
             size=size,
             tooltips=tooltips_object,
             **point_kwargs,
-        )
-    # ---------------------- NOT A GENE OR CLUSTER ----------------------
-    else:
-        msg = f"'{key}' is not present in `observation names` nor `feature names`"
-        raise ValueError(msg)
+        ) + _THEME_DIMENSION
 
     # HANDLE: tSNE label, a special case for labels
     if dimensions == "tsne":
@@ -358,19 +342,20 @@ def dimensional(
     else:
         # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
         scttr += labs(
-            x=x.upper(),
-            y=y.upper(),
+            x=x.replace("X_", ""),
+            y=y.replace("X_", ""),
         )
 
     # HANDLE: arrow axis
     scttr += _add_arrow_axis(
         frame=frame,
+        x=x,
+        y=y,
         axis_type=axis_type,
         arrow_size=arrow_size,
         arrow_color=arrow_color,
         arrow_angle=arrow_angle,
         arrow_length=arrow_length,
-        dimensions=dimensions,
     )
     # HANDLE: interactive
     if interactive:
@@ -395,7 +380,7 @@ def dimensional(
             msg = f"key `{key}` is not categorical, legend on data will not be added"
             warnings.warn(msg, stacklevel=1)
 
-    return scttr + _THEME_DIMENSION
+    return scttr
 
 
 def _test_dimension():

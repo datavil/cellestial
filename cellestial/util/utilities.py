@@ -4,6 +4,7 @@ from math import ceil, log10
 from typing import Iterable, Literal
 
 import polars as pl
+from anndata import AnnData
 from lets_plot import (
     arrow,
     element_blank,
@@ -25,12 +26,13 @@ from lets_plot.plot.subplots import SupPlotsSpec
 def _add_arrow_axis(
     frame: pl.DataFrame,
     *,
+    x = str,
+    y = str,
     axis_type: Literal["axis", "arrow"] | None,
     arrow_size: float,
     arrow_color: str,
     arrow_angle: float,
     arrow_length: float,
-    dimensions: str,
 ):
     """
     Adds arrows as the X and Y axis to the plot.
@@ -39,6 +41,10 @@ def _add_arrow_axis(
     ----------
     frame : `polars.DataFrame`
         DataFrame copied from the single cell data.
+    x : str
+        Name of the x axis column.
+    y : str
+        Name of the y axis column.
     axis_type : Literal["axis", "arrow"] | None
         Whether to use regular axis or arrows as the axis.
     arrow_size : float
@@ -49,9 +55,6 @@ def _add_arrow_axis(
         Angle of the arrow head in degrees.
     arrow_length : float
         Length of the arrow head (px).
-    dimensions : str
-        Dimensions of the plot also the prefix of the arrow axis names.
-        Accepted values are 'umap', 'pca', 'tsne'.
 
     Returns
     -------
@@ -86,10 +89,10 @@ def _add_arrow_axis(
             axis_title_x=element_text(hjust=arrow_length / 2.5),  # better than 2
             axis_title_y=element_text(hjust=arrow_length / 2.5),
         )
-        x_max = frame.select(f"{dimensions}1").max().item()
-        x_min = frame.select(f"{dimensions}1").min().item()
-        y_max = frame.select(f"{dimensions}2").max().item()
-        y_min = frame.select(f"{dimensions}2").min().item()
+        x_max = frame.select(x).max().item()
+        x_min = frame.select(x).min().item()
+        y_max = frame.select(y).max().item()
+        y_min = frame.select(y).min().item()
 
         # find total difference between the max and min for both axis
         x_diff = x_max - x_min
@@ -441,3 +444,29 @@ def _wrap_legend(
             legend = guides(color=guide_legend(ncol=ncol))
 
     return legend
+
+def _is_variable(data: AnnData, key: str) -> bool:
+
+    if isinstance(data, AnnData):
+        if key in data.var_names:
+            result = True
+        else:
+            result = False
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
+def _is_observation(data: AnnData, key: str) -> bool:
+
+    if isinstance(data, AnnData):
+        if key in data.obs.columns:
+            result = True
+        else:
+            result = False
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result

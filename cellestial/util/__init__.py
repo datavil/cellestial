@@ -3,6 +3,8 @@ from cellestial.util.utilities import (
     _build_tooltips,
     _color_gradient,
     _decide_tooltips,
+    _is_observation,
+    _is_variable,
     _range_inclusive,
     _share_axis,
     _share_labels,
@@ -11,7 +13,6 @@ from cellestial.util.utilities import (
 )
 
 __all__ = [
-    "interactive",
     "_add_arrow_axis",
     "_decide_tooltips",
     "_range_inclusive",
@@ -19,6 +20,8 @@ __all__ = [
     "_build_tooltips",
     "_share_labels",
     "_share_axis",
+    "_is_observation",
+    "_is_variable",
     "retrieve",
     "slice",
 ]
