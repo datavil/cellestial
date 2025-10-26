@@ -6,7 +6,7 @@ from cellestial.single.core.dimensional import dimensional
 from cellestial.util import _is_variable
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from anndata import AnnData
     from lets_plot.plot.core import PlotSpec
@@ -17,7 +17,7 @@ def umap(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -32,8 +32,8 @@ def umap(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -118,9 +118,9 @@ def umap(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -192,7 +192,7 @@ def tsne(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -207,8 +207,8 @@ def tsne(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -293,9 +293,9 @@ def tsne(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -367,7 +367,7 @@ def pca(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -382,8 +382,8 @@ def pca(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -468,9 +468,9 @@ def pca(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -543,7 +543,7 @@ def expression(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -558,8 +558,8 @@ def expression(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -646,9 +646,9 @@ def expression(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
