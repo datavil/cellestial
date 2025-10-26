@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal
 
 from cellestial.single.core.dimensional import dimensional
+from cellestial.util import _is_variable
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -680,8 +681,8 @@ def expression(
         Dimensional reduction plot.
 
     """
-    if key not in data.var_names:
-        msg = f"'{key}' is not present in `variable` (gene) names"
+    if not _is_variable(data, key):
+        msg = f"'{key}' is not present in `variable` names"
         raise ValueError(msg)
     return dimensional(
         data=data,

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from math import ceil, log10
-from typing import Iterable, Literal
+from typing import Literal
 
 import polars as pl
 from anndata import AnnData
@@ -135,9 +136,9 @@ def _add_arrow_axis(
 
 
 def _decide_tooltips(
-    base_tooltips: Iterable[str] | str | None,
-    add_tooltips: Iterable[str] | str | None,
-    custom_tooltips: Iterable[str] | str | None,
+    base_tooltips: Sequence[str] | str | None,
+    add_tooltips: Sequence[str] | str | None,
+    custom_tooltips: Sequence[str] | str | None,
     *,
     show_tooltips: bool,
 ) -> list[str] | str:
@@ -173,9 +174,9 @@ def _decide_tooltips(
     if not show_tooltips:
         tooltips = "none"  # for letsplot, this removes the tooltips
     else:
-        if isinstance(custom_tooltips, Iterable):
+        if isinstance(custom_tooltips, Sequence):
             tooltips = list(custom_tooltips)
-        elif isinstance(add_tooltips, Iterable):
+        elif isinstance(add_tooltips, Sequence):
             tooltips = list(base_tooltips) + list(add_tooltips)
         else:
             tooltips = list(base_tooltips)
@@ -315,7 +316,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     return frame
 
 
-def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec | SupPlotsSpec:
+def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec | SupPlotsSpec:
     """
     Slice a ggrid (SupPlotsSpec) objects with given index.
 
@@ -323,7 +324,7 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
     ----------
     grid : SupPlotsSpec
         The grid to slice.
-    index : int | Iterable[int]
+    index : int | Sequence[int]
         The index or indices of the plots to slice.
     **kwargs : dict[str, Any]
         Additional arguments for the `gggrid` function.
@@ -338,7 +339,7 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
     ------
     TypeError
         If the grid is not a SupPlotsSpec object.
-        If the index is not an int or Iterable[int].
+        If the index is not an int or Sequence[int].
     """
     SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
@@ -348,13 +349,13 @@ def slice(grid: SupPlotsSpec, index: int | Iterable[int], **kwargs) -> PlotSpec 
         if isinstance(index, int):
             plot = figures[index]
             return plot
-        elif isinstance(index, Iterable):
+        elif isinstance(index, Sequence):
             list_plots = []
             for i in index:
                 list_plots.append(figures[i])
             return gggrid(list_plots, **kwargs)
         else:
-            msg = f"Expected int or Iterable for index, but received {type(index)}"
+            msg = f"Expected int or Sequence for index, but received {type(index)}"
             raise TypeError(msg)
     else:
         msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
@@ -458,6 +459,15 @@ def _is_variable(data: AnnData, key: str) -> bool:
 
     return result
 
+def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
+    if isinstance(data, AnnData):
+        result = all(key in data.var_names for key in keys)
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
 def _is_observation(data: AnnData, key: str) -> bool:
 
     if isinstance(data, AnnData):
@@ -465,6 +475,15 @@ def _is_observation(data: AnnData, key: str) -> bool:
             result = True
         else:
             result = False
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
+def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
+    if isinstance(data, AnnData):
+        result = all(key in data.obs.columns for key in keys)
     else:
         msg = f"Unknown data type: {type(data)}."
         raise TypeError(msg)
