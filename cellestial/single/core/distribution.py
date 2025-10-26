@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Sequence
 from math import ceil
 from typing import TYPE_CHECKING, Any
 
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 def violin(
     data: AnnData,
-    key: str | Iterable[str],
+    key: str | Sequence[str],
     *,
     color: str | None = None,
     fill: str | None = None,
@@ -44,8 +44,8 @@ def violin(
     var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
     point_kwargs: dict[str, Any] | None = None,
@@ -99,9 +99,9 @@ def violin(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -226,7 +226,7 @@ def violin(
         if interactive:
             vln += ggtb()
 
-    elif isinstance(key,Iterable):
+    elif isinstance(key,Sequence):
         pass
 
     # wrap the legend
@@ -258,8 +258,8 @@ def boxplot(
     var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
     point_kwargs: dict[str, Any] | None = None,
@@ -311,9 +311,9 @@ def boxplot(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -454,7 +454,7 @@ def boxplot(
 
 def violins(
     data,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     color: str | None = None,
     fill: str | None = None,
@@ -468,11 +468,11 @@ def violins(
     var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     multi_panel: bool = True,
     variable_name: str = "variable",
     value_name: str = "value",
@@ -497,7 +497,7 @@ def violins(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
     color : str | None, default=None
@@ -538,15 +538,15 @@ def violins(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    layers : list | tuple | Iterable | FeatureSpec | LayerSpec | None, default=None
+    layers : list | tuple | Sequence | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     multi_panel : bool, default=True
         Whether to plot the violin plots in a grid.
@@ -615,7 +615,7 @@ def violins(
             )
             # handle the layers
             if layers is not None:
-                if not isinstance(layers, Iterable):
+                if not isinstance(layers, Sequence):
                     layers = [layers]
                 for layer in list(layers):
                     vln += layer
@@ -756,7 +756,7 @@ def violins(
 
         # handle the layers
         if layers is not None:
-            if not isinstance(layers, Iterable):
+            if not isinstance(layers, Sequence):
                 layers = [layers]
             for layer in list(layers):
                 vlns += layer
@@ -770,7 +770,7 @@ def violins(
 
 def boxplots(
     data,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     color: str | None = None,
     fill: str | None = None,
@@ -783,11 +783,11 @@ def boxplots(
     var_name: str = "Gene",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     interactive: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     multi_panel: bool = True,
     variable_name: str = "variable",
     value_name: str = "value",
@@ -812,7 +812,7 @@ def boxplots(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
     color : str | None, default=None
@@ -851,15 +851,15 @@ def boxplots(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips to show.
     tooltips_title : str | None, default=None
         Title for the tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    layers : list | tuple | Iterable | FeatureSpec | LayerSpec | None, default=None
+    layers : list | tuple | Sequence | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     multi_panel : bool, default=True
         Whether to plot the boxplots in a grid.
@@ -932,7 +932,7 @@ def boxplots(
             )
             # handle the layers
             if layers is not None:
-                if not isinstance(layers, Iterable):
+                if not isinstance(layers, Sequence):
                     layers = [layers]
                 for layer in list(layers):
                     bxplt += layer
@@ -1070,7 +1070,7 @@ def boxplots(
 
         # handle the layers
         if layers is not None:
-            if not isinstance(layers, Iterable):
+            if not isinstance(layers, Sequence):
                 layers = [layers]
             for layer in list(layers):
                 bxplts += layer

@@ -30,12 +30,11 @@ from cellestial.util import (
     _build_tooltips,
     _color_gradient,
     _decide_tooltips,
-    _is_observation,
     _is_variable,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Sequence
 
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
@@ -108,8 +107,8 @@ def dimensional(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -197,9 +196,9 @@ def dimensional(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -380,24 +379,3 @@ def dimensional(
             warnings.warn(msg, stacklevel=1)
 
     return scttr
-
-
-def _test_dimension():
-    import os
-    from pathlib import Path
-
-    import scanpy as sc
-
-    os.chdir(Path(__file__).parent.parent.parent.parent)  # to project root
-    data = sc.read("data/pbmc3k_pped.h5ad")
-
-    for ax in [None, "arrow", "axis"]:
-        plot = dimensional(data, axis_type=ax)
-        plot.to_html(f"plots/test_dim_umap_{ax}.html")
-        plot.to_svg(f"plots/test_dim_umap_{ax}.svg")
-
-    return
-
-
-if __name__ == "__main__":
-    _test_dimension()
