@@ -70,14 +70,18 @@ def anndata_observations_frame(
         raise TypeError(msg)
     # PART 1: INITIALIZE
     frame = pl.DataFrame()
-    # PART 3: ADD obs_names
+    # PART 2: ADD obs_names
     frame = frame.with_columns(pl.Series(observations_name, data.obs_names))
-    # PART 2: ADD AnnData.obs
+    # PART 3: ADD AnnData.obs
     for key in data.obs.columns:
         # handle categorical integer data
         if data.obs[key].dtype == "category":
-            with contextlib.suppress(ValueError):
-                data.obs[key] = data.obs[key].astype("int32")
+        # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
+            category_kind = data.obs[key].cat.categories.dtype.kind
+            # Only convert if the category dtype is numeric ('i', 'u', 'f')
+            if category_kind in "iuf":
+                # Convert to string (str) and then back to categorical
+                data.obs[key] = data.obs[key].astype(str).astype("category")
         # add the columns
         frame = frame.with_columns(pl.Series(key, data.obs[key]))
     # PART 4: ADD dimensions if needed
@@ -130,8 +134,12 @@ def anndata_variables_frame(
     for key in data.var.columns:
         # handle categorical integer data
         if data.var[key].dtype == "category":
-            with contextlib.suppress(ValueError):
-                data.var[key] = data.var[key].astype("int32")
+        # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
+            category_kind = data.var[key].cat.categories.dtype.kind
+            # Only convert if the category dtype is numeric ('i', 'u', 'f')
+            if category_kind in "iuf":
+                # Convert to string (str) and then back to categorical
+                data.var[key] = data.var[key].astype(str).astype("category")
         # add the columns
         frame = frame.with_columns(pl.Series(key, data.var[key]))
 
