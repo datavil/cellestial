@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Literal, Sequence
 
 from lets_plot import gggrid
 from lets_plot.plot.core import FeatureSpec, LayerSpec
@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 
 def dimensionals(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -34,8 +34,8 @@ def dimensionals(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -47,7 +47,7 @@ def dimensionals(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -67,7 +67,7 @@ def dimensionals(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
@@ -137,9 +137,9 @@ def dimensionals(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -167,7 +167,7 @@ def dimensionals(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row is shown and Y axis on left column is shown.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
+    layers : list[str] | tuple[str] | Sequence[str], default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -207,8 +207,8 @@ def dimensionals(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable) or isinstance(keys, str):
-        msg = "keys must be an iterable of strings"
+    if not isinstance(keys, Sequence) or isinstance(keys, str):
+        msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
     plots = []
@@ -247,10 +247,10 @@ def dimensionals(
         )
 
         # handle the layers
-        if layers is not None:
-            if not isinstance(layers, Iterable):
+        if layers is not None and isinstance(layers, Sequence):
+            if isinstance(layers, str):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -276,10 +276,10 @@ def dimensionals(
 
 def umaps(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -294,8 +294,8 @@ def umaps(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -307,7 +307,7 @@ def umaps(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -327,7 +327,7 @@ def umaps(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     xy : tuple[int, int], default=(1, 2)
@@ -394,9 +394,9 @@ def umaps(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -424,7 +424,7 @@ def umaps(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row is shown and Y axis on left column is shown.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
+    layers : list[str] | tuple[str] | Sequence[str], default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -464,8 +464,8 @@ def umaps(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable) or isinstance(keys, str):
-        msg = "keys must be an iterable of strings"
+    if not isinstance(keys, Sequence) or isinstance(keys, str):
+        msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
     plots = []
@@ -503,10 +503,10 @@ def umaps(
         )
 
         # handle the layers
-        if layers is not None:
-            if not isinstance(layers, Iterable):
+        if layers is not None and isinstance(layers, Sequence):
+            if isinstance(layers, str):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -531,10 +531,10 @@ def umaps(
 
 def tsnes(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -549,8 +549,8 @@ def tsnes(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -562,7 +562,7 @@ def tsnes(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -582,7 +582,7 @@ def tsnes(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     xy : tuple[int, int], default=(1, 2)
@@ -649,9 +649,9 @@ def tsnes(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -679,7 +679,7 @@ def tsnes(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row is shown and Y axis on left column is shown.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
+    layers : list[str] | tuple[str] | Sequence[str], default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -719,8 +719,8 @@ def tsnes(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable) or isinstance(keys, str):
-        msg = "keys must be an iterable of strings"
+    if not isinstance(keys, Sequence) or isinstance(keys, str):
+        msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
     plots = []
@@ -758,10 +758,10 @@ def tsnes(
         )
 
         # handle the layers
-        if layers is not None:
-            if not isinstance(layers, Iterable):
+        if layers is not None and isinstance(layers, Sequence):
+            if isinstance(layers, str):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -787,10 +787,10 @@ def tsnes(
 
 def pcas(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -805,8 +805,8 @@ def pcas(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -818,7 +818,7 @@ def pcas(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -838,7 +838,7 @@ def pcas(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     xy : tuple[int, int], default=(1, 2)
@@ -905,9 +905,9 @@ def pcas(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -935,7 +935,7 @@ def pcas(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row is shown and Y axis on left column is shown.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
+    layers : list[str] | tuple[str] | Sequence[str], default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -975,8 +975,8 @@ def pcas(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable) or isinstance(keys, str):
-        msg = "keys must be an iterable of strings"
+    if not isinstance(keys, Sequence) or isinstance(keys, str):
+        msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
     plots = []
@@ -1014,10 +1014,10 @@ def pcas(
         )
 
         # handle the layers
-        if layers is not None:
-            if not isinstance(layers, Iterable):
+        if layers is not None and isinstance(layers, Sequence):
+            if isinstance(layers, str):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 plot += layer
         if share_labels:
             plot = _share_labels(plot, i, keys, ncol)
@@ -1042,11 +1042,11 @@ def pcas(
 
 def expressions(
     data: AnnData,
-    keys: list[str] | tuple[str] | Iterable[str],
+    keys: list[str] | tuple[str] | Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     cluster_name: str = "Cluster",
@@ -1061,8 +1061,8 @@ def expressions(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
+    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
@@ -1074,7 +1074,7 @@ def expressions(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: list | tuple | Iterable | FeatureSpec | LayerSpec | None = None,
+    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -1094,7 +1094,7 @@ def expressions(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : list[str] | tuple[str] | Iterable[str]
+    keys : list[str] | tuple[str] | Sequence[str]
         The keys (gene names) to color the points by.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
@@ -1163,9 +1163,9 @@ def expressions(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -1193,7 +1193,7 @@ def expressions(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row is shown and Y axis on left column is shown.
-    layers : list[str] | tuple[str] | Iterable[str], default=None
+    layers : list[str] | tuple[str] | Sequence[str], default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -1233,8 +1233,8 @@ def expressions(
         Grid of dimensionality reduction plots.
 
     """
-    if not isinstance(keys, Iterable) or isinstance(keys, str):
-        msg = "keys must be an iterable of strings"
+    if not isinstance(keys, Sequence) or isinstance(keys, str):
+        msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
     plots = []
@@ -1273,13 +1273,13 @@ def expressions(
         )
 
         # handle the layers
-        if layers is not None:
-            if not isinstance(layers, Iterable):
+        if layers is not None and isinstance(layers, Sequence):
+            if isinstance(layers, str):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 plot += layer
         if share_labels:
-            plot = _share_labels(plot, i, key, ncol)
+            plot = _share_labels(plot, i, keys, ncol)
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
