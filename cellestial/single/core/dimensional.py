@@ -18,6 +18,7 @@ from lets_plot import (
     guide_legend,
     guides,
     labs,
+    layer_tooltips,
     scale_color_brewer,
     theme,
 )
@@ -31,6 +32,7 @@ from cellestial.util import (
     _color_gradient,
     _decide_tooltips,
     _is_variable,
+    _select_variable_keys,
 )
 
 if TYPE_CHECKING:
@@ -272,6 +274,7 @@ def dimensional(
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
+    """
     tooltips_object = _build_tooltips(
         tooltips=tooltips,
         cluster_name=cluster_name,
@@ -279,12 +282,15 @@ def dimensional(
         title=tooltips_title,
         clustering=clustering,
     )
-
+    """
     # BUILD: dataframe
     if _is_variable(data, key):
-        variable_keys = key
+        if tooltips =="none":
+            variable_keys = key
+        else:
+            variable_keys = [key] + _select_variable_keys(data, tooltips)
     else:
-        variable_keys = None
+        variable_keys = _select_variable_keys(data, tooltips)
 
     frame = build_frame(
         data=data,
@@ -300,7 +306,7 @@ def dimensional(
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y, color=key),
             size=size,
-            tooltips=tooltips_object,
+            tooltips=layer_tooltips(tooltips),
             **point_kwargs,
         ) + _THEME_DIMENSION
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
@@ -328,7 +334,7 @@ def dimensional(
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y),
             size=size,
-            tooltips=tooltips_object,
+            tooltips=layer_tooltips(tooltips),
             **point_kwargs,
         ) + _THEME_DIMENSION
 

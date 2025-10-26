@@ -141,7 +141,7 @@ def _decide_tooltips(
     custom_tooltips: Sequence[str] | str | None,
     *,
     show_tooltips: bool,
-) -> list[str] | str:
+) -> list[str]:
     """
     Decide on the tooltips.
 
@@ -187,7 +187,7 @@ def _decide_tooltips(
 def _build_tooltips(
     *,
     tooltips: list[str] | str,
-    cluster_name: str | None = None,
+    cluster_name: str,
     key: str | None = None,
     title: str | None = None,
     clustering: bool = False,
@@ -201,7 +201,7 @@ def _build_tooltips(
         if clustering:
             if tooltip != key:
                 tooltips_object.line(f"{tooltip}|@{tooltip}")
-            elif tooltip == key:
+            else:
                 tooltips_object.line(f"{cluster_name}|@{key}")
         else:
             tooltips_object.line(f"{tooltip}|@{tooltip}")
@@ -489,3 +489,15 @@ def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
+def _select_variable_keys(
+    data: AnnData,
+    keys: Sequence[str],
+) -> Sequence[str]:
+    """From given keys, select only those that are variable keys."""
+    if isinstance(data, AnnData):
+        variable_keys = [key for key in keys if key in data.var_names]
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+    return variable_keys
