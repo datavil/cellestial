@@ -446,7 +446,7 @@ def _wrap_legend(
 
     return legend
 
-def _is_variable(data: AnnData, key: str) -> bool:
+def _is_variable_key(data: AnnData, key: str) -> bool:
 
     if isinstance(data, AnnData):
         if key in data.var_names:
@@ -468,7 +468,7 @@ def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
 
     return result
 
-def _is_observation(data: AnnData, key: str) -> bool:
+def _is_observation_key(data: AnnData, key: str) -> bool:
 
     if isinstance(data, AnnData):
         if key in data.obs.columns:
@@ -501,3 +501,70 @@ def _select_variable_keys(
         msg = f"Unknown data type: {type(data)}."
         raise TypeError(msg)
     return variable_keys
+
+def _is_observation_feature(data: AnnData, key: str) -> bool:
+    """Check whether the key is in observations axis (axis=0)."""
+    if isinstance(data, AnnData):
+        if key in data.obs.columns or key in data.var_names:
+            result = True
+        else:
+            result = False
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
+def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
+    """Check whether all the keys are in observations axis (axis=0)."""
+    if isinstance(data, AnnData):
+        result = all((key in data.obs.columns or key in data.var_names) for key in keys)
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
+def _is_variable_feature(data: AnnData, key: str) -> bool:
+    """Check whether the key is in variable axis (axis=1)."""
+    if isinstance(data, AnnData):
+        if key in data.var.columns:
+            result = True
+        else:
+            result = False
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
+def _are_variable_features(data: AnnData, keys: Sequence[str]) -> bool:
+    """Check whether all the keys are in variable axis (axis=1)."""
+    if isinstance(data, AnnData):
+        result = all(key in data.var.columns for key in keys)
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return result
+
+def _determine_axis(
+    data: AnnData,
+    keys: str | Sequence[str],
+) -> Literal[0, 1]:
+    """Determine the axis based on the given key or keys."""
+    if isinstance(keys, str):
+        keys = [keys]
+    if isinstance(data, AnnData):
+        if _are_variable_features(data, keys):
+            axis = 1
+        elif _are_observation_features(data, keys):
+            axis = 0
+        else:
+            msg = f"Could not determine the axis with given keys ({keys})."
+            raise ValueError(msg)
+    else:
+        msg = f"Unknown data type: {type(data)}."
+        raise TypeError(msg)
+
+    return axis

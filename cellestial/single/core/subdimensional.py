@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal
 
 from cellestial.single.core.dimensional import dimensional
-from cellestial.util import _is_variable
+from cellestial.util import _is_variable_key
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -681,7 +681,7 @@ def expression(
         Dimensional reduction plot.
 
     """
-    if not _is_variable(data, key):
+    if not _is_variable_key(data, key):
         msg = f"'{key}' is not present in `variable` names"
         raise ValueError(msg)
     return dimensional(
