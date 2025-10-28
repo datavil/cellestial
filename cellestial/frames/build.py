@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import contextlib
-from collections.abc import Sequence
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
@@ -10,8 +8,13 @@ from scipy.sparse import issparse
 
 from cellestial.util.errors import KeyNotFoundError
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
-def _add_anndata_variable_columns(data: AnnData,frame: pl.DataFrame, keys: str | Sequence[str]) -> pl.DataFrame:
+
+def _add_anndata_variable_columns(
+    data: AnnData, frame: pl.DataFrame, keys: str | Sequence[str]
+) -> pl.DataFrame:
     """Add variable keys to the DataFrame."""
     if isinstance(keys, str):
         keys = [keys]
@@ -22,9 +25,9 @@ def _add_anndata_variable_columns(data: AnnData,frame: pl.DataFrame, keys: str |
             # get the index of the variable
             index = data.var_names.get_loc(key)
             # handle sparse matrix
-            if issparse(data.X): # sparse matrix
+            if issparse(data.X):  # sparse matrix
                 column = data.X[:, index].toarray()
-            else: # numpy array
+            else:  # numpy array
                 column = data.X[:, index]
 
             # add the variable to the frame
@@ -36,6 +39,7 @@ def _add_anndata_variable_columns(data: AnnData,frame: pl.DataFrame, keys: str |
             raise KeyNotFoundError(msg)
 
     return frame
+
 
 def anndata_observations_frame(
     data: AnnData,
@@ -76,7 +80,7 @@ def anndata_observations_frame(
     for key in data.obs.columns:
         # handle categorical integer data
         if data.obs[key].dtype == "category":
-        # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
+            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
             category_kind = data.obs[key].cat.categories.dtype.kind
             # Only convert if the category dtype is numeric ('i', 'u', 'f')
             if category_kind in "iuf":
@@ -134,7 +138,7 @@ def anndata_variables_frame(
     for key in data.var.columns:
         # handle categorical integer data
         if data.var[key].dtype == "category":
-        # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
+            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
             category_kind = data.var[key].cat.categories.dtype.kind
             # Only convert if the category dtype is numeric ('i', 'u', 'f')
             if category_kind in "iuf":
@@ -146,19 +150,18 @@ def anndata_variables_frame(
     # PART 4: ADD dimensions if needed
     if include_dimensions:
         for X in data.varm:
-            col_count = data.varm[X].shape[1] # Number of dimensions (columns)
+            col_count = data.varm[X].shape[1]  # Number of dimensions (columns)
             for col in range(col_count):
                 frame = frame.with_columns(pl.Series(f"{X.upper()}{col+1}", data.varm[X][:, col]))
 
     return frame
 
 
-
 def build_frame(
     data: AnnData,
     *,
     variable_keys: str | Sequence[str] | None = None,
-    axis: Literal[0,1] | None = None,
+    axis: Literal[0, 1] | None = None,
     observations_name: str = "barcode",
     variables_name: str = "variable",
     include_dimensions: bool = False,
@@ -199,7 +202,7 @@ def build_frame(
                 include_dimensions=include_dimensions,
             )
         elif axis == 1:
-            frame =  anndata_variables_frame(
+            frame = anndata_variables_frame(
                 data,
                 variables_name=variables_name,
                 include_dimensions=include_dimensions,

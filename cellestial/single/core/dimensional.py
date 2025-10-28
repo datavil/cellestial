@@ -31,7 +31,7 @@ from cellestial.util import (
     _build_tooltips,
     _color_gradient,
     _decide_tooltips,
-    _is_variable,
+    _is_variable_key,
     _select_variable_keys,
 )
 
@@ -257,10 +257,10 @@ def dimensional(
             raise KeyError(msg)
 
     # HANDLE: truth value of clustering
-    if key is not None:
+    """if key is not None:
         clustering: bool = key.startswith(("leiden", "louvain"))
     else:
-        clustering = False
+        clustering = False"""
 
     # HANDLE: tooltips
     if key is None:
@@ -284,7 +284,7 @@ def dimensional(
     )
     """
     # BUILD: dataframe
-    if _is_variable(data, key):
+    if _is_variable_key(data, key):
         if tooltips =="none":
             variable_keys = key
         else:
