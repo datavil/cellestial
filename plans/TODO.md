@@ -23,5 +23,8 @@ https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embeddin
 
 
 ## APPLY MODULAR FUNCTIONS 
-- To Violin, Violins
-- To Boxplot, Boxplots
+- To Violin, Violins ✅
+- To Boxplot, Boxplots ✅
+
+- Scatter
+- Dotplot
