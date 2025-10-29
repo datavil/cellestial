@@ -344,7 +344,7 @@ def dimensional(
         y_label = f"tSNE{xy[1]}"
         scttr += labs(x=x_label, y=y_label)
     else:
-        # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+        # UMAP1 and UMAP2 rather than X_UMAP1 and X_UMAP2 etc.,
         scttr += labs(
             x=x.replace("X_", ""),
             y=y.replace("X_", ""),
