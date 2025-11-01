@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 # Data retrieval
 from anndata import AnnData
@@ -13,12 +13,18 @@ from lets_plot import (
     guide_legend,
     guides,
     labs,
+    layer_tooltips,
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.frames import _axis_data, _construct_cell_frame, _construct_var_frame
+from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
-from cellestial.util import _build_tooltips, _decide_tooltips
+from cellestial.util import (
+    _build_tooltips,
+    _decide_tooltips,
+    _determine_axis,
+    _select_variable_keys,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -31,6 +37,7 @@ def scatter(
     x: str,
     y: str,
     *,
+    axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     size: str | None = None,
@@ -41,7 +48,8 @@ def scatter(
     point_shape: str | None = None,
     interactive: bool = False,
     barcode_name: str = "Barcode",
-    var_name: str = "Gene",
+    variable_name: str = "Varible",
+    include_dimensions: bool = False,
     show_tooltips: bool = True,
     add_tooltips: Iterable[str] | str | None = None,
     custom_tooltips: Iterable[str] | str | None = None,
@@ -89,8 +97,10 @@ def scatter(
         Whether to make the plot interactive.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    var_name : str, default="Gene"
+    variable_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
+    include_dimensions : bool, default=False
+        Whether to include dimensions in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
@@ -123,68 +133,46 @@ def scatter(
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
-    # handle tooltips
-    axis = _axis_data(data=data, key=x)
-    identifier = barcode_name if axis == 0 else var_name
-    base_tooltips = [x, y, identifier]
-    if color is not None:
-        base_tooltips.append(color)
-    if fill is not None:
-        base_tooltips.append(fill)
-    if size is not None:
-        base_tooltips.append(size)
-    if shape is not None:
-        base_tooltips.append(shape)
-
+    # Handle tooltips
+    base_tooltips = [x, y]
     tooltips = _decide_tooltips(
         base_tooltips=base_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
-    tooltips_object = _build_tooltips(
-        tooltips=tooltips,
-        title=tooltips_title,
+
+    # dimensional_keys = [key for key in [x, y] if key.startswith("X_")]
+    keys = [
+        key
+        for key in [x, y, color, fill, size, shape]
+        if key is not None and not key.startswith("X_")
+    ]
+    variable_keys = _select_variable_keys(data=data, keys=keys)
+
+    # BUILD: the dataframe
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=barcode_name,
+        variables_name=variable_name,
+        include_dimensions=include_dimensions,
     )
 
-    # construct the frame
-    all_keys = [t for t in base_tooltips if t != identifier]  # base_tooltips minus the identifier
-    if tooltips != "none":
-        for tooltip in tooltips:
-            if tooltip not in all_keys and tooltip != identifier:
-                print(tooltip)
-                all_keys.append(tooltip)
-
-    if axis == 0:  # for obs and var_names
-        frame = _construct_cell_frame(
-            data=data,
-            keys=all_keys,
-            xy=None,
-            barcode_name=barcode_name,
-        )
-    elif axis == 1:  # for var
-        frame = _construct_var_frame(
-            data=data,
-            keys=all_keys,
-            var_name=var_name,
-        )
-
     # scatter kwargs
-    if size is not None:
-        point_kwargs["size"] = point_size
-    if color is not None:
-        point_kwargs["color"] = point_color
-    if fill is not None:
-        point_kwargs["fill"] = point_fill
-    if shape is not None:
-        point_kwargs["shape"] = point_shape
+    point_kwargs["size"] = point_size
+    point_kwargs["color"] = point_color
+    point_kwargs["fill"] = point_fill
+    point_kwargs["shape"] = point_shape
 
-    # create the scatterplot
+    # BUILD: the scatterplot
     scttr = (
         ggplot(data=frame)
         + geom_point(
             aes(x=x, y=y, color=color, size=size, shape=shape, fill=fill),
-            tooltips=tooltips_object,
+            tooltips=layer_tooltips(tooltips),
             **point_kwargs,
         )
         + labs(x=x, y=y)
@@ -206,23 +194,3 @@ def scatter(
         scttr += ggtb()
 
     return scttr
-
-
-def test_scatter():
-    import scanpy as sc
-
-    data = sc.read("data/pbmc3k_pped.h5ad")
-    plot = scatter(
-        data,
-        "n_genes",
-        "pct_counts_in_top_50_genes",
-        add_tooltips=["sample"],
-        aes_color="leiden",
-        interactive=True,
-        size=0.6,
-    )
-    plot.to_html("testplots/test_scatter.html")
-
-
-if __name__ == "__main__":
-    test_scatter()

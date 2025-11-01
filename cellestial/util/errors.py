@@ -10,3 +10,8 @@ class KeyNotFoundError(Exception):
     def __init__(self, message: str):
         super().__init__(message)
 
+class ConfilictingLengthError(Exception):
+    """Raised when sizes conflict."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
