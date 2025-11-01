@@ -18,9 +18,8 @@ from lets_plot import (
     layer_tooltips,
 )
 from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
 
-from cellestial.frames import _axis_data, build_frame
+from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
 from cellestial.util import (
     _build_tooltips,
@@ -360,7 +359,7 @@ def boxplot(
     # determine separator
     separator = None
     if fill is not None:
-        separator = fill
+        separator = fill # fill has higher priority
     elif color is not None:
         separator = color
 

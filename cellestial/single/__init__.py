@@ -1,4 +1,4 @@
-from cellestial.single.basic import scatter
+from cellestial.single.basic import scatter, scatters
 from cellestial.single.core import (
     boxplot,
     boxplots,
@@ -34,4 +34,5 @@ __all__ = [
     "boxplots",
     "dotplot",
     "scatter",
+    "scatters",
 ]
