@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from math import ceil
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
 from lets_plot import (
@@ -10,14 +10,13 @@ from lets_plot import (
     geom_boxplot,
     geom_jitter,
     geom_violin,
-    gggrid,
     ggplot,
     ggtb,
     guide_legend,
     guides,
     layer_tooltips,
 )
-from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
+from lets_plot.plot.core import PlotSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
@@ -36,6 +35,7 @@ def violin(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    axis: Literal[0,1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     geom_fill: str = "#FF00FF",
@@ -66,6 +66,8 @@ def violin(
     key : str
         The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    axis : Literal[0,1] | None
+        axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
@@ -161,8 +163,7 @@ def violin(
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
-    # handle tooltips
-    axis = _determine_axis(data=data, keys=keys)
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     #identifier = barcode_name if axis == 0 else variable_name
 
     # handle fill and color
@@ -185,6 +186,7 @@ def violin(
     if separator is None or len(keys) > 1:
         separator = variable_column
 
+    # handle tooltips
     base_tooltips = [variable_column,value_column]
     """if color is not None:
         base_tooltips.append(color)
@@ -248,6 +250,7 @@ def boxplot(
     data: AnnData,
     key: str,
     *,
+    axis: Literal[0,1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     geom_fill: str = "#FF00FF",
@@ -278,6 +281,8 @@ def boxplot(
     key : str
         The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    axis : Literal[0,1] | None
+        axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
@@ -371,8 +376,7 @@ def boxplot(
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
 
-    # handle tooltips
-    axis = _determine_axis(data=data, keys=keys)
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     #identifier = barcode_name if axis == 0 else variable_name
 
     # handle fill and color
@@ -395,6 +399,7 @@ def boxplot(
     if separator is None or len(keys) > 1:
         separator = variable_column
 
+    # handle tooltips
     base_tooltips = [variable_column,value_column]
     """if color is not None:
         base_tooltips.append(color)
