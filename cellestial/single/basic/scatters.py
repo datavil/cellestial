@@ -39,7 +39,7 @@ def scatters(
     custom_tooltips: Iterable[str] | str | None = None,
     tooltips_title: str | None = None,
     # multi plot args
-    layers: Sequence[FeatureSpec] | Sequence[LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -63,7 +63,7 @@ def scatters(
         The key(s) for the x-axis.
     y : str
         The key(s) for the y-axis.
-    axis : Literal[0,1] | None
+    axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic for the geom_point.
@@ -107,7 +107,7 @@ def scatters(
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
-    layers : list[str] | tuple[str] | Sequence[str], default=None
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.

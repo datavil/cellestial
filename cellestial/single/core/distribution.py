@@ -66,7 +66,7 @@ def violin(
     key : str
         The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
-    axis : Literal[0,1] | None
+    axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the violin plot (categorical).
@@ -281,7 +281,7 @@ def boxplot(
     key : str
         The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
-    axis : Literal[0,1] | None
+    axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the boxplot (categorical).

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
 from lets_plot import gggrid
@@ -18,6 +18,7 @@ def violins(
     data: AnnData,
     keys: list[str] | tuple[str] | Sequence[str],
     *,
+    axis: Literal[0,1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     geom_fill: str = "#FF00FF",
@@ -60,6 +61,8 @@ def violins(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    axis : Literal[0,1] | None, default=None
+        axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
@@ -149,6 +152,7 @@ def violins(
         dst = violin(
             data=data,
             key=key,
+            axis=axis,
             color=color,
             fill=fill,
             geom_fill=geom_fill,
@@ -198,6 +202,7 @@ def boxplots(
     data: AnnData,
     keys: list[str] | tuple[str] | Sequence[str],
     *,
+    axis: Literal[0,1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     geom_fill: str = "#FF00FF",
@@ -240,6 +245,8 @@ def boxplots(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    axis : Literal[0,1] | None, default=None
+        axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
@@ -332,6 +339,7 @@ def boxplots(
         dst = boxplot(
             data=data,
             key=key,
+            axis=axis,
             color=color,
             fill=fill,
             geom_fill=geom_fill,

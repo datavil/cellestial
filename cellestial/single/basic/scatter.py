@@ -67,7 +67,7 @@ def scatter(
         The key for the x-axis.
     y : str
         The key for the y-axis.
-    axis : Literal[0,1] | None
+    axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic for the geom_point.
