@@ -27,7 +27,7 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from lets_plot.plot.core import PlotSpec
 
@@ -51,8 +51,8 @@ def scatter(
     variable_name: str = "Varible",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
-    add_tooltips: Iterable[str] | str | None = None,
-    custom_tooltips: Iterable[str] | str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     **point_kwargs,
 ) -> PlotSpec:
@@ -105,9 +105,9 @@ def scatter(
         Whether to include dimensions in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.

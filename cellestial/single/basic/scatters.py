@@ -11,17 +11,16 @@ from cellestial.single.basic.scatter import scatter
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     from lets_plot.plot.core import FeatureSpec, LayerSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 
+
 def scatters(
     data: AnnData,
-    x: str| Sequence[str],
+    x: str | Sequence[str],
     y: str | Sequence[str],
     *,
-    axis: Literal[0,1] | None = None,
+    axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     size: str | None = None,
@@ -35,11 +34,11 @@ def scatters(
     variable_name: str = "Varible",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
-    add_tooltips: Iterable[str] | str | None = None,
-    custom_tooltips: Iterable[str] | str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     tooltips_title: str | None = None,
     # multi plot args
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -51,7 +50,7 @@ def scatters(
     fit: bool | None = None,
     align: bool | None = None,
     **point_kwargs,
-)-> SupPlotsSpec:
+) -> SupPlotsSpec:
     """
     Scatter Plots.
 
@@ -101,9 +100,9 @@ def scatters(
         Whether to include dimensions in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
     tooltips_title : str | None, default=None
         Title for the tooltips.
@@ -152,6 +151,7 @@ def scatters(
     if isinstance(y, str):
         y = [y]
 
+    # check for broadcasting
     if len(x) != len(y):
         if len(x) == 1:
             x = x * len(y)
@@ -163,7 +163,7 @@ def scatters(
 
     # build plots
     plots = []
-    for xi,yi in zip(x,y):
+    for xi, yi in zip(x, y):
         scttr = scatter(
             data,
             x=xi,
@@ -209,4 +209,3 @@ def scatters(
     )
 
     return scttrs
-
