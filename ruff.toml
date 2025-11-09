@@ -1,37 +1,7 @@
-[tool.poetry]
-name = "cellestial"
-version = "0.7.1"
-description = ""
-authors = ["Zaf4 <zafermolbio@gmail.com>"]
-readme = "README.md"
-license = "Apache-2.0"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-anndata = "^0.11.0"
-lets-plot = "^4.8.0"
-polars = "^1.12.0"
-pyarrow = "^18.0.0"
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.5"
-ruff = "^0.7.3"
-mypy = "^1.13.0"
-pooch = "^1.8.2"
-scanpy = {extras = ["leiden"], version = "^1.10.4"}
-pycairo = "^1.27.0"
-cairosvg = "^2.7.1"
-scvelo = "^0.3.3"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.ruff]
 line-length = 99
 
 # copied from polars
-[tool.ruff.lint]
+[lint]
 select = [
   "E", # pycodestyle
   "W", # pycodestyle
@@ -87,17 +57,17 @@ ignore = [
   "TCH002"
 ]
 
-[tool.ruff.lint.pycodestyle]
+[lint.pycodestyle]
 max-doc-length = 99
 
-[tool.ruff.lint.pydocstyle]
+[lint.pydocstyle]
 convention = "numpy"
 
-[tool.ruff.lint.flake8-tidy-imports]
+[lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.lint.flake8-type-checking]
+[lint.flake8-type-checking]
 strict = true
 
-[tool.ruff.format]
+[format]
 docstring-code-format = true
