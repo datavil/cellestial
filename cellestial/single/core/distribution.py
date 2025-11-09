@@ -21,7 +21,6 @@ from lets_plot.plot.core import PlotSpec
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
 from cellestial.util import (
-    _build_tooltips,
     _decide_tooltips,
     _determine_axis,
     _select_variable_keys,
@@ -49,7 +48,6 @@ def violin(
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -109,8 +107,6 @@ def violin(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips to show.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     variable_column : str, default="variable"
@@ -264,7 +260,6 @@ def boxplot(
     show_points: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -323,8 +318,6 @@ def boxplot(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips to show.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     variable_column : str, default="variable"

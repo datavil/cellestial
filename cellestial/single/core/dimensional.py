@@ -28,7 +28,6 @@ from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _add_arrow_axis,
-    _build_tooltips,
     _color_gradient,
     _decide_tooltips,
     _is_variable_key,
@@ -111,7 +110,6 @@ def dimensional(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -202,8 +200,6 @@ def dimensional(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -274,15 +270,7 @@ def dimensional(
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
-    """
-    tooltips_object = _build_tooltips(
-        tooltips=tooltips,
-        cluster_name=cluster_name,
-        key=key,
-        title=tooltips_title,
-        clustering=clustering,
-    )
-    """
+
     # BUILD: dataframe
     if _is_variable_key(data, key):
         if tooltips =="none":

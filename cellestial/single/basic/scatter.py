@@ -20,7 +20,6 @@ from lets_plot.plot.core import PlotSpec
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
-    _build_tooltips,
     _decide_tooltips,
     _determine_axis,
     _select_variable_keys,
@@ -53,7 +52,6 @@ def scatter(
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
     custom_tooltips: Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     **point_kwargs,
 ) -> PlotSpec:
     """
@@ -109,8 +107,6 @@ def scatter(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     **point_kwargs : dict[str, Any]
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:

@@ -1,6 +1,5 @@
 from cellestial.util.utilities import (
     _add_arrow_axis,
-    _build_tooltips,
     _color_gradient,
     _decide_tooltips,
     _determine_axis,
@@ -20,7 +19,6 @@ __all__ = [
     "_range_inclusive",
     "_color_gradient",
     "_determine_axis",
-    "_build_tooltips",
     "_select_variable_keys",
     "_share_labels",
     "_share_axis",
