@@ -36,7 +36,6 @@ def scatters(
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
     custom_tooltips: Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     # multi plot args
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -104,8 +103,6 @@ def scatters(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -184,7 +181,6 @@ def scatters(
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
             custom_tooltips=custom_tooltips,
-            tooltips_title=tooltips_title,
             **point_kwargs,
         )
         # handle the layers

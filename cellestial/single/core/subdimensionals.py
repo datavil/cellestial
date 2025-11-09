@@ -36,7 +36,6 @@ def dimensionals(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -141,8 +140,6 @@ def dimensionals(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -235,7 +232,6 @@ def dimensionals(
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
             custom_tooltips=custom_tooltips,
-            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -296,7 +292,6 @@ def umaps(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -398,8 +393,6 @@ def umaps(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -491,7 +484,6 @@ def umaps(
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
             custom_tooltips=custom_tooltips,
-            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -551,7 +543,6 @@ def tsnes(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -653,8 +644,6 @@ def tsnes(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -746,7 +735,6 @@ def tsnes(
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
             custom_tooltips=custom_tooltips,
-            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -807,7 +795,6 @@ def pcas(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -909,8 +896,6 @@ def pcas(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -1002,7 +987,6 @@ def pcas(
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
             custom_tooltips=custom_tooltips,
-            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -1063,7 +1047,6 @@ def expressions(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -1167,8 +1150,6 @@ def expressions(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -1261,7 +1242,6 @@ def expressions(
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
             custom_tooltips=custom_tooltips,
-            tooltips_title=tooltips_title,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,

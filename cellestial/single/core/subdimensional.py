@@ -34,7 +34,6 @@ def umap(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -122,8 +121,6 @@ def umap(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -175,7 +172,6 @@ def umap(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -209,7 +205,6 @@ def tsne(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -297,8 +292,6 @@ def tsne(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -350,7 +343,6 @@ def tsne(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -384,7 +376,6 @@ def pca(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -472,8 +463,6 @@ def pca(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -525,7 +514,6 @@ def pca(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -560,7 +548,6 @@ def expression(
     show_tooltips: bool = True,
     add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
     custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    tooltips_title: str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -650,8 +637,6 @@ def expression(
         Additional tooltips to show.
     custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -706,7 +691,6 @@ def expression(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
