@@ -313,10 +313,10 @@ def dimensional(
         if frame.schema[key] == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
             # wrap the legend if too many categories
-            n_distinct = frame.select(key).unique().height
-            if n_distinct > 10:
-                ncol = ceil(n_distinct / 10)
-                scttr += guides(color=guide_legend(ncol=ncol))
+            # n_distinct = frame.select(key).unique().height
+            # if n_distinct > 10:
+            #     ncol = ceil(n_distinct / 10)
+            #     scttr += guides(color=guide_legend(ncol=ncol))
         # CASE2 ---------------------- CONTINUOUS DATA ----------------------
         elif frame[key].dtype.is_numeric():
             scttr += _color_gradient(

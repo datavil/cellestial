@@ -231,17 +231,17 @@ def violin(
     if interactive:
         dst += ggtb()
 
-    # wrap the legend
-    if fill is not None:
-        n_distinct = frame.select(fill).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            dst = dst + guides(fill=guide_legend(ncol=ncol))
-    if color is not None:
-        n_distinct = frame.select(color).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            dst = dst + guides(color=guide_legend(ncol=ncol))
+    ## wrap the legend (Deprecated as of lets_plot=4.8.0)
+    # if fill is not None:
+    #     n_distinct = frame.select(fill).unique().height
+    #     if n_distinct > 10:
+    #         ncol = ceil(n_distinct / 10)
+    #         dst = dst + guides(fill=guide_legend(ncol=ncol))
+    # if color is not None:
+    #     n_distinct = frame.select(color).unique().height
+    #     if n_distinct > 10:
+    #         ncol = ceil(n_distinct / 10)
+    #         dst = dst + guides(color=guide_legend(ncol=ncol))
 
     return dst
 
@@ -444,16 +444,16 @@ def boxplot(
     if interactive:
         dst += ggtb()
 
-    # wrap the legend
-    if fill is not None:
-        n_distinct = frame.select(fill).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            dst = dst + guides(fill=guide_legend(ncol=ncol))
-    if color is not None:
-        n_distinct = frame.select(color).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            dst = dst + guides(color=guide_legend(ncol=ncol))
+    ## wrap the legend (Deprecated as of lets_plot=4.8.0)
+    # if fill is not None:
+    #     n_distinct = frame.select(fill).unique().height
+    #     if n_distinct > 10:
+    #         ncol = ceil(n_distinct / 10)
+    #         dst = dst + guides(fill=guide_legend(ncol=ncol))
+    # if color is not None:
+    #     n_distinct = frame.select(color).unique().height
+    #     if n_distinct > 10:
+    #         ncol = ceil(n_distinct / 10)
+    #         dst = dst + guides(color=guide_legend(ncol=ncol))
 
     return dst

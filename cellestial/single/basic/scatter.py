@@ -180,17 +180,17 @@ def scatter(
         + labs(x=x, y=y)
         + _THEME_SCATTER
     )
-    # handle legend wrapping
-    if color is not None:
-        n_distinct = frame.select(color).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            scttr += guides(color=guide_legend(ncol=ncol))
-    if fill is not None:
-        n_distinct = frame.select(fill).unique().height
-        if n_distinct > 10:
-            ncol = ceil(n_distinct / 10)
-            scttr += guides(fill=guide_legend(ncol=ncol))
+    # handle legend wrapping (Deprecated as of lets_plot=4.8.0)
+    # if color is not None:
+    #     n_distinct = frame.select(color).unique().height
+    #     if n_distinct > 10:
+    #         ncol = ceil(n_distinct / 10)
+    #         scttr += guides(color=guide_legend(ncol=ncol))
+    # if fill is not None:
+    #     n_distinct = frame.select(fill).unique().height
+    #     if n_distinct > 10:
+    #         ncol = ceil(n_distinct / 10)
+    #         scttr += guides(fill=guide_legend(ncol=ncol))
     # handle interactive
     if interactive:
         scttr += ggtb()
