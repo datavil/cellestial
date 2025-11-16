@@ -225,7 +225,7 @@ def violin(
 
     # handle interactive
     if interactive:
-        dst += ggtb()
+        dst += ggtb(size_zoomin=-1)
 
     ## wrap the legend (Deprecated as of lets_plot=4.8.0)
     # if fill is not None:
@@ -435,7 +435,7 @@ def boxplot(
 
     # handle interactive
     if interactive:
-        dst += ggtb()
+        dst += ggtb(size_zoomin=-1)
 
     ## wrap the legend (Deprecated as of lets_plot=4.8.0)
     # if fill is not None:

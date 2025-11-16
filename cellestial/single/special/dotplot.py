@@ -199,7 +199,7 @@ def dotplot(
     )
 
     if interactive:
-        dtplt += ggtb()
+        dtplt += ggtb(size_zoomin=-1)
 
     return dtplt
 

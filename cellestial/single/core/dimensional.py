@@ -351,7 +351,7 @@ def dimensional(
     )
     # HANDLE: interactive
     if interactive:
-        scttr += ggtb()
+        scttr += ggtb(size_zoomin=-1)
 
     # HANDLE: legend on data
     if legend_ondata and key is not None:

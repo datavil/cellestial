@@ -189,6 +189,6 @@ def scatter(
     #         scttr += guides(fill=guide_legend(ncol=ncol))
     # handle interactive
     if interactive:
-        scttr += ggtb()
+        scttr += ggtb(size_zoomin=-1)
 
     return scttr
