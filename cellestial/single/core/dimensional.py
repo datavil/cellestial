@@ -244,13 +244,6 @@ def dimensional(
     else:
         x = f"{use_key}_{xy[0]}"  # e.g. X_UMAP1
         y = f"{use_key}_{xy[1]}"  # e.g. X_UMAP2
-    # HANDLE: point_kwargs
-    if point_kwargs is None:
-        point_kwargs = {}
-    else:
-        if "tooltips" in point_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
-            raise KeyError(msg)
 
     # HANDLE: truth value of clustering
     """if key is not None:
@@ -270,6 +263,15 @@ def dimensional(
         custom_tooltips=custom_tooltips,
         show_tooltips=show_tooltips,
     )
+    # USE tooltip layer if exists
+    if "tooltips" in point_kwargs:
+        if isinstance(point_kwargs.get("tooltips"),layer_tooltips):
+            tooltips_layer = point_kwargs.get("tooltips")
+        else:
+            msg ="tooltips must be of layer_tooltips type."
+            raise TypeError(msg)
+    else:
+        tooltips_layer = layer_tooltips(tooltips)
 
     # BUILD: dataframe
     if _is_variable_key(data, key):
@@ -294,7 +296,7 @@ def dimensional(
         scttr = ggplot(data=frame) + geom_point(
             aes(x=x, y=y, color=key),
             size=size,
-            tooltips=layer_tooltips(tooltips),
+            tooltips=layer_tooltips(tooltips), #TODO: Change here
             **point_kwargs,
         ) + _THEME_DIMENSION
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
