@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
@@ -12,8 +11,6 @@ from lets_plot import (
     geom_violin,
     ggplot,
     ggtb,
-    guide_legend,
-    guides,
     layer_tooltips,
 )
 from lets_plot.plot.core import PlotSpec
