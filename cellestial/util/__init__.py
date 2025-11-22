@@ -1,3 +1,4 @@
+from cellestial.util.legends import _legend_ondata
 from cellestial.util.utilities import (
     _add_arrow_axis,
     _color_gradient,
@@ -24,6 +25,7 @@ __all__ = [
     "_share_axis",
     "_is_observation_key",
     "_is_variable_key",
+    "_legend_ondata",
     "retrieve",
     "slice",
 ]

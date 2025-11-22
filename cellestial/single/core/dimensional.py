@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
 
 # Core scverse libraries
@@ -12,15 +11,11 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     geom_point,
-    geom_text,
     ggplot,
     ggtb,
-    guide_legend,
-    guides,
     labs,
     layer_tooltips,
     scale_color_brewer,
-    theme,
 )
 from lets_plot.plot.core import PlotSpec
 
@@ -31,60 +26,14 @@ from cellestial.util import (
     _color_gradient,
     _decide_tooltips,
     _is_variable_key,
+    _legend_ondata,
     _select_variable_keys,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
-
-
-def _legend_ondata(
-    *,
-    frame: pl.DataFrame,
-    x: str,
-    y: str,
-    cluster_name: str,
-    size: float = 12,
-    color: str = "#3f3f3f",
-    fontface: str = "bold",
-    family: str = "sans",
-    alpha: float = 1,
-    weighted: bool = True,
-) -> FeatureSpec | FeatureSpecArray:
-    # group by cluster names and find X and Y mean for midpoints
-
-    if weighted:
-        group_means = frame.group_by(cluster_name).agg(
-            pl.col(x).mean().alias("mean_x"), pl.col(y).mean().alias("mean_y")
-        )
-        # join the group means to the frame
-        frame = frame.join(group_means, on=cluster_name, how="left")
-        # calculate the distance between the group means and the frame
-        frame = frame.with_columns(
-            ((pl.col(x) - pl.col("mean_x")) ** 2 + (pl.col(y) - pl.col("mean_y")) ** 2)
-            .sqrt()
-            .alias("distance")
-        )
-        # assign weights to the individual points
-        frame = frame.with_columns((1 / pl.col("distance").sqrt()).alias("weight"))
-        # calculate the weighted mean of the group means
-        grouped = frame.group_by(cluster_name).agg(
-            (pl.col(x) * pl.col("weight")).sum() / pl.col("weight").sum(),
-            (pl.col(y) * pl.col("weight")).sum() / pl.col("weight").sum(),
-        )
-    else:
-        grouped = frame.group_by(cluster_name).agg(pl.col(x).mean(), pl.col(y).mean())
-    return geom_text(
-        data=grouped,
-        mapping=aes(x=x, y=y, label=cluster_name),
-        size=size,
-        color=color,
-        fontface=fontface,
-        family=family,
-        alpha=alpha,
-    ) + theme(legend_position="none")
+    from lets_plot.plot.core import PlotSpec
 
 
 def dimensional(
@@ -96,7 +45,6 @@ def dimensional(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -143,8 +91,6 @@ def dimensional(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -245,43 +191,34 @@ def dimensional(
         x = f"{use_key}_{xy[0]}"  # e.g. X_UMAP1
         y = f"{use_key}_{xy[1]}"  # e.g. X_UMAP2
 
-    # HANDLE: truth value of clustering
-    """if key is not None:
-        clustering: bool = key.startswith(("leiden", "louvain"))
-    else:
-        clustering = False"""
-
     # HANDLE: tooltips
-    if key is None:
-        base_tooltips = [barcode_name]
-    else:
-        base_tooltips = [barcode_name, key]
-
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
-    # USE tooltip layer if exists
     if "tooltips" in point_kwargs:
-        if isinstance(point_kwargs.get("tooltips"),layer_tooltips):
-            tooltips_layer = point_kwargs.get("tooltips")
-        else:
-            msg ="tooltips must be of layer_tooltips type."
-            raise TypeError(msg)
+        tooltips_layer = point_kwargs.pop("tooltips")
+        variable_keys = None
     else:
-        tooltips_layer = layer_tooltips(tooltips)
+        if key is None:
+            base_tooltips = [barcode_name]
+        else:
+            base_tooltips = [barcode_name, key]
+
+        # create the list of tooltip keys
+        tooltips = _decide_tooltips(
+            base_tooltips=base_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            show_tooltips=show_tooltips,
+        )
+        tooltips_layer = layer_tooltips(tooltips) # create the object
+        # extract the variable keys
+        if _is_variable_key(data, key):
+            if tooltips =="none":
+                variable_keys = key
+            else:
+                variable_keys = [key] + _select_variable_keys(data, tooltips)
+        else:
+            variable_keys = _select_variable_keys(data, tooltips)
 
     # BUILD: dataframe
-    if _is_variable_key(data, key):
-        if tooltips =="none":
-            variable_keys = key
-        else:
-            variable_keys = [key] + _select_variable_keys(data, tooltips)
-    else:
-        variable_keys = _select_variable_keys(data, tooltips)
-
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
@@ -291,22 +228,19 @@ def dimensional(
     )
 
     # BUILD: scatter plot
+    # BASE PLOT
+    scttr = ggplot(data=frame) + geom_point(
+        aes(x=x, y=y, color=key),
+        size=size,
+        tooltips=tooltips_layer,
+        **point_kwargs,
+    ) + _THEME_DIMENSION
+
     if key is not None:
-        # base plot
-        scttr = ggplot(data=frame) + geom_point(
-            aes(x=x, y=y, color=key),
-            size=size,
-            tooltips=layer_tooltips(tooltips), #TODO: Change here
-            **point_kwargs,
-        ) + _THEME_DIMENSION
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
         if frame.schema[key] == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
-            # wrap the legend if too many categories
-            # n_distinct = frame.select(key).unique().height
-            # if n_distinct > 10:
-            #     ncol = ceil(n_distinct / 10)
-            #     scttr += guides(color=guide_legend(ncol=ncol))
+
         # CASE2 ---------------------- CONTINUOUS DATA ----------------------
         elif frame[key].dtype.is_numeric():
             scttr += _color_gradient(
@@ -317,16 +251,6 @@ def dimensional(
                 mid_point=mid_point,
             )
         # else: let letsplot handle it
-
-    # ---------------------- IF IT IS NONE ----------------------
-    elif key is None:
-        # cluster scatter
-        scttr = ggplot(data=frame) + geom_point(
-            aes(x=x, y=y),
-            size=size,
-            tooltips=layer_tooltips(tooltips),
-            **point_kwargs,
-        ) + _THEME_DIMENSION
 
     # HANDLE: tSNE label, a special case for labels
     if dimensions == "tsne":
