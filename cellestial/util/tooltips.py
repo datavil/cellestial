@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from lets_plot import layer_tooltips
-from cellestial.util.utilities import _select_variable_keys
 
+from lets_plot import layer_tooltips
+
+from cellestial.util.utilities import _select_variable_keys
 
 
 def _decide_tooltips(
