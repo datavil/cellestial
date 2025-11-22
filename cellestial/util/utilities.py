@@ -493,7 +493,7 @@ def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
 def _select_variable_keys(
     data: AnnData,
     keys: Sequence[str],
-) -> Sequence[str]:
+) -> list[str]:
     """From given keys, select only those that are variable keys."""
     if isinstance(data, AnnData):
         variable_keys = [key for key in keys if key in data.var_names]
