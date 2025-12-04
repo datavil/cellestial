@@ -1249,37 +1249,37 @@ igraph = ">=1.0.0,<2.0"
 
 [[package]]
 name = "lets-plot"
-version = "4.8.0"
+version = "4.8.1"
 description = "An open source library for statistical plotting"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "lets_plot-4.8.0-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:4a18f6ef2d3fa75c6b0e1cb019c165c3400baa5a7645fe9ad7c9b5dcce6830a3"},
-    {file = "lets_plot-4.8.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c0938bd9884e7426e4704c3f26285f010284058ebd66b5e5fb67b5b3dcf4e87e"},
-    {file = "lets_plot-4.8.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ca45bbf873975c6939588da71e6a5da48574bbd70b56b660d8f0da4ecaa2f17e"},
-    {file = "lets_plot-4.8.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:dc0e28292625d5aeba21a59bc8da104fdb894ae34241907a590acdf1bd42fd62"},
-    {file = "lets_plot-4.8.0-cp310-cp310-win_amd64.whl", hash = "sha256:3a530178971b8fbe04b34796f8550cdb72fce2d597a3ff5bd7797e1d0a169183"},
-    {file = "lets_plot-4.8.0-cp311-cp311-macosx_10_15_x86_64.whl", hash = "sha256:dc45e21ef9206c05df03ce54d572dbc03d12f4fa7f6e2042db47e2c24cdbe88f"},
-    {file = "lets_plot-4.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:527e106bf07053d6bb48a580f8d05d05e3587857d14da8ac6cf198d18766aee7"},
-    {file = "lets_plot-4.8.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:c6a73aa7ba3918b2b5ef5156a7490d8d950602a131ab70cfbebefbf3ed649006"},
-    {file = "lets_plot-4.8.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:87d38709b4a90a8bf17cf2b27afb9dc44a557e626f54fa39eb2d60040b63e347"},
-    {file = "lets_plot-4.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:2355a22645f0711d01f762c00f647e16d1549d9ae7ea70b1684f2016dc9430aa"},
-    {file = "lets_plot-4.8.0-cp312-cp312-macosx_10_15_x86_64.whl", hash = "sha256:15be21fab3208fe8983004fdf3ab63b57ee86fb6aacb6f12a778f8277c218f8d"},
-    {file = "lets_plot-4.8.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:135ed9b4583ace963a428e9ca8dc56ba1f40fb6c5f660017313e4a9a34d4cc7f"},
-    {file = "lets_plot-4.8.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cd08c27f0fa9c8cf8431a33dbd7c655d513780bd807aab13dfa4962da3806a73"},
-    {file = "lets_plot-4.8.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:eeac3f44281756728c8344dfd1e57b64c689adff469522435a6aba2091d195a6"},
-    {file = "lets_plot-4.8.0-cp312-cp312-win_amd64.whl", hash = "sha256:54677972ccc6d1d6584eb6b6790960cf43053065fe0684ca67e28020b20df041"},
-    {file = "lets_plot-4.8.0-cp313-cp313-macosx_10_15_x86_64.whl", hash = "sha256:2e72b3e26e27be58498e8c59db933c4d6c98197c9c82a7fcfe50b19605ed99d0"},
-    {file = "lets_plot-4.8.0-cp313-cp313-macosx_12_0_arm64.whl", hash = "sha256:f0da90965a5b366fbf4f18889778514a8c299daa35d00860b6a58dd32ae05ba8"},
-    {file = "lets_plot-4.8.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:dac802f7ae18f8b12f457498ddc434c562549d7f077d516317158b987659078d"},
-    {file = "lets_plot-4.8.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:49c51e763112567994131b662a0e8110057009cd19df0dc88991af562ffc0b14"},
-    {file = "lets_plot-4.8.0-cp313-cp313-win_amd64.whl", hash = "sha256:ff084e0c839dc6396f5a64f2b4af0a2486e6e080e61694bc56999495704f5b1c"},
-    {file = "lets_plot-4.8.0-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:c924f347591e70ee53524d398a4610ad4d9d531a697c0af2d3df9188c64c3ff3"},
-    {file = "lets_plot-4.8.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:73996e7ef149b77654b8f3ecece8504a76a0aded12613d5127c00ad56810b629"},
-    {file = "lets_plot-4.8.0-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:a4585c1350236f995f72504cee95450f617d39b2b6a69b5c154f3e79eb90cd43"},
-    {file = "lets_plot-4.8.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:661205f138914eb0711e9a7effe4c81eca229d9c5d90ea5a43001ed932b8ae7d"},
-    {file = "lets_plot-4.8.0-cp39-cp39-win_amd64.whl", hash = "sha256:70172e1bbf146b1248bab12157bab12db1c3044a799206147bf576970b82d85c"},
+    {file = "lets_plot-4.8.1-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:651effa6900b10c3d9cc6debb46cd5cef00a37f13f4a7a0f617f6f259d872d33"},
+    {file = "lets_plot-4.8.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3dccbe2086927589248faec41cc8aa202124e945fd8ebec86c4cefa6dff75d07"},
+    {file = "lets_plot-4.8.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:7c27ae9008292897f15e3f02ab44d4b6c69e72f79c6a37bbefb0da0f129bf33e"},
+    {file = "lets_plot-4.8.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:5aca4673cfa3057360cffbe62022412d1f64d835323d5c675eb30cecffbfe41e"},
+    {file = "lets_plot-4.8.1-cp310-cp310-win_amd64.whl", hash = "sha256:b53be71a82f476ab94b5c5c2017a20e31357e20fbcaba9862cda40fffb885324"},
+    {file = "lets_plot-4.8.1-cp311-cp311-macosx_10_15_x86_64.whl", hash = "sha256:50b3dcac5408d1068b35f1c8775b29625c148fbbd764fca1779f2a3eef11d224"},
+    {file = "lets_plot-4.8.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:fa2037078a78bdb3a9cff72e1ca4dd56b43f46321de0c3a8bcb523ea79da65e0"},
+    {file = "lets_plot-4.8.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:0509649020b789b6d2d02939090383d5d3e8c73d9f7011d1a1104d64d9622d98"},
+    {file = "lets_plot-4.8.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:a0e9b4afd0996269765e53b8addd801935b57e2b3abf8f259b5de7a662d1e318"},
+    {file = "lets_plot-4.8.1-cp311-cp311-win_amd64.whl", hash = "sha256:279890e6956003a46bfea920f804acea5db0e497f7ce7423ba895d08485f49a7"},
+    {file = "lets_plot-4.8.1-cp312-cp312-macosx_10_15_x86_64.whl", hash = "sha256:3c611f03d62207900ec122c246eb446b61939cdaca97885b100fa6fbbb0d3105"},
+    {file = "lets_plot-4.8.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:884b059157f1e8127d9085a22af8eb677a18e46cdad90bc57b3c3e510c80ecc5"},
+    {file = "lets_plot-4.8.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:98de1cd2ddee785ae8ac94c1ab7ed80bb7608679d25e1b13e0c5b47dd26d2e3c"},
+    {file = "lets_plot-4.8.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:78be883f81007613f552798bcc7c996b30634308759b17432a6d95a1e114fae5"},
+    {file = "lets_plot-4.8.1-cp312-cp312-win_amd64.whl", hash = "sha256:31bad00000ce88651c8ed5b4be474b5f94acff98b50a1ca98504fe4099b833fa"},
+    {file = "lets_plot-4.8.1-cp313-cp313-macosx_10_15_x86_64.whl", hash = "sha256:e3be9ec0bf39a8bf61985f6c66277965999ecd9d04b6c055d7258575eb11219e"},
+    {file = "lets_plot-4.8.1-cp313-cp313-macosx_12_0_arm64.whl", hash = "sha256:b6690d90318994e614a80e21935564a42f5f755d20ad79ec4fccfe8fab6ed4da"},
+    {file = "lets_plot-4.8.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:a535f04717e502e0346460aa8b95438690aa1b8d6db89a52277c612a87bef35c"},
+    {file = "lets_plot-4.8.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4677190573b24e83f74ed570cc1df05cd4f69362e14391237f025c860f28ca08"},
+    {file = "lets_plot-4.8.1-cp313-cp313-win_amd64.whl", hash = "sha256:924f12dbd2af321b2637d6dfe3aec65aba59dc5e1ee19151928bcb019eaf01b1"},
+    {file = "lets_plot-4.8.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:87efee0fd836697c5090fe0f81106c1137606ff097734d1820b5cc2aafee9093"},
+    {file = "lets_plot-4.8.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:d9354c9d5883ffed5f6c9e8403fe723d8071ba34b358066b84518a896658b704"},
+    {file = "lets_plot-4.8.1-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:0e8615374d3e134cbbb71433552587ad1a4ba89508be746f3cfa9351eea4a08d"},
+    {file = "lets_plot-4.8.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:70058efdf85a1676503818b1820390c269f26eca9a71a9fb381fa5e124e9a362"},
+    {file = "lets_plot-4.8.1-cp39-cp39-win_amd64.whl", hash = "sha256:8aa45b3ea492d83935e28594a7bf9bcc511d69602f3cf251f020f28311b07a28"},
 ]
 
 [package.dependencies]
