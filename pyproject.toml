@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [tool.poetry.dependencies]
 python = "^3.10"
 anndata = "^0.11.0"
-lets-plot = "^4.8.0"
+lets-plot = "^4.8.1"
 polars = "^1.12.0"
 pyarrow = "^18.0.0"
 
