@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from math import ceil
 from typing import TYPE_CHECKING, Literal
 
 # Data retrieval
@@ -10,8 +9,6 @@ from lets_plot import (
     geom_point,
     ggplot,
     ggtb,
-    guide_legend,
-    guides,
     labs,
     layer_tooltips,
 )
