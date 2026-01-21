@@ -188,8 +188,8 @@ def dimensional(
         x = f"X_{dimensions.upper()}{xy[0]}"  # e.g. X_UMAP1
         y = f"X_{dimensions.upper()}{xy[1]}"  # e.g. X_UMAP2
     else:
-        x = f"{use_key}_{xy[0]}"  # e.g. X_UMAP1
-        y = f"{use_key}_{xy[1]}"  # e.g. X_UMAP2
+        x = f"{use_key}{xy[0]}"  # e.g. X_UMAP1
+        y = f"{use_key}{xy[1]}"  # e.g. X_UMAP2
 
     # HANDLE: tooltips
     if "tooltips" in point_kwargs:
@@ -238,7 +238,7 @@ def dimensional(
 
     if key is not None:
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
-        if frame.schema[key] == pl.Categorical:
+        if frame.schema[key] == pl.Categorical: # TODO: frame[key].dtype
             scttr += scale_color_brewer(palette="Set2")
 
         # CASE2 ---------------------- CONTINUOUS DATA ----------------------
