@@ -23,6 +23,7 @@ def violins(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
+    point_geom : Literal["jitter","point","sina"] = "jitter",
     barcode_name: str = "Barcode",
     variable_name: str = "Variable",
     show_tooltips: bool = True,
@@ -88,6 +89,8 @@ def violins(
         Alpha (transparency) for the points in the violin plot.
     point_size : float, default=0.5
         Size for the points in the violin plot.
+    point_geom : Literal["jitter","point","sina"], default is "jitter",
+        Geom type of the points, default is geom_jitter.
     trim : bool, default=False
         Whether to trim the violin plot.
     barcode_name : str, default="Barcode"
@@ -169,6 +172,7 @@ def violins(
             point_color=point_color,
             point_alpha=point_alpha,
             point_size=point_size,
+            point_geom=point_geom,
             barcode_name=barcode_name,
             variable_name=variable_name,
             show_tooltips=show_tooltips,
@@ -219,6 +223,7 @@ def boxplots(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
+    point_geom : Literal["jitter","point","sina"] = "jitter",
     barcode_name: str = "Barcode",
     variable_name: str = "Variable",
     show_tooltips: bool = True,
@@ -284,6 +289,8 @@ def boxplots(
         Alpha (transparency) for the points in the boxplot.
     point_size : float, default=0.5
         Size for the points in the boxplot.
+    point_geom : Literal["jitter","point","sina"], default is "jitter",
+        Geom type of the points, default is geom_jitter.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
     variable_name : str, default="Gene"
@@ -368,6 +375,7 @@ def boxplots(
             point_color=point_color,
             point_alpha=point_alpha,
             point_size=point_size,
+            point_geom=point_geom,
             barcode_name=barcode_name,
             variable_name=variable_name,
             show_tooltips=show_tooltips,
