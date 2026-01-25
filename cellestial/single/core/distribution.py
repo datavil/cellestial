@@ -8,6 +8,8 @@ from lets_plot import (
     aes,
     geom_boxplot,
     geom_jitter,
+    geom_point,
+    geom_sina,
     geom_violin,
     ggplot,
     ggtb,
@@ -39,6 +41,7 @@ def violin(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
+    point_geom : Literal["jitter","point","sina"] = "jitter",
     barcode_name: str = "Barcode",
     variable_name: str = "Variable",
     show_tooltips: bool = True,
@@ -92,6 +95,8 @@ def violin(
         Alpha (transparency) for the points in the violin plot.
     point_size : float, default=0.5
         Size for the points in the violin plot.
+    point_geom : Literal["jitter","point","sina"], default is "jitter",
+        Geom type of the points, default is geom_jitter.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
     variable_name : str, default="Variable"
@@ -208,17 +213,28 @@ def violin(
         **geom_kwargs,
     )
 
-    # handle the point (jitter)
+    # handle the points (jitter,point,sina)
     if show_points:
-        dst += geom_jitter(
-            data=frame,
-            mapping=aes(x=separator, y=value_column),
-            color=point_color,
-            alpha=point_alpha,
-            size=point_size,
-            tooltips=layer_tooltips(tooltips),
-            **point_kwargs,
-        )
+        if point_geom in ["jitter","point","sina"]:
+            geom_functions = {
+                "jitter" : geom_jitter,
+                "point" : geom_point,
+                "sina" : geom_sina,
+            }
+            geom_function = geom_functions.get(point_geom)
+
+            dst += geom_function(
+                data=frame,
+                mapping=aes(x=separator, y=value_column),
+                color=point_color,
+                alpha=point_alpha,
+                size=point_size,
+                tooltips=layer_tooltips(tooltips),
+                **point_kwargs,
+            )
+        else:
+            msg = "point_geom must be one of ['jitter','point','sina']."
+            raise KeyError(msg)
 
     # handle interactive
     if interactive:
@@ -239,6 +255,7 @@ def boxplot(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
+    point_geom : Literal["jitter","point","sina"] = "jitter",
     barcode_name: str = "Barcode",
     variable_name: str = "Variable",
     show_tooltips: bool = True,
@@ -291,6 +308,8 @@ def boxplot(
         Alpha (transparency) for the points in the boxplot.
     point_size : float, default=0.5
         Size for the points in the boxplot.
+    point_geom : Literal["jitter","point","sina"], default is "jitter",
+        Geom type of the points, default is geom_jitter.
     barcode_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
     variable_name : str, default="Variable"
@@ -406,17 +425,28 @@ def boxplot(
         **geom_kwargs,
     )
 
-    # handle the point (jitter)
+    # handle the points (jitter,point,sina)
     if show_points:
-        dst += geom_jitter(
-            data=frame,
-            mapping=aes(x=separator, y=value_column),
-            color=point_color,
-            alpha=point_alpha,
-            size=point_size,
-            tooltips=layer_tooltips(tooltips),
-            **point_kwargs,
-        )
+        if point_geom in ["jitter","point","sina"]:
+            geom_functions = {
+                "jitter" : geom_jitter,
+                "point" : geom_point,
+                "sina" : geom_sina,
+            }
+            geom_function = geom_functions.get(point_geom)
+
+            dst += geom_function(
+                data=frame,
+                mapping=aes(x=separator, y=value_column),
+                color=point_color,
+                alpha=point_alpha,
+                size=point_size,
+                tooltips=layer_tooltips(tooltips),
+                **point_kwargs,
+            )
+        else:
+            msg = "point_geom must be one of ['jitter','point','sina']."
+            raise KeyError(msg)
 
     # handle interactive
     if interactive:
