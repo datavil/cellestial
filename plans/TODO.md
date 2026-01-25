@@ -26,5 +26,5 @@ https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embeddin
 - To Violin, Violins ✅
 - To Boxplot, Boxplots ✅
 
-- Scatter
-- Dotplot
+- Scatter ✅
+- Dotplot ✅
