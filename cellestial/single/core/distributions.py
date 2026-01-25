@@ -27,8 +27,8 @@ def violins(
     variable_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -98,9 +98,9 @@ def violins(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
+    add_tooltips : Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
+    custom_tooltips : Sequence[str] | str | None, default=None
         Custom tooltips to show.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -223,8 +223,8 @@ def boxplots(
     variable_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Sequence[str] | str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -292,9 +292,9 @@ def boxplots(
         Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
+    add_tooltips : Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
+    custom_tooltips : Sequence[str] | str | None, default=None
         Custom tooltips to show.
     interactive : bool, default=False
         Whether to make the plot interactive.
