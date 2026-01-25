@@ -22,7 +22,6 @@ def dimensionals(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -57,6 +56,7 @@ def dimensionals(
     vspace: float | None = None,
     fit: bool | None = None,
     align: bool | None = None,
+    guides: str = "auto",
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
@@ -189,6 +189,16 @@ def dimensionals(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
+    guides : str, default="auto"
+        Specifies how guides (legends and colorbars) should be treated in the layout.
+        - 'collect'- collect guides from all subplots, removing duplicates.
+        - 'keep' - keep guides in their original subplots; do not collect at this level.
+        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+        otherwise, keep them in subplots.
+
+        Duplicates are identified by comparing visual properties:
+        For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+        For colorbars: title, domain limits, breaks, and color gradient.
 
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
@@ -218,7 +228,6 @@ def dimensionals(
             xy=xy,
             size=size,
             interactive=interactive,
-            cluster_name=cluster_name,
             barcode_name=barcode_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -267,6 +276,7 @@ def dimensionals(
         vspace=vspace,
         fit=fit,
         align=align,
+        guides=guides,
     )
 
 
@@ -278,7 +288,6 @@ def umaps(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -313,6 +322,7 @@ def umaps(
     vspace: float | None = None,
     fit: bool | None = None,
     align: bool | None = None,
+    guides: str = "auto",
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
@@ -442,6 +452,16 @@ def umaps(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
+    guides : str, default="auto"
+        Specifies how guides (legends and colorbars) should be treated in the layout.
+        - 'collect'- collect guides from all subplots, removing duplicates.
+        - 'keep' - keep guides in their original subplots; do not collect at this level.
+        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+        otherwise, keep them in subplots.
+
+        Duplicates are identified by comparing visual properties:
+        For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+        For colorbars: title, domain limits, breaks, and color gradient.
 
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
@@ -470,7 +490,6 @@ def umaps(
             xy=xy,
             size=size,
             interactive=interactive,
-            cluster_name=cluster_name,
             barcode_name=barcode_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -518,6 +537,7 @@ def umaps(
         vspace=vspace,
         fit=fit,
         align=align,
+        guides=guides,
     )
 
 
@@ -529,7 +549,6 @@ def tsnes(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -564,6 +583,7 @@ def tsnes(
     vspace: float | None = None,
     fit: bool | None = None,
     align: bool | None = None,
+    guides: str = "auto",
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
@@ -693,6 +713,16 @@ def tsnes(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
+    guides : str, default="auto"
+        Specifies how guides (legends and colorbars) should be treated in the layout.
+        - 'collect'- collect guides from all subplots, removing duplicates.
+        - 'keep' - keep guides in their original subplots; do not collect at this level.
+        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+        otherwise, keep them in subplots.
+
+        Duplicates are identified by comparing visual properties:
+        For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+        For colorbars: title, domain limits, breaks, and color gradient.
 
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
@@ -721,7 +751,6 @@ def tsnes(
             xy=xy,
             size=size,
             interactive=interactive,
-            cluster_name=cluster_name,
             barcode_name=barcode_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -770,6 +799,7 @@ def tsnes(
         vspace=vspace,
         fit=fit,
         align=align,
+        guides=guides,
     )
 
 
@@ -781,7 +811,6 @@ def pcas(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -816,6 +845,7 @@ def pcas(
     vspace: float | None = None,
     fit: bool | None = None,
     align: bool | None = None,
+    guides: str = "auto",
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
@@ -945,6 +975,16 @@ def pcas(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
+    guides : str, default="auto"
+        Specifies how guides (legends and colorbars) should be treated in the layout.
+        - 'collect'- collect guides from all subplots, removing duplicates.
+        - 'keep' - keep guides in their original subplots; do not collect at this level.
+        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+        otherwise, keep them in subplots.
+
+        Duplicates are identified by comparing visual properties:
+        For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+        For colorbars: title, domain limits, breaks, and color gradient.
 
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
@@ -973,7 +1013,6 @@ def pcas(
             xy=xy,
             size=size,
             interactive=interactive,
-            cluster_name=cluster_name,
             barcode_name=barcode_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -1021,6 +1060,7 @@ def pcas(
         vspace=vspace,
         fit=fit,
         align=align,
+        guides=guides,
     )
 
 
@@ -1033,7 +1073,6 @@ def expressions(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -1068,6 +1107,7 @@ def expressions(
     vspace: float | None = None,
     fit: bool | None = None,
     align: bool | None = None,
+    guides: str = "auto",
     **point_kwargs: dict[str, Any],
 ) -> SupPlotsSpec:
     """
@@ -1199,6 +1239,16 @@ def expressions(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
+    guides : str, default="auto"
+        Specifies how guides (legends and colorbars) should be treated in the layout.
+        - 'collect'- collect guides from all subplots, removing duplicates.
+        - 'keep' - keep guides in their original subplots; do not collect at this level.
+        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+        otherwise, keep them in subplots.
+
+        Duplicates are identified by comparing visual properties:
+        For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+        For colorbars: title, domain limits, breaks, and color gradient.
 
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
@@ -1228,7 +1278,6 @@ def expressions(
             xy=xy,
             size=size,
             interactive=interactive,
-            cluster_name=cluster_name,
             barcode_name=barcode_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -1277,4 +1326,5 @@ def expressions(
         vspace=vspace,
         fit=fit,
         align=align,
+        guides=guides,
     )
