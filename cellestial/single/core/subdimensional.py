@@ -17,10 +17,9 @@ def umap(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -64,8 +63,6 @@ def umap(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -158,7 +155,6 @@ def umap(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -188,10 +184,9 @@ def tsne(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -235,8 +230,6 @@ def tsne(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -329,7 +322,6 @@ def tsne(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -359,10 +351,9 @@ def pca(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -406,8 +397,6 @@ def pca(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -500,7 +489,6 @@ def pca(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -531,10 +519,9 @@ def expression(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -580,8 +567,6 @@ def expression(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -677,7 +662,6 @@ def expression(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,

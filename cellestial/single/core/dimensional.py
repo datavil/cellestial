@@ -210,7 +210,7 @@ def dimensional(
         )
         tooltips_layer = layer_tooltips(tooltips) # create the object
         # extract the variable keys
-        if _is_variable_key(data, key):
+        if key is not None and _is_variable_key(data, key):
             if tooltips =="none":
                 variable_keys = key
             else:
