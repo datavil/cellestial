@@ -42,7 +42,7 @@ ensures that;
 For example `umap` plot is a subset of `dimensional` plot. 
 
 
-## Abstractions (Customizability)
+## Abstractions and Customizability
 
 Abstractions should be done **modarately**. they come with cost in the form of **reduction** in *customizability* and *flexibility*.
 
@@ -51,9 +51,9 @@ Plots already return customizable plot objects, So layers can be added later and
 Rather than taking everything as an argument, accept only non-customizable parts of the plot.
 --- Expections can be made for user very common layers (e.g., the geom size, color, etc.)
 
-e.g., do not take plot size as it can later be changed by the user with `+(ggsize)`.
+e.g., do not take plot size as it can later be changed by the user with `+ggsize()`.
 
-1. It limits options.
+1. Adds unncessary complexity.
 2. Users can always change/add the layer themselves.
 
 ### Multi-Plot Abstractions
@@ -62,7 +62,7 @@ For multi-plots though, layers (e.g `scale_color/fill_*`) can be taken to be app
 
 Since, gggrid is not customizable in terms of color.
 
-multi-plots should take keyword arguments for the ggrid as the standard keyword arguments.
+multi-plots should take keyword arguments for the gggrid as the standard keyword arguments.
 
 `kwargs` should be reserved for geom keyword arguments.
 e.g., `**violin_kwargs`
