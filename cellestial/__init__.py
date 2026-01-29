@@ -2,7 +2,6 @@ from cellestial._version import __version__, versions
 from cellestial.single import (
     boxplot,
     boxplots,
-    dim,
     dimensional,
     dimensionals,
     dotplot,
@@ -11,6 +10,7 @@ from cellestial.single import (
     pca,
     pcas,
     scatter,
+    scatters,
     tsne,
     tsnes,
     umap,
@@ -37,7 +37,6 @@ __all__ = [
     "_add_arrow_axis",
     "dimensional",
     "dimensionals",
-    "dim",
     "umap",
     "umaps",
     "pca",
@@ -63,6 +62,8 @@ __all__ = [
     "ORANGE",
     "show_colors",
     "scatter",
+    "scatters",
     "retrieve",
     "slice",
+    "__version__",
 ]

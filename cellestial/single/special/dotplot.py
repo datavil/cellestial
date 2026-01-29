@@ -1,220 +1,152 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Any
+import contextlib
+from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
 from lets_plot import (
-    LetsPlot,
     aes,
-    element_blank,
-    element_rect,
-    element_text,
     geom_point,
     ggplot,
-    ggsize,
     ggtb,
-    guide_legend,
-    guides,
-    layer_tooltips,
+    scale_color_gradient,
     scale_fill_gradient,
-    scale_size,
-    scale_x_discrete,
-    scale_y_discrete,
-    theme,
-    theme_classic,
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.util import _decide_tooltips, _range_inclusive
+from cellestial.frames import build_frame
+from cellestial.themes import _THEME_DOTPLOT
 
-
-def _construct_dotplot_frame(
-    df: pl.DataFrame,
-    group_by: str,
-    *,
-    add_mean: bool = True,
-    add_percentage: bool = True,
-    add_sum: bool = True,
-    variable_name: str = "gene",
-    value_name: str = "expression",
-    threshold: float = 0,
-) -> pl.DataFrame:
-    if add_sum:
-        df_sum = (
-            df.group_by(group_by)
-            .sum()
-            .unpivot(index=group_by, variable_name=variable_name, value_name=f"sum_{value_name}")
-        )
-    if add_mean:
-        df_mean = (
-            df.group_by(group_by)
-            .mean()
-            .unpivot(index=group_by, variable_name=variable_name, value_name=f"mean_{value_name}")
-        )
-    if add_percentage:
-        df_percentage = (
-            df.group_by(group_by)
-            .agg(
-                (
-                    pl.all().exclude(group_by).gt(threshold).sum()
-                    / pl.all().exclude(group_by).count()
-                ).mul(100)
-            )
-            .unpivot(index=group_by, variable_name=variable_name, value_name="cell_percentage")
-        )
-
-    frame = df_sum.join(df_mean, on=[group_by, variable_name]).join(
-        df_percentage, on=[group_by, variable_name]
-    )
-
-    # frame = frame.with_columns(pl.selectors.numeric().replace(0,None))
-
-    return frame
-
-
-def _make_dotplot(
-    frame_dotplot,
-    group_by,
-    *,
-    tooltips: list[str] | None = None,
-    fraction_name: str = "cell_percentage",
-    mean_name: str = "mean_expression",
-    color_low: str = "#e6e6e6",
-    color_high: str = "#D2042D",
-    n_legend: int = 5,
-    **dotplot_kwargs,
-) -> PlotSpec:
-    # create a stop points for the legend of the mean expression
-    pct_min = frame_dotplot.select(fraction_name).min().item()
-    pct_max = frame_dotplot.select(fraction_name).max().item()
-    pct_lims = _range_inclusive(pct_min, pct_max, n_legend)
-    # create a stop points for the legend of the mean expression
-    mean_min = frame_dotplot.select(mean_name).min().item()
-    mean_max = frame_dotplot.select(mean_name).max().item()
-    mean_lims = _range_inclusive(mean_min, mean_max, n_legend)
-    # defaults for the dotplot
-    all_kwargs = {"shape": 21, "color": "#1f1f1f", "stroke": 0.2}
-    if dotplot_kwargs:
-        all_kwargs.update(dotplot_kwargs)
-
-    frame_dotplot = frame_dotplot.sort([group_by, mean_name], descending=True)
-    dtplt = (
-        ggplot(frame_dotplot)
-        + geom_point(
-            aes(x="gene", y=group_by, fill=mean_name, size=fraction_name),
-            tooltips=layer_tooltips(tooltips),
-            **all_kwargs,
-        )
-        + scale_fill_gradient(low=color_low, high=color_high, breaks=mean_lims)
-        + theme_classic()
-        + theme(
-            panel_border=element_rect(color="#1f1f1f", size=1.5),
-            text=element_text(family="Arial", color="#1f1f1f"),
-            axis_text_x=element_text(angle=90),
-            axis_title=element_blank(),
-            legend_text=element_text(size=10),
-            legend_title=element_text(size=12),
-            legend_box_spacing=0,
-            legend_key_spacing_y=0,
-        )
-        + ggsize(400, 600)
-        + guides(size=guide_legend(ncol=1))
-        + scale_size(breaks=pct_lims, range=[1, 10])
-        + scale_y_discrete(expand=[0.05, 0.05])
-        + scale_x_discrete(expand=[0.05, 0.05])
-    )
-
-    return dtplt
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def dotplot(
     data: AnnData,
-    keys: str | list[str] | Iterable[str],
+    keys: Sequence[str],
     group_by: str,
     *,
+    threshold: float = 0,
+    variable_name: str = "gene",
+    value_name: str = "expression",
     color_low: str = "#e6e6e6",
     color_high: str = "#D2042D",
-    threshold: float | None = None,
-    use_raw: bool = True,
+    fill: bool = False,
+    sort_by: str | Sequence[str] | None = None,
+    sort_order: str = "descending",
+    percentage_key: str = "pct_exp",
+    mean_key: str = "avg_exp",
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
-    n_legend: int = 5,
     interactive: bool = False,
-    **dotplot_kwargs: dict[str, Any],
+    **geom_kwargs,
 ) -> PlotSpec:
-    # Handling Data types
+    """
+    Dotplot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    keys : Sequence[str]
+        The variable keys or names to include in the dotplot.
+    group_by : str
+        The key to group the data by.
+    threshold : float, default=0
+        The expression threshold to consider a gene as expressed.
+    variable_name : str, default='gene'
+        The name of the variable column in the long format.
+    value_name : str, default="expression"
+        The name of the value column in the long format.
+    color_low : str, default='#e6e6e6'
+        The low color for the gradient.
+    color_high : str, default='#D2042D'
+        The high color for the gradient.
+    fill : bool, optional
+        Whether to use fill aesthetic instead of color, by default False.
+    sort_by : str | None
+        The column to sort the results by, by default None.
+    sort_order : str, default='descending'
+        The sort order, either 'ascending' or 'descending'.
+    percentage_key : str, default='pct_exp'
+        The name of the percentage column.
+    mean_key : str, default='avg_exp'
+        The name of the mean expression column
+    show_tooltips : bool, default=True
+        Whether to show tooltips.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    **geom_kwargs : Any
+        Additional keyword arguments for the geom_point layer.
+
+    Returns
+    -------
+    PlotSpec
+        Dotplot.
+    """
+    # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
-    if not isinstance(keys, Iterable) and not isinstance(keys, str):
-        msg = "keys must be an iterable or a string"
-        raise TypeError(msg)
-    elif isinstance(keys, str):
-        keys = [keys]
-    if not isinstance(group_by, str):
-        msg = "group_by must be a string"
-        raise TypeError(msg)
+    # BUILD: dataframe
+    frame = build_frame(data=data, axis=0, variable_keys=keys)
+    index_columns = [x for x in frame.columns if x not in keys]
 
-    else:
-        if "tooltips" in dotplot_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `dotplot_kwargs`\n"
-            raise KeyError(msg)
-
-    # handle tooltips
-    tooltips = _decide_tooltips(
-        base_tooltips=["cell_percentage", "mean_expression"],
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
+    #  CRITICAL PARTS: Dataframe Operations
+    # 1. Unpivot frame
+    long_frame = frame.unpivot(
+        on=keys,
+        index=index_columns,
+        variable_name=variable_name,
+        value_name=value_name,
+    )
+    # 2. Aggregate and compute stats
+    stats_frame = long_frame.group_by([group_by, variable_name]).agg(
+        [
+            pl.col(value_name).mean().alias(mean_key),
+            (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
+        ]
     )
 
-    if use_raw: # TO BE CHANGED (to layer)
-        matrix = data.raw.X.toarray()
-        if threshold is None:
-            threshold = 0
-    else:
-        matrix = data.X
-        if threshold is None:
-            threshold = -10
+    # HANDLE: Sorting
+    # In case of pseudo-categorical integer group_by
+    with contextlib.suppress(Exception):  # supress errors if sorting fails
+        stats_frame = (
+            stats_frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64))
+            .sort(group_by, descending=True)
+            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
+        )
+        # remove group_by from sort_by if present
+        if isinstance(sort_by, str):
+            sort_by = [sort_by]
+        if sort_by is not None:
+            sort_by = [s for s in sort_by if s != group_by]
+    # perform sorting
+    if sort_by is not None:
+        stats_frame = stats_frame.sort(
+            by=sort_by,
+            descending=(sort_order == "descending"),
+        )
 
-    # gene indexes for the AnnData.X
-    gene_indexes = data.var_names.get_indexer(keys)
-    frame = pl.from_numpy(matrix[:, gene_indexes], schema=keys)
-    frame = frame.with_columns(pl.Series(group_by, data.obs[group_by]))
+    # BUILD: Dotplot
+    if not fill:  # use color aesthetic
+        dtplt = (
+            ggplot(stats_frame, aes(x=variable_name, y=group_by))
+            + geom_point(aes(size=percentage_key, color=mean_key), **geom_kwargs)
+            + scale_color_gradient(low=color_low, high=color_high)
+        )
+    else:  # elif fill: use fill aesthetic
+        dtplt = (
+            ggplot(stats_frame, aes(x=variable_name, y=group_by))
+            + geom_point(aes(size=percentage_key, fill=mean_key), **geom_kwargs)
+            + scale_fill_gradient(low=color_low, high=color_high)
+        )
 
-    # create the dataframe for the dotplot
-    frame_dotplot = _construct_dotplot_frame(frame, group_by)
-    # create the dotplot
-    dtplt = _make_dotplot(
-        frame_dotplot,
-        group_by,
-        color_low=color_low,
-        color_high=color_high,
-        n_legend=n_legend,
-        tooltips=tooltips,
-        **dotplot_kwargs,
-    )
+    # ADD: layers
+    dtplt += _THEME_DOTPLOT
 
+    # HANDLE: interactive
     if interactive:
-        dtplt += ggtb()
+        dtplt += ggtb(size_zoomin=-1)
 
     return dtplt
-
-
-def test():
-    import scanpy as sc
-
-    LetsPlot.setup_html()
-    data = sc.read("data/pbmc3k_pped.h5ad")
-    keys = data.var_names[-10:].tolist()
-    group_by = "leiden"
-    gene_indexes = data.var_names.get_indexer(keys)
-    frame = dotplot(data, keys, group_by, use_raw=True, stroke=0.5)
-    frame.to_svg("testplots/dotplot.svg")
-
-
-if __name__ == "__main__":
-    test()
