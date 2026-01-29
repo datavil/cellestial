@@ -4,6 +4,8 @@ from lets_plot import (
     element_text,
     ggsize,
     scale_color_viridis,
+    scale_size,
+    scale_size_area,  # for letsplot 4.8.3 or above
     scale_x_discrete,
     scale_y_discrete,
     theme,
@@ -55,8 +57,7 @@ _THEME_DOTPLOT = (
         legend_box_spacing=0,
         legend_key_spacing_y=0,
     )
-    + (
-        # offsets for points from the frame
-        scale_y_discrete(expand=[0.05, 0.05]) + scale_x_discrete(expand=[0.025, 0.025])
-    )
+    + scale_y_discrete(expand=[0.05, 0.05]) # offsets for points from the frame
+    + scale_x_discrete(expand=[0.025, 0.025])
+    + scale_size(trans="sqrt", breaks=[0, 25, 50, 75, 100]) # to be replaced by scale_size_area
 )
