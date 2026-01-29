@@ -47,7 +47,7 @@ def violins(
     guides: str = "auto",
     # other kwargs
     point_kwargs: dict[str, Any] | None = None,
-    **geom_kwargs: dict[str, Any],
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Violin Plots.
@@ -154,7 +154,7 @@ def violins(
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
-    **geom_kwargs : dict[str, Any]
+    **geom_kwargs
         Additional parameters for the `geom_violin` layer.
         For more information on geom_violin parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
@@ -247,7 +247,7 @@ def boxplots(
     guides: str = "auto",
     # other kwargs
     point_kwargs: dict[str, Any] | None = None,
-    **geom_kwargs: dict[str, Any],
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Boxplots.
@@ -352,7 +352,7 @@ def boxplots(
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
-    **geom_kwargs : dict[str, Any]
+    **geom_kwargs
         Additional parameters for the `geom_boxplot` layer.
         For more information on geom_boxplot parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html

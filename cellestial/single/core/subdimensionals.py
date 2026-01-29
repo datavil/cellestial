@@ -57,7 +57,7 @@ def dimensionals(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -203,7 +203,7 @@ def dimensionals(
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -323,7 +323,7 @@ def umaps(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -466,7 +466,7 @@ def umaps(
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -584,7 +584,7 @@ def tsnes(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -727,7 +727,7 @@ def tsnes(
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -846,7 +846,7 @@ def pcas(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -989,7 +989,7 @@ def pcas(
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -1108,7 +1108,7 @@ def expressions(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -1253,7 +1253,7 @@ def expressions(
     For more information on gggrid parameters:
     https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html

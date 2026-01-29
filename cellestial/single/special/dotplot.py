@@ -143,7 +143,7 @@ def dotplot(
     custom_tooltips: list[str] | tuple[str] | Iterable[str] | None = None,
     n_legend: int = 5,
     interactive: bool = False,
-    **dotplot_kwargs: dict[str, Any],
+    **dotplot_kwargs,
 ) -> PlotSpec:
     # Handling Data types
     if not isinstance(data, AnnData):
