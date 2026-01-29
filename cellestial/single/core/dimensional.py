@@ -65,7 +65,7 @@ def dimensional(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> PlotSpec:
     """
     Dimensionality reduction plot.
@@ -164,7 +164,7 @@ def dimensional(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
