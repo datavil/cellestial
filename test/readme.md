@@ -1,1 +1,1 @@
-testing ground for the project.
+Test for the functions.

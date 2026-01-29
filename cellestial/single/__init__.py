@@ -1,8 +1,7 @@
-from cellestial.single.basic import scatter
+from cellestial.single.basic import scatter, scatters
 from cellestial.single.core import (
     boxplot,
     boxplots,
-    dim,
     dimensional,
     dimensionals,
     expression,
@@ -21,7 +20,6 @@ from cellestial.single.special import dotplot
 __all__ = [
     "dimensional",
     "dimensionals",
-    "dim",
     "umap",
     "umaps",
     "pca",
@@ -36,4 +34,5 @@ __all__ = [
     "boxplots",
     "dotplot",
     "scatter",
+    "scatters",
 ]

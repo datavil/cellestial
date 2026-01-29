@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal
 
 from cellestial.single.core.dimensional import dimensional
+from cellestial.util import _is_variable_key
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from anndata import AnnData
     from lets_plot.plot.core import PlotSpec
@@ -16,10 +17,9 @@ def umap(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -31,9 +31,8 @@ def umap(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    tooltips_title: str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -41,7 +40,7 @@ def umap(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> PlotSpec:
     """
     UMAP Dimensionality reduction plot.
@@ -64,8 +63,6 @@ def umap(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -117,12 +114,10 @@ def umap(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -141,7 +136,7 @@ def umap(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -160,7 +155,6 @@ def umap(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -174,7 +168,6 @@ def umap(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -191,10 +184,9 @@ def tsne(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -206,9 +198,8 @@ def tsne(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    tooltips_title: str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -216,7 +207,7 @@ def tsne(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> PlotSpec:
     """
     tSNE Dimensionality reduction plot.
@@ -239,8 +230,6 @@ def tsne(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -292,12 +281,10 @@ def tsne(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -316,7 +303,7 @@ def tsne(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -335,7 +322,6 @@ def tsne(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -349,7 +335,6 @@ def tsne(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -366,10 +351,9 @@ def pca(
     key: str | None = None,
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -381,9 +365,8 @@ def pca(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    tooltips_title: str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -391,7 +374,7 @@ def pca(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> PlotSpec:
     """
     PCA Dimensionality reduction plot.
@@ -414,8 +397,6 @@ def pca(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -467,12 +448,10 @@ def pca(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -491,7 +470,7 @@ def pca(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -510,7 +489,6 @@ def pca(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -524,7 +502,6 @@ def pca(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,
@@ -542,10 +519,9 @@ def expression(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -557,9 +533,8 @@ def expression(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    tooltips_title: str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -567,7 +542,7 @@ def expression(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> PlotSpec:
     """
     Dimensionality reduction plot of expression data.
@@ -592,8 +567,6 @@ def expression(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -645,12 +618,10 @@ def expression(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -669,7 +640,7 @@ def expression(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -680,8 +651,8 @@ def expression(
         Dimensional reduction plot.
 
     """
-    if key not in data.var_names:
-        msg = f"'{key}' is not present in `variable` (gene) names"
+    if not _is_variable_key(data, key):
+        msg = f"'{key}' is not present in `variable` names"
         raise ValueError(msg)
     return dimensional(
         data=data,
@@ -691,7 +662,6 @@ def expression(
         xy=xy,
         size=size,
         interactive=interactive,
-        cluster_name=cluster_name,
         barcode_name=barcode_name,
         color_low=color_low,
         color_mid=color_mid,
@@ -705,7 +675,6 @@ def expression(
         show_tooltips=show_tooltips,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        tooltips_title=tooltips_title,
         legend_ondata=legend_ondata,
         ondata_size=ondata_size,
         ondata_color=ondata_color,

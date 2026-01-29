@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Iterable
 
 import polars as pl
 from anndata import AnnData
 
 from cellestial.util.errors import ConflictingKeysError, KeyNotFoundError
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _decide_dimensions_key(data: AnnData, dimensions: str) -> str:
@@ -109,7 +113,7 @@ def _construct_cell_frame(
     data: AnnData,
     keys: Iterable[str],
     dimensions: str | None = None,
-    xy: tuple[int, int] | None = (1, 2),
+    xy: tuple[int, int] | Sequence[int] | None = (1, 2),
     use_key: str | None = None,
     barcode_name: str = "Barcode",
 ) -> pl.DataFrame:
@@ -173,7 +177,7 @@ def _construct_var_frame(
     *,
     data: AnnData,
     keys: Iterable[str],
-    var_name: str = "Gene",
+    var_name: str = "Feature",
 ) -> pl.DataFrame:
     """
     Construct a polars DataFrame from data.
@@ -224,3 +228,5 @@ def _axis_data(data: AnnData, key: str) -> int:
             raise KeyNotFoundError(msg)
 
     return axis
+
+

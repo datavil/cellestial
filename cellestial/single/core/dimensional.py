@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from math import ceil
 from typing import TYPE_CHECKING, Any, Literal
 
 # Core scverse libraries
@@ -12,72 +11,29 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     geom_point,
-    geom_text,
     ggplot,
     ggtb,
-    guide_legend,
-    guides,
     labs,
+    layer_tooltips,
     scale_color_brewer,
-    theme,
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.frames import _construct_cell_frame
+from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _add_arrow_axis, _build_tooltips, _color_gradient, _decide_tooltips
+from cellestial.util import (
+    _add_arrow_axis,
+    _color_gradient,
+    _decide_tooltips,
+    _is_variable_key,
+    _legend_ondata,
+    _select_variable_keys,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
-
-def _legend_ondata(
-    *,
-    frame: pl.DataFrame,
-    dimensions: str,
-    xy: tuple[int, int] = (1, 2),
-    cluster_name: str,
-    size: float = 12,
-    color: str = "#3f3f3f",
-    fontface: str = "bold",
-    family: str = "sans",
-    alpha: float = 1,
-    weighted: bool = True,
-) -> FeatureSpec | FeatureSpecArray:
-    # group by cluster names and find X and Y mean for midpoints
-    x = f"{dimensions}{xy[0]}"  # e.g. umap1
-    y = f"{dimensions}{xy[1]}"  # e.g. umap2
-    if weighted:
-        group_means = frame.group_by(cluster_name).agg(
-            pl.col(x).mean().alias("mean_x"), pl.col(y).mean().alias("mean_y")
-        )
-        # join the group means to the frame
-        frame = frame.join(group_means, on=cluster_name, how="left")
-        # calculate the distance between the group means and the frame
-        frame = frame.with_columns(
-            ((pl.col(x) - pl.col("mean_x")) ** 2 + (pl.col(y) - pl.col("mean_y")) ** 2)
-            .sqrt()
-            .alias("distance")
-        )
-        # assign weights to the individual points
-        frame = frame.with_columns((1 / pl.col("distance").sqrt()).alias("weight"))
-        # calculate the weighted mean of the group means
-        grouped = frame.group_by(cluster_name).agg(
-            (pl.col(x) * pl.col("weight")).sum() / pl.col("weight").sum(),
-            (pl.col(y) * pl.col("weight")).sum() / pl.col("weight").sum(),
-        )
-    else:
-        grouped = frame.group_by(cluster_name).agg(pl.col(x).mean(), pl.col(y).mean())
-    return geom_text(
-        data=grouped,
-        mapping=aes(x=x, y=y, label=cluster_name),
-        size=size,
-        color=color,
-        fontface=fontface,
-        family=family,
-        alpha=alpha,
-    ) + theme(legend_position="none")
+    from lets_plot.plot.core import PlotSpec
 
 
 def dimensional(
@@ -86,10 +42,9 @@ def dimensional(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Iterable[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    cluster_name: str = "Cluster",
     barcode_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
@@ -101,9 +56,8 @@ def dimensional(
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
     show_tooltips: bool = True,
-    add_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    custom_tooltips: list[str] | tuple[str] | Iterable[str] | str | None = None,
-    tooltips_title: str | None = None,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -111,7 +65,7 @@ def dimensional(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
-    **point_kwargs: dict[str, Any],
+    **point_kwargs,
 ) -> PlotSpec:
     """
     Dimensionality reduction plot.
@@ -137,8 +91,6 @@ def dimensional(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     barcode_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -190,12 +142,10 @@ def dimensional(
         Angle of the arrow head in degrees.
     show_tooltips : bool, default=True
         Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Iterable[str] | str | None, default=None
+    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
         Custom tooltips, will overwrite the base_tooltips.
-    tooltips_title : str | None, default=None
-        Title for the tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -214,7 +164,7 @@ def dimensional(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    **point_kwargs : dict[str, Any]
+    **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -225,84 +175,74 @@ def dimensional(
         Dimensional reduction plot.
 
     """
-    # Handling Data types
+    # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
-    #  declare x and y
-    x = f"{dimensions}{xy[0]}"  # e.g. umap1
-    y = f"{dimensions}{xy[1]}"  # e.g. umap2
-
-    # handle point_kwargs
-    if point_kwargs is None:
-        point_kwargs = {}
+    #  HANDLE: XY
+    if len(xy) != 2:
+        msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
+        raise KeyError(msg)
+    if use_key is None:
+        x = f"X_{dimensions.upper()}{xy[0]}"  # e.g. X_UMAP1
+        y = f"X_{dimensions.upper()}{xy[1]}"  # e.g. X_UMAP2
     else:
-        if "tooltips" in point_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
-            raise KeyError(msg)
+        x = f"{use_key}{xy[0]}"  # e.g. X_UMAP1
+        y = f"{use_key}{xy[1]}"  # e.g. X_UMAP2
 
-    # truth value of clustering
-    if key is not None:
-        clustering: bool = key.startswith(("leiden", "louvain"))
+    # HANDLE: tooltips
+    if "tooltips" in point_kwargs:
+        tooltips_layer = point_kwargs.pop("tooltips")
+        variable_keys = None
     else:
-        clustering = False
-
-    # handle tooltips
-    if key is None:
-        base_tooltips = [barcode_name]
-    else:
-        base_tooltips = [barcode_name, key]
-
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
-    tooltips_object = _build_tooltips(
-        tooltips=tooltips,
-        cluster_name=cluster_name,
-        key=key,
-        title=tooltips_title,
-        clustering=clustering,
-    )
-
-    # construct the frame
-    all_keys = []
-    if key is not None:
-        all_keys.append(key)
-    if tooltips != "none":
-        for tooltip in tooltips:
-            if tooltip not in all_keys and tooltip != barcode_name:
-                all_keys.append(tooltip)
-
-    frame = _construct_cell_frame(
-        data=data,
-        keys=all_keys,
-        dimensions=dimensions,
-        xy=xy,
-        use_key=use_key,
-        barcode_name=barcode_name,
-    )
-
-    # CASE1 ---------------------- IF IT IS A CELL ANNOTATION ----------------------
-    if key in data.obs.columns:
-        # cluster scatter
-        scttr = ggplot(data=frame) + geom_point(
-            aes(x=x, y=y, color=key),
-            size=size,
-            tooltips=tooltips_object,
-            **point_kwargs,
-        )
-        # wrap the legend
-        if frame.schema[key] == pl.Categorical:
-            scttr += scale_color_brewer(palette="Set2")
-            n_distinct = frame.select(key).unique().height
-            if n_distinct > 10:
-                ncol = ceil(n_distinct / 10)
-                scttr += guides(color=guide_legend(ncol=ncol))
+        if key is None:
+            base_tooltips = [barcode_name]
         else:
+            base_tooltips = [barcode_name, key]
+
+        # create the list of tooltip keys
+        tooltips = _decide_tooltips(
+            base_tooltips=base_tooltips,
+            add_tooltips=add_tooltips,
+            custom_tooltips=custom_tooltips,
+            show_tooltips=show_tooltips,
+        )
+        tooltips_layer = layer_tooltips(tooltips) # create the object
+        # extract the variable keys
+        if key is not None and _is_variable_key(data, key):
+            if tooltips =="none":
+                variable_keys = key
+            else:
+                variable_keys = [key] + _select_variable_keys(data, tooltips)
+        else:
+            variable_keys = _select_variable_keys(data, tooltips)
+
+    # BUILD: dataframe
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=barcode_name,
+        include_dimensions=True,
+    )
+
+    # BUILD: scatter plot
+    # BASE PLOT
+    scttr = ggplot(data=frame) + geom_point(
+        aes(x=x, y=y, color=key),
+        size=size,
+        tooltips=tooltips_layer,
+        **point_kwargs,
+    ) + _THEME_DIMENSION
+
+    if key is not None:
+        # CASE1 ---------------------- CATEGORICAL DATA ----------------------
+        if frame.schema[key] == pl.Categorical: # TODO: frame[key].dtype
+            scttr += scale_color_brewer(palette="Set2")
+
+        # CASE2 ---------------------- CONTINUOUS DATA ----------------------
+        elif frame[key].dtype.is_numeric():
             scttr += _color_gradient(
                 frame[key],
                 color_low=color_low,
@@ -310,74 +250,42 @@ def dimensional(
                 color_high=color_high,
                 mid_point=mid_point,
             )
+        # else: let letsplot handle it
 
-    # CASE2 ---------------------- IF IT IS A VARIABLE (GENE) ----------------------
-    elif key in data.var_names:  # if it is a gene
-        scttr = (
-            ggplot(data=frame)
-            + geom_point(
-                aes(x=x, y=y, color=key),
-                size=size,
-                tooltips=tooltips_object,
-                **point_kwargs,
-            )
-            + _color_gradient(
-                frame[key],
-                color_low=color_low,
-                color_mid=color_mid,
-                color_high=color_high,
-                mid_point=mid_point,
-            )
-        )
-    # ---------------------- IF IT IS NONE ----------------------
-    elif key is None:
-        # cluster scatter
-        scttr = ggplot(data=frame) + geom_point(
-            aes(x=x, y=y),
-            size=size,
-            tooltips=tooltips_object,
-            **point_kwargs,
-        )
-    # ---------------------- NOT A GENE OR CLUSTER ----------------------
-    else:
-        msg = f"'{key}' is not present in `observation (.obs) names` nor `gene (.var) names`"
-        raise ValueError(msg)
-
-    # special case for labels
+    # HANDLE: tSNE label, a special case for labels
     if dimensions == "tsne":
-        scttr += labs(x="tSNE1", y="tSNE2") # TODO: fix this to be more general
-
-    # add common layers
-    scttr += (
-        labs(
-            x=x.upper(),
-            y=y.upper(),
-            # UMAP1 and UMAP2 rather than umap1 and umap2 etc.,
+        x_label = f"tSNE{xy[0]}"
+        y_label = f"tSNE{xy[1]}"
+        scttr += labs(x=x_label, y=y_label)
+    else:
+        # UMAP1 and UMAP2 rather than X_UMAP1 and X_UMAP2 etc.,
+        scttr += labs(
+            x=x.replace("X_", ""),
+            y=y.replace("X_", ""),
         )
-        + _THEME_DIMENSION
-    )
 
-    # handle arrow axis
+    # HANDLE: arrow axis
     scttr += _add_arrow_axis(
         frame=frame,
+        x=x,
+        y=y,
         axis_type=axis_type,
         arrow_size=arrow_size,
         arrow_color=arrow_color,
         arrow_angle=arrow_angle,
         arrow_length=arrow_length,
-        dimensions=dimensions,
     )
-    # handle interactive
+    # HANDLE: interactive
     if interactive:
-        scttr += ggtb()
+        scttr += ggtb(size_zoomin=-1)
 
-    # handle legend on data
+    # HANDLE: legend on data
     if legend_ondata and key is not None:
         if frame.schema[key] == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
-                dimensions=dimensions,
-                xy=xy,
+                x=x,
+                y=y,
                 cluster_name=key,
                 size=ondata_size,
                 color=ondata_color,
@@ -391,24 +299,3 @@ def dimensional(
             warnings.warn(msg, stacklevel=1)
 
     return scttr
-
-
-def _test_dimension():
-    import os
-    from pathlib import Path
-
-    import scanpy as sc
-
-    os.chdir(Path(__file__).parent.parent.parent.parent)  # to project root
-    data = sc.read("data/pbmc3k_pped.h5ad")
-
-    for ax in [None, "arrow", "axis"]:
-        plot = dimensional(data, axis_type=ax)
-        plot.to_html(f"plots/test_dim_umap_{ax}.html")
-        plot.to_svg(f"plots/test_dim_umap_{ax}.svg")
-
-    return
-
-
-if __name__ == "__main__":
-    _test_dimension()
