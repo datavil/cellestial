@@ -27,8 +27,8 @@ from lets_plot.plot.subplots import SupPlotsSpec
 def _add_arrow_axis(
     frame: pl.DataFrame,
     *,
-    x = str,
-    y = str,
+    x=str,
+    y=str,
     axis_type: Literal["axis", "arrow"] | None,
     arrow_size: float,
     arrow_color: str,
@@ -141,7 +141,7 @@ def _decide_tooltips(
     custom_tooltips: Sequence[str] | str | None,
     *,
     show_tooltips: bool,
-) -> list[str]:
+) -> list[str] | Literal["none"]:
     """
     Decide on the tooltips.
 
@@ -316,7 +316,9 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     return frame
 
 
-def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec | SupPlotsSpec:
+def slice(
+    grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
+) -> PlotSpec | SupPlotsSpec | None:
     """
     Slice a ggrid (SupPlotsSpec) objects with given index.
 
@@ -344,25 +346,25 @@ def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec 
     SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
         figures = vars(grid).get(SUP_PLOT_KEY)
-        print(figures)
 
-        if isinstance(index, int):
-            plot = figures[index]
-            return plot
-        elif isinstance(index, Sequence):
-            list_plots = []
-            for i in index:
-                list_plots.append(figures[i])
-            return gggrid(list_plots, **kwargs)
-        else:
-            msg = f"Expected int or Sequence for index, but received {type(index)}"
-            raise TypeError(msg)
+        if figures is not None:
+            if isinstance(index, int):
+                plot = figures[index]
+                return plot
+            elif isinstance(index, Sequence):
+                list_plots = []
+                for i in index:
+                    list_plots.append(figures[i])
+                return gggrid(list_plots, **kwargs)
+            else:
+                msg = f"Expected int or Sequence for index, but received {type(index)}"
+                raise TypeError(msg)
     else:
         msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
         raise TypeError(msg)
 
 
-def _share_labels(plot, i: int, keys: list[str], ncol: int):
+def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
     if ncol is None:
         ncol = len(keys)
     total = len(keys)
@@ -380,7 +382,9 @@ def _share_labels(plot, i: int, keys: list[str], ncol: int):
     return plot
 
 
-def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
+def _share_axis(
+    plot, i: int, keys: Sequence[str], ncol: int | None, axis_type: Literal["axis", "arrow"]
+) -> SupPlotsSpec:
     total = len(keys)
     if ncol is None:
         ncol = len(keys)
@@ -446,8 +450,8 @@ def _wrap_legend(
 
     return legend
 
-def _is_variable_key(data: AnnData, key: str) -> bool:
 
+def _is_variable_key(data: AnnData, key: str) -> bool:
     if isinstance(data, AnnData):
         if key in data.var_names:
             result = True
@@ -459,6 +463,7 @@ def _is_variable_key(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
     if isinstance(data, AnnData):
         result = all(key in data.var_names for key in keys)
@@ -468,8 +473,8 @@ def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
 
     return result
 
-def _is_observation_key(data: AnnData, key: str) -> bool:
 
+def _is_observation_key(data: AnnData, key: str) -> bool:
     if isinstance(data, AnnData):
         if key in data.obs.columns:
             result = True
@@ -481,6 +486,7 @@ def _is_observation_key(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
     if isinstance(data, AnnData):
         result = all(key in data.obs.columns for key in keys)
@@ -489,6 +495,7 @@ def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
 
 def _select_variable_keys(
     data: AnnData,
@@ -501,6 +508,7 @@ def _select_variable_keys(
         msg = f"Unknown data type: {type(data)}."
         raise TypeError(msg)
     return variable_keys
+
 
 def _is_observation_feature(data: AnnData, key: str) -> bool:
     """Check whether the key is in observations axis (axis=0)."""
@@ -515,6 +523,7 @@ def _is_observation_feature(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
     """Check whether all the keys are in observations axis (axis=0)."""
     if isinstance(data, AnnData):
@@ -524,6 +533,7 @@ def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
 
 def _is_variable_feature(data: AnnData, key: str) -> bool:
     """Check whether the key is in variable axis (axis=1)."""
@@ -538,6 +548,7 @@ def _is_variable_feature(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_variable_features(data: AnnData, keys: Sequence[str]) -> bool:
     """Check whether all the keys are in variable axis (axis=1)."""
     if isinstance(data, AnnData):
@@ -547,6 +558,7 @@ def _are_variable_features(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
 
 def _determine_axis(
     data: AnnData,

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def dimensionals(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
@@ -252,8 +252,8 @@ def dimensionals(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -282,7 +282,7 @@ def dimensionals(
 
 def umaps(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -514,8 +514,8 @@ def umaps(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -524,6 +524,7 @@ def umaps(
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
+
         plots.append(plot)
 
     return gggrid(
@@ -543,7 +544,7 @@ def umaps(
 
 def tsnes(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -775,8 +776,8 @@ def tsnes(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -805,7 +806,7 @@ def tsnes(
 
 def pcas(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -1037,8 +1038,8 @@ def pcas(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -1047,6 +1048,7 @@ def pcas(
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
+
         plots.append(plot)
 
     return gggrid(
@@ -1066,7 +1068,7 @@ def pcas(
 
 def expressions(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
@@ -1302,8 +1304,8 @@ def expressions(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
