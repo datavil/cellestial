@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
 from lets_plot import gggrid
@@ -10,12 +9,15 @@ from lets_plot.plot.subplots import SupPlotsSpec
 
 from cellestial.single.core.distribution import boxplot, violin
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 
 def violins(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
-    axis: Literal[0,1] | None = None,
+    axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     geom_fill: str = "#FF00FF",
@@ -23,7 +25,7 @@ def violins(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
-    point_geom : Literal["jitter","point","sina"] = "jitter",
+    point_geom: Literal["jitter", "point", "sina"] = "jitter",
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_tooltips: bool = True,
@@ -33,7 +35,7 @@ def violins(
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
-    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -107,7 +109,7 @@ def violins(
         Custom tooltips to show.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    layers : list | tuple | Sequence | FeatureSpec | LayerSpec | None, default=None
+    layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     variable_column : str, default="variable"
         The name of the variable column in the dataframe.
@@ -187,9 +189,9 @@ def violins(
         )
         # handle the layers
         if layers is not None:
-            if not isinstance(layers, Sequence):
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 dst += layer
 
         plots.append(dst)
@@ -213,9 +215,9 @@ def violins(
 
 def boxplots(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
-    axis: Literal[0,1] | None = None,
+    axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     geom_fill: str = "#FF00FF",
@@ -223,7 +225,7 @@ def boxplots(
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
-    point_geom : Literal["jitter","point","sina"] = "jitter",
+    point_geom: Literal["jitter", "point", "sina"] = "jitter",
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_tooltips: bool = True,
@@ -233,7 +235,7 @@ def boxplots(
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
-    layers: list | tuple | Sequence | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -305,7 +307,7 @@ def boxplots(
         Custom tooltips to show.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    layers : list | tuple | Sequence | FeatureSpec | LayerSpec | None, default=None
+    layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     variable_column : str, default="variable"
         The name of the variable column in the dataframe.
@@ -390,9 +392,9 @@ def boxplots(
         )
         # handle the layers
         if layers is not None:
-            if not isinstance(layers, Sequence):
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
-            for layer in list(layers):
+            for layer in layers:
                 dst += layer
 
         plots.append(dst)
