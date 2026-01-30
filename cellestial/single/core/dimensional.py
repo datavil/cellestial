@@ -191,7 +191,7 @@ def dimensional(
         x = f"{use_key}{xy[0]}"  # e.g. X_UMAP1
         y = f"{use_key}{xy[1]}"  # e.g. X_UMAP2
 
-    # HANDLE: tooltips
+    # HANDLE: tooltips #TODO: refactor this block
     if "tooltips" in point_kwargs:
         tooltips_layer = point_kwargs.pop("tooltips")
         variable_keys = None
@@ -232,13 +232,13 @@ def dimensional(
     scttr = ggplot(data=frame) + geom_point(
         aes(x=x, y=y, color=key),
         size=size,
-        tooltips=tooltips_layer,
+        tooltips=tooltips_layer, #TODO: remove from args
         **point_kwargs,
     ) + _THEME_DIMENSION
 
     if key is not None:
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
-        if frame.schema[key] == pl.Categorical: # TODO: frame[key].dtype
+        if frame[key].dtype == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
 
         # CASE2 ---------------------- CONTINUOUS DATA ----------------------
@@ -281,7 +281,7 @@ def dimensional(
 
     # HANDLE: legend on data
     if legend_ondata and key is not None:
-        if frame.schema[key] == pl.Categorical:
+        if frame[key].dtype == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
                 x=x,
