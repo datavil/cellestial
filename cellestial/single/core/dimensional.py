@@ -80,7 +80,7 @@ def dimensional(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None

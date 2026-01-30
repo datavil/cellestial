@@ -56,7 +56,7 @@ def umap(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
@@ -223,7 +223,7 @@ def tsne(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
@@ -390,7 +390,7 @@ def pca(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
@@ -560,7 +560,7 @@ def expression(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
