@@ -43,8 +43,8 @@ def scatter(
     point_size: str | None = None,
     point_shape: str | None = None,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
-    variable_name: str = "Varible",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -92,9 +92,9 @@ def scatter(
         https://lets-plot.org/python/pages/aesthetics.html#point-shapes
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     include_dimensions : bool, default=False
         Whether to include dimensions in the dataframe.
@@ -123,7 +123,7 @@ def scatter(
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
-    else:
+    else: #TODO: refactor
         if "tooltips" in point_kwargs:
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
@@ -151,8 +151,8 @@ def scatter(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=barcode_name,
-        variables_name=variable_name,
+        observations_name=observations_name,
+        variables_name=variables_name,
         include_dimensions=include_dimensions,
     )
 

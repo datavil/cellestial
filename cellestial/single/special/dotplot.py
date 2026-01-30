@@ -28,7 +28,7 @@ def dotplot(
     group_by: str,
     *,
     threshold: float = 0,
-    variable_name: str = "gene",
+    variables_name: str = "gene",
     value_name: str = "expression",
     color_low: str = "#e6e6e6",
     color_high: str = "#D2042D",
@@ -54,7 +54,7 @@ def dotplot(
         The key to group the data by.
     threshold : float, default=0
         The expression threshold to consider a gene as expressed.
-    variable_name : str, default='gene'
+    variables_name : str, default='gene'
         The name of the variable column in the long format.
     value_name : str, default="expression"
         The name of the value column in the long format.
@@ -97,11 +97,11 @@ def dotplot(
     long_frame = frame.unpivot(
         on=keys,
         index=index_columns,
-        variable_name=variable_name,
+        variable_name=variables_name,
         value_name=value_name,
     )
     # 2. Aggregate and compute stats
-    stats_frame = long_frame.group_by([group_by, variable_name]).agg(
+    stats_frame = long_frame.group_by([group_by, variables_name]).agg(
         [
             pl.col(value_name).mean().alias(mean_key),
             (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
@@ -131,13 +131,13 @@ def dotplot(
     # BUILD: Dotplot
     if not fill:  # use color aesthetic
         dtplt = (
-            ggplot(stats_frame, aes(x=variable_name, y=group_by))
+            ggplot(stats_frame, aes(x=variables_name, y=group_by))
             + geom_point(aes(size=percentage_key, color=mean_key), **geom_kwargs)
             + scale_color_gradient(low=color_low, high=color_high)
         )
     else:  # elif fill: use fill aesthetic
         dtplt = (
-            ggplot(stats_frame, aes(x=variable_name, y=group_by))
+            ggplot(stats_frame, aes(x=variables_name, y=group_by))
             + geom_point(aes(size=percentage_key, fill=mean_key), **geom_kwargs)
             + scale_fill_gradient(low=color_low, high=color_high)
         )

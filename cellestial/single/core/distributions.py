@@ -24,8 +24,8 @@ def violins(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom : Literal["jitter","point","sina"] = "jitter",
-    barcode_name: str = "Barcode",
-    variable_name: str = "Variable",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -93,9 +93,9 @@ def violins(
         Geom type of the points, default is geom_jitter.
     trim : bool, default=False
         Whether to trim the violin plot.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Gene"
+    variables_name : str, default="Gene"
         The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
@@ -173,8 +173,8 @@ def violins(
             point_alpha=point_alpha,
             point_size=point_size,
             point_geom=point_geom,
-            barcode_name=barcode_name,
-            variable_name=variable_name,
+            observations_name=observations_name,
+            variables_name=variables_name,
             show_tooltips=show_tooltips,
             show_points=show_points,
             add_tooltips=add_tooltips,
@@ -224,8 +224,8 @@ def boxplots(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom : Literal["jitter","point","sina"] = "jitter",
-    barcode_name: str = "Barcode",
-    variable_name: str = "Variable",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -291,9 +291,9 @@ def boxplots(
         Size for the points in the boxplot.
     point_geom : Literal["jitter","point","sina"], default is "jitter",
         Geom type of the points, default is geom_jitter.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Gene"
+    variables_name : str, default="Gene"
         The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
@@ -376,8 +376,8 @@ def boxplots(
             point_alpha=point_alpha,
             point_size=point_size,
             point_geom=point_geom,
-            barcode_name=barcode_name,
-            variable_name=variable_name,
+            observations_name=observations_name,
+            variables_name=variables_name,
             show_tooltips=show_tooltips,
             show_points=show_points,
             add_tooltips=add_tooltips,

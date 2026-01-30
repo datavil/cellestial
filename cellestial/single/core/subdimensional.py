@@ -20,7 +20,7 @@ def umap(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -63,7 +63,7 @@ def umap(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -155,7 +155,7 @@ def umap(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -187,7 +187,7 @@ def tsne(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -230,7 +230,7 @@ def tsne(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -322,7 +322,7 @@ def tsne(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -354,7 +354,7 @@ def pca(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -397,7 +397,7 @@ def pca(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -489,7 +489,7 @@ def pca(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -522,7 +522,7 @@ def expression(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -567,7 +567,7 @@ def expression(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -662,7 +662,7 @@ def expression(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,

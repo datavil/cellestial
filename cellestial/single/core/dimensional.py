@@ -45,7 +45,7 @@ def dimensional(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -91,7 +91,7 @@ def dimensional(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -197,9 +197,9 @@ def dimensional(
         variable_keys = None
     else:
         if key is None:
-            base_tooltips = [barcode_name]
+            base_tooltips = [observations_name]
         else:
-            base_tooltips = [barcode_name, key]
+            base_tooltips = [observations_name, key]
 
         # create the list of tooltip keys
         tooltips = _decide_tooltips(
@@ -223,7 +223,7 @@ def dimensional(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=barcode_name,
+        observations_name=observations_name,
         include_dimensions=True,
     )
 
