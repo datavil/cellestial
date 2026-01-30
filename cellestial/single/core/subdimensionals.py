@@ -22,7 +22,7 @@ def dimensionals(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -85,7 +85,7 @@ def dimensionals(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -228,7 +228,7 @@ def dimensionals(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -288,7 +288,7 @@ def umaps(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -348,7 +348,7 @@ def umaps(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -490,7 +490,7 @@ def umaps(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -549,7 +549,7 @@ def tsnes(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -609,7 +609,7 @@ def tsnes(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -751,7 +751,7 @@ def tsnes(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -811,7 +811,7 @@ def pcas(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -871,7 +871,7 @@ def pcas(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1013,7 +1013,7 @@ def pcas(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1073,7 +1073,7 @@ def expressions(
     xy: tuple[int, int] | Sequence[int, int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -1135,7 +1135,7 @@ def expressions(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1278,7 +1278,7 @@ def expressions(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,

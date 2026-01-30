@@ -115,7 +115,7 @@ def _construct_cell_frame(
     dimensions: str | None = None,
     xy: tuple[int, int] | Sequence[int] | None = (1, 2),
     use_key: str | None = None,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
 ) -> pl.DataFrame:
     """
     Construct a polars DataFrame from data.
@@ -158,7 +158,7 @@ def _construct_cell_frame(
                 raise KeyNotFoundError(msg)
 
         # add the cell index to the frame
-        frame = frame.with_columns(pl.Series(barcode_name, data.obs_names))
+        frame = frame.with_columns(pl.Series(observations_name, data.obs_names))
 
         # add the dimensions to the frame
         if dimensions is not None:

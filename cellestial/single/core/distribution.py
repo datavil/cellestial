@@ -42,8 +42,8 @@ def violin(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom : Literal["jitter","point","sina"] = "jitter",
-    barcode_name: str = "Barcode",
-    variable_name: str = "Variable",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -97,9 +97,9 @@ def violin(
         Size for the points in the violin plot.
     point_geom : Literal["jitter","point","sina"], default is "jitter",
         Geom type of the points, default is geom_jitter.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
@@ -162,7 +162,7 @@ def violin(
             raise KeyError(msg)
 
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    #identifier = barcode_name if axis == 0 else variable_name
+    #identifier = observations_name if axis == 0 else variables_name
 
     # handle fill and color
     geom_fill = None if fill is not None else geom_fill
@@ -174,8 +174,8 @@ def violin(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=barcode_name,
-        variables_name=variable_name,
+        observations_name=observations_name,
+        variables_name=variables_name,
     )
 
     frame = frame.unpivot(
@@ -221,7 +221,7 @@ def violin(
                 "point" : geom_point,
                 "sina" : geom_sina,
             }
-            geom_function = geom_functions.get(point_geom)
+            geom_function = geom_functions.get(point_geom, geom_jitter)
 
             dst += geom_function(
                 data=frame,
@@ -256,8 +256,8 @@ def boxplot(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom : Literal["jitter","point","sina"] = "jitter",
-    barcode_name: str = "Barcode",
-    variable_name: str = "Variable",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -310,9 +310,9 @@ def boxplot(
         Size for the points in the boxplot.
     point_geom : Literal["jitter","point","sina"], default is "jitter",
         Geom type of the points, default is geom_jitter.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
@@ -374,7 +374,7 @@ def boxplot(
             raise KeyError(msg)
 
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    #identifier = barcode_name if axis == 0 else variable_name
+    #identifier = observations_name if axis == 0 else variables_name
 
     # handle fill and color
     geom_fill = None if fill is not None else geom_fill
@@ -386,8 +386,8 @@ def boxplot(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=barcode_name,
-        variables_name=variable_name,
+        observations_name=observations_name,
+        variables_name=variables_name,
     )
 
     frame = frame.unpivot(
@@ -433,7 +433,7 @@ def boxplot(
                 "point" : geom_point,
                 "sina" : geom_sina,
             }
-            geom_function = geom_functions.get(point_geom)
+            geom_function = geom_functions.get(point_geom, geom_jitter)
 
             dst += geom_function(
                 data=frame,

@@ -30,8 +30,8 @@ def scatters(
     point_size: str | None = None,
     point_shape: str | None = None,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
-    variable_name: str = "Varible",
+    observations_name: str = "Barcode",
+    variables_name: str = "Varible",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -92,9 +92,9 @@ def scatters(
         https://lets-plot.org/python/pages/aesthetics.html#point-shapes
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     include_dimensions : bool, default=False
         Whether to include dimensions in the dataframe.
@@ -186,8 +186,8 @@ def scatters(
             point_size=point_size,
             point_shape=point_shape,
             interactive=interactive,
-            barcode_name=barcode_name,
-            variable_name=variable_name,
+            observations_name=observations_name,
+            variables_name=variables_name,
             include_dimensions=include_dimensions,
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,
