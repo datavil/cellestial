@@ -1,5 +1,6 @@
 from cellestial._version import __version__, versions
 from cellestial.single import (
+    bar,
     boxplot,
     boxplots,
     dimensional,
@@ -34,6 +35,7 @@ from cellestial.util.colors import (
 )
 
 __all__ = [
+    "bar",
     "interactive",
     "_add_arrow_axis",
     "dimensional",

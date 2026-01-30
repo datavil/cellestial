@@ -1,5 +1,5 @@
 from cellestial.single.base import plot
-from cellestial.single.basic import scatter, scatters
+from cellestial.single.basic import bar, scatter, scatters
 from cellestial.single.core import (
     boxplot,
     boxplots,
@@ -19,6 +19,7 @@ from cellestial.single.core import (
 from cellestial.single.special import dotplot
 
 __all__ = [
+    "bar",
     "dimensional",
     "dimensionals",
     "umap",
