@@ -162,9 +162,9 @@ def scatters(
     # check for broadcasting
     if len(x) != len(y):
         if len(x) == 1:
-            x = x * len(y)
+            x = list(x) * len(y)
         elif len(y) == 1:
-            y = y * len(x)
+            y = list(y) * len(x)
         else:
             msg = f"Length of x ({len(x)}) and y ({len(y)}) must be the same, or one of them must be of length 1."
             raise ConfilictingLengthError(msg)
