@@ -19,7 +19,7 @@ def dimensionals(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -72,7 +72,7 @@ def dimensionals(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -285,7 +285,7 @@ def umaps(
     keys: list[str] | tuple[str] | Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -335,7 +335,7 @@ def umaps(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -546,7 +546,7 @@ def tsnes(
     keys: list[str] | tuple[str] | Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -596,7 +596,7 @@ def tsnes(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -808,7 +808,7 @@ def pcas(
     keys: list[str] | tuple[str] | Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -858,7 +858,7 @@ def pcas(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -1070,7 +1070,7 @@ def expressions(
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -1122,7 +1122,7 @@ def expressions(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
