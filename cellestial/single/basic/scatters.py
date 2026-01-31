@@ -31,7 +31,7 @@ def scatters(
     point_shape: str | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
-    variables_name: str = "Varible",
+    variables_name: str = "Variable",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
