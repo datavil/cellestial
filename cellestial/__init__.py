@@ -1,4 +1,5 @@
 from cellestial._version import __version__, versions
+from cellestial.frames import build_frame
 from cellestial.single import (
     bar,
     boxplot,
@@ -35,6 +36,7 @@ from cellestial.util.colors import (
 )
 
 __all__ = [
+    "build_frame",
     "bar",
     "interactive",
     "_add_arrow_axis",
