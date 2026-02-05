@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
@@ -34,7 +34,7 @@ def dotplot(
     color_high: str = "#D2042D",
     fill: bool = False,
     sort_by: str | Sequence[str] | None = None,
-    sort_order: str = "descending",
+    sort_order: Literal["ascending", "descending"] = "descending",
     percentage_key: str = "pct_exp",
     mean_key: str = "avg_exp",
     show_tooltips: bool = True,
@@ -109,23 +109,23 @@ def dotplot(
     )
 
     # HANDLE: Sorting
-    # In case of pseudo-categorical integer group_by
+    # In case of pseudo-categorical integer group_by temporarily cast to int for proper sorting
     with contextlib.suppress(Exception):  # supress errors if sorting fails
         stats_frame = (
             stats_frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64))
             .sort(group_by, descending=True)
-            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
+            #.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
         )
-        # remove group_by from sort_by if present
-        if isinstance(sort_by, str):
-            sort_by = [sort_by]
-        if sort_by is not None:
-            sort_by = [s for s in sort_by if s != group_by]
     # perform sorting
     if sort_by is not None:
         stats_frame = stats_frame.sort(
             by=sort_by,
             descending=(sort_order == "descending"),
+        )
+    # Cast back to categorical
+    if stats_frame[group_by].dtype == pl.Int64:
+        stats_frame = stats_frame.with_columns(
+            pl.col(group_by).cast(pl.String).cast(pl.Categorical)
         )
 
     # BUILD: Dotplot
