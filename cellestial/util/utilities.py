@@ -27,8 +27,8 @@ from lets_plot.plot.subplots import SupPlotsSpec
 def _add_arrow_axis(
     frame: pl.DataFrame,
     *,
-    x=str,
-    y=str,
+    x: str,
+    y: str,
     axis_type: Literal["axis", "arrow"] | None,
     arrow_size: float,
     arrow_color: str,
@@ -90,14 +90,14 @@ def _add_arrow_axis(
             axis_title_x=element_text(hjust=arrow_length / 2.5),  # better than 2
             axis_title_y=element_text(hjust=arrow_length / 2.5),
         )
-        x_max = frame.select(x).max().item()
-        x_min = frame.select(x).min().item()
-        y_max = frame.select(y).max().item()
-        y_min = frame.select(y).min().item()
+        x_max = frame[x].max()
+        x_min = frame[x].min()
+        y_max = frame[y].max()
+        y_min = frame[y].min()
 
         # find total difference between the max and min for both axis
-        x_diff = x_max - x_min
-        y_diff = y_max - y_min
+        x_diff = x_max - x_min  # ty:ignore[unsupported-operator]
+        y_diff = y_max - y_min  # ty:ignore[unsupported-operator]
 
         # find the ends of the arrows
         xend = x_min + arrow_length * x_diff
@@ -305,13 +305,22 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     PLOT_KEY = "_FeatureSpec__props"
 
     if isinstance(plot, PlotSpec):
-        frame = vars(plot).get(PLOT_KEY).get("data")
+        properties = vars(plot).get(PLOT_KEY)
+        frame = properties.get("data") if properties else None
     elif isinstance(plot, SupPlotsSpec):
-        frame = vars(vars(plot).get(SUP_PLOT_KEY)[index]).get("_FeatureSpec__props").get("data")
+        figures = vars(plot).get(SUP_PLOT_KEY)
+        if figures:
+            frame = vars(figures[index]).get(PLOT_KEY).get("data")
+        else:
+            frame = None
     else:
         print(type(plot))
         msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
         raise TypeError(msg)
+
+    if frame is None:
+        msg = "Could not retrieve the dataframe from the plot."
+        raise ValueError(msg)
 
     return frame
 
