@@ -12,7 +12,6 @@ from lets_plot import (
     labs,
     layer_tooltips,
 )
-from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
@@ -25,7 +24,7 @@ from cellestial.util import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import PlotSpec
+    from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 
 def xy(

@@ -6,6 +6,7 @@ from anndata import AnnData
 from lets_plot import geom_tile, ggplot, ggtb
 
 from cellestial.frames import build_frame
+from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
