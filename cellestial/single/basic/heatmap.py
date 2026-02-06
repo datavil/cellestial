@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
-from lets_plot import geom_bar, ggplot, ggtb
+from lets_plot import geom_tile, ggplot, ggtb
 
 from cellestial.frames import build_frame
 from cellestial.util import _determine_axis
@@ -13,8 +13,7 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
-
-def bar(
+def heatmap(
     data: AnnData,
     mapping: FeatureSpec | None = None,
     *,
@@ -27,7 +26,7 @@ def bar(
     **geom_kwargs,
 ) -> PlotSpec:
     """
-    Bar Plot.
+    Heatmap.
 
     Parameters
     ----------
@@ -57,7 +56,7 @@ def bar(
     Returns
     -------
     PlotSpec
-        Bar plot.
+        Heatmap.
     """
     # Handling Data types
     if not isinstance(data, AnnData):
@@ -77,9 +76,9 @@ def bar(
         include_dimensions=include_dimensions,
     )
     # BUILD: the bar plot
-    bar = ggplot(data=frame) + geom_bar(mapping=mapping, **geom_kwargs)
+    htmp = ggplot(data=frame) + geom_tile(mapping=mapping, **geom_kwargs) + _THEME_HEATMAP
 
     if interactive:
-        bar += ggtb(size_zoomin=-1)
+        htmp += ggtb(size_zoomin=-1)
 
-    return bar
+    return htmp
