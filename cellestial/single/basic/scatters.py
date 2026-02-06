@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from anndata import AnnData
 from lets_plot import gggrid
 
-from cellestial.single.basic.scatter import scatter
+from cellestial.single.basic.scatter import xy
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
@@ -30,8 +30,8 @@ def scatters(
     point_size: str | None = None,
     point_shape: str | None = None,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
-    variable_name: str = "Varible",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -92,9 +92,9 @@ def scatters(
         https://lets-plot.org/python/pages/aesthetics.html#point-shapes
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     include_dimensions : bool, default=False
         Whether to include dimensions in the dataframe.
@@ -162,9 +162,9 @@ def scatters(
     # check for broadcasting
     if len(x) != len(y):
         if len(x) == 1:
-            x = x * len(y)
+            x = list(x) * len(y)
         elif len(y) == 1:
-            y = y * len(x)
+            y = list(y) * len(x)
         else:
             msg = f"Length of x ({len(x)}) and y ({len(y)}) must be the same, or one of them must be of length 1."
             raise ConfilictingLengthError(msg)
@@ -172,7 +172,7 @@ def scatters(
     # build plots
     plots = []
     for xi, yi in zip(x, y):
-        scttr = scatter(
+        scttr = xy(
             data,
             x=xi,
             y=yi,
@@ -186,8 +186,8 @@ def scatters(
             point_size=point_size,
             point_shape=point_shape,
             interactive=interactive,
-            barcode_name=barcode_name,
-            variable_name=variable_name,
+            observations_name=observations_name,
+            variables_name=variables_name,
             include_dimensions=include_dimensions,
             show_tooltips=show_tooltips,
             add_tooltips=add_tooltips,

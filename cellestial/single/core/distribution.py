@@ -33,17 +33,17 @@ def violin(
     data: AnnData,
     key: str | Sequence[str],
     *,
-    axis: Literal[0,1] | None = None,
+    axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
-    geom_fill: str = "#FF00FF",
-    geom_color: str = "#2f2f2f",
+    geom_fill: str | None = "#FF00FF",
+    geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
-    point_geom : Literal["jitter","point","sina"] = "jitter",
-    barcode_name: str = "Barcode",
-    variable_name: str = "Variable",
+    point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -72,13 +72,13 @@ def violin(
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
-    geom_fill : str, default="#FF00FF"
+    geom_fill : str | None, default="#FF00FF"
         Fill color for all violins in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str, default="#2f2f2f"
+    geom_color : str | None, default="#2f2f2f"
         Border color for all violins in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
@@ -97,9 +97,9 @@ def violin(
         Size for the points in the violin plot.
     point_geom : Literal["jitter","point","sina"], default is "jitter",
         Geom type of the points, default is geom_jitter.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
@@ -162,7 +162,7 @@ def violin(
             raise KeyError(msg)
 
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    #identifier = barcode_name if axis == 0 else variable_name
+    # identifier = observations_name if axis == 0 else variables_name
 
     # handle fill and color
     geom_fill = None if fill is not None else geom_fill
@@ -174,8 +174,8 @@ def violin(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=barcode_name,
-        variables_name=variable_name,
+        observations_name=observations_name,
+        variables_name=variables_name,
     )
 
     frame = frame.unpivot(
@@ -185,7 +185,7 @@ def violin(
         separator = variable_column
 
     # handle tooltips
-    base_tooltips = [variable_column,value_column]
+    base_tooltips = [variable_column, value_column]
     """if color is not None:
         base_tooltips.append(color)
     if fill is not None:
@@ -215,13 +215,13 @@ def violin(
 
     # handle the points (jitter,point,sina)
     if show_points:
-        if point_geom in ["jitter","point","sina"]:
+        if point_geom in ["jitter", "point", "sina"]:
             geom_functions = {
-                "jitter" : geom_jitter,
-                "point" : geom_point,
-                "sina" : geom_sina,
+                "jitter": geom_jitter,
+                "point": geom_point,
+                "sina": geom_sina,
             }
-            geom_function = geom_functions.get(point_geom)
+            geom_function = geom_functions.get(point_geom, geom_jitter)
 
             dst += geom_function(
                 data=frame,
@@ -247,17 +247,17 @@ def boxplot(
     data: AnnData,
     key: str,
     *,
-    axis: Literal[0,1] | None = None,
+    axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
-    geom_fill: str = "#FF00FF",
-    geom_color: str = "#2f2f2f",
+    geom_fill: str | None = "#FF00FF",
+    geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
-    point_geom : Literal["jitter","point","sina"] = "jitter",
-    barcode_name: str = "Barcode",
-    variable_name: str = "Variable",
+    point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     show_tooltips: bool = True,
     show_points: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -286,13 +286,13 @@ def boxplot(
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
-    geom_fill : str, default="#FF00FF"
+    geom_fill : str | None, default="#FF00FF"
         Fill color for all boxplots in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str, default="#2f2f2f"
+    geom_color : str | None, default="#2f2f2f"
         Border color for all boxplots in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
@@ -310,9 +310,9 @@ def boxplot(
         Size for the points in the boxplot.
     point_geom : Literal["jitter","point","sina"], default is "jitter",
         Geom type of the points, default is geom_jitter.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     show_tooltips : bool, default=True
         Whether to show tooltips.
@@ -361,7 +361,7 @@ def boxplot(
     # determine separator
     separator = None
     if fill is not None:
-        separator = fill # fill has higher priority
+        separator = fill  # fill has higher priority
     elif color is not None:
         separator = color
 
@@ -374,7 +374,7 @@ def boxplot(
             raise KeyError(msg)
 
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    #identifier = barcode_name if axis == 0 else variable_name
+    # identifier = observations_name if axis == 0 else variables_name
 
     # handle fill and color
     geom_fill = None if fill is not None else geom_fill
@@ -386,8 +386,8 @@ def boxplot(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=barcode_name,
-        variables_name=variable_name,
+        observations_name=observations_name,
+        variables_name=variables_name,
     )
 
     frame = frame.unpivot(
@@ -397,7 +397,7 @@ def boxplot(
         separator = variable_column
 
     # handle tooltips
-    base_tooltips = [variable_column,value_column]
+    base_tooltips = [variable_column, value_column]
     """if color is not None:
         base_tooltips.append(color)
     if fill is not None:
@@ -427,13 +427,13 @@ def boxplot(
 
     # handle the points (jitter,point,sina)
     if show_points:
-        if point_geom in ["jitter","point","sina"]:
+        if point_geom in ["jitter", "point", "sina"]:
             geom_functions = {
-                "jitter" : geom_jitter,
-                "point" : geom_point,
-                "sina" : geom_sina,
+                "jitter": geom_jitter,
+                "point": geom_point,
+                "sina": geom_sina,
             }
-            geom_function = geom_functions.get(point_geom)
+            geom_function = geom_functions.get(point_geom, geom_jitter)
 
             dst += geom_function(
                 data=frame,

@@ -27,8 +27,8 @@ from lets_plot.plot.subplots import SupPlotsSpec
 def _add_arrow_axis(
     frame: pl.DataFrame,
     *,
-    x = str,
-    y = str,
+    x: str,
+    y: str,
     axis_type: Literal["axis", "arrow"] | None,
     arrow_size: float,
     arrow_color: str,
@@ -90,14 +90,14 @@ def _add_arrow_axis(
             axis_title_x=element_text(hjust=arrow_length / 2.5),  # better than 2
             axis_title_y=element_text(hjust=arrow_length / 2.5),
         )
-        x_max = frame.select(x).max().item()
-        x_min = frame.select(x).min().item()
-        y_max = frame.select(y).max().item()
-        y_min = frame.select(y).min().item()
+        x_max = frame[x].max()
+        x_min = frame[x].min()
+        y_max = frame[y].max()
+        y_min = frame[y].min()
 
         # find total difference between the max and min for both axis
-        x_diff = x_max - x_min
-        y_diff = y_max - y_min
+        x_diff = x_max - x_min  # ty:ignore[unsupported-operator]
+        y_diff = y_max - y_min  # ty:ignore[unsupported-operator]
 
         # find the ends of the arrows
         xend = x_min + arrow_length * x_diff
@@ -141,7 +141,7 @@ def _decide_tooltips(
     custom_tooltips: Sequence[str] | str | None,
     *,
     show_tooltips: bool,
-) -> list[str]:
+) -> list[str] | Literal["none"]:
     """
     Decide on the tooltips.
 
@@ -305,18 +305,29 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     PLOT_KEY = "_FeatureSpec__props"
 
     if isinstance(plot, PlotSpec):
-        frame = vars(plot).get(PLOT_KEY).get("data")
+        properties = vars(plot).get(PLOT_KEY)
+        frame = properties.get("data") if properties else None
     elif isinstance(plot, SupPlotsSpec):
-        frame = vars(vars(plot).get(SUP_PLOT_KEY)[index]).get("_FeatureSpec__props").get("data")
+        figures = vars(plot).get(SUP_PLOT_KEY)
+        if figures:
+            frame = vars(figures[index]).get(PLOT_KEY).get("data")
+        else:
+            frame = None
     else:
         print(type(plot))
         msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
         raise TypeError(msg)
 
+    if frame is None:
+        msg = "Could not retrieve the dataframe from the plot."
+        raise ValueError(msg)
+
     return frame
 
 
-def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec | SupPlotsSpec:
+def slice(
+    grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
+) -> PlotSpec | SupPlotsSpec | None:
     """
     Slice a ggrid (SupPlotsSpec) objects with given index.
 
@@ -344,25 +355,25 @@ def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec 
     SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
         figures = vars(grid).get(SUP_PLOT_KEY)
-        print(figures)
 
-        if isinstance(index, int):
-            plot = figures[index]
-            return plot
-        elif isinstance(index, Sequence):
-            list_plots = []
-            for i in index:
-                list_plots.append(figures[i])
-            return gggrid(list_plots, **kwargs)
-        else:
-            msg = f"Expected int or Sequence for index, but received {type(index)}"
-            raise TypeError(msg)
+        if figures is not None:
+            if isinstance(index, int):
+                plot = figures[index]
+                return plot
+            elif isinstance(index, Sequence):
+                list_plots = []
+                for i in index:
+                    list_plots.append(figures[i])
+                return gggrid(list_plots, **kwargs)
+            else:
+                msg = f"Expected int or Sequence for index, but received {type(index)}"
+                raise TypeError(msg)
     else:
         msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
         raise TypeError(msg)
 
 
-def _share_labels(plot, i: int, keys: list[str], ncol: int):
+def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
     if ncol is None:
         ncol = len(keys)
     total = len(keys)
@@ -380,7 +391,9 @@ def _share_labels(plot, i: int, keys: list[str], ncol: int):
     return plot
 
 
-def _share_axis(plot, i: int, keys: list[str], ncol: int, axis_type: Literal["axis", "arrow"]):
+def _share_axis(
+    plot, i: int, keys: Sequence[str], ncol: int | None, axis_type: Literal["axis", "arrow"]
+) -> SupPlotsSpec:
     total = len(keys)
     if ncol is None:
         ncol = len(keys)
@@ -446,8 +459,8 @@ def _wrap_legend(
 
     return legend
 
-def _is_variable_key(data: AnnData, key: str) -> bool:
 
+def _is_variable_key(data: AnnData, key: str) -> bool:
     if isinstance(data, AnnData):
         if key in data.var_names:
             result = True
@@ -459,6 +472,7 @@ def _is_variable_key(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
     if isinstance(data, AnnData):
         result = all(key in data.var_names for key in keys)
@@ -468,8 +482,8 @@ def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
 
     return result
 
-def _is_observation_key(data: AnnData, key: str) -> bool:
 
+def _is_observation_key(data: AnnData, key: str) -> bool:
     if isinstance(data, AnnData):
         if key in data.obs.columns:
             result = True
@@ -481,6 +495,7 @@ def _is_observation_key(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
     if isinstance(data, AnnData):
         result = all(key in data.obs.columns for key in keys)
@@ -489,6 +504,7 @@ def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
 
 def _select_variable_keys(
     data: AnnData,
@@ -501,6 +517,7 @@ def _select_variable_keys(
         msg = f"Unknown data type: {type(data)}."
         raise TypeError(msg)
     return variable_keys
+
 
 def _is_observation_feature(data: AnnData, key: str) -> bool:
     """Check whether the key is in observations axis (axis=0)."""
@@ -515,6 +532,7 @@ def _is_observation_feature(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
     """Check whether all the keys are in observations axis (axis=0)."""
     if isinstance(data, AnnData):
@@ -524,6 +542,7 @@ def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
 
 def _is_variable_feature(data: AnnData, key: str) -> bool:
     """Check whether the key is in variable axis (axis=1)."""
@@ -538,6 +557,7 @@ def _is_variable_feature(data: AnnData, key: str) -> bool:
 
     return result
 
+
 def _are_variable_features(data: AnnData, keys: Sequence[str]) -> bool:
     """Check whether all the keys are in variable axis (axis=1)."""
     if isinstance(data, AnnData):
@@ -547,6 +567,7 @@ def _are_variable_features(data: AnnData, keys: Sequence[str]) -> bool:
         raise TypeError(msg)
 
     return result
+
 
 def _determine_axis(
     data: AnnData,
