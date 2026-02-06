@@ -5,18 +5,18 @@ from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 from cellestial.single.core.subdimensionals import dimensionals, expressions, pcas, tsnes, umaps
 
 __all__ = [
+    "boxplot",
+    "boxplots",
     "dimensional",
     "dimensionals",
-    "umap",
-    "umaps",
+    "expression",
+    "expressions",
     "pca",
     "pcas",
     "tsne",
     "tsnes",
-    "expression",
-    "expressions",
+    "umap",
+    "umaps",
     "violin",
     "violins",
-    "boxplot",
-    "boxplots",
 ]
