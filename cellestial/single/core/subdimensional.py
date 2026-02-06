@@ -20,7 +20,7 @@ def umap(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -56,14 +56,14 @@ def umap(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -155,7 +155,7 @@ def umap(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -187,7 +187,7 @@ def tsne(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -223,14 +223,14 @@ def tsne(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -322,7 +322,7 @@ def tsne(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -354,7 +354,7 @@ def pca(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -390,14 +390,14 @@ def pca(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -489,7 +489,7 @@ def pca(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -522,7 +522,7 @@ def expression(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -560,14 +560,14 @@ def expression(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float, default=0.8
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -662,7 +662,7 @@ def expression(
         xy=xy,
         size=size,
         interactive=interactive,
-        barcode_name=barcode_name,
+        observations_name=observations_name,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,

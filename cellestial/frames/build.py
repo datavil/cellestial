@@ -22,17 +22,10 @@ def _add_anndata_variable_columns(
         if key in frame.columns:
             continue
         elif key in data.var_names:
-            # get the index of the variable
-            index = data.var_names.get_loc(key)
-            # handle sparse matrix
-            if issparse(data.X):  # sparse matrix
-                column = data.X[:, index].toarray()
-            else:  # numpy array
-                column = data.X[:, index]
-
-            # add the variable to the frame
+            column = data.obs_vector(key)
+            # add the variable column to the frame
             frame = frame.with_columns(
-                pl.Series(key, column.flatten().astype("float32")),
+                pl.Series(key, column.astype("float32")),
             )
         else:
             msg = f"Key `{key}` not found in data."

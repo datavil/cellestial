@@ -1,4 +1,5 @@
+from cellestial.single.basic.bar import bar
 from cellestial.single.basic.scatter import scatter
 from cellestial.single.basic.scatters import scatters
 
-__all__ = ["scatter", "scatters"]
+__all__ = ["scatter", "scatters", "bar"]

@@ -1,0 +1,5 @@
+# Ignore Jupyter Notebooks from language stats
+*.ipynb linguist-detectable=false
+
+# Ignore HTML files from language stats
+*.html linguist-detectable=false

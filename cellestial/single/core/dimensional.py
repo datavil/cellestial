@@ -45,7 +45,7 @@ def dimensional(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -80,7 +80,7 @@ def dimensional(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -91,7 +91,7 @@ def dimensional(
         The size of the points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -191,15 +191,15 @@ def dimensional(
         x = f"{use_key}{xy[0]}"  # e.g. X_UMAP1
         y = f"{use_key}{xy[1]}"  # e.g. X_UMAP2
 
-    # HANDLE: tooltips
+    # HANDLE: tooltips #TODO: refactor this block
     if "tooltips" in point_kwargs:
         tooltips_layer = point_kwargs.pop("tooltips")
         variable_keys = None
     else:
         if key is None:
-            base_tooltips = [barcode_name]
+            base_tooltips = [observations_name]
         else:
-            base_tooltips = [barcode_name, key]
+            base_tooltips = [observations_name, key]
 
         # create the list of tooltip keys
         tooltips = _decide_tooltips(
@@ -223,7 +223,7 @@ def dimensional(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=barcode_name,
+        observations_name=observations_name,
         include_dimensions=True,
     )
 
@@ -232,13 +232,13 @@ def dimensional(
     scttr = ggplot(data=frame) + geom_point(
         aes(x=x, y=y, color=key),
         size=size,
-        tooltips=tooltips_layer,
+        tooltips=tooltips_layer, #TODO: remove from args
         **point_kwargs,
     ) + _THEME_DIMENSION
 
     if key is not None:
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
-        if frame.schema[key] == pl.Categorical: # TODO: frame[key].dtype
+        if frame[key].dtype == pl.Categorical:
             scttr += scale_color_brewer(palette="Set2")
 
         # CASE2 ---------------------- CONTINUOUS DATA ----------------------
@@ -281,7 +281,7 @@ def dimensional(
 
     # HANDLE: legend on data
     if legend_ondata and key is not None:
-        if frame.schema[key] == pl.Categorical:
+        if frame[key].dtype == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
                 x=x,

@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 
 def dimensionals(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -72,7 +72,7 @@ def dimensionals(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -85,7 +85,7 @@ def dimensionals(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -228,7 +228,7 @@ def dimensionals(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -252,8 +252,8 @@ def dimensionals(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -282,13 +282,13 @@ def dimensionals(
 
 def umaps(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -335,7 +335,7 @@ def umaps(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -348,7 +348,7 @@ def umaps(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -490,7 +490,7 @@ def umaps(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -514,8 +514,8 @@ def umaps(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -524,6 +524,7 @@ def umaps(
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
+
         plots.append(plot)
 
     return gggrid(
@@ -543,13 +544,13 @@ def umaps(
 
 def tsnes(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -596,7 +597,7 @@ def tsnes(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -609,7 +610,7 @@ def tsnes(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -751,7 +752,7 @@ def tsnes(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -775,8 +776,8 @@ def tsnes(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -805,13 +806,13 @@ def tsnes(
 
 def pcas(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -858,7 +859,7 @@ def pcas(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -871,7 +872,7 @@ def pcas(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1013,7 +1014,7 @@ def pcas(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1037,8 +1038,8 @@ def pcas(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer
@@ -1047,6 +1048,7 @@ def pcas(
         if share_axis:
             if axis_type is not None:
                 plot = _share_axis(plot, i, keys, ncol, axis_type)
+
         plots.append(plot)
 
     return gggrid(
@@ -1066,14 +1068,14 @@ def pcas(
 
 def expressions(
     data: AnnData,
-    keys: list[str] | tuple[str] | Sequence[str],
+    keys: Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
-    xy: tuple[int, int] | Sequence[int, int] = (1, 2),
+    xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
+    observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -1122,7 +1124,7 @@ def expressions(
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
-    xy : tuple[int, int], default=(1, 2)
+    xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     use_key : str, default=None
@@ -1135,7 +1137,7 @@ def expressions(
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
         The name to overwrite the clustering key in the dataframe and the plot.
-    barcode_name : str, default='Barcode'
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1278,7 +1280,7 @@ def expressions(
             xy=xy,
             size=size,
             interactive=interactive,
-            barcode_name=barcode_name,
+            observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1302,8 +1304,8 @@ def expressions(
         )
 
         # handle the layers
-        if layers is not None and isinstance(layers, Sequence):
-            if isinstance(layers, str):
+        if layers is not None:
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
                 plot += layer

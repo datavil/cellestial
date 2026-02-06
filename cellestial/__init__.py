@@ -1,5 +1,7 @@
 from cellestial._version import __version__, versions
+from cellestial.frames import build_frame
 from cellestial.single import (
+    bar,
     boxplot,
     boxplots,
     dimensional,
@@ -9,6 +11,7 @@ from cellestial.single import (
     expressions,
     pca,
     pcas,
+    plot,
     scatter,
     scatters,
     tsne,
@@ -33,6 +36,8 @@ from cellestial.util.colors import (
 )
 
 __all__ = [
+    "build_frame",
+    "bar",
     "interactive",
     "_add_arrow_axis",
     "dimensional",
@@ -60,6 +65,7 @@ __all__ = [
     "PURPLE",
     "PINK",
     "ORANGE",
+    "plot",
     "show_colors",
     "scatter",
     "scatters",

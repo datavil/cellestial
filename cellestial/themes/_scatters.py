@@ -3,6 +3,7 @@ from lets_plot import (
     element_rect,
     element_text,
     ggsize,
+    scale_color_brewer,
     scale_color_viridis,
     scale_size,
     scale_size_area,  # for letsplot 4.8.3 or above
@@ -29,8 +30,7 @@ _THEME_DIMENSION = (
 )
 
 _THEME_SCATTER = (
-    theme_classic()
-    + theme(
+    theme(
         # customize all text
         text=element_text(color="#1f1f1f", family="Arial"),
         # customize all titles (includes legend)
@@ -41,8 +41,7 @@ _THEME_SCATTER = (
         legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
         # customize legend columns
     )
-    + ggsize(500, 400)
-    + scale_color_viridis()
+    + scale_color_brewer(palette="Set2")
 )
 
 _THEME_DOTPLOT = (

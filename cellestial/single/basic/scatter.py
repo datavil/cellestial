@@ -12,7 +12,7 @@ from lets_plot import (
     labs,
     layer_tooltips,
 )
-from lets_plot.plot.core import PlotSpec
+from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
 
-def scatter(
+def xy(
     data: AnnData,
     x: str,
     y: str,
@@ -43,8 +43,8 @@ def scatter(
     point_size: str | None = None,
     point_shape: str | None = None,
     interactive: bool = False,
-    barcode_name: str = "Barcode",
-    variable_name: str = "Varible",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
     include_dimensions: bool = False,
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
@@ -92,9 +92,9 @@ def scatter(
         https://lets-plot.org/python/pages/aesthetics.html#point-shapes
     interactive : bool, default=False
         Whether to make the plot interactive.
-    barcode_name : str, default="Barcode"
+    observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
-    variable_name : str, default="Variable"
+    variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
     include_dimensions : bool, default=False
         Whether to include dimensions in the dataframe.
@@ -123,7 +123,7 @@ def scatter(
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
-    else:
+    else: #TODO: refactor
         if "tooltips" in point_kwargs:
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
@@ -151,8 +151,8 @@ def scatter(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=barcode_name,
-        variables_name=variable_name,
+        observations_name=observations_name,
+        variables_name=variables_name,
         include_dimensions=include_dimensions,
     )
 
@@ -185,6 +185,83 @@ def scatter(
     #         ncol = ceil(n_distinct / 10)
     #         scttr += guides(fill=guide_legend(ncol=ncol))
     # handle interactive
+    if interactive:
+        scttr += ggtb(size_zoomin=-1)
+
+    return scttr
+
+def scatter(
+    data: AnnData,
+    mapping: FeatureSpec | None = None,
+    *,
+    axis: Literal[0, 1] | None = None,
+    variable_keys: Sequence[str] | None = None,
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
+    include_dimensions: bool = False,
+    interactive: bool = False,
+    **geom_kwargs,
+) -> PlotSpec:
+    """
+    Scatter Plot.
+
+    data
+        The AnnData object of the single cell data.
+    mapping : FeatureSpec | None, default=None
+        Aesthetic mappings for the plot, the result of `aes()`.
+    axis : Literal[0,1] | None, default=None
+        axis of the data, 0 for observations and 1 for variables.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    axis : Literal[0,1] | None, default=None
+        The axis to build the frame for. 0 for observations, 1 for variables.
+    observations_name : str, default="Barcode"
+        The name of the observations column, default is "barcode".
+    variables_name : str, default="Variable"
+        Name for the variables index column, default is 'variable'
+    include_dimensions : bool, default=False
+        Whether to include dimensionality reductions fields.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    **geom_kwargs
+        Additional parameters for the `geom_point` layer.
+        For more information on geom_point parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+    Returns
+    -------
+    PlotSpec
+        Scatter plot.
+
+    """
+    # Handling Data types
+    if not isinstance(data, AnnData):
+        msg = "data must be an `AnnData` object"
+        raise TypeError(msg)
+
+    # BUILD: the dataframe
+    if mapping is not None:
+        keys = [v for v in vars(mapping)["_FeatureSpec__props"].values() if v is not None]
+        axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+        include_dimensions=include_dimensions,
+    )
+
+    # BUILD: the scatter plot
+    scttr = (
+        ggplot(data=frame)
+        + geom_point(
+            mapping=mapping,
+            **geom_kwargs,
+        )
+        + _THEME_SCATTER
+    )
+
     if interactive:
         scttr += ggtb(size_zoomin=-1)
 
