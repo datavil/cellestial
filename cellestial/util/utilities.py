@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from math import ceil, log10
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-import polars as pl
 from anndata import AnnData
 from lets_plot import (
     arrow,
@@ -20,8 +19,12 @@ from lets_plot import (
     scale_color_gradient2,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
+
+if TYPE_CHECKING:
+    import polars as pl
+    from lets_plot.plot.core import FeatureSpec
 
 
 def _add_arrow_axis(
@@ -165,6 +168,8 @@ def _decide_tooltips(
     # PART 1: CONVERT str TO list
     if isinstance(base_tooltips, str):
         base_tooltips = [base_tooltips]
+    elif base_tooltips is None:
+        base_tooltips = []
     if isinstance(add_tooltips, str):
         add_tooltips = [add_tooltips]
     if isinstance(custom_tooltips, str):
