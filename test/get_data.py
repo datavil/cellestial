@@ -10,7 +10,7 @@ import scvelo as scv
 
 def get_pbmc3k()-> None:
 
-    if Path("data/pbmc3k_pped.h5ad").exists:
+    if Path("data/pbmc3k_pped.h5ad").exists():
         return
     EXAMPLE_DATA = pooch.create(
         path=pooch.os_cache("scverse_tutorials"),
