@@ -313,7 +313,7 @@ def tsne(
     PlotSpec
         Dimensional reduction plot.
 
-    """
+    """  # noqa: D403
     return dimensional(
         data=data,
         key=key,
