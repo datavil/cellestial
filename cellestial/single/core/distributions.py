@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
 
-from anndata import AnnData
 from lets_plot import gggrid
 from lets_plot.plot.core import FeatureSpec, LayerSpec
-from lets_plot.plot.subplots import SupPlotsSpec
 
 from cellestial.single.core.distribution import boxplot, violin
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from anndata import AnnData
+    from lets_plot.plot.subplots import SupPlotsSpec
 
 
 def violins(
