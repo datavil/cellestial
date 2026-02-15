@@ -62,8 +62,8 @@ def violin(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : str
-        The key to get the values (numerical).
+    key : str | Sequence[str]
+        The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
@@ -141,6 +141,7 @@ def violin(
 
     # convert to list if single string
     if isinstance(key, str):
+        value_column = key
         keys = [key]
     elif isinstance(key, Sequence):
         keys = list(key)
@@ -253,7 +254,7 @@ def violin(
 
 def boxplot(
     data: AnnData,
-    key: str,
+    key: str | Sequence[str],
     *,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
@@ -284,8 +285,8 @@ def boxplot(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : str
-        The key to get the values (numerical).
+    key : str | Sequence[str]
+        The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
@@ -361,6 +362,7 @@ def boxplot(
 
     # convert to list if single string
     if isinstance(key, str):
+        value_column = key
         keys = [key]
     elif isinstance(key, Sequence):
         keys = list(key)
