@@ -141,10 +141,13 @@ def violin(
 
     # convert to list if single string
     if isinstance(key, str):
-        value_column = key
         keys = [key]
     elif isinstance(key, Sequence):
         keys = list(key)
+
+    # handle value_column if single key is provided
+    if len(keys) == 1:
+        value_column = keys[0]
 
     # handle geom_kwargs
     if geom_kwargs:
@@ -362,10 +365,13 @@ def boxplot(
 
     # convert to list if single string
     if isinstance(key, str):
-        value_column = key
         keys = [key]
     elif isinstance(key, Sequence):
         keys = list(key)
+
+    # handle value_column if single key is provided
+    if len(keys) == 1:
+        value_column = keys[0]
 
     # handle geom_kwargs
     if geom_kwargs:
