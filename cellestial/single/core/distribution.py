@@ -36,6 +36,7 @@ def violin(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    facet: str | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -72,6 +73,10 @@ def violin(
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    facet : str | None, default=None
+        Facet to split the boxplot (categorical)
+        Does not call facet_wrap or facet_grid,
+        Instead, enables manual faceting.
     geom_fill : str | None, default="#FF00FF"
         Fill color for all violins in the violin plot.
         - Accepts:
@@ -153,6 +158,9 @@ def violin(
     elif color is not None:
         separator = color
 
+    # determine index to unpivot 
+    index = [x for x in [facet,separator] if x is not None]
+
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
@@ -179,7 +187,7 @@ def violin(
     )
 
     frame = frame.unpivot(
-        on=keys, index=separator, value_name=value_column, variable_name=variable_column
+        on=keys, index=index, value_name=value_column, variable_name=variable_column
     )
     if separator is None or len(keys) > 1:
         separator = variable_column
@@ -250,6 +258,7 @@ def boxplot(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    facet: str | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -286,6 +295,10 @@ def boxplot(
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    facet : str | None, default=None
+        Facet to split the boxplot (categorical)
+        Does not call facet_wrap or facet_grid,
+        Instead, enables manual faceting.
     geom_fill : str | None, default="#FF00FF"
         Fill color for all boxplots in the boxplot.
         - Accepts:
@@ -365,6 +378,9 @@ def boxplot(
     elif color is not None:
         separator = color
 
+    # determine index to unpivot 
+    index = [x for x in [facet,separator] if x is not None]
+
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
@@ -391,7 +407,7 @@ def boxplot(
     )
 
     frame = frame.unpivot(
-        on=keys, index=separator, value_name=value_column, variable_name=variable_column
+        on=keys, index=index, value_name=value_column, variable_name=variable_column
     )
     if separator is None or len(keys) > 1:
         separator = variable_column

@@ -21,6 +21,7 @@ def violins(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    facet: str | None = None,
     geom_fill: str = "#FF00FF",
     geom_color: str = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -70,6 +71,10 @@ def violins(
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    facet : str | None, default=None
+        Facet to split the boxplot (categorical)
+        Does not call facet_wrap or facet_grid,
+        Instead, enables manual faceting.
     geom_fill : str, default="#FF00FF"
         Fill color for all violins in the violin plot.
         - Accepts:
@@ -170,6 +175,7 @@ def violins(
             axis=axis,
             color=color,
             fill=fill,
+            facet=facet,
             geom_fill=geom_fill,
             geom_color=geom_color,
             point_color=point_color,
@@ -221,6 +227,7 @@ def boxplots(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    facet: str | None = None,
     geom_fill: str = "#FF00FF",
     geom_color: str = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -270,6 +277,10 @@ def boxplots(
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    facet : str | None, default=None
+        Facet to split the boxplot (categorical)
+        Does not call facet_wrap or facet_grid,
+        Instead, enables manual faceting.
     geom_fill : str, default="#FF00FF"
         Fill color for all boxplots in the boxplot.
         - Accepts:
@@ -373,6 +384,7 @@ def boxplots(
             axis=axis,
             color=color,
             fill=fill,
+            facet=facet,
             geom_fill=geom_fill,
             geom_color=geom_color,
             point_color=point_color,
