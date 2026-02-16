@@ -53,8 +53,6 @@ ignore = [
   # Lints below are turned off because of conflicts with the ruff formatter
   "D206",
   "W191",
-  #
-  "TCH002"
 ]
 
 [lint.pycodestyle]

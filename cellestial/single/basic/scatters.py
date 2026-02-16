@@ -3,14 +3,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
-# Data retrieval
-from anndata import AnnData
 from lets_plot import gggrid
 
 from cellestial.single.basic.scatter import xy
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
+    from anndata import AnnData
     from lets_plot.plot.core import FeatureSpec, LayerSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 

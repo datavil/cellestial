@@ -29,6 +29,164 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
 
+def _distribution(
+    data: AnnData,
+    key: str | Sequence[str],
+    *,
+    geom: Literal["violin", "boxplot"] = "violin",
+    axis: Literal[0, 1] | None = None,
+    color: str | None = None,
+    fill: str | None = None,
+    add_keys: Sequence[str] | str | None = None,
+    geom_fill: str | None = "#FF00FF",
+    geom_color: str | None = "#2f2f2f",
+    point_color: str = "#1f1f1f",
+    point_alpha: float = 0.7,
+    point_size: float = 0.5,
+    point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
+    show_tooltips: bool = True,
+    show_points: bool = True,
+    add_tooltips: Sequence[str] | str | None = None,
+    custom_tooltips: Sequence[str] | str | None = None,
+    interactive: bool = False,
+    value_column: str = "value",
+    variable_column: str = "variable",
+    point_kwargs: dict[str, Any] | None = None,
+    **geom_kwargs,
+) -> PlotSpec:
+    # Handling Data types
+    if not isinstance(data, AnnData):
+        msg = "data must be an `AnnData` object"
+        raise TypeError(msg)
+
+    # convert to list if single string
+    if isinstance(key, str):
+        keys = [key]
+    elif isinstance(key, Sequence):
+        keys = list(key)
+
+    # handle value_column if single key is provided
+    if len(keys) == 1:
+        value_column = keys[0]
+
+    # handle geom_kwargs
+    if geom_kwargs:
+        if "tooltips" in geom_kwargs:
+            msg = "geom tooltips are non-customizable by `geom_kwargs`"
+            raise KeyError(msg)
+
+    # determine separator
+    separator = None
+    if fill is not None:
+        separator = fill
+    elif color is not None:
+        separator = color
+
+    # determine index to unpivot
+    index = [separator] if separator else []
+    if add_keys is not None:
+        if isinstance(add_keys, str):
+            add_keys = [add_keys]
+        index.extend(add_keys)
+
+    # handle point_kwargs
+    if point_kwargs is None:
+        point_kwargs = {}
+    else:
+        if "tooltips" in point_kwargs:
+            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
+            raise KeyError(msg)
+
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    # identifier = observations_name if axis == 0 else variables_name
+
+    # handle fill and color
+    geom_fill = None if fill is not None else geom_fill
+    geom_color = None if color is not None else geom_color
+
+    # BUILD: the DataFrame
+    variable_keys = _select_variable_keys(data=data, keys=keys)
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+    )
+
+    frame = frame.unpivot(
+        on=keys, index=index, value_name=value_column, variable_name=variable_column
+    )
+    if separator is None or len(keys) > 1:
+        separator = variable_column
+
+    # handle tooltips
+    base_tooltips = [variable_column, value_column]
+    """if color is not None:
+        base_tooltips.append(color)
+    if fill is not None:
+        base_tooltips.append(fill)"""
+    # determine tooltips
+    tooltips = _decide_tooltips(
+        base_tooltips=base_tooltips,
+        add_tooltips=add_tooltips,
+        custom_tooltips=custom_tooltips,
+        show_tooltips=show_tooltips,
+    )
+
+    # BUILD: the plot
+    dst = ggplot(data=frame) + _THEME_DIST
+
+    # add the geom layer
+    if geom == "violin":
+        dst += geom_violin(
+            mapping=aes(x=separator, y=value_column, color=color, fill=fill),
+            fill=geom_fill,
+            color=geom_color,
+            tooltips=layer_tooltips(frame.columns),
+            **geom_kwargs,
+        )
+    elif geom == "boxplot":
+        dst += geom_boxplot(
+            mapping=aes(x=separator, y=value_column, color=color, fill=fill),
+            fill=geom_fill,
+            color=geom_color,
+            tooltips=layer_tooltips(frame.columns),
+            **geom_kwargs,
+        )
+
+    # handle the points (jitter,point,sina)
+    if show_points:
+        if point_geom in ["jitter", "point", "sina"]:
+            geom_functions = {
+                "jitter": geom_jitter,
+                "point": geom_point,
+                "sina": geom_sina,
+            }
+            geom_function = geom_functions.get(point_geom, geom_jitter)
+
+            dst += geom_function(
+                data=frame,
+                mapping=aes(x=separator, y=value_column),
+                color=point_color,
+                alpha=point_alpha,
+                size=point_size,
+                tooltips=layer_tooltips(tooltips),
+                **point_kwargs,
+            )
+        else:
+            msg = "point_geom must be one of ['jitter','point','sina']."
+            raise KeyError(msg)
+
+    # handle interactive
+    if interactive:
+        dst += ggtb(size_zoomin=-1)
+
+    return dst
+
+
 def violin(
     data: AnnData,
     key: str | Sequence[str],
@@ -36,6 +194,7 @@ def violin(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -61,8 +220,8 @@ def violin(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : str
-        The key to get the values (numerical).
+    key : str | Sequence[str]
+        The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
@@ -72,6 +231,8 @@ def violin(
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    add_keys : Sequence[str] | str | None, default=None
+        Additional keys to include in the dataframe.
     geom_fill : str | None, default="#FF00FF"
         Fill color for all violins in the violin plot.
         - Accepts:
@@ -129,127 +290,42 @@ def violin(
     PlotSpec
         Violin plot.
     """
-    # Handling Data types
-    if not isinstance(data, AnnData):
-        msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
-
-    # convert to list if single string
-    if isinstance(key, str):
-        keys = [key]
-    elif isinstance(key, Sequence):
-        keys = list(key)
-
-    # handle geom_kwargs
-    if geom_kwargs:
-        if "tooltips" in geom_kwargs:
-            msg = "violin tooltips are non-customizable by `geom_kwargs`"
-            raise KeyError(msg)
-
-    # determine separator
-    separator = None
-    if fill is not None:
-        separator = fill
-    elif color is not None:
-        separator = color
-
-    # handle point_kwargs
-    if point_kwargs is None:
-        point_kwargs = {}
-    else:
-        if "tooltips" in point_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
-            raise KeyError(msg)
-
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    # identifier = observations_name if axis == 0 else variables_name
-
-    # handle fill and color
-    geom_fill = None if fill is not None else geom_fill
-    geom_color = None if color is not None else geom_color
-
-    # BUILD: the DataFrame
-    variable_keys = _select_variable_keys(data=data, keys=keys)
-    frame = build_frame(
+    return _distribution(
         data=data,
-        variable_keys=variable_keys,
+        key=key,
+        geom="violin",
         axis=axis,
+        color=color,
+        fill=fill,
+        add_keys=add_keys,
+        geom_fill=geom_fill,
+        geom_color=geom_color,
+        point_color=point_color,
+        point_alpha=point_alpha,
+        point_size=point_size,
+        point_geom=point_geom,
         observations_name=observations_name,
         variables_name=variables_name,
-    )
-
-    frame = frame.unpivot(
-        on=keys, index=separator, value_name=value_column, variable_name=variable_column
-    )
-    if separator is None or len(keys) > 1:
-        separator = variable_column
-
-    # handle tooltips
-    base_tooltips = [variable_column, value_column]
-    """if color is not None:
-        base_tooltips.append(color)
-    if fill is not None:
-        base_tooltips.append(fill)"""
-    # determine tooltips
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
+        show_tooltips=show_tooltips,
+        show_points=show_points,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
-
-    # handle violin tooltips
-    geom_tooltips = frame.columns
-
-    # BUILD: the plot
-    dst = ggplot(data=frame) + _THEME_DIST
-
-    # add the violin layer
-    dst += geom_violin(
-        mapping=aes(x=separator, y=value_column, color=color, fill=fill),
-        fill=geom_fill,
-        color=geom_color,
-        tooltips=layer_tooltips(geom_tooltips),
+        interactive=interactive,
+        value_column=value_column,
+        variable_column=variable_column,
+        point_kwargs=point_kwargs,
         **geom_kwargs,
     )
-
-    # handle the points (jitter,point,sina)
-    if show_points:
-        if point_geom in ["jitter", "point", "sina"]:
-            geom_functions = {
-                "jitter": geom_jitter,
-                "point": geom_point,
-                "sina": geom_sina,
-            }
-            geom_function = geom_functions.get(point_geom, geom_jitter)
-
-            dst += geom_function(
-                data=frame,
-                mapping=aes(x=separator, y=value_column),
-                color=point_color,
-                alpha=point_alpha,
-                size=point_size,
-                tooltips=layer_tooltips(tooltips),
-                **point_kwargs,
-            )
-        else:
-            msg = "point_geom must be one of ['jitter','point','sina']."
-            raise KeyError(msg)
-
-    # handle interactive
-    if interactive:
-        dst += ggtb(size_zoomin=-1)
-
-    return dst
 
 
 def boxplot(
     data: AnnData,
-    key: str,
+    key: str | Sequence[str],
     *,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -275,8 +351,8 @@ def boxplot(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : str
-        The key to get the values (numerical).
+    key : str | Sequence[str]
+        The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
@@ -286,6 +362,8 @@ def boxplot(
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    add_keys : Sequence[str] | str | None, default=None
+        Additional keys to include in the dataframe.
     geom_fill : str | None, default="#FF00FF"
         Fill color for all boxplots in the boxplot.
         - Accepts:
@@ -342,114 +420,29 @@ def boxplot(
     PlotSpec
         Boxplot.
     """
-    if not isinstance(data, AnnData):
-        msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
-
-    # convert to list if single string
-    if isinstance(key, str):
-        keys = [key]
-    elif isinstance(key, Sequence):
-        keys = list(key)
-
-    # handle geom_kwargs
-    if geom_kwargs:
-        if "tooltips" in geom_kwargs:
-            msg = "boxplot tooltips are non-customizable by `geom_kwargs`"
-            raise KeyError(msg)
-
-    # determine separator
-    separator = None
-    if fill is not None:
-        separator = fill  # fill has higher priority
-    elif color is not None:
-        separator = color
-
-    # handle point_kwargs
-    if point_kwargs is None:
-        point_kwargs = {}
-    else:
-        if "tooltips" in point_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
-            raise KeyError(msg)
-
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    # identifier = observations_name if axis == 0 else variables_name
-
-    # handle fill and color
-    geom_fill = None if fill is not None else geom_fill
-    geom_color = None if color is not None else geom_color
-
-    # BUILD: the DataFrame
-    variable_keys = _select_variable_keys(data=data, keys=keys)
-    frame = build_frame(
+    return _distribution(
         data=data,
-        variable_keys=variable_keys,
+        key=key,
+        geom="boxplot",
         axis=axis,
+        color=color,
+        fill=fill,
+        add_keys=add_keys,
+        geom_fill=geom_fill,
+        geom_color=geom_color,
+        point_color=point_color,
+        point_alpha=point_alpha,
+        point_size=point_size,
+        point_geom=point_geom,
         observations_name=observations_name,
         variables_name=variables_name,
-    )
-
-    frame = frame.unpivot(
-        on=keys, index=separator, value_name=value_column, variable_name=variable_column
-    )
-    if separator is None or len(keys) > 1:
-        separator = variable_column
-
-    # handle tooltips
-    base_tooltips = [variable_column, value_column]
-    """if color is not None:
-        base_tooltips.append(color)
-    if fill is not None:
-        base_tooltips.append(fill)"""
-    # determine tooltips
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
+        show_tooltips=show_tooltips,
+        show_points=show_points,
         add_tooltips=add_tooltips,
         custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
-
-    # handle boxplot tooltips
-    geom_tooltips = frame.columns
-
-    # BUILD: the plot
-    dst = ggplot(data=frame) + _THEME_DIST
-
-    # add the violin layer
-    dst += geom_boxplot(
-        mapping=aes(x=separator, y=value_column, color=color, fill=fill),
-        fill=geom_fill,
-        color=geom_color,
-        tooltips=layer_tooltips(geom_tooltips),
+        interactive=interactive,
+        value_column=value_column,
+        variable_column=variable_column,
+        point_kwargs=point_kwargs,
         **geom_kwargs,
     )
-
-    # handle the points (jitter,point,sina)
-    if show_points:
-        if point_geom in ["jitter", "point", "sina"]:
-            geom_functions = {
-                "jitter": geom_jitter,
-                "point": geom_point,
-                "sina": geom_sina,
-            }
-            geom_function = geom_functions.get(point_geom, geom_jitter)
-
-            dst += geom_function(
-                data=frame,
-                mapping=aes(x=separator, y=value_column),
-                color=point_color,
-                alpha=point_alpha,
-                size=point_size,
-                tooltips=layer_tooltips(tooltips),
-                **point_kwargs,
-            )
-        else:
-            msg = "point_geom must be one of ['jitter','point','sina']."
-            raise KeyError(msg)
-
-    # handle interactive
-    if interactive:
-        dst += ggtb(size_zoomin=-1)
-
-    return dst

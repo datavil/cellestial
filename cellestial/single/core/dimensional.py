@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Literal
 
 # Core scverse libraries
 import polars as pl

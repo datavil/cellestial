@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Literal
 
 from cellestial.single.core.dimensional import dimensional
 from cellestial.util import _is_variable_key
@@ -313,7 +313,7 @@ def tsne(
     PlotSpec
         Dimensional reduction plot.
 
-    """
+    """  # noqa: D403
     return dimensional(
         data=data,
         key=key,
