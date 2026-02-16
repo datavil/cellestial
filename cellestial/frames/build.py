@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from scipy.sparse import issparse
 
 from cellestial.util.errors import KeyNotFoundError
 
