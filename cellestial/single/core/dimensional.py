@@ -209,6 +209,7 @@ def dimensional(
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
     elif isinstance(tooltips, Sequence):
+        tooltips = list(tooltips)
         tooltips_spec = layer_tooltips(tooltips)
         tooltips_variables = _select_variable_keys(data, tooltips)
         if not set(tooltips_variables).issubset(variable_keys):
@@ -222,7 +223,7 @@ def dimensional(
         variable_keys=variable_keys,
         axis=0,
         observations_name=observations_name,
-        include_dimensions=True,
+        include_dimensions=max(xy),
     )
 
     # BUILD: scatter plot
