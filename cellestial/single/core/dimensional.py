@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 # Core scverse libraries
@@ -17,22 +18,19 @@ from lets_plot import (
     layer_tooltips,
     scale_color_brewer,
 )
-from lets_plot.plot.core import PlotSpec
+from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _add_arrow_axis,
     _color_gradient,
-    _decide_tooltips,
     _is_variable_key,
     _legend_ondata,
     _select_variable_keys,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from lets_plot.plot.core import PlotSpec
 
 
@@ -44,6 +42,8 @@ def dimensional(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
+    variable_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
@@ -55,9 +55,6 @@ def dimensional(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -89,6 +86,12 @@ def dimensional(
         Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     observations_name : str, default='Barcode'
@@ -140,12 +143,6 @@ def dimensional(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -191,32 +188,33 @@ def dimensional(
         x = f"{use_key}{xy[0]}"  # e.g. X_UMAP1
         y = f"{use_key}{xy[1]}"  # e.g. X_UMAP2
 
-    # HANDLE: tooltips #TODO: refactor this block
-    if "tooltips" in point_kwargs:
-        tooltips_layer = point_kwargs.pop("tooltips")
-        variable_keys = None
-    else:
-        if key is None:
-            base_tooltips = [observations_name]
-        else:
-            base_tooltips = [observations_name, key]
+    # HANDLE: variable_keys
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    elif isinstance(variable_keys, Sequence):
+        variable_keys = list(variable_keys)
 
-        # create the list of tooltip keys
-        tooltips = _decide_tooltips(
-            base_tooltips=base_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
-            show_tooltips=show_tooltips,
-        )
-        tooltips_layer = layer_tooltips(tooltips) # create the object
-        # extract the variable keys
-        if key is not None and _is_variable_key(data, key):
-            if tooltips =="none":
-                variable_keys = key
-            else:
-                variable_keys = [key] + _select_variable_keys(data, tooltips)
-        else:
-            variable_keys = _select_variable_keys(data, tooltips)
+    # Append the key if it is a variable key
+    if _is_variable_key(data, key):
+        variable_keys.append(key)
+
+    # HANDLE: tooltips
+    if tooltips is None:
+        tooltips = [observations_name]
+        if key is not None:
+            tooltips.append(key)
+        tooltips_spec = layer_tooltips(tooltips)
+    elif tooltips == "none" or isinstance(tooltips, str):
+        tooltips_spec = tooltips
+    elif isinstance(tooltips, Sequence):
+        tooltips_spec = layer_tooltips(tooltips)
+        tooltips_variables = _select_variable_keys(data, tooltips)
+        if not set(tooltips_variables).issubset(variable_keys):
+            variable_keys.extend(tooltips_variables)
+    elif isinstance(tooltips, FeatureSpec):
+        tooltips_spec = tooltips
 
     # BUILD: dataframe
     frame = build_frame(
@@ -229,12 +227,16 @@ def dimensional(
 
     # BUILD: scatter plot
     # BASE PLOT
-    scttr = ggplot(data=frame) + geom_point(
-        aes(x=x, y=y, color=key),
-        size=size,
-        tooltips=tooltips_layer, #TODO: remove from args
-        **point_kwargs,
-    ) + _THEME_DIMENSION
+    scttr = (
+        ggplot(data=frame)
+        + geom_point(
+            aes(x=x, y=y, color=key),
+            size=size,
+            tooltips=tooltips_spec,
+            **point_kwargs,
+        )
+        + _THEME_DIMENSION
+    )
 
     if key is not None:
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
