@@ -44,7 +44,7 @@ def xy(
     interactive: bool = False,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    include_dimensions: bool = False,
+    include_dimensions: bool | int = False,
     show_tooltips: bool = True,
     add_tooltips: Sequence[str] | str | None = None,
     custom_tooltips: Sequence[str] | str | None = None,
@@ -95,8 +95,9 @@ def xy(
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
-    include_dimensions : bool, default=False
-        Whether to include dimensions in the dataframe.
+    include_dimensions : bool | int, default=False
+        Whether to include dimensions in the DataFrame.
+        Providing an integer will limit the number of dimensions to given number.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
@@ -197,7 +198,7 @@ def scatter(
     variable_keys: Sequence[str] | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    include_dimensions: bool = False,
+    include_dimensions: bool | int = False,
     interactive: bool = False,
     **geom_kwargs,
 ) -> PlotSpec:
@@ -218,8 +219,9 @@ def scatter(
         The name of the observations column.
     variables_name : str, default="Variable"
         Name for the variables index column.
-    include_dimensions : bool, default=False
-        Whether to include dimensionality reductions fields.
+    include_dimensions : bool | int, default=False
+        Whether to include dimensions in the DataFrame.
+        Providing an integer will limit the number of dimensions to given number.
     interactive : bool, default=False
         Whether to make the plot interactive.
     **geom_kwargs

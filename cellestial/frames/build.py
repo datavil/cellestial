@@ -52,8 +52,9 @@ def anndata_observations_frame(
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str, optional
         The name of the observations column, default is "barcode".
-    include_dimensions : bool, optional
+    include_dimensions : bool | int
         Whether to include dimensions from `obsm` in the DataFrame, default is False.
+        Providing an integer will limit the number of dimensions to given number.
 
     Returns
     -------
@@ -113,7 +114,7 @@ def anndata_variables_frame(
     data: AnnData,
     *,
     variables_name: str = "variable",
-    include_dimensions: bool = False,
+    include_dimensions: bool | int = False,
 ) -> pl.DataFrame:
     """
     Build a Variables DataFrame from an AnnData object.
@@ -124,8 +125,9 @@ def anndata_variables_frame(
         The AnnData object containing the variables.
     variables_name : str
         Name for the variables index column, default is 'variable'
-    include_dimensions : bool
-        Whether to include dimensionality reductions fields.
+    include_dimensions : bool | int
+        Whether to include dimensions from `varm` in the DataFrame, default is False.
+        Providing an integer will limit the number of dimensions to given number.
 
     Returns
     -------
@@ -157,7 +159,20 @@ def anndata_variables_frame(
     # PART 4: ADD dimensions if needed
     if include_dimensions:
         for X in data.varm:
-            col_count = data.varm[X].shape[1]  # Number of dimensions (columns)
+            total_cols = data.varm[X].shape[1]  # Number of dimensions (columns)
+            if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
+                if include_dimensions >= 0:
+                    col_count = min(include_dimensions, total_cols)
+                else:
+                    msg = "Number of dimensions cannot be a negative number."
+                    raise ValueError(msg)
+            elif isinstance(include_dimensions, bool):
+                col_count = total_cols
+            else:
+                msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
+                msg += f" You provided type {type(include_dimensions)}"
+                raise TypeError(msg)
+
             for col in range(col_count):
                 frame = frame.with_columns(
                     pl.Series(f"{X.upper()}{col + 1}", data.varm[X][:, col])
@@ -173,7 +188,7 @@ def build_frame(
     axis: Literal[0, 1] | None = None,
     observations_name: str = "barcode",
     variables_name: str = "variable",
-    include_dimensions: bool = False,
+    include_dimensions: bool | int = False,
 ) -> pl.DataFrame:
     """
     Build a DataFrame from an AnnData object.
@@ -190,8 +205,10 @@ def build_frame(
         The name of the observations column, default is "barcode".
     variables_name : str
         Name for the variables index column, default is 'variable'
-    include_dimensions : bool
-        Whether to include dimensionality reductions fields.
+    include_dimensions : bool | int
+        Whether to include dimensions in the DataFrame, default is False.
+        Providing an integer will limit the number of dimensions to given number.
+
 
     Returns
     -------
