@@ -15,12 +15,11 @@ from lets_plot import (
     ggtb,
     layer_tooltips,
 )
-from lets_plot.plot.core import PlotSpec
+from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
 from cellestial.util import (
-    _decide_tooltips,
     _determine_axis,
     _select_variable_keys,
 )
@@ -38,6 +37,7 @@ def _distribution(
     color: str | None = None,
     fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -46,10 +46,7 @@ def _distribution(
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -71,18 +68,15 @@ def _distribution(
     if len(keys) == 1:
         value_column = keys[0]
 
-    # handle geom_kwargs
-    if geom_kwargs:
-        if "tooltips" in geom_kwargs:
-            msg = "geom tooltips are non-customizable by `geom_kwargs`"
-            raise KeyError(msg)
-
     # determine separator
     separator = None
     if fill is not None:
         separator = fill
     elif color is not None:
         separator = color
+    
+    if point_kwargs is None:
+        point_kwargs = {}
 
     # determine index to unpivot
     index = [separator] if separator else []
@@ -91,16 +85,8 @@ def _distribution(
             add_keys = [add_keys]
         index.extend(add_keys)
 
-    # handle point_kwargs
-    if point_kwargs is None:
-        point_kwargs = {}
-    else:
-        if "tooltips" in point_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
-            raise KeyError(msg)
-
+    # DETERMINE: axis if not provided
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-    # identifier = observations_name if axis == 0 else variables_name
 
     # handle fill and color
     geom_fill = None if fill is not None else geom_fill
@@ -122,19 +108,16 @@ def _distribution(
     if separator is None or len(keys) > 1:
         separator = variable_column
 
-    # handle tooltips
-    base_tooltips = [variable_column, value_column]
-    """if color is not None:
-        base_tooltips.append(color)
-    if fill is not None:
-        base_tooltips.append(fill)"""
-    # determine tooltips
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
+    # HANDLE: tooltips
+    if tooltips is None:
+        tooltips = [variable_column, value_column]
+        tooltips_spec = layer_tooltips(tooltips)
+    elif tooltips == "none" or isinstance(tooltips, str):
+        tooltips_spec = tooltips
+    elif isinstance(tooltips, Sequence):
+        tooltips_spec = layer_tooltips(tooltips)
+    elif isinstance(tooltips, FeatureSpec):
+        tooltips_spec = tooltips
 
     # BUILD: the plot
     dst = ggplot(data=frame) + _THEME_DIST
@@ -173,7 +156,7 @@ def _distribution(
                 color=point_color,
                 alpha=point_alpha,
                 size=point_size,
-                tooltips=layer_tooltips(tooltips),
+                tooltips=tooltips_spec,
                 **point_kwargs,
             )
         else:
@@ -195,6 +178,7 @@ def violin(
     color: str | None = None,
     fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -203,10 +187,7 @@ def violin(
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -233,6 +214,10 @@ def violin(
         e,g., 'cell_type' or 'leiden'.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     geom_fill : str | None, default="#FF00FF"
         Fill color for all violins in the violin plot.
         - Accepts:
@@ -245,7 +230,6 @@ def violin(
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_tooltips :
     point_color : str, default="#1f1f1f"
         Color for the points in the violin plot.
         - Accepts:
@@ -262,14 +246,8 @@ def violin(
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : Sequence[str] | str | None, default=None
-        Custom tooltips to show.
     interactive : bool, default=False
         Whether to make the plot interactive.
     variable_column : str, default="variable"
@@ -298,6 +276,7 @@ def violin(
         color=color,
         fill=fill,
         add_keys=add_keys,
+        tooltips=tooltips,
         geom_fill=geom_fill,
         geom_color=geom_color,
         point_color=point_color,
@@ -306,10 +285,7 @@ def violin(
         point_geom=point_geom,
         observations_name=observations_name,
         variables_name=variables_name,
-        show_tooltips=show_tooltips,
         show_points=show_points,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
         interactive=interactive,
         value_column=value_column,
         variable_column=variable_column,
@@ -326,6 +302,7 @@ def boxplot(
     color: str | None = None,
     fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = "#FF00FF",
     geom_color: str | None = "#2f2f2f",
     point_color: str = "#1f1f1f",
@@ -334,10 +311,7 @@ def boxplot(
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    show_tooltips: bool = True,
     show_points: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -364,6 +338,10 @@ def boxplot(
         e,g., 'cell_type' or 'leiden'.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     geom_fill : str | None, default="#FF00FF"
         Fill color for all boxplots in the boxplot.
         - Accepts:
@@ -392,14 +370,8 @@ def boxplot(
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
     show_points : bool, default=True
         Whether to show points.
-    add_tooltips : Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : Sequence[str] | str | None, default=None
-        Custom tooltips to show.
     interactive : bool, default=False
         Whether to make the plot interactive.
     variable_column : str, default="variable"
@@ -428,6 +400,7 @@ def boxplot(
         color=color,
         fill=fill,
         add_keys=add_keys,
+        tooltips=tooltips,
         geom_fill=geom_fill,
         geom_color=geom_color,
         point_color=point_color,
@@ -436,10 +409,7 @@ def boxplot(
         point_geom=point_geom,
         observations_name=observations_name,
         variables_name=variables_name,
-        show_tooltips=show_tooltips,
         show_points=show_points,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
         interactive=interactive,
         value_column=value_column,
         variable_column=variable_column,
