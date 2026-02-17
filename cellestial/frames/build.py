@@ -39,7 +39,7 @@ def anndata_observations_frame(
     variable_keys: str | Sequence[str] | None = None,
     *,
     observations_name="barcode",
-    include_dimensions: bool = False,
+    include_dimensions: bool | int = False,
 ) -> pl.DataFrame:
     """
     Build an Observations DataFrame from an AnnData object.
@@ -83,9 +83,24 @@ def anndata_observations_frame(
     # PART 4: ADD dimensions if needed
     if include_dimensions:
         for X in data.obsm:
-            col_count = data.obsm[X].shape[1]  # Number of dimensions (columns)
+            total_cols = data.obsm[X].shape[1]  # Number of dimensions (columns)
+            if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
+                if include_dimensions >= 0:
+                    col_count = min(include_dimensions, total_cols)
+                else:
+                    msg = "Number of dimensions cannot be a negative number."
+                    raise ValueError(msg)
+            elif isinstance(include_dimensions, bool):
+                col_count = total_cols
+            else:
+                msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
+                msg += f" You provided type {type(include_dimensions)}"
+                raise TypeError(msg)
+
             for col in range(col_count):
-                frame = frame.with_columns(pl.Series(f"{X.upper()}{col+1}", data.obsm[X][:, col]))
+                frame = frame.with_columns(
+                    pl.Series(f"{X.upper()}{col + 1}", data.obsm[X][:, col])
+                )
 
     # PART 5: ADD keys if provided
     if variable_keys is not None:
@@ -144,7 +159,9 @@ def anndata_variables_frame(
         for X in data.varm:
             col_count = data.varm[X].shape[1]  # Number of dimensions (columns)
             for col in range(col_count):
-                frame = frame.with_columns(pl.Series(f"{X.upper()}{col+1}", data.varm[X][:, col]))
+                frame = frame.with_columns(
+                    pl.Series(f"{X.upper()}{col + 1}", data.varm[X][:, col])
+                )
 
     return frame
 
