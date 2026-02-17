@@ -21,7 +21,7 @@ def plot(
     variable_keys: Sequence[str] | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    include_dimensions: bool = False,
+    include_dimensions: bool | int = False,
 ) -> PlotSpec:
     """
     Base plot for plots without data wrangling.
@@ -40,8 +40,9 @@ def plot(
         The name of the observations column, default is "barcode".
     variables_name : str
         Name for the variables index column, default is 'variable'
-    include_dimensions : bool
-        Whether to include dimensionality reductions fields.
+    include_dimensions : bool | int, default=False
+        Whether to include dimensions in the DataFrame.
+        Providing an integer will limit the number of dimensions to given number.
 
     Returns
     -------
