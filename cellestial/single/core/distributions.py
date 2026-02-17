@@ -1,5 +1,4 @@
 from __future__ import annotations
-from numba.tests.doctest_usecase import a
 
 from typing import TYPE_CHECKING, Any, Literal
 
