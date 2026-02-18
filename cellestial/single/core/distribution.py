@@ -115,6 +115,7 @@ def _distribution(
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
     elif isinstance(tooltips, Sequence):
+        tooltips = list(tooltips)
         tooltips_spec = layer_tooltips(tooltips)
     elif isinstance(tooltips, FeatureSpec):
         tooltips_spec = tooltips
