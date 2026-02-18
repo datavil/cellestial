@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -10,16 +11,16 @@ from lets_plot import (
     geom_point,
     ggplot,
     ggtb,
+    layer_tooltips,
     scale_color_gradient,
     scale_fill_gradient,
 )
+from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DOTPLOT
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from lets_plot.plot.core import PlotSpec
 
 
@@ -38,7 +39,7 @@ def dotplot(
     sort_order: Literal["ascending", "descending"] = "descending",
     percentage_key: str = "pct_exp",
     mean_key: str = "avg_exp",
-    show_tooltips: bool = True,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
 ) -> PlotSpec:
@@ -72,7 +73,11 @@ def dotplot(
     percentage_key : str, default='pct_exp'
         The name of the percentage column.
     mean_key : str, default='avg_exp'
-        The name of the mean expression column
+        The name of the mean expression column.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     show_tooltips : bool, default=True
         Whether to show tooltips.
     interactive : bool, default=False
@@ -113,9 +118,10 @@ def dotplot(
     # In case of pseudo-categorical integer group_by temporarily cast to int for proper sorting
     with contextlib.suppress(Exception):  # supress errors if sorting fails
         stats_frame = (
-            stats_frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64))
-            .sort(group_by, descending=True)
-            #.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
+            stats_frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64)).sort(
+                group_by, descending=True
+            )
+            # .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
         )
     # perform sorting
     if sort_by is not None:
@@ -129,17 +135,37 @@ def dotplot(
             pl.col(group_by).cast(pl.String).cast(pl.Categorical)
         )
 
+    # HANDLE: tooltips
+    if tooltips is None:
+        tooltips = [variables_name, group_by]
+        tooltips_spec = layer_tooltips(tooltips)
+    elif tooltips == "none" or isinstance(tooltips, str):
+        tooltips_spec = tooltips
+    elif isinstance(tooltips, Sequence):
+        tooltips = list(tooltips)
+        tooltips_spec = layer_tooltips(tooltips)
+        if not set(tooltips).issubset(stats_frame.columns):
+            missing = set(tooltips) - set(stats_frame.columns)
+            msg = f"Some tooltip columns are not in the data: {missing}"
+            raise ValueError(msg)
+    elif isinstance(tooltips, FeatureSpec):
+        tooltips_spec = tooltips
+
     # BUILD: Dotplot
     if not fill:  # use color aesthetic
         dtplt = (
             ggplot(stats_frame, aes(x=variables_name, y=group_by))
-            + geom_point(aes(size=percentage_key, color=mean_key), **geom_kwargs)
+            + geom_point(
+                aes(size=percentage_key, color=mean_key), tooltips=tooltips_spec, **geom_kwargs
+            )
             + scale_color_gradient(low=color_low, high=color_high)
         )
     else:  # elif fill: use fill aesthetic
         dtplt = (
             ggplot(stats_frame, aes(x=variables_name, y=group_by))
-            + geom_point(aes(size=percentage_key, fill=mean_key), **geom_kwargs)
+            + geom_point(
+                aes(size=percentage_key, fill=mean_key), tooltips=tooltips_spec, **geom_kwargs
+            )
             + scale_fill_gradient(low=color_low, high=color_high)
         )
 
