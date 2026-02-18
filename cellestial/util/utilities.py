@@ -137,7 +137,7 @@ def _add_arrow_axis(
 
     return new_layer
 
-
+#TODO: Deprecate
 def _decide_tooltips(
     base_tooltips: Sequence[str] | str | None,
     add_tooltips: Sequence[str] | str | None,
@@ -529,7 +529,7 @@ def _select_variable_keys(
 ) -> list[str]:
     """From given keys, select only those that are variable keys."""
     if keys is None:
-        return False
+        return []
 
     if isinstance(data, AnnData):
         variable_keys = [key for key in keys if key in data.var_names]
