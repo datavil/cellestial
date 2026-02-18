@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
@@ -11,18 +12,16 @@ from lets_plot import (
     labs,
     layer_tooltips,
 )
+from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
-    _decide_tooltips,
     _determine_axis,
     _select_variable_keys,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from lets_plot.plot.core import PlotSpec
 
 
@@ -40,13 +39,11 @@ def xyplot(
     point_fill: str | None = None,
     point_size: str | None = None,
     point_shape: str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     include_dimensions: bool | int = False,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     **point_kwargs,
 ) -> PlotSpec:
     """
@@ -88,6 +85,10 @@ def xyplot(
         Shape of all the points, an integer from 0 to 25.
         For more information see:
         https://lets-plot.org/python/pages/aesthetics.html#point-shapes
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     observations_name : str, default="Barcode"
@@ -97,12 +98,6 @@ def xyplot(
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -122,26 +117,29 @@ def xyplot(
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
-    else:  # TODO: refactor
-        if "tooltips" in point_kwargs:
-            msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
-            raise KeyError(msg)
 
-    # Handle tooltips
-    base_tooltips = [x, y]
-    tooltips = _decide_tooltips(
-        base_tooltips=base_tooltips,
-        add_tooltips=add_tooltips,
-        custom_tooltips=custom_tooltips,
-        show_tooltips=show_tooltips,
-    )
-
+    # Determine variable keys
     keys = [
         key
         for key in [x, y, color, fill, size, shape]
         if key is not None and not key.startswith("X_")
     ]
     variable_keys = _select_variable_keys(data=data, keys=keys)
+
+    # HANDLE: tooltips
+    if tooltips is None:
+        tooltips = [x, y]
+        tooltips_spec = layer_tooltips(tooltips)
+    elif tooltips == "none" or isinstance(tooltips, str):
+        tooltips_spec = tooltips
+    elif isinstance(tooltips, Sequence):
+        tooltips = list(tooltips)
+        tooltips_spec = layer_tooltips(tooltips)
+        tooltips_variables = _select_variable_keys(data, tooltips)
+        if not set(tooltips_variables).issubset(variable_keys):
+            variable_keys.extend(tooltips_variables)
+    elif isinstance(tooltips, FeatureSpec):
+        tooltips_spec = tooltips
 
     # BUILD: the dataframe
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
@@ -165,7 +163,7 @@ def xyplot(
         ggplot(data=frame)
         + geom_point(
             aes(x=x, y=y, color=color, size=size, shape=shape, fill=fill),
-            tooltips=layer_tooltips(tooltips),
+            tooltips=tooltips_spec,
             **point_kwargs,
         )
         + labs(x=x, y=y)

@@ -1,5 +1,6 @@
 from cellestial.single.base import plot
 from cellestial.single.basic import bar, heatmap, scatter
+from cellestial.single.common import xyplot, xyplots
 from cellestial.single.core import (
     boxplot,
     boxplots,
@@ -38,4 +39,6 @@ __all__ = [
     "umaps",
     "violin",
     "violins",
+    "xyplot",
+    "xyplots",
 ]

@@ -20,6 +20,8 @@ from cellestial.single import (
     umaps,
     violin,
     violins,
+    xyplot,
+    xyplots,
 )
 from cellestial.util import _add_arrow_axis, retrieve, slice
 from cellestial.util.colors import (
@@ -72,4 +74,6 @@ __all__ = [
     "versions",
     "violin",
     "violins",
+    "xyplot",
+    "xyplots",
 ]
