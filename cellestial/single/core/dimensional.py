@@ -198,7 +198,7 @@ def dimensional(
 
     # Append the key if it is a variable key
     if _is_variable_key(data, key):
-        variable_keys.append(key)
+        variable_keys.append(key)  # ty:ignore[invalid-argument-type]
 
     # HANDLE: tooltips
     if tooltips is None:
