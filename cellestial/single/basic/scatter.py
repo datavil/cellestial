@@ -123,7 +123,7 @@ def xy(
     # handle point_kwargs
     if point_kwargs is None:
         point_kwargs = {}
-    else: #TODO: refactor
+    else:  # TODO: refactor
         if "tooltips" in point_kwargs:
             msg = "use tooltips args within the function instead of adding `'tooltips' : 'value'` to `point_kwargs`\n"
             raise KeyError(msg)
@@ -190,6 +190,7 @@ def xy(
 
     return scttr
 
+
 def scatter(
     data: AnnData,
     mapping: FeatureSpec | None = None,
@@ -205,7 +206,7 @@ def scatter(
     """
     Scatter Plot.
 
-    data
+    data : AnnData
         The AnnData object of the single cell data.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.

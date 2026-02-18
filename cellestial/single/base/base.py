@@ -2,40 +2,41 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from anndata import AnnData
 from lets_plot import ggplot
 
 from cellestial.frames import build_frame
+from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import PlotSpec
-
+    from anndata import AnnData
+    from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 
 def plot(
     data: AnnData,
-    axis: Literal[0, 1] | None = None,
+    mapping: FeatureSpec | None = None,
     *,
+    axis: Literal[0, 1] | None = None,
     variable_keys: Sequence[str] | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     include_dimensions: bool | int = False,
 ) -> PlotSpec:
     """
-    Base plot for plots without data wrangling.
+    Base plot (for plots without data wrangling).
 
     Parameters
     ----------
-    data
+    data : AnnData
         The AnnData object of the single cell data.
+    mapping : FeatureSpec | None, default=None
+        Aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    axis : Literal[0,1] | None
-        The axis to build the frame for. 0 for observations, 1 for variables.
     observations_name : str
         The name of the observations column, default is "barcode".
     variables_name : str
@@ -49,6 +50,10 @@ def plot(
     PlotSpec
         Base ggplot object.
     """
+    # BUILD: the dataframe
+    if mapping is not None:
+        keys = [v for v in vars(mapping)["_FeatureSpec__props"].values() if v is not None]
+        axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
@@ -58,4 +63,4 @@ def plot(
         include_dimensions=include_dimensions,
     )
 
-    return ggplot(data=frame)
+    return ggplot(data=frame, mapping=mapping)

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
+
 def heatmap(
     data: AnnData,
     mapping: FeatureSpec | None = None,
@@ -31,7 +32,7 @@ def heatmap(
 
     Parameters
     ----------
-    data
+    data : AnnData
         The AnnData object of the single cell data.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
