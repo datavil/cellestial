@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from lets_plot import gggrid
 
-from cellestial.single.basic.scatter import xy
+from cellestial.single.common.xyplot import xyplot
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
@@ -172,7 +172,7 @@ def scatters(
     # build plots
     plots = []
     for xi, yi in zip(x, y):
-        scttr = xy(
+        scttr = xyplot(
             data,
             x=xi,
             y=yi,

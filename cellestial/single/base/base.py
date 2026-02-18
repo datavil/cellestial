@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+from anndata import AnnData
 from lets_plot import ggplot
 
 from cellestial.frames import build_frame
@@ -10,7 +11,6 @@ from cellestial.util import _determine_axis
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from anndata import AnnData
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 
@@ -50,6 +50,11 @@ def plot(
     PlotSpec
         Base ggplot object.
     """
+    # Handling Data types
+    if not isinstance(data, AnnData):
+        msg = "data must be an `AnnData` object"
+        raise TypeError(msg)
+
     # BUILD: the dataframe
     if mapping is not None:
         keys = [v for v in vars(mapping)["_FeatureSpec__props"].values() if v is not None]
