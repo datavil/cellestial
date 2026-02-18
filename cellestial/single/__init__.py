@@ -1,5 +1,6 @@
 from cellestial.single.base import plot
-from cellestial.single.basic import bar, heatmap, scatter, scatters
+from cellestial.single.basic import bar, heatmap, scatter
+from cellestial.single.common import xyplot, xyplots
 from cellestial.single.core import (
     boxplot,
     boxplots,
@@ -32,11 +33,12 @@ __all__ = [
     "pcas",
     "plot",
     "scatter",
-    "scatters",
     "tsne",
     "tsnes",
     "umap",
     "umaps",
     "violin",
     "violins",
+    "xyplot",
+    "xyplots",
 ]

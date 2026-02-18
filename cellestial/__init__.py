@@ -14,13 +14,14 @@ from cellestial.single import (
     pcas,
     plot,
     scatter,
-    scatters,
     tsne,
     tsnes,
     umap,
     umaps,
     violin,
     violins,
+    xyplot,
+    xyplots,
 )
 from cellestial.util import _add_arrow_axis, retrieve, slice
 from cellestial.util.colors import (
@@ -64,7 +65,6 @@ __all__ = [
     "plot",
     "retrieve",
     "scatter",
-    "scatters",
     "show_colors",
     "slice",
     "tsne",
@@ -74,4 +74,6 @@ __all__ = [
     "versions",
     "violin",
     "violins",
+    "xyplot",
+    "xyplots",
 ]
