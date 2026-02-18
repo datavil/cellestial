@@ -465,7 +465,10 @@ def _wrap_legend(
     return legend
 
 
-def _is_variable_key(data: AnnData, key: str) -> bool:
+def _is_variable_key(data: AnnData, key: str | None) -> bool:
+    if key is None:
+        return False
+
     if isinstance(data, AnnData):
         if key in data.var_names:
             result = True
@@ -478,7 +481,10 @@ def _is_variable_key(data: AnnData, key: str) -> bool:
     return result
 
 
-def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
+def _are_variables(data: AnnData, keys: Sequence[str] | None) -> bool:
+    if keys is None:
+        return False
+
     if isinstance(data, AnnData):
         result = all(key in data.var_names for key in keys)
     else:
@@ -488,7 +494,10 @@ def _are_variables(data: AnnData, keys: Sequence[str]) -> bool:
     return result
 
 
-def _is_observation_key(data: AnnData, key: str) -> bool:
+def _is_observation_key(data: AnnData, key: str | None) -> bool:
+    if key is None:
+        return False
+
     if isinstance(data, AnnData):
         if key in data.obs.columns:
             result = True
@@ -501,7 +510,10 @@ def _is_observation_key(data: AnnData, key: str) -> bool:
     return result
 
 
-def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
+def _are_observations(data: AnnData, keys: Sequence[str] | None) -> bool:
+    if keys is None:
+        return False
+
     if isinstance(data, AnnData):
         result = all(key in data.obs.columns for key in keys)
     else:
@@ -513,9 +525,12 @@ def _are_observations(data: AnnData, keys: Sequence[str]) -> bool:
 
 def _select_variable_keys(
     data: AnnData,
-    keys: Sequence[str],
+    keys: Sequence[str] | None,
 ) -> list[str]:
     """From given keys, select only those that are variable keys."""
+    if keys is None:
+        return False
+
     if isinstance(data, AnnData):
         variable_keys = [key for key in keys if key in data.var_names]
     else:
@@ -524,8 +539,11 @@ def _select_variable_keys(
     return variable_keys
 
 
-def _is_observation_feature(data: AnnData, key: str) -> bool:
+def _is_observation_feature(data: AnnData, key: str | None) -> bool:
     """Check whether the key is in observations axis (axis=0)."""
+    if key is None:
+        return False
+
     if isinstance(data, AnnData):
         if key in data.obs.columns or key in data.var_names:
             result = True
@@ -538,8 +556,11 @@ def _is_observation_feature(data: AnnData, key: str) -> bool:
     return result
 
 
-def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
+def _are_observation_features(data: AnnData, keys: Sequence[str] | None) -> bool:
     """Check whether all the keys are in observations axis (axis=0)."""
+    if keys is None:
+        return False
+
     if isinstance(data, AnnData):
         result = all((key in data.obs.columns or key in data.var_names) for key in keys)
     else:
@@ -549,8 +570,11 @@ def _are_observation_features(data: AnnData, keys: Sequence[str]) -> bool:
     return result
 
 
-def _is_variable_feature(data: AnnData, key: str) -> bool:
+def _is_variable_feature(data: AnnData, key: str | None) -> bool:
     """Check whether the key is in variable axis (axis=1)."""
+    if key is None:
+        return False
+
     if isinstance(data, AnnData):
         if key in data.var.columns:
             result = True
@@ -563,8 +587,11 @@ def _is_variable_feature(data: AnnData, key: str) -> bool:
     return result
 
 
-def _are_variable_features(data: AnnData, keys: Sequence[str]) -> bool:
+def _are_variable_features(data: AnnData, keys: Sequence[str] | None) -> bool:
     """Check whether all the keys are in variable axis (axis=1)."""
+    if keys is None:
+        return False
+
     if isinstance(data, AnnData):
         result = all(key in data.var.columns for key in keys)
     else:

@@ -13,13 +13,14 @@ from lets_plot import (
     scale_color_gradient,
     scale_fill_gradient,
 )
-from lets_plot.plot.core import PlotSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DOTPLOT
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from lets_plot.plot.core import PlotSpec
 
 
 def dotplot(
