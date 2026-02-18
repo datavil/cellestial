@@ -31,7 +31,7 @@ def bar(
 
     Parameters
     ----------
-    data
+    data : AnnData
         The AnnData object of the single cell data.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
