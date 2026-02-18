@@ -22,6 +22,8 @@ def dimensionals(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
+    variable_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
@@ -33,9 +35,6 @@ def dimensionals(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -82,6 +81,12 @@ def dimensionals(
         Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
@@ -135,12 +140,6 @@ def dimensionals(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -228,6 +227,8 @@ def dimensionals(
             use_key=use_key,
             xy=xy,
             size=size,
+            variable_keys=variable_keys,
+            tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
@@ -239,9 +240,6 @@ def dimensionals(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
-            show_tooltips=show_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -288,6 +286,8 @@ def umaps(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
+    variable_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
@@ -299,9 +299,6 @@ def umaps(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -345,6 +342,12 @@ def umaps(
         Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
@@ -398,12 +401,6 @@ def umaps(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -490,6 +487,8 @@ def umaps(
             use_key=use_key,
             xy=xy,
             size=size,
+            variable_keys=variable_keys,
+            tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
@@ -501,9 +500,6 @@ def umaps(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
-            show_tooltips=show_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -550,6 +546,8 @@ def tsnes(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
+    variable_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
@@ -561,9 +559,6 @@ def tsnes(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -607,6 +602,12 @@ def tsnes(
         Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
@@ -660,12 +661,6 @@ def tsnes(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -752,6 +747,8 @@ def tsnes(
             use_key=use_key,
             xy=xy,
             size=size,
+            variable_keys=variable_keys,
+            tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
@@ -762,10 +759,6 @@ def tsnes(
             arrow_length=arrow_length,
             arrow_size=arrow_size,
             arrow_color=arrow_color,
-            arrow_angle=arrow_angle,
-            show_tooltips=show_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -812,6 +805,8 @@ def pcas(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
+    variable_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
@@ -823,9 +818,6 @@ def pcas(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -869,6 +861,12 @@ def pcas(
         Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
@@ -922,12 +920,6 @@ def pcas(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -1014,6 +1006,8 @@ def pcas(
             use_key=use_key,
             xy=xy,
             size=size,
+            variable_keys=variable_keys,
+            tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
@@ -1025,9 +1019,6 @@ def pcas(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
-            show_tooltips=show_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,
@@ -1075,6 +1066,8 @@ def expressions(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
+    variable_keys: Sequence[str] | str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     color_low: str = "#e6e6e6",
@@ -1086,9 +1079,6 @@ def expressions(
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
     arrow_angle: float = 10,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
     legend_ondata: bool = False,
     ondata_size: float = 12,
     ondata_color: str = "#3f3f3f",
@@ -1134,6 +1124,12 @@ def expressions(
         Otherwise, the function will decide on the key based on the dimensions.
     size : float, default=0.8
         The size of the points.
+    variable_keys : str | Sequence[str] | None, default=None
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     cluster_name : str, default='Cluster'
@@ -1187,12 +1183,6 @@ def expressions(
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
     legend_ondata: bool, default=False
         whether to show legend on data
     ondata_size: float, default=12
@@ -1280,6 +1270,8 @@ def expressions(
             use_key=use_key,
             xy=xy,
             size=size,
+            variable_keys=variable_keys,
+            tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
@@ -1291,9 +1283,6 @@ def expressions(
             arrow_size=arrow_size,
             arrow_color=arrow_color,
             arrow_angle=arrow_angle,
-            show_tooltips=show_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
             legend_ondata=legend_ondata,
             ondata_size=ondata_size,
             ondata_color=ondata_color,

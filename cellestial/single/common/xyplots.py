@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from lets_plot import gggrid
 
-from cellestial.single.basic.scatter import xy
+from cellestial.single.common.xyplot import xyplot
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
 
 
-def scatters(
+def xyplots(
     data: AnnData,
     x: str | Sequence[str],
     y: str | Sequence[str],
@@ -28,13 +28,11 @@ def scatters(
     point_fill: str | None = None,
     point_size: str | None = None,
     point_shape: str | None = None,
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    include_dimensions: bool = False,
-    show_tooltips: bool = True,
-    add_tooltips: Sequence[str] | str | None = None,
-    custom_tooltips: Sequence[str] | str | None = None,
+    include_dimensions: bool | int = False,
     # multi plot args
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -89,20 +87,19 @@ def scatters(
         Shape of all the points, an integer from 0 to 25.
         For more information see:
         https://lets-plot.org/python/pages/aesthetics.html#point-shapes
+    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     observations_name : str, default="Barcode"
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default="Variable"
         The name to give to variable index column in the dataframe.
-    include_dimensions : bool, default=False
-        Whether to include dimensions in the dataframe.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
-    add_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Additional tooltips to show.
-    custom_tooltips : list[str] | tuple[str] | Sequence[str] | str | None, default=None
-        Custom tooltips, will overwrite the base_tooltips.
+    include_dimensions : bool | int, default=False
+        Whether to include dimensions in the DataFrame.
+        Providing an integer will limit the number of dimensions to given number.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -170,8 +167,8 @@ def scatters(
 
     # build plots
     plots = []
-    for xi, yi in zip(x, y):
-        scttr = xy(
+    for xi, yi in zip(x, y, strict=True):
+        scttr = xyplot(
             data,
             x=xi,
             y=yi,
@@ -184,13 +181,11 @@ def scatters(
             point_fill=point_fill,
             point_size=point_size,
             point_shape=point_shape,
+            tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
             variables_name=variables_name,
             include_dimensions=include_dimensions,
-            show_tooltips=show_tooltips,
-            add_tooltips=add_tooltips,
-            custom_tooltips=custom_tooltips,
             **point_kwargs,
         )
         # handle the layers
