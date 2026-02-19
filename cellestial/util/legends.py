@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import polars as pl
 from lets_plot import aes, geom_text, theme
-from lets_plot.plot.core import FeatureSpec, FeatureSpecArray
+
+if TYPE_CHECKING:
+    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray
 
 
 def _legend_ondata(
