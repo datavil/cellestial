@@ -103,8 +103,9 @@ def _add_arrow_axis(
         y_diff = y_max - y_min  # ty:ignore[unsupported-operator]
 
         # find the ends of the arrows
-        xend = x_min + arrow_length * x_diff
-        yend = y_min + arrow_length * y_diff
+        # ensure the arrow length is the same for both axis
+        xend = x_min + arrow_length * min(y_diff, x_diff)
+        yend = y_min + arrow_length * min(y_diff, x_diff)
 
         # adjust bottom ends of arrows
         adjust_rate = 0.025
@@ -137,7 +138,8 @@ def _add_arrow_axis(
 
     return new_layer
 
-#TODO: Deprecate
+
+# TODO: Deprecate
 def _decide_tooltips(
     base_tooltips: Sequence[str] | str | None,
     add_tooltips: Sequence[str] | str | None,
