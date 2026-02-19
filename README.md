@@ -7,13 +7,13 @@
 The __Grammar of Graphics__ for single-cell omics.
 
 
-## Installation
+### Installation
 
 ```bash
 pip install cellestial
 ```
 
-## Introduction
+### Introduction
 
 
 __Cellestial__ is an interactive and a highly customizable _Single-Cell_ & _Spatial_ omics data visualization library. Built on top [Lets-Plot](https://lets-plot.org/), it offers ggplot-like layered thus modular approach offering __high customizability__ and __publication-ready figures__. 
@@ -30,7 +30,7 @@ _Cellestial is built-on top the following core design philosophies:_
 
 with _reproduciblity_, _ease-of-use_, and, of course, _beautiful publication-ready plots/charts/figures_ in mind.
 
-## Design Philosophy
+### Design Philosophy
 
 These design philosophies are mainly borrowed from ggplot, Zen of Python, and Rust.
 
@@ -58,13 +58,13 @@ To see the example Figures visit [Cellestial Webpage](https://datavil.github.io/
 
 <img src="./assets/overall.png" alt="multipanel" width="600">
 
-## Usage
+### Usage
 
 ```python
 import cellestial as cl
 ```
 
-### Interactive tooltips of individual data points
+#### Interactive tooltips of individual data points
 ```python
 umap = cl.umap(data, size=1, axis_type="arrow")
 umap
@@ -73,7 +73,7 @@ umap
 
 and tooltips can be extended with other features..
 
-### Zooming and Paning Options
+#### Zooming and Paning Options
 ```python
 umap = cl.umap(data, size=1, axis_type="arrow", interactive=True)
 ```
@@ -81,7 +81,7 @@ umap = cl.umap(data, size=1, axis_type="arrow", interactive=True)
 <img src="./assets/interactive.gif" width="500" />
 
 
-### Plots are exteremly customizable
+#### Plots are exteremly customizable
 
 ```python
 umap + scale_color_hue() + ggsize(500,400)
@@ -89,7 +89,7 @@ umap + scale_color_hue() + ggsize(500,400)
 <img src="./assets/customized.png" alt="Customized" width="400">
 
 
-### Multi plots are distinct functions
+#### Multi plots are distinct functions
 
 Instead of singular function names (`umap`), multi-grid plots requires the plural (`umaps`),providing predictability which guarentees the reproducibility.
 
