@@ -1,22 +1,60 @@
-<p align="center">
-    <img src="https://github.com/datavil/cellestial/blob/master/assets/cellestial_logo.png?raw=true" alt="Cellestial Logo" width="250">
-</p>
-
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/DataVil/Cellestial) [![PyPI](https://img.shields.io/pypi/v/cellestial?color=blue)](https://https://datavil.github.io/cellestial/examples/overall.htmlpypi.org/project/cellestial/)
-
-To see the example Figures visit [Cellestial Webpage](https://datavil.github.io/cellestial/).
-
 # Cellestial
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/DataVil/Cellestial) 
+[![PyPI](https://img.shields.io/pypi/v/cellestial?color=blue)](https://pypi.org/project/cellestial/)
 
-An Interactive and Highly Customizable __Single-Cell__ & __Spatial__ Plotting Tool over a ggplot-like API.
+<img align="right" src="assets/cellestial_logo.png" alt="Cellestial Logo" width="300">
 
-Name Encuplates: Space (of Spatial), Scatters of Stars, and of course Cells.
+The __Grammar of Graphics__ for single-cell omics.
+
 
 ## Installation
 
 ```bash
 pip install cellestial
 ```
+
+## Introduction
+
+
+__Cellestial__ is an interactive and a highly customizable _Single-Cell_ & _Spatial_ omics data visualization library. Built on top [Lets-Plot](https://lets-plot.org/), it offers ggplot-like layered thus modular approach offering __high customizability__ and __publication-ready figures__. 
+
+Cellestial is highly integrated with scverse's [AnnData](https://github.com/scverse/anndata) with room for integration with any upcoming single-cell omics data type in the Python single-cell omics ecosystem.
+
+Cellestial leverages the performance of Polars for 
+
+_Cellestial is built-on top the following core design philosophies:_
+1. Modularity over abstraction
+1. Predictability over flexibility
+1. Explicity over implicity
+1. Simplicity & Expressiveness
+
+with _reproduciblity_, _ease-of-use_, and, of course, _beautiful publication-ready plots/charts/figures_ in mind.
+
+## Design Philosophy
+
+These design philosophies are mainly borrowed from ggplot, Zen of Python, and Rust.
+
+1. Modularity over abstraction
+
+Abstraction is nice but sacrifices customizability. If the user can provide `+ ggsize(800,600)` and change the figure size at any point, there is no need to accept for plotting functions _width_ or _heigth_ as paramaters. The same applies to the many other possible layers and aesthetics of the plot. This approach is particularly useful with notebooks and _exploratary data analysis_, EDA. On top of eliminating unncessary complexity, the approach eliminates the risk of conflicting arguments.
+
+2. Predictability over flexibility
+
+Flexibility provides convenience but sacrifices predictibality. If providing a single key produces a single plot and providing a sequence of keys prodcues a grid of plots the return type would be different (i.e, `PlotSpec` vs `SupPlotsSpec`) for the same function. The follow-up workflow would have to be totally different for these two cases.
+
+Cellestial ensures reproducibility by strict return types. Naming convention allows such strict return types. Instead of `cl.umap("")`
+
+
+
+
+
+
+
+
+To see the example Figures visit [Cellestial Webpage](https://datavil.github.io/cellestial/).
+
+
+
 
 <img src="./assets/overall.png" alt="multipanel" width="600">
 
