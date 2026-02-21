@@ -289,7 +289,7 @@ def dimensional(
                 frame=frame,
                 x=x,
                 y=y,
-                cluster_name=key,
+                group_by=key,
                 size=ondata_size,
                 color=ondata_color,
                 fontface=ondata_fontface,
