@@ -6,6 +6,7 @@ from lets_plot import gggrid
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.core.distribution import boxplot, violin
+from cellestial.util import _share_axis, _share_ticks
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -35,6 +36,9 @@ def violins(
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
+    # multi plot args
+    share_axis: bool = False,
+    share_ticks: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
@@ -109,6 +113,12 @@ def violins(
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    share_ticks : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     variable_column : str, default="variable"
@@ -162,8 +172,8 @@ def violins(
         https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
     """
     plots = []
-    for key in keys:
-        dst = violin(
+    for i,key in enumerate(keys):
+        plot = violin(
             data=data,
             key=key,
             axis=axis,
@@ -191,11 +201,14 @@ def violins(
             if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
-                dst += layer
+                plot += layer
+        if share_ticks:
+            plot = _share_ticks(plot, i, keys, ncol)
+        if share_axis:
+            plot = _share_axis(plot, i, keys, ncol, "axis")
+        plots.append(plot)
 
-        plots.append(dst)
-
-    dsts = gggrid(
+    return gggrid(
         plots,
         ncol=ncol,
         sharex=sharex,
@@ -208,9 +221,6 @@ def violins(
         align=align,
         guides=guides,
     )
-
-    return dsts
-
 
 def boxplots(
     data: AnnData,
@@ -233,6 +243,9 @@ def boxplots(
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
+    # multi plot args
+    share_axis: bool = False,
+    share_ticks: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
@@ -305,6 +318,12 @@ def boxplots(
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    share_ticks : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     variable_column : str, default="variable"
@@ -363,8 +382,8 @@ def boxplots(
         Boxplots.
     """
     plots = []
-    for key in keys:
-        dst = boxplot(
+    for i,key in enumerate(keys):
+        plot = boxplot(
             data=data,
             key=key,
             axis=axis,
@@ -392,11 +411,15 @@ def boxplots(
             if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
-                dst += layer
+                plot += layer
+        if share_ticks:
+            plot = _share_ticks(plot, i, keys, ncol)
+        if share_axis:
+            plot = _share_axis(plot, i, keys, ncol, "axis")
 
-        plots.append(dst)
+        plots.append(plot)
 
-    dsts = gggrid(
+    return gggrid(
         plots,
         ncol=ncol,
         sharex=sharex,
@@ -410,4 +433,3 @@ def boxplots(
         guides=guides,
     )
 
-    return dsts

@@ -94,6 +94,7 @@ def _distribution(
 
     # BUILD: the DataFrame
     variable_keys = _select_variable_keys(data=data, keys=keys)
+    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
