@@ -74,12 +74,12 @@ def _distribution(
         separator = fill
     elif color is not None:
         separator = color
-    
+
     if point_kwargs is None:
         point_kwargs = {}
 
     # determine index to unpivot
-    index = [separator] if separator else []
+    index = [x for x in [fill, color] if x is not None]
     if add_keys is not None:
         if isinstance(add_keys, str):
             add_keys = [add_keys]
@@ -126,7 +126,7 @@ def _distribution(
     # add the geom layer
     if geom == "violin":
         dst += geom_violin(
-            mapping=aes(x=separator, y=value_column, color=color, fill=fill),
+            mapping=aes(x=separator, y=value_column, color=color, fill=fill, group=separator),
             fill=geom_fill,
             color=geom_color,
             tooltips=layer_tooltips(frame.columns),
@@ -134,7 +134,7 @@ def _distribution(
         )
     elif geom == "boxplot":
         dst += geom_boxplot(
-            mapping=aes(x=separator, y=value_column, color=color, fill=fill),
+            mapping=aes(x=separator, y=value_column, color=color, fill=fill, group=separator),
             fill=geom_fill,
             color=geom_color,
             tooltips=layer_tooltips(frame.columns),
