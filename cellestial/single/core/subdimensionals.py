@@ -160,10 +160,10 @@ def dimensionals(
         If False, the arithmetic mean of the group means is used.
     share_labels : bool, default=True
         Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+        If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -421,10 +421,10 @@ def umaps(
         If False, the arithmetic mean of the group means is used.
     share_labels : bool, default=True
         Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+        If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -681,10 +681,10 @@ def tsnes(
         If False, the arithmetic mean of the group means is used.
     share_labels : bool, default=True
         Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+        If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -940,10 +940,10 @@ def pcas(
         If False, the arithmetic mean of the group means is used.
     share_labels : bool, default=True
         Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+        If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -1203,10 +1203,10 @@ def expressions(
         If False, the arithmetic mean of the group means is used.
     share_labels : bool, default=True
         Whether to share the labels across all plots.
-        If True, only X labels on bottom row are shown and Y labels on left column are shown.
+        If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
-        If True, only X axis on bottom row is shown and Y axis on left column is shown.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
         Layers to add to all the plots in the grid.
     ncol : int, default=None

@@ -435,6 +435,25 @@ def _share_axis(
     return plot
 
 
+def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
+    if ncol is None:
+        ncol = len(keys)
+    total = len(keys)
+    nrow = ceil(total / ncol)
+    left_places = [i for i in range(total) if i % ncol == 0]
+    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
+    if len(bottom_places) < ncol:
+        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
+        bottom_places.extend(penultimate_row)
+    if i not in bottom_places:  # remove x axis title except for bottom row
+        plot = plot + theme(axis_text_x=element_blank())
+    if i not in left_places:  # remove y axis title except for left column
+        plot = plot + theme(axis_text_y=element_blank())
+
+    return plot
+
+
+
 '''
 def _key_style(data: AnnData, key: str) -> str:
     """Find the layers with the given key."""
