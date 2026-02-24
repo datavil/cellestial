@@ -1,5 +1,6 @@
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
+from cellestial.layers import outline_clusters
 from cellestial.single import (
     bar,
     boxplot,
@@ -23,7 +24,7 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
-from cellestial.util import _add_arrow_axis, retrieve, slice
+from cellestial.util import _add_arrow_axis, get_mapping, retrieve, slice
 from cellestial.util.colors import (
     BLUE,
     CHERRY,
@@ -58,8 +59,10 @@ __all__ = [
     "dotplot",
     "expression",
     "expressions",
+    "get_mapping",
     "heatmap",
     "interactive",
+    "outline_clusters",
     "pca",
     "pcas",
     "plot",

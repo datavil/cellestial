@@ -289,6 +289,14 @@ def _color_gradient(
         )
 
 
+def get_mapping(plot: PlotSpec, *, index=0) -> dict:
+    """Returns the mapping of the plot."""
+    return {
+        **plot.as_dict().get("mapping"),  # from the global mapping,
+        **plot.as_dict().get("layers")[index].get("mapping"),  # from a layer.
+    }
+
+
 def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     """
     Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
@@ -308,21 +316,12 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     TypeError
         If the plot is not a PlotSpec or SupPlotsSpec object.
     """
-    SUP_PLOT_KEY = "_SupPlotsSpec__figures"
-    PLOT_KEY = "_FeatureSpec__props"
-
     if isinstance(plot, PlotSpec):
-        properties = vars(plot).get(PLOT_KEY)
-        frame = properties.get("data") if properties else None
+        frame = plot.as_dict().get("data")
     elif isinstance(plot, SupPlotsSpec):
-        figures = vars(plot).get(SUP_PLOT_KEY)
-        if figures:
-            frame = vars(figures[index]).get(PLOT_KEY).get("data")
-        else:
-            frame = None
+        frame = plot.as_dict().get("figures")[index].get("data")
     else:
-        print(type(plot))
-        msg = "plot must be a (lets_plot) PlotSpec or SupPlotsSpec object"
+        msg = f"Plot MUST be a `PlotSpec` or `SupPlotsSpec` object, type={type(plot)}"
         raise TypeError(msg)
 
     if frame is None:
@@ -359,24 +358,21 @@ def slice(
         If the grid is not a SupPlotsSpec object.
         If the index is not an int or Sequence[int].
     """
-    SUP_PLOT_KEY = "_SupPlotsSpec__figures"
     if isinstance(grid, SupPlotsSpec):
-        figures = vars(grid).get(SUP_PLOT_KEY)
+        figures = grid.as_dict().get("figures")
 
         if figures is not None:
             if isinstance(index, int):
                 plot = figures[index]
                 return plot
             elif isinstance(index, Sequence):
-                list_plots = []
-                for i in index:
-                    list_plots.append(figures[i])
+                list_plots = [figures[i] for i in index]
                 return gggrid(list_plots, **kwargs)
             else:
                 msg = f"Expected int or Sequence for index, but received {type(index)}"
                 raise TypeError(msg)
     else:
-        msg = f"Expected SupPlotsSpec for grid, but received {type(grid)}"
+        msg = f"Expected `SupPlotsSpec`, but received {type(grid)}"
         raise TypeError(msg)
 
 
@@ -451,7 +447,6 @@ def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlot
         plot = plot + theme(axis_text_y=element_blank())
 
     return plot
-
 
 
 '''

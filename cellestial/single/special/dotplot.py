@@ -100,14 +100,14 @@ def dotplot(
 
     #  CRITICAL PARTS: Dataframe Operations
     # 1. Unpivot frame
-    long_frame = frame.unpivot(
+    frame = frame.unpivot(
         on=keys,
         index=index_columns,
         variable_name=variables_name,
         value_name=value_name,
     )
     # 2. Aggregate and compute stats
-    stats_frame = long_frame.group_by([group_by, variables_name]).agg(
+    frame = frame.group_by([group_by, variables_name]).agg(
         [
             pl.col(value_name).mean().alias(mean_key),
             (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
@@ -117,21 +117,21 @@ def dotplot(
     # HANDLE: Sorting
     # In case of pseudo-categorical integer group_by temporarily cast to int for proper sorting
     with contextlib.suppress(Exception):  # supress errors if sorting fails
-        stats_frame = (
-            stats_frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64)).sort(
+        frame = (
+            frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64)).sort(
                 group_by, descending=True
             )
             # .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
         )
     # perform sorting
     if sort_by is not None:
-        stats_frame = stats_frame.sort(
+        frame = frame.sort(
             by=sort_by,
             descending=(sort_order == "descending"),
         )
     # Cast back to categorical
-    if stats_frame[group_by].dtype == pl.Int64:
-        stats_frame = stats_frame.with_columns(
+    if frame[group_by].dtype == pl.Int64:
+        frame = frame.with_columns(
             pl.col(group_by).cast(pl.String).cast(pl.Categorical)
         )
 
@@ -144,8 +144,8 @@ def dotplot(
     elif isinstance(tooltips, Sequence):
         tooltips = list(tooltips)
         tooltips_spec = layer_tooltips(tooltips)
-        if not set(tooltips).issubset(stats_frame.columns):
-            missing = set(tooltips) - set(stats_frame.columns)
+        if not set(tooltips).issubset(frame.columns):
+            missing = set(tooltips) - set(frame.columns)
             msg = f"Some tooltip columns are not in the data: {missing}"
             raise ValueError(msg)
     elif isinstance(tooltips, FeatureSpec):
@@ -154,7 +154,7 @@ def dotplot(
     # BUILD: Dotplot
     if not fill:  # use color aesthetic
         dtplt = (
-            ggplot(stats_frame, aes(x=variables_name, y=group_by))
+            ggplot(frame, aes(x=variables_name, y=group_by))
             + geom_point(
                 aes(size=percentage_key, color=mean_key), tooltips=tooltips_spec, **geom_kwargs
             )
@@ -162,7 +162,7 @@ def dotplot(
         )
     else:  # elif fill: use fill aesthetic
         dtplt = (
-            ggplot(stats_frame, aes(x=variables_name, y=group_by))
+            ggplot(frame, aes(x=variables_name, y=group_by))
             + geom_point(
                 aes(size=percentage_key, fill=mean_key), tooltips=tooltips_spec, **geom_kwargs
             )
