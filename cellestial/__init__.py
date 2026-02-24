@@ -1,6 +1,6 @@
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
-from cellestial.layers import outline_clusters
+from cellestial.layers import cluster_outlines
 from cellestial.single import (
     bar,
     boxplot,
@@ -54,6 +54,7 @@ __all__ = [
     "boxplot",
     "boxplots",
     "build_frame",
+    "cluster_outlines",
     "dimensional",
     "dimensionals",
     "dotplot",
@@ -62,7 +63,6 @@ __all__ = [
     "get_mapping",
     "heatmap",
     "interactive",
-    "outline_clusters",
     "pca",
     "pcas",
     "plot",

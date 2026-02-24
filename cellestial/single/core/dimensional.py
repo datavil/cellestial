@@ -283,8 +283,8 @@ def dimensional(
         scttr += ggtb(size_zoomin=-1)
 
     # HANDLE: legend on data
-    if key is not None:
-        if legend_ondata and frame[key].dtype == pl.Categorical:
+    if key is not None and legend_ondata:
+        if frame[key].dtype == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
                 x=x,
