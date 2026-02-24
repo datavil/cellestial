@@ -231,7 +231,7 @@ def dimensional(
     scttr = (
         ggplot(data=frame)
         + geom_point(
-            aes(x=x, y=y, color=key),
+            mapping=aes(x=x, y=y, color=key),
             size=size,
             tooltips=tooltips_spec,
             **point_kwargs,
@@ -283,8 +283,8 @@ def dimensional(
         scttr += ggtb(size_zoomin=-1)
 
     # HANDLE: legend on data
-    if legend_ondata and key is not None:
-        if frame[key].dtype == pl.Categorical:
+    if key is not None:
+        if legend_ondata and frame[key].dtype == pl.Categorical:
             scttr += _legend_ondata(
                 frame=frame,
                 x=x,
@@ -297,7 +297,7 @@ def dimensional(
                 alpha=ondata_alpha,
                 weighted=ondata_weighted,
             )
-        else:
+        elif frame[key].dtype != pl.Categorical:
             msg = f"key `{key}` is not categorical, legend on data will not be added"
             warnings.warn(msg, stacklevel=1)
 
