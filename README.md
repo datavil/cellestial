@@ -46,34 +46,42 @@ To see the example Figures visit [Cellestial Webpage](https://datavil.github.io/
 import cellestial as cl
 ```
 
-#### Interactive tooltips of individual data points
+### Tooltips
 ```python
-umap = cl.umap(data, size=1, axis_type="arrow")
-umap
+umap = cl.umap(
+    data,
+    key="cell_type_lvl1",
+    size=1,
+    axis_type="arrow",
+    alpha=0.6,
+    tooltips=["cell_type_lvl1", "n_genes","pct_counts_in_top_50_genes"],
+    legend_ondata=True,
+    ondata_size=12,
+    ondata_fontface="bold",
+    ondata_family="mono",
+    ondata_alpha=0.8,
+)
 ```
-<img src="./assets/tooltips.png" alt="tooltips" width="500">
+<img src="./assets/tooltips.png" alt="tooltips" width="700">
 
-and tooltips can be extended with other features..
+### Layered/Modular Approach
 
-#### Zooming and Paning Options
+The ggplot-like API allows adding layers and customizing the plot.
+
 ```python
-umap = cl.umap(data, size=1, axis_type="arrow", interactive=True)
+# modify plot size and color palette
+umap += ggsize(800, 600) + scale_color_hue()
+# highlight clusters
+umap + cl.cluster_outlines(dim,["B Cells","Erythroid"])
 ```
+<img src="./assets/highlight.png" alt="highliht" width="700">
 
-<img src="./assets/interactive.gif" width="500" />
+### Zooming and Paning Options
+TODO
 
+### Grid plots
 
-#### Plots are exteremly customizable
-
-```python
-umap + scale_color_hue() + ggsize(500,400)
-```
-<img src="./assets/customized.png" alt="Customized" width="400">
-
-
-#### Multi plots are distinct functions
-
-Instead of singular function names (`umap`), multi-grid plots requires the plural (`umaps`),providing predictability which guarentees the reproducibility.
+Instead of singular function names (`umap`), multi/grid plots requires the plural (`umaps`),providing predictability which guarentees the reproducibility.
 
 Which are valid for all `dimensional` subsets (`expression`,`pca`,`umap`, `tsne`).
 
@@ -86,4 +94,4 @@ cl.umaps(
     color_high="red",
 ) + ggsize(900, 600)
 ```
-<img src="./assets/multi_umap.png" alt="multi" width="700">
+<img src="./assets/umaps.png" alt="umaps" width="700">

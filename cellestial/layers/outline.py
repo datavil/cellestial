@@ -74,7 +74,7 @@ def _get_density_boundaries(
 
     return pl.concat(boundaries)
 
-def outline_clusters(
+def cluster_outlines(
     plot: PlotSpec,
     /,
     groups: str | Sequence[str | Sequence[str]],
@@ -86,7 +86,7 @@ def outline_clusters(
     linetype: str = "dashed",
     size: float = 1,
     group_by: str | None = None,
-    mapping: FeatureSpec = None,
+    mapping: FeatureSpec | None = None,
     x: str | None = None,
     y: str | None = None,
     **geom_kwargs,
