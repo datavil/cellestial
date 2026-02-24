@@ -38,7 +38,7 @@ To see the example Figures visit [Cellestial Webpage](https://datavil.github.io/
 
 ### Example Plots Grid
 
-<img src="./assets/overall.png" alt="multipanel" width="600">
+<img src="./assets/overall.png" alt="multipanel" width="750">
 
 ### Usage
 
