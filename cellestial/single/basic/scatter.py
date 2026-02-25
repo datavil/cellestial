@@ -10,6 +10,7 @@ from lets_plot import (
 
 from cellestial.single.base import plot as baseplot
 from cellestial.themes import _THEME_SCATTER
+from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -63,18 +64,21 @@ def scatter(
         Scatter plot.
 
     """
+    if mapping is not None:
+        keys = [v for v in mapping.as_dict().values() if v is not None]
+        axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     # BUILD: the scatter plot
     scttr = (
         baseplot(
             data=data,
-            mapping=mapping,
+            mapping=None,
             axis=axis,
             variable_keys=variable_keys,
             observations_name=observations_name,
             variables_name=variables_name,
             include_dimensions=include_dimensions,
         )
-        + geom_point(**geom_kwargs)
+        + geom_point(mapping=mapping, **geom_kwargs)
         + _THEME_SCATTER
     )
 
