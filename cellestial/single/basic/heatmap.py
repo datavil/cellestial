@@ -6,6 +6,7 @@ from lets_plot import geom_tile, ggtb
 
 from cellestial.single.base import plot as baseplot
 from cellestial.themes import _THEME_HEATMAP
+from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -58,10 +59,13 @@ def heatmap(
     PlotSpec
         Heatmap.
     """
+    if mapping is not None:
+        keys = [v for v in mapping.as_dict().values() if v is not None]
+        axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     htmp = (
         baseplot(
             data=data,
-            mapping=mapping,
+            mapping=None,
             axis=axis,
             variable_keys=variable_keys,
             observations_name=observations_name,
