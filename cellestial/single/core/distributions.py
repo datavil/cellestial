@@ -19,6 +19,7 @@ def violins(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -65,6 +66,8 @@ def violins(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
@@ -176,6 +179,7 @@ def violins(
         plot = violin(
             data=data,
             key=key,
+            mapping=mapping,
             axis=axis,
             color=color,
             fill=fill,
@@ -226,6 +230,7 @@ def boxplots(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -272,6 +277,8 @@ def boxplots(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
@@ -386,6 +393,7 @@ def boxplots(
         plot = boxplot(
             data=data,
             key=key,
+            mapping=mapping,
             axis=axis,
             color=color,
             fill=fill,
