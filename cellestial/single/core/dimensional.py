@@ -234,8 +234,6 @@ def dimensional(
     )
 
     # BUILD: scatter plot
-    # BASE PLOT
-    print(aes(x=x, y=y, color=key, **mapping.as_dict()))
     scttr = (
         ggplot(data=frame)
         + geom_point(
