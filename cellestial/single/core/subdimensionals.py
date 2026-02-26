@@ -18,6 +18,7 @@ def dimensionals(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping : FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -69,6 +70,8 @@ def dimensionals(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
@@ -223,6 +226,7 @@ def dimensionals(
         plot = dimensional(
             data=data,
             key=key,
+            mapping=mapping,
             dimensions=dimensions,
             use_key=use_key,
             xy=xy,
@@ -283,6 +287,7 @@ def umaps(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping : FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -333,6 +338,8 @@ def umaps(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -484,6 +491,7 @@ def umaps(
         plot = umap(
             data=data,
             key=key,
+            mapping=mapping,
             use_key=use_key,
             xy=xy,
             size=size,
@@ -543,6 +551,7 @@ def tsnes(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping : FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -593,6 +602,8 @@ def tsnes(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -744,6 +755,7 @@ def tsnes(
         plot = tsne(
             data=data,
             key=key,
+            mapping=mapping,
             use_key=use_key,
             xy=xy,
             size=size,
@@ -802,6 +814,7 @@ def pcas(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping : FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -852,6 +865,8 @@ def pcas(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -1003,6 +1018,7 @@ def pcas(
         plot = pca(
             data=data,
             key=key,
+            mapping=mapping,
             use_key=use_key,
             xy=xy,
             size=size,
@@ -1062,6 +1078,7 @@ def expressions(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping : FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -1112,6 +1129,8 @@ def expressions(
         The AnnData object of the single cell data.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (gene names) to color the points by.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
@@ -1266,6 +1285,7 @@ def expressions(
         plot = expression(
             data=data,
             key=key,
+            mapping=mapping,
             dimensions=dimensions,
             use_key=use_key,
             xy=xy,
