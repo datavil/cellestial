@@ -10,6 +10,8 @@ from cellestial.util.utilities import (
     _select_variable_keys,
     _share_axis,
     _share_labels,
+    _share_ticks,
+    get_mapping,
     retrieve,
     slice,
 )
@@ -26,6 +28,8 @@ __all__ = [
     "_select_variable_keys",
     "_share_axis",
     "_share_labels",
+    "_share_ticks",
+    "get_mapping",
     "retrieve",
     "slice",
 ]
