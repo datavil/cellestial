@@ -6,6 +6,7 @@ from lets_plot import gggrid
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.core.distribution import boxplot, violin
+from cellestial.util import _share_axis, _share_ticks
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -18,6 +19,7 @@ def violins(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -35,6 +37,9 @@ def violins(
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
+    # multi plot args
+    share_axis: bool = False,
+    share_ticks: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
@@ -61,6 +66,8 @@ def violins(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
@@ -109,6 +116,12 @@ def violins(
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    share_ticks : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     variable_column : str, default="variable"
@@ -160,12 +173,18 @@ def violins(
         Additional parameters for the `geom_violin` layer.
         For more information on geom_violin parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+
+    Returns
+    -------
+    SupPlotsSpec
+        Violin Plots.
     """
     plots = []
-    for key in keys:
-        dst = violin(
+    for i,key in enumerate(keys):
+        plot = violin(
             data=data,
             key=key,
+            mapping=mapping,
             axis=axis,
             color=color,
             fill=fill,
@@ -191,11 +210,14 @@ def violins(
             if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
-                dst += layer
+                plot += layer
+        if share_ticks:
+            plot = _share_ticks(plot, i, keys, ncol)
+        if share_axis:
+            plot = _share_axis(plot, i, keys, ncol, "axis")
+        plots.append(plot)
 
-        plots.append(dst)
-
-    dsts = gggrid(
+    return gggrid(
         plots,
         ncol=ncol,
         sharex=sharex,
@@ -209,13 +231,11 @@ def violins(
         guides=guides,
     )
 
-    return dsts
-
-
 def boxplots(
     data: AnnData,
     keys: Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -233,6 +253,9 @@ def boxplots(
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
+    # multi plot args
+    share_axis: bool = False,
+    share_ticks: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
@@ -259,6 +282,8 @@ def boxplots(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
@@ -305,6 +330,12 @@ def boxplots(
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    share_ticks : bool, default=True
+        Whether to share the labels across all plots.
+        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+    share_axis : bool, default=False
+        Whether to share the axis across all plots.
+        If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     variable_column : str, default="variable"
@@ -359,14 +390,15 @@ def boxplots(
 
     Returns
     -------
-    SupPlotsSpec | PlotSpec
+    SupPlotsSpec
         Boxplots.
     """
     plots = []
-    for key in keys:
-        dst = boxplot(
+    for i,key in enumerate(keys):
+        plot = boxplot(
             data=data,
             key=key,
+            mapping=mapping,
             axis=axis,
             color=color,
             fill=fill,
@@ -392,11 +424,15 @@ def boxplots(
             if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
             for layer in layers:
-                dst += layer
+                plot += layer
+        if share_ticks:
+            plot = _share_ticks(plot, i, keys, ncol)
+        if share_axis:
+            plot = _share_axis(plot, i, keys, ncol, "axis")
 
-        plots.append(dst)
+        plots.append(plot)
 
-    dsts = gggrid(
+    return gggrid(
         plots,
         ncol=ncol,
         sharex=sharex,
@@ -410,4 +446,3 @@ def boxplots(
         guides=guides,
     )
 
-    return dsts

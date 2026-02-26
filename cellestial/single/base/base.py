@@ -57,7 +57,7 @@ def plot(
 
     # BUILD: the dataframe
     if mapping is not None:
-        keys = [v for v in vars(mapping)["_FeatureSpec__props"].values() if v is not None]
+        keys = [v for v in mapping.as_dict().values() if v is not None]
         axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     frame = build_frame(
         data=data,

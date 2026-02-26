@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 from lets_plot import geom_bar, ggtb
 
 from cellestial.single.base import plot as baseplot
+from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -59,9 +60,12 @@ def bar(
     PlotSpec
         Bar plot.
     """
+    if mapping is not None:
+        keys = [v for v in mapping.as_dict().values() if v is not None]
+        axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     br = baseplot(
         data=data,
-        mapping=mapping,
+        mapping=None,
         axis=axis,
         variable_keys=variable_keys,
         observations_name=observations_name,

@@ -32,6 +32,7 @@ def _distribution(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     geom: Literal["violin", "boxplot"] = "violin",
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
@@ -58,6 +59,10 @@ def _distribution(
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
+    # HANDLE: mapping
+    if mapping is None:
+        mapping = aes()
+
     # convert to list if single string
     if isinstance(key, str):
         keys = [key]
@@ -74,12 +79,12 @@ def _distribution(
         separator = fill
     elif color is not None:
         separator = color
-    
+
     if point_kwargs is None:
         point_kwargs = {}
 
     # determine index to unpivot
-    index = [separator] if separator else []
+    index = [x for x in [fill, color] if x is not None]
     if add_keys is not None:
         if isinstance(add_keys, str):
             add_keys = [add_keys]
@@ -94,6 +99,7 @@ def _distribution(
 
     # BUILD: the DataFrame
     variable_keys = _select_variable_keys(data=data, keys=keys)
+    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
@@ -126,7 +132,14 @@ def _distribution(
     # add the geom layer
     if geom == "violin":
         dst += geom_violin(
-            mapping=aes(x=separator, y=value_column, color=color, fill=fill),
+            mapping=aes(
+                x=separator,
+                y=value_column,
+                color=color,
+                fill=fill,
+                group=separator,
+                **mapping.as_dict(),
+            ),
             fill=geom_fill,
             color=geom_color,
             tooltips=layer_tooltips(frame.columns),
@@ -134,7 +147,14 @@ def _distribution(
         )
     elif geom == "boxplot":
         dst += geom_boxplot(
-            mapping=aes(x=separator, y=value_column, color=color, fill=fill),
+            mapping=aes(
+                x=separator,
+                y=value_column,
+                color=color,
+                fill=fill,
+                group=separator,
+                **mapping.as_dict(),
+            ),
             fill=geom_fill,
             color=geom_color,
             tooltips=layer_tooltips(frame.columns),
@@ -175,6 +195,7 @@ def violin(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -205,6 +226,8 @@ def violin(
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
@@ -272,6 +295,7 @@ def violin(
     return _distribution(
         data=data,
         key=key,
+        mapping=mapping,
         geom="violin",
         axis=axis,
         color=color,
@@ -299,6 +323,7 @@ def boxplot(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -329,6 +354,8 @@ def boxplot(
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
@@ -396,6 +423,7 @@ def boxplot(
     return _distribution(
         data=data,
         key=key,
+        mapping=mapping,
         geom="boxplot",
         axis=axis,
         color=color,
