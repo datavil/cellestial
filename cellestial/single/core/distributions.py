@@ -173,6 +173,11 @@ def violins(
         Additional parameters for the `geom_violin` layer.
         For more information on geom_violin parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+
+    Returns
+    -------
+    SupPlotsSpec
+        Violin Plots.
     """
     plots = []
     for i,key in enumerate(keys):
@@ -385,7 +390,7 @@ def boxplots(
 
     Returns
     -------
-    SupPlotsSpec | PlotSpec
+    SupPlotsSpec
         Boxplots.
     """
     plots = []
