@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+import pandas as pd
 import polars as pl
 from anndata import AnnData
 
@@ -11,26 +12,27 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def _add_anndata_variable_columns(
-    data: AnnData, frame: pl.DataFrame, keys: str | Sequence[str]
-) -> pl.DataFrame:
-    """Add variable keys to the DataFrame."""
+def _anndata_variable_columns(
+    data: AnnData, column_names: list[str], keys: str | Sequence[str]
+) -> list[pl.Series]:
+    """Return a list of variable columns as Polars `Series`."""
+    columns = []
     if isinstance(keys, str):
         keys = [keys]
     for key in keys:
-        if key in frame.columns:
+        if key in column_names:
             continue
         elif key in data.var_names:
-            column = data.obs_vector(key)
-            # add the variable column to the frame
-            frame = frame.with_columns(
-                pl.Series(key, column.astype("float32")),
+            values = data.obs_vector(key)
+            # add the variable column to the list of columns
+            columns.append(
+                pl.Series(key, values).cast(pl.Float32),
             )
         else:
             msg = f"Key `{key}` not found in data."
             raise KeyNotFoundError(msg)
 
-    return frame
+    return columns
 
 
 def anndata_observations_frame(
@@ -58,33 +60,35 @@ def anndata_observations_frame(
 
     Returns
     -------
-    pl.DataFrame
+    DataFrame
         A DataFrame containing the observations, with optional variable keys and dimensions.
     """
     # Check if data is an AnnData object
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
+    if not isinstance(data.obs, pd.DataFrame):  # in case of Dataset2D
+        part = data.obs.to_memory()
+    else:
+        part = data.obs
+    partm = data.obsm
     # PART 1: INITIALIZE
-    frame = pl.DataFrame()
-    # PART 2: ADD obs_names
-    frame = frame.with_columns(pl.Series(observations_name, data.obs_names))
-    # PART 3: ADD AnnData.obs
-    for key in data.obs.columns:
+    columns = [pl.Series(observations_name, data.obs_names)]
+    # PART 2: ADD AnnData.obs
+    for key in part.columns:
         # handle categorical integer data
-        if data.obs[key].dtype == "category":
+        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
             # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            category_kind = data.obs[key].cat.categories.dtype.kind
             # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            if category_kind in "iuf":
-                # Convert to string (str) and then back to categorical
-                data.obs[key] = data.obs[key].astype(str).astype("category")
-        # add the columns
-        frame = frame.with_columns(pl.Series(key, data.obs[key]))
-    # PART 4: ADD dimensions if needed
+            # Convert to string (str) and then back to categorical
+            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
+        else:
+            columns.append(pl.Series(part[key]))
+
+    # PART 3: ADD dimensions if needed
     if include_dimensions:
-        for X in data.obsm:
-            total_cols = data.obsm[X].shape[1]  # Number of dimensions (columns)
+        for X in partm:
+            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
                     col_count = min(include_dimensions, total_cols)
@@ -99,15 +103,14 @@ def anndata_observations_frame(
                 raise TypeError(msg)
 
             for col in range(col_count):
-                frame = frame.with_columns(
-                    pl.Series(f"{X.upper()}{col + 1}", data.obsm[X][:, col])
-                )
+                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
 
-    # PART 5: ADD keys if provided
+    # PART 4: ADD keys if provided
     if variable_keys is not None:
-        frame = _add_anndata_variable_columns(data=data, frame=frame, keys=variable_keys)
+        column_names = [column.name for column in columns]
+        columns.extend(_anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys))
 
-    return frame
+    return pl.DataFrame(columns)
 
 
 def anndata_variables_frame(
@@ -131,35 +134,35 @@ def anndata_variables_frame(
 
     Returns
     -------
-    pl.DataFrame
+    DataFrame
         A DataFrame containing the variables.
     """
     # PART 1: INITIALIZE
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
-    frame = pl.DataFrame()
-
-    # PART 2: ADD var_names
-    frame = frame.with_columns(pl.Series(variables_name, data.var_names))
-
+    if not isinstance(data.var, pd.DataFrame):  # in case of Dataset2D
+        part = data.var.to_memory()
+    else:
+        part = data.var
+    partm = data.varm
+    # PART1: initalize columns
+    columns = [pl.Series(variables_name, data.var_names)]
     # PART 3: ADD AnnData.var
-    for key in data.var.columns:
+    for key in part.columns:
         # handle categorical integer data
-        if data.var[key].dtype == "category":
+        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
             # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            category_kind = data.var[key].cat.categories.dtype.kind
             # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            if category_kind in "iuf":
-                # Convert to string (str) and then back to categorical
-                data.var[key] = data.var[key].astype(str).astype("category")
-        # add the columns
-        frame = frame.with_columns(pl.Series(key, data.var[key]))
+            # Convert to string (str) and then back to categorical
+            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
+        else:
+            columns.append(pl.Series(part[key]))
 
     # PART 4: ADD dimensions if needed
     if include_dimensions:
-        for X in data.varm:
-            total_cols = data.varm[X].shape[1]  # Number of dimensions (columns)
+        for X in partm:
+            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
                     col_count = min(include_dimensions, total_cols)
@@ -174,11 +177,9 @@ def anndata_variables_frame(
                 raise TypeError(msg)
 
             for col in range(col_count):
-                frame = frame.with_columns(
-                    pl.Series(f"{X.upper()}{col + 1}", data.varm[X][:, col])
-                )
+                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
 
-    return frame
+    return pl.DataFrame(columns)
 
 
 def build_frame(
@@ -191,7 +192,7 @@ def build_frame(
     include_dimensions: bool | int = False,
 ) -> pl.DataFrame:
     """
-    Build a DataFrame from an AnnData object.
+    Build a `polars.DataFrame` from an AnnData object.
 
     Parameters
     ----------
@@ -212,8 +213,8 @@ def build_frame(
 
     Returns
     -------
-    pl.DataFrame
-        A DataFrame containing the variables.
+    DataFrame
+        A polars DataFrame containing the variables.
     """
     if isinstance(data, AnnData):
         # infer the axis if not provided
