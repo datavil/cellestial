@@ -38,6 +38,7 @@ def dimensional(
     data: AnnData,
     key: str | None = None,
     *,
+    mapping : FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -74,6 +75,8 @@ def dimensional(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
@@ -177,6 +180,10 @@ def dimensional(
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
+    # HANDLE: mapping
+    if mapping is None:
+        mapping = aes()
+
     #  HANDLE: XY
     if len(xy) != 2:
         msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
@@ -228,10 +235,11 @@ def dimensional(
 
     # BUILD: scatter plot
     # BASE PLOT
+    print(aes(x=x, y=y, color=key, **mapping.as_dict()))
     scttr = (
         ggplot(data=frame)
         + geom_point(
-            mapping=aes(x=x, y=y, color=key),
+            mapping=aes(x=x, y=y, color=key,**mapping.as_dict()),
             size=size,
             tooltips=tooltips_spec,
             **point_kwargs,
