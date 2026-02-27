@@ -74,6 +74,7 @@ def _get_density_boundaries(
 
     return pl.concat(boundaries)
 
+
 def cluster_outlines(
     plot: PlotSpec,
     /,
@@ -84,19 +85,28 @@ def cluster_outlines(
     grid_size: int = 200,
     color: str = "#1f1f1f",
     linetype: str = "dashed",
+    mapping: FeatureSpec | None = None,
     size: float = 1,
     group_by: str | None = None,
-    mapping: FeatureSpec | None = None,
     x: str | None = None,
     y: str | None = None,
     **geom_kwargs,
 ) -> LayerSpec:
     """Returns a Layer of `geom_path` that outlines the given clusters."""
     # get mapping
-    _mapping = get_mapping(plot,index=0)
+    _mapping = get_mapping(plot, index=0)
     x = _mapping.get("x") if x is None else x
     y = _mapping.get("y") if y is None else y
     group_by = _mapping.get("color") if group_by is None else group_by
+    if x is None:
+        msg = "`x` is present neither as argument nor in the plot aesthetics."
+        raise ValueError(msg)
+    if y is None:
+        msg = "`y` is present neither as argument nor in the plot aesthetics."
+        raise ValueError(msg)
+    if group_by is None:
+        msg = "`group_by` is present neither as argument nor in the plot aesthetics."
+        raise ValueError(msg)
     # get data
     frame = plot.get_plot_shared_data()
     # get boundaries
@@ -115,7 +125,7 @@ def cluster_outlines(
         mapping = aes()
     return geom_path(
         data=frame,
-        mapping=aes(x=x, y=y, group="path",**mapping.as_dict()),
+        mapping=aes(x=x, y=y, group="path", **mapping.as_dict()),
         color=color,
         linetype=linetype,
         size=size,
