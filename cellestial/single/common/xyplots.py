@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 from lets_plot import gggrid
+from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.common.xyplot import xyplot
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from anndata import AnnData
-    from lets_plot.plot.core import FeatureSpec, LayerSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 
 
@@ -19,15 +20,8 @@ def xyplots(
     x: str | Sequence[str],
     y: str | Sequence[str],
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
-    color: str | None = None,
-    fill: str | None = None,
-    size: str | None = None,
-    shape: str | None = None,
-    point_color: str | None = None,
-    point_fill: str | None = None,
-    point_size: str | None = None,
-    point_shape: str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -59,34 +53,10 @@ def xyplots(
         The key(s) for the x-axis.
     y : str
         The key(s) for the y-axis.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
-    color : str | None, default=None
-        Color aesthetic for the geom_point.
-    fill : str | None, default=None
-        Fill aesthetic for the geom_point.
-    size : str | None, default=None
-        Size aesthetic for the geom_point.
-    shape : str | None, default=None
-        Shape aesthetic for the geom_point.
-    point_color : str | None, default=None
-        Color for all the points.
-        - Accepts:
-            - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_fill : str | None, default=None
-        Fill color for all the points.
-        - Accepts:
-            - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_size : str | None, default=None
-        Size for all the points.
-    point_shape : str | None, default=None
-        Shape of all the points, an integer from 0 to 25.
-        For more information see:
-        https://lets-plot.org/python/pages/aesthetics.html#point-shapes
     tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -168,19 +138,12 @@ def xyplots(
     # build plots
     plots = []
     for xi, yi in zip(x, y, strict=True):
-        scttr = xyplot(
+        plot = xyplot(
             data,
             x=xi,
             y=yi,
+            mapping=mapping,
             axis=axis,
-            color=color,
-            fill=fill,
-            size=size,
-            shape=shape,
-            point_color=point_color,
-            point_fill=point_fill,
-            point_size=point_size,
-            point_shape=point_shape,
             tooltips=tooltips,
             interactive=interactive,
             observations_name=observations_name,
@@ -190,11 +153,11 @@ def xyplots(
         )
         # handle the layers
         if layers is not None:
-            if not isinstance(layers, Sequence):
+            if isinstance(layers, (FeatureSpec, LayerSpec)):
                 layers = [layers]
-            for layer in list(layers):
-                scttr += layer
-        plots.append(scttr)
+            for layer in layers:
+                plot += layer
+        plots.append(plot)
 
     scttrs = gggrid(
         plots,

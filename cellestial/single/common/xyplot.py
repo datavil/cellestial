@@ -30,15 +30,8 @@ def xyplot(
     x: str,
     y: str,
     *,
+    mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
-    color: str | None = None,
-    fill: str | None = None,
-    size: str | None = None,
-    shape: str | None = None,
-    point_color: str | None = None,
-    point_fill: str | None = None,
-    point_size: str | None = None,
-    point_shape: str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -57,34 +50,10 @@ def xyplot(
         The key for the x-axis.
     y : str
         The key for the y-axis.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : Literal[0,1] | None, default=None
         axis of the data, 0 for observations and 1 for variables.
-    color : str | None, default=None
-        Color aesthetic for the geom_point.
-    fill : str | None, default=None
-        Fill aesthetic for the geom_point.
-    size : str | None, default=None
-        Size aesthetic for the geom_point.
-    shape : str | None, default=None
-        Shape aesthetic for the geom_point.
-    point_color : str | None, default=None
-        Color for all the points.
-        - Accepts:
-            - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_fill : str | None, default=None
-        Fill color for all the points.
-        - Accepts:
-            - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_size : str | None, default=None
-        Size for all the points.
-    point_shape : str | None, default=None
-        Shape of all the points, an integer from 0 to 25.
-        For more information see:
-        https://lets-plot.org/python/pages/aesthetics.html#point-shapes
     tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -114,21 +83,28 @@ def xyplot(
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
-    # handle point_kwargs
-    if point_kwargs is None:
-        point_kwargs = {}
+    # HANDLE: mapping
+    _mapping = aes(x=x, y=y)
+    if mapping is None:
+        mapping = _mapping
+    elif isinstance(mapping, FeatureSpec):
+        merged = _mapping.as_dict() | mapping.as_dict()
+        mapping = aes(**merged)
 
     # Determine variable keys
-    keys = [
-        key
-        for key in [x, y, color, fill, size, shape]
-        if key is not None and not key.startswith("X_")
-    ]
+    keys = [key for key in mapping.as_dict().values() if key is not None]
     variable_keys = _select_variable_keys(data=data, keys=keys)
+    # include dimensions if a dimensional key provided
+    if not include_dimensions:
+        _keys = keys.copy()
+        for key in keys:
+            if key.startswith("X_"):
+                include_dimensions = True
+                _keys.remove(key)
 
     # HANDLE: tooltips
     if tooltips is None:
-        tooltips = [x, y]
+        tooltips = keys
         tooltips_spec = layer_tooltips(tooltips)
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
@@ -142,7 +118,7 @@ def xyplot(
         tooltips_spec = tooltips
 
     # BUILD: the dataframe
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
@@ -152,17 +128,11 @@ def xyplot(
         include_dimensions=include_dimensions,
     )
 
-    # scatter kwargs
-    point_kwargs["size"] = point_size
-    point_kwargs["color"] = point_color
-    point_kwargs["fill"] = point_fill
-    point_kwargs["shape"] = point_shape
-
     # BUILD: the scatterplot
     scttr = (
         ggplot(data=frame)
         + geom_point(
-            aes(x=x, y=y, color=color, size=size, shape=shape, fill=fill),
+            mapping=mapping,
             tooltips=tooltips_spec,
             **point_kwargs,
         )

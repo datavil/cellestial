@@ -20,14 +20,13 @@ def _anndata_variable_columns(
     if isinstance(keys, str):
         keys = [keys]
     for key in keys:
-        if key in column_names:
+        if key in column_names:  # check for repeats
             continue
         elif key in data.var_names:
             values = data.obs_vector(key)
             # add the variable column to the list of columns
-            columns.append(
-                pl.Series(key, values).cast(pl.Float32),
-            )
+            columns.append(pl.Series(key, values).cast(pl.Float32))
+            column_names.append(key)
         else:
             msg = f"Key `{key}` not found in data."
             raise KeyNotFoundError(msg)
@@ -108,7 +107,9 @@ def anndata_observations_frame(
     # PART 4: ADD keys if provided
     if variable_keys is not None:
         column_names = [column.name for column in columns]
-        columns.extend(_anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys))
+        columns.extend(
+            _anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
+        )
 
     return pl.DataFrame(columns)
 
