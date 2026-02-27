@@ -23,5 +23,6 @@ test_plots/
 .DS_Store
 .DS_Store
 
-# 
+# IDEs
 .vscode
+.idea
