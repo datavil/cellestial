@@ -9,7 +9,6 @@ from lets_plot import (
 )
 
 from cellestial.single.base import plot as baseplot
-from cellestial.themes import _THEME_SCATTER
 from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
@@ -79,7 +78,6 @@ def scatter(
             include_dimensions=include_dimensions,
         )
         + geom_point(mapping=mapping, **geom_kwargs)
-        + _THEME_SCATTER
     )
 
     if interactive:

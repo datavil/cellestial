@@ -887,7 +887,7 @@ version = "2.37.2"
 description = "Read and write images and video across all major formats. Supports scientific and volumetric data."
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "imageio-2.37.2-py3-none-any.whl", hash = "sha256:ad9adfb20335d718c03de457358ed69f141021a333c40a53e57273d8a5bd0b9b"},
     {file = "imageio-2.37.2.tar.gz", hash = "sha256:0212ef2727ac9caa5ca4b2c75ae89454312f440a756fcfc8ef1993e718f50f8a"},
@@ -1190,7 +1190,7 @@ version = "0.4"
 description = "Makes it easy to load subpackages and functions on demand."
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "lazy_loader-0.4-py3-none-any.whl", hash = "sha256:342aa8e14d543a154047afb4ba8ef17f5563baad3fc610d7b15b213b0f119efc"},
     {file = "lazy_loader-0.4.tar.gz", hash = "sha256:47c75182589b91a4e1a85a136c074285a5ad4d9f39c63e0d7fb76391c4574cd1"},
@@ -1648,7 +1648,7 @@ version = "3.6"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.11"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "python_version >= \"3.12\""
 files = [
     {file = "networkx-3.6-py3-none-any.whl", hash = "sha256:cdb395b105806062473d3be36458d8f1459a4e4b98e236a66c3a48996e07684f"},
@@ -1672,7 +1672,7 @@ version = "3.6.1"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = "!=3.14.1,>=3.11"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "python_version == \"3.11\""
 files = [
     {file = "networkx-3.6.1-py3-none-any.whl", hash = "sha256:d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762"},
@@ -2868,7 +2868,7 @@ version = "0.26.0"
 description = "Image processing in Python"
 optional = false
 python-versions = ">=3.11"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "scikit_image-0.26.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:b1ede33a0fb3731457eaf53af6361e73dd510f449dac437ab54573b26788baf0"},
     {file = "scikit_image-0.26.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7af7aa331c6846bd03fa28b164c18d0c3fd419dbb888fb05e958ac4257a78fdd"},
@@ -3294,7 +3294,7 @@ version = "2026.2.20"
 description = "Read and write TIFF files"
 optional = false
 python-versions = ">=3.11"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "tifffile-2026.2.20-py3-none-any.whl", hash = "sha256:a83e0e991647e39d5912369998ef02d858f89effe30064403a1a123b5daef8fb"},
     {file = "tifffile-2026.2.20.tar.gz", hash = "sha256:b98a7fc6ea4fa0e9919734857eebc6e2cb2c3a95468a930d4a948a9a49646ab7"},
@@ -3541,4 +3541,4 @@ test = ["coverage (>=7.10)", "hypothesis", "mypy", "numpydoc", "packaging", "pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "ffd7dd577909e3daa279be9b6523d2a46fb12d913021516e844b5684adc0dba7"
+content-hash = "8359c4b0a7960c736a9a484d69573e340af6efccfbc30d502af8d72a0f3da566"
