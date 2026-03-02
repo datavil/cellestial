@@ -2,11 +2,10 @@
 <html class="no-js" lang="en" data-content_root="../../../">
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>&lt;no title&gt; - cellestial documentation</title>
+        <title>cellestial.util.colors - cellestial documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -245,13 +244,7 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          <div class="view-this-page">
-  <a class="muted-link" href="../../../_sources/_templates/autoapi/python/module.rst.txt" title="View this page">
-    <svg><use href="#svg-eye"></use></svg>
-    <span class="visually-hidden">View this page</span>
-  </a>
-</div>
-<div class="theme-toggle-container theme-toggle-content">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
               <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
               <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
@@ -264,21 +257,93 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <p>{%- if obj.display %}
-{{ obj.name }}
-{{ “=” * obj.name|length }}</p>
-<p>{% if obj.docstring %}
-{{ obj.docstring }}
-{% endif %}</p>
-<p>{% for member in obj.members %}
-{% if member.type == “function” %}
-{{ member.name }}
-{{ “-” * member.name|length }}
-{% endif %}
-{{ member.render() }}
-{% endfor %}</p>
-<p>{% endif %}</p>
+          <h1>Source code for cellestial.util.colors</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lets_plot</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LetsPlot</span><span class="p">,</span>
+    <span class="n">aes</span><span class="p">,</span>
+    <span class="n">element_rect</span><span class="p">,</span>
+    <span class="n">geom_point</span><span class="p">,</span>
+    <span class="n">geom_text</span><span class="p">,</span>
+    <span class="n">gggrid</span><span class="p">,</span>
+    <span class="n">ggplot</span><span class="p">,</span>
+    <span class="n">ggsize</span><span class="p">,</span>
+    <span class="n">theme</span><span class="p">,</span>
+    <span class="n">theme_void</span><span class="p">,</span>
+<span class="p">)</span>
 
+<span class="c1"># Hand-picked colors for cellestial</span>
+<span class="n">TEAL</span> <span class="o">=</span> <span class="s2">&quot;#219B9D&quot;</span>
+<span class="n">BLUE</span> <span class="o">=</span> <span class="s2">&quot;#377EB8&quot;</span>
+<span class="n">RED</span> <span class="o">=</span> <span class="s2">&quot;#D2042D&quot;</span>
+<span class="n">CHERRY</span> <span class="o">=</span> <span class="s2">&quot;#AF1740&quot;</span>
+<span class="n">LIGHT_GRAY</span> <span class="o">=</span> <span class="s2">&quot;#E6E6E6&quot;</span>
+<span class="n">SNOW</span> <span class="o">=</span> <span class="s2">&quot;#F9F9F9&quot;</span>
+<span class="n">PURPLE</span> <span class="o">=</span> <span class="s2">&quot;#640D5F&quot;</span>
+<span class="n">PINK</span> <span class="o">=</span> <span class="s2">&quot;#E73879&quot;</span>
+<span class="n">ORANGE</span> <span class="o">=</span> <span class="s2">&quot;#F14A00&quot;</span>
+<span class="n">TEAL</span> <span class="o">=</span> <span class="s2">&quot;#219B9D&quot;</span>
+<span class="n">RED</span> <span class="o">=</span> <span class="s2">&quot;#D2042D&quot;</span>
+<span class="n">CHERRY</span> <span class="o">=</span> <span class="s2">&quot;#AF1740&quot;</span>
+<span class="n">BLUE</span> <span class="o">=</span> <span class="s2">&quot;#377EB8&quot;</span>
+<span class="n">LIGHT_GRAY</span> <span class="o">=</span> <span class="s2">&quot;#E6E6E6&quot;</span>
+
+
+<div class="viewcode-block" id="show_colors">
+<a class="viewcode-back" href="../../../generated/cellestial.util.colors.show_colors.html#cellestial.util.colors.show_colors">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">show_colors</span><span class="p">():</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;TEAL&quot;</span><span class="p">:</span> <span class="n">TEAL</span><span class="p">,</span>
+        <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">RED</span><span class="p">,</span>
+        <span class="s2">&quot;LIGHT_GRAY&quot;</span><span class="p">:</span> <span class="n">LIGHT_GRAY</span><span class="p">,</span>
+        <span class="s2">&quot;BLUE&quot;</span><span class="p">:</span> <span class="n">BLUE</span><span class="p">,</span>
+        <span class="s2">&quot;CHERRY&quot;</span><span class="p">:</span> <span class="n">CHERRY</span><span class="p">,</span>
+        <span class="s2">&quot;SNOW&quot;</span><span class="p">:</span> <span class="n">SNOW</span><span class="p">,</span>
+        <span class="s2">&quot;PURPLE&quot;</span><span class="p">:</span> <span class="n">PURPLE</span><span class="p">,</span>
+        <span class="s2">&quot;PINK&quot;</span><span class="p">:</span> <span class="n">PINK</span><span class="p">,</span>
+        <span class="s2">&quot;ORANGE&quot;</span><span class="p">:</span> <span class="n">ORANGE</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">plots</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">:</span>
+        <span class="n">text_color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span> <span class="k">if</span> <span class="n">color</span> <span class="o">!=</span> <span class="s2">&quot;LIGHT_GRAY&quot;</span> <span class="ow">and</span> <span class="n">color</span> <span class="o">!=</span> <span class="s2">&quot;SNOW&quot;</span> <span class="k">else</span> <span class="s2">&quot;black&quot;</span>
+
+        <span class="n">plot</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ggplot</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="o">+</span> <span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">),</span> <span class="n">fill</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">color</span><span class="p">],</span> <span class="n">shape</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#1f1f1f&quot;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">geom_text</span><span class="p">(</span>
+                <span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+                <span class="n">fontface</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span>
+                <span class="n">family</span><span class="o">=</span><span class="s2">&quot;Arial&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="n">geom_text</span><span class="p">(</span>
+                <span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">colors</span><span class="p">[</span><span class="n">color</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                <span class="n">fontface</span><span class="o">=</span><span class="s2">&quot;regular&quot;</span><span class="p">,</span>
+                <span class="n">family</span><span class="o">=</span><span class="s2">&quot;sans-serif&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="n">theme_void</span><span class="p">()</span>
+            <span class="o">+</span> <span class="n">theme</span><span class="p">(</span><span class="n">panel_background</span><span class="o">=</span><span class="n">element_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">color</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="mi">13</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
+
+    <span class="n">ncol</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">//</span> <span class="n">ncol</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">%</span> <span class="n">ncol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">nrow</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">gggrid</span><span class="p">(</span><span class="n">plots</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vspace</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">ggsize</span><span class="p">(</span><span class="n">ncol</span> <span class="o">*</span> <span class="mi">200</span><span class="p">,</span> <span class="n">nrow</span> <span class="o">*</span> <span class="mi">200</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">LetsPlot</span><span class="o">.</span><span class="n">setup_html</span><span class="p">()</span>
+    <span class="n">show_colors</span><span class="p">()</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span><span class="s2">&quot;colors.html&quot;</span><span class="p">)</span>
+</pre></div>
         </article>
       </div>
       <footer>

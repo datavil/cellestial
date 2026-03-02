@@ -1,3 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600&display=swap');
+
+/* Main Typography */
+:root {
+    --font-stack: "JetBrains Mono", monospace;
+    --font-stack--monospace: "JetBrains Mono", monospace;
+}
+
+body {
+    font-family: var(--font-stack) !important;
+    font-weight: 600 !important;
+    font-size: 1.05rem !important;
+    /* Slightly bigger */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-stack) !important;
+    font-weight: 600 !important;
+}
+
 /* Hide the sidebar in Furo theme */
 .sidebar-drawer {
     display: none !important;
@@ -12,21 +37,66 @@
     max-width: 100% !important;
 }
 
-/* Hide the summary column in autosummary tables */
-table.autosummary td:nth-child(2),
-table.autosummary th:nth-child(2) {
-    display: none !important;
+/* Premium Table Styling */
+table.autosummary {
+    width: 100% !important;
+    margin: 1.5em 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    font-size: 1rem !important;
+    border: 1px solid var(--color-background-border) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Optional: remove table borders and backgrounds to make it look like a list */
-table.autosummary {
-    border: none !important;
-    background: none !important;
-    width: 100% !important;
+table.autosummary thead {
+    display: none !important;
+    /* Hide column headers if they appear */
 }
 
 table.autosummary td {
-    padding: 0.2em 0 !important;
+    padding: 16px 20px !important;
+    border-bottom: 1px solid var(--color-background-border) !important;
+    vertical-align: top !important;
+    line-height: 1.6 !important;
+}
+
+table.autosummary tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Zebra striping */
+table.autosummary tr:nth-child(even) {
+    background-color: var(--color-background-secondary) !important;
+}
+
+table.autosummary tr:hover {
+    background-color: rgba(33, 155, 157, 0.05) !important;
+    /* Subtle teal tint on hover */
+}
+
+/* Function Name Column Styling */
+table.autosummary td:first-child {
+    width: 30% !important;
+    font-weight: 600 !important;
+}
+
+table.autosummary a {
+    color: var(--color-brand-primary) !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid transparent !important;
+    transition: border-color 0.2s ease-in-out !important;
+}
+
+table.autosummary a:hover {
+    border-bottom-color: var(--color-brand-primary) !important;
+}
+
+/* Description Column Styling */
+table.autosummary td:last-child {
+    color: var(--color-foreground-muted) !important;
+    font-weight: 500 !important;
 }
 
 /* Mobile adjustments */

@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cellestial.single.common.xyplots.xyplots" href="cellestial.single.common.xyplots.xyplots.html"><link rel="prev" title="cellestial.single.basic.scatter.scatter" href="cellestial.single.basic.scatter.scatter.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cellestial.util.utilities.slice" href="cellestial.util.utilities.slice.html"><link rel="prev" title="cellestial.util.utilities.get_mapping" href="cellestial.util.utilities.get_mapping.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>cellestial.single.common.xyplot.xyplot - cellestial documentation</title>
+        <title>cellestial.util.utilities.retrieve - cellestial documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -196,8 +196,8 @@
 <li class="toctree-l1"><a class="reference internal" href="cellestial.single.basic.heatmap.heatmap.html">cellestial.single.basic.heatmap.heatmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellestial.single.basic.scatter.scatter.html">cellestial.single.basic.scatter.scatter</a></li>
 </ul>
-<ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">cellestial.single.common.xyplot.xyplot</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cellestial.single.common.xyplot.xyplot.html">cellestial.single.common.xyplot.xyplot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellestial.single.common.xyplots.xyplots.html">cellestial.single.common.xyplots.xyplots</a></li>
 </ul>
 <ul>
@@ -221,10 +221,10 @@
 <li class="toctree-l1"><a class="reference internal" href="cellestial.single.core.distributions.boxplots.html">cellestial.single.core.distributions.boxplots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellestial.single.core.distributions.violins.html">cellestial.single.core.distributions.violins</a></li>
 </ul>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="cellestial.util.colors.show_colors.html">cellestial.util.colors.show_colors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellestial.util.utilities.get_mapping.html">cellestial.util.utilities.get_mapping</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cellestial.util.utilities.retrieve.html">cellestial.util.utilities.retrieve</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">cellestial.util.utilities.retrieve</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellestial.util.utilities.slice.html">cellestial.util.utilities.slice</a></li>
 </ul>
 
@@ -246,7 +246,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="../_sources/generated/cellestial.single.common.xyplot.xyplot.rst.txt" title="View this page">
+  <a class="muted-link" href="../_sources/generated/cellestial.util.utilities.retrieve.rst.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -264,38 +264,27 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="cellestial-single-common-xyplot-xyplot">
-<h1>cellestial.single.common.xyplot.xyplot<a class="headerlink" href="#cellestial-single-common-xyplot-xyplot" title="Link to this heading">¶</a></h1>
+          <section id="cellestial-util-utilities-retrieve">
+<h1>cellestial.util.utilities.retrieve<a class="headerlink" href="#cellestial-util-utilities-retrieve" title="Link to this heading">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="cellestial.single.common.xyplot.xyplot">
-<span class="sig-name descname"><span class="pre">xyplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FeatureSpec</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tooltips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'none'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureSpec</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Barcode'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Variable'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">point_kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PlotSpec</span></span></span><a class="reference internal" href="../_modules/cellestial/single/common/xyplot.html#xyplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellestial.single.common.xyplot.xyplot" title="Link to this definition">¶</a></dt>
-<dd><p>Scatter Plot.</p>
+<dt class="sig sig-object py" id="cellestial.util.utilities.retrieve">
+<span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PlotSpec</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">SupPlotsSpec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pl.DataFrame</span></span></span><a class="reference internal" href="../_modules/cellestial/util/utilities.html#retrieve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellestial.util.utilities.retrieve" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.</p>
+<dl class="simple">
+<dt>plot<span class="classifier">PlotSpec | SupPlotsSpec</span></dt><dd><p>The plot to retrieve the dataframe from.</p>
+</dd>
+<dt>index<span class="classifier">int, optional</span></dt><dd><p>The index of the figure to retrieve the dataframe from, by default 0</p>
+</dd>
+</dl>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>AnnData</em>) – The AnnData object of the single cell data.</p></li>
-<li><p><strong>x</strong> (<em>str</em>) – The key for the x-axis.</p></li>
-<li><p><strong>y</strong> (<em>str</em>) – The key for the y-axis.</p></li>
-<li><p><strong>mapping</strong> (<em>FeatureSpec</em><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Additional aesthetic mappings for the plot, the result of <cite>aes()</cite>.</p></li>
-<li><p><strong>axis</strong> (<em>Literal</em><em>[</em><em>0</em><em>,</em><em>1</em><em>] </em><em>| </em><em>None</em><em>, </em><em>default=None</em>) – axis of the data, 0 for observations and 1 for variables.</p></li>
-<li><p><strong>tooltips</strong> (<em>Literal</em><em>[</em><em>'none'</em><em>] </em><em>| </em><em>Sequence</em><em>[</em><em>str</em><em>] </em><em>| </em><em>FeatureSpec</em><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Tooltips to show when hovering over the geom.
-Accepts Sequence[str] or result of <cite>layer_tooltips()</cite> for more complex tooltips.
-Use ‘none’ to disable tooltips.</p></li>
-<li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to make the plot interactive.</p></li>
-<li><p><strong>observations_name</strong> (<em>str</em><em>, </em><em>default=&quot;Barcode&quot;</em>) – The name to give to barcode (or index) column in the dataframe.</p></li>
-<li><p><strong>variables_name</strong> (<em>str</em><em>, </em><em>default=&quot;Variable&quot;</em>) – The name to give to variable index column in the dataframe.</p></li>
-<li><p><strong>include_dimensions</strong> (<em>bool</em><em> | </em><em>int</em><em>, </em><em>default=False</em>) – Whether to include dimensions in the DataFrame.
-Providing an integer will limit the number of dimensions to given number.</p></li>
-<li><p><strong>**point_kwargs</strong> – Additional parameters for the <cite>geom_point</cite> layer.
-For more information on geom_point parameters, see:
-<a class="reference external" href="https://lets-plot.org/python/pages/api/lets_plot.geom_point.html">https://lets-plot.org/python/pages/api/lets_plot.geom_point.html</a></p></li>
-</ul>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The dataframe utilized in the plot.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Scatter plot.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pl.DataFrame</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>PlotSpec</p>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – If the plot is not a PlotSpec or SupPlotsSpec object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -307,23 +296,23 @@ For more information on geom_point parameters, see:
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="cellestial.single.common.xyplots.xyplots.html">
+          <a class="next-page" href="cellestial.util.utilities.slice.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">cellestial.single.common.xyplots.xyplots</div>
+                <div class="title">cellestial.util.utilities.slice</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="cellestial.single.basic.scatter.scatter.html">
+          <a class="prev-page" href="cellestial.util.utilities.get_mapping.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">cellestial.single.basic.scatter.scatter</div>
+                <div class="title">cellestial.util.utilities.get_mapping</div>
                 
               </div>
             </a>
@@ -357,8 +346,8 @@ For more information on geom_point parameters, see:
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">cellestial.single.common.xyplot.xyplot</a><ul>
-<li><a class="reference internal" href="#cellestial.single.common.xyplot.xyplot"><code class="docutils literal notranslate"><span class="pre">xyplot()</span></code></a></li>
+<li><a class="reference internal" href="#">cellestial.util.utilities.retrieve</a><ul>
+<li><a class="reference internal" href="#cellestial.util.utilities.retrieve"><code class="docutils literal notranslate"><span class="pre">retrieve()</span></code></a></li>
 </ul>
 </li>
 </ul>
