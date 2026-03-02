@@ -1,0 +1,96 @@
+cellestial.util.colors
+======================
+
+.. py:module:: cellestial.util.colors
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   cellestial.util.colors.TEAL
+   cellestial.util.colors.BLUE
+   cellestial.util.colors.RED
+   cellestial.util.colors.CHERRY
+   cellestial.util.colors.LIGHT_GRAY
+   cellestial.util.colors.SNOW
+   cellestial.util.colors.PURPLE
+   cellestial.util.colors.PINK
+   cellestial.util.colors.ORANGE
+   cellestial.util.colors.TEAL
+   cellestial.util.colors.RED
+   cellestial.util.colors.CHERRY
+   cellestial.util.colors.BLUE
+   cellestial.util.colors.LIGHT_GRAY
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   cellestial.util.colors.show_colors
+
+
+Module Contents
+---------------
+
+.. py:data:: TEAL
+   :value: '#219B9D'
+
+
+.. py:data:: BLUE
+   :value: '#377EB8'
+
+
+.. py:data:: RED
+   :value: '#D2042D'
+
+
+.. py:data:: CHERRY
+   :value: '#AF1740'
+
+
+.. py:data:: LIGHT_GRAY
+   :value: '#E6E6E6'
+
+
+.. py:data:: SNOW
+   :value: '#F9F9F9'
+
+
+.. py:data:: PURPLE
+   :value: '#640D5F'
+
+
+.. py:data:: PINK
+   :value: '#E73879'
+
+
+.. py:data:: ORANGE
+   :value: '#F14A00'
+
+
+.. py:data:: TEAL
+   :value: '#219B9D'
+
+
+.. py:data:: RED
+   :value: '#D2042D'
+
+
+.. py:data:: CHERRY
+   :value: '#AF1740'
+
+
+.. py:data:: BLUE
+   :value: '#377EB8'
+
+
+.. py:data:: LIGHT_GRAY
+   :value: '#E6E6E6'
+
+
+.. py:function:: show_colors()
+

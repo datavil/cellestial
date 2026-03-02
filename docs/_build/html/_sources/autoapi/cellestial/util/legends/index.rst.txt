@@ -1,0 +1,6 @@
+cellestial.util.legends
+=======================
+
+.. py:module:: cellestial.util.legends
+
+

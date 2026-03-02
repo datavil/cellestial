@@ -1,0 +1,12 @@
+cellestial.single.quick
+=======================
+
+.. py:module:: cellestial.single.quick
+
+.. autoapi-nested-parse::
+
+   qc plots
+       -
+
+
+

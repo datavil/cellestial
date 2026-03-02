@@ -1,0 +1,52 @@
+cellestial.single.common.xyplot
+===============================
+
+.. py:module:: cellestial.single.common.xyplot
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   cellestial.single.common.xyplot.xyplot
+
+
+Module Contents
+---------------
+
+.. py:function:: xyplot(data: anndata.AnnData, x: str, y: str, *, mapping: lets_plot.plot.core.FeatureSpec | None = None, axis: Literal[0, 1] | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', variables_name: str = 'Variable', include_dimensions: bool | int = False, **point_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   Scatter Plot.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param x: The key for the x-axis.
+   :type x: str
+   :param y: The key for the y-axis.
+   :type y: str
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param axis: axis of the data, 0 for observations and 1 for variables.
+   :type axis: Literal[0,1] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default="Barcode"
+   :param variables_name: The name to give to variable index column in the dataframe.
+   :type variables_name: str, default="Variable"
+   :param include_dimensions: Whether to include dimensions in the DataFrame.
+                              Providing an integer will limit the number of dimensions to given number.
+   :type include_dimensions: bool | int, default=False
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Scatter plot.
+   :rtype: PlotSpec
+
+

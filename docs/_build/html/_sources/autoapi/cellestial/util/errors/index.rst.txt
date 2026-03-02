@@ -1,0 +1,43 @@
+cellestial.util.errors
+======================
+
+.. py:module:: cellestial.util.errors
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   cellestial.util.errors.ConflictingKeysError
+   cellestial.util.errors.KeyNotFoundError
+   cellestial.util.errors.ConfilictingLengthError
+
+
+Module Contents
+---------------
+
+.. py:exception:: ConflictingKeysError(message: str)
+
+   Bases: :py:obj:`Exception`
+
+
+   Raised when keys conflict.
+
+
+.. py:exception:: KeyNotFoundError(message: str)
+
+   Bases: :py:obj:`Exception`
+
+
+   Raised when a key is not found.
+
+
+.. py:exception:: ConfilictingLengthError(message: str)
+
+   Bases: :py:obj:`Exception`
+
+
+   Raised when sizes conflict.
+
+

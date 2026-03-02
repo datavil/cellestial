@@ -1,0 +1,1783 @@
+cellestial
+==========
+
+.. py:module:: cellestial
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/cellestial/frames/index
+   /autoapi/cellestial/layers/index
+   /autoapi/cellestial/single/index
+   /autoapi/cellestial/themes/index
+   /autoapi/cellestial/util/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   cellestial.__version__
+   cellestial.BLUE
+   cellestial.CHERRY
+   cellestial.LIGHT_GRAY
+   cellestial.ORANGE
+   cellestial.PINK
+   cellestial.PURPLE
+   cellestial.RED
+   cellestial.SNOW
+   cellestial.TEAL
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   cellestial.versions
+   cellestial.build_frame
+   cellestial.cluster_outlines
+   cellestial.boxplot
+   cellestial.boxplots
+   cellestial.dimensionals
+   cellestial.expression
+   cellestial.expressions
+   cellestial.pca
+   cellestial.pcas
+   cellestial.plot
+   cellestial.tsne
+   cellestial.tsnes
+   cellestial.umap
+   cellestial.umaps
+   cellestial.violin
+   cellestial.violins
+   cellestial.get_mapping
+   cellestial.retrieve
+   cellestial.slice
+   cellestial.show_colors
+
+
+Package Contents
+----------------
+
+.. py:data:: __version__
+
+.. py:function:: versions()
+
+.. py:function:: build_frame(data: anndata.AnnData, *, variable_keys: str | collections.abc.Sequence[str] | None = None, axis: Literal[0, 1] | None = None, observations_name: str = 'barcode', variables_name: str = 'variable', include_dimensions: bool | int = False) -> polars.DataFrame
+
+   Build a `polars.DataFrame` from an AnnData object.
+
+   :param data: The AnnData object containing the variables.
+   :type data: AnnData
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None
+   :param axis: The axis to build the frame for. 0 for observations, 1 for variables.
+   :type axis: Literal[0,1] | None
+   :param observations_name: The name of the observations column, default is "barcode".
+   :type observations_name: str
+   :param variables_name: Name for the variables index column, default is 'variable'
+   :type variables_name: str
+   :param include_dimensions: Whether to include dimensions in the DataFrame, default is False.
+                              Providing an integer will limit the number of dimensions to given number.
+   :type include_dimensions: bool | int
+
+   :returns: A polars DataFrame containing the variables.
+   :rtype: DataFrame
+
+
+.. py:function:: cluster_outlines(plot: lets_plot.plot.core.PlotSpec, /, groups: str | collections.abc.Sequence[str | collections.abc.Sequence[str]], *, padding: float = 1.5, level: float = 0.04, grid_size: int = 200, color: str = '#1f1f1f', linetype: Literal['blank', 'solid', 'dashed', 'dotted', 'dotdash', 'longdash', 'twodash'] = 'dashed', mapping: lets_plot.plot.core.FeatureSpec | None = None, size: float = 1, group_by: str | None = None, x: str | None = None, y: str | None = None, **geom_kwargs) -> lets_plot.plot.core.LayerSpec
+
+   Returns a Layer of `geom_path` that outlines the given clusters.
+
+   :param plot: The plot to which the layer will be added. Used to extract data and aesthetics.
+   :type plot: PlotSpec
+   :param groups: The group(s) to outline. Can be a single group name or a list of group
+                  Providing string(s) will outline clusters with those group names.
+                  Providing nested sequences of strings combines each sequence into a their own group.
+                  E.g `groups=[["A", "B"]]` will outline groups A and B as if they were one cluster.
+   :type groups: str | Sequence[str | Sequence[str]]
+   :param padding: The spatial buffer added to the cluster's bounding box before calculating density.
+                   Increasing this value allows the density 'cloud' to expand further from the outermost
+                   points, ensuring the resulting curve is smooth and not truncated at the data edges.
+   :type padding: float, default=1.5
+   :param level: The density threshold for the outline, expressed as a fraction of the peak density
+                 (0.0 to 1.0). A lower value creates a larger, more inclusive 'bubble' that captures
+                 outliers, while a higher value creates a tighter boundary around the cluster's core.
+   :type level: float, default=0.04
+   :param grid_size: The resolution of the internal sampling grid used for the Marching Squares algorithm.
+                     A higher value produces a smoother, more 'curvy' path by increasing the number of
+                     interpolation points, while a lower value improves calculation speed but may
+                     result in a more jagged or 'pixelated' appearance.
+   :type grid_size: int, default=200
+   :param color: The color of the outline.
+   :type color: str, default="#1f1f1f"
+   :param linetype: The linetype of the outline. E.g "dashed", "dotted",
+   :type linetype: str, default="dashed"
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param size: The size of the outline.
+   :type size: float, default=1
+   :param group_by: The column name in the data used to group clusters by. e.g "cell_type".
+                    If None, it will be inferred from the plot aesthetics.
+   :type group_by: str | None, default=None
+   :param x: The column name in the data used for x-axis coordinates. e.g "X_UMAP1".
+             If None, it will be inferred from the plot aesthetics.
+   :type x: str | None, default=None
+   :param y: The column name in the data used for y-axis coordinates. e.g "X_UMAP2".
+             If None, it will be inferred from the plot aesthetics.
+   :type y: str | None, default=None
+   :param \*\*geom_kwargs: Additional parameters for the `geom_path` layer.
+                           For more information on geom_path parameters, see:
+                           https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
+
+
+.. py:function:: boxplot(data: anndata.AnnData, key: str | collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, axis: Literal[0, 1] | None = None, color: str | None = None, fill: str | None = None, add_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, geom_fill: str | None = '#FF00FF', geom_color: str | None = '#2f2f2f', point_color: str = '#1f1f1f', point_alpha: float = 0.7, point_size: float = 0.5, point_geom: Literal['jitter', 'point', 'sina'] = 'jitter', observations_name: str = 'Barcode', variables_name: str = 'Variable', show_points: bool = True, interactive: bool = False, value_column: str = 'value', variable_column: str = 'variable', point_kwargs: dict[str, Any] | None = None, **geom_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   Boxplot.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param key: The key(s) to get the values (numerical).
+               e.g., 'total_counts' or a gene name.
+   :type key: str | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param axis: axis of the data, 0 for observations and 1 for variables.
+   :type axis: Literal[0,1] | None, default=None
+   :param color: Color aesthetic to split the boxplot (categorical).
+                 e,g., 'cell_type' or 'leiden'.
+   :type color: str | None, default=None
+   :param fill: Fill aesthetic to split the boxplot (categorical).
+                e,g., 'cell_type' or 'leiden'.
+   :type fill: str | None, default=None
+   :param add_keys: Additional keys to include in the dataframe.
+   :type add_keys: Sequence[str] | str | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param geom_fill: Fill color for all boxplots in the boxplot.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_fill: str | None, default="#FF00FF"
+   :param geom_color: Border color for all boxplots in the boxplot.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_color: str | None, default="#2f2f2f"
+   :param point_color: Color for the points in the boxplot.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type point_color: str, default="#1f1f1f"
+   :param point_alpha: Alpha (transparency) for the points in the boxplot.
+   :type point_alpha: float, default=0.7
+   :param point_size: Size for the points in the boxplot.
+   :type point_size: float, default=0.5
+   :param point_geom: Geom type of the points, default is geom_jitter.
+   :type point_geom: Literal["jitter","point","sina"], default is "jitter",
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default="Barcode"
+   :param variables_name: The name to give to variable index column in the dataframe.
+   :type variables_name: str, default="Variable"
+   :param show_points: Whether to show points.
+   :type show_points: bool, default=True
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param variable_column: The name of the variable column in the dataframe.
+   :type variable_column: str, default="variable"
+   :param value_column: The name of the value column in the dataframe.
+   :type value_column: str, default="value"
+   :param point_kwargs: Additional parameters for the `geom_point` layer.
+                        For more information on geom_point parameters, see:
+                        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+   :type point_kwargs: dict[str, Any] | None, default=None
+   :param \*\*geom_kwargs: Additional parameters for the `geom_boxplot` layer.
+                           For more information on geom_boxplot parameters, see:
+                           https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
+
+   :returns: Boxplot.
+   :rtype: PlotSpec
+
+
+.. py:function:: boxplots(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, axis: Literal[0, 1] | None = None, color: str | None = None, fill: str | None = None, add_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, geom_fill: str = '#FF00FF', geom_color: str = '#2f2f2f', point_color: str = '#1f1f1f', point_alpha: float = 0.7, point_size: float = 0.5, point_geom: Literal['jitter', 'point', 'sina'] = 'jitter', observations_name: str = 'Barcode', variables_name: str = 'Variable', show_points: bool = True, interactive: bool = False, value_column: str = 'value', variable_column: str = 'variable', share_axis: bool = False, share_ticks: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list | None = None, heights: list | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', point_kwargs: dict[str, Any] | None = None, **geom_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Boxplots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys to get the values (numerical).
+                e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param axis: axis of the data, 0 for observations and 1 for variables.
+   :type axis: Literal[0,1] | None, default=None
+   :param color: Color aesthetic to split the boxplot (categorical).
+                 e,g., 'cell_type' or 'leiden'.
+   :type color: str | None, default=None
+   :param fill: Fill aesthetic to split the boxplot (categorical).
+                e,g., 'cell_type' or 'leiden'.
+   :type fill: str | None, default=None
+   :param add_keys: Additional keys to include in the dataframe.
+   :type add_keys: Sequence[str] | str | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param geom_fill: Fill color for all boxplots in the boxplot.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_fill: str, default="#FF00FF"
+   :param geom_color: Border color for all boxplots in the boxplot.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_color: str, default="#2f2f2f"
+   :param point_color: Color for the points in the boxplot.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type point_color: str, default="#1f1f1f"
+   :param point_alpha: Alpha (transparency) for the points in the boxplot.
+   :type point_alpha: float, default=0.7
+   :param point_size: Size for the points in the boxplot.
+   :type point_size: float, default=0.5
+   :param point_geom: Geom type of the points, default is geom_jitter.
+   :type point_geom: Literal["jitter","point","sina"], default is "jitter",
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default="Barcode"
+   :param variables_name: The name to give to variable index column in the dataframe.
+   :type variables_name: str, default="Gene"
+   :param show_points: Whether to show points.
+   :type show_points: bool, default=True
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param share_ticks: Whether to share the labels across all plots.
+                       If True, only X tick texts on bottom row and Y tick text on left column are shown.
+   :type share_ticks: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Additional layers to add to the plot.
+   :type layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
+   :param variable_column: The name of the variable column in the dataframe.
+   :type variable_column: str, default="variable"
+   :param value_column: The name of the value column in the dataframe.
+   :type value_column: str, default="value"
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param point_kwargs: Additional parameters for the `geom_point` layer.
+                        For more information on geom_point parameters, see:
+                        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+   :type point_kwargs: dict[str, Any] | None, default=None
+   :param \*\*geom_kwargs: Additional parameters for the `geom_boxplot` layer.
+                           For more information on geom_boxplot parameters, see:
+                           https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
+
+   :returns: Boxplots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: dimensionals(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, dimensions: Literal['umap', 'pca', 'tsne'] = 'umap', use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, share_labels: bool = True, share_axis: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list[float] | None = None, heights: list[float] | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', **point_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Grid of dimensionality reduction plots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys (cell features) to color the points by.
+                e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param dimensions: The dimensional reduction method to use.
+                      e.g., 'umap' or 'pca' or 'tsne'.
+   :type dimensions: Literal['umap', 'pca', 'tsne'], default='umap'
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param cluster_name: The name to overwrite the clustering key in the dataframe and the plot.
+   :type cluster_name: str, default='Cluster'
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param share_labels: Whether to share the labels across all plots.
+                        If True, only X labels on bottom row and Y labels on left column are shown.
+   :type share_labels: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Layers to add to all the plots in the grid.
+   :type layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Grid of dimensionality reduction plots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: expression(data: anndata.AnnData, key: str, *, mapping: lets_plot.plot.core.FeatureSpec | None = None, dimensions: Literal['umap', 'pca', 'tsne'] = 'umap', use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = 'arrow', arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, **point_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   Dimensionality reduction plot of expression data.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param key: The key (gene names) to color the points by.
+   :type key: str
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param dimensions: The dimensional reduction method to use.
+                      e.g., 'umap' or 'pca' or 'tsne'.
+   :type dimensions: Literal['umap', 'pca', 'tsne'], default='umap'
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Dimensional reduction plot.
+   :rtype: PlotSpec
+
+
+.. py:function:: expressions(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, dimensions: Literal['umap', 'pca', 'tsne'] = 'umap', use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, share_labels: bool = True, share_axis: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list[float] | None = None, heights: list[float] | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', **point_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Grid of dimensionality reduction plots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys (gene names) to color the points by.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param dimensions: The dimensional reduction method to use.
+                      e.g., 'umap' or 'pca' or 'tsne'.
+   :type dimensions: Literal['umap', 'pca', 'tsne'], default='umap'
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param cluster_name: The name to overwrite the clustering key in the dataframe and the plot.
+   :type cluster_name: str, default='Cluster'
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param share_labels: Whether to share the labels across all plots.
+                        If True, only X labels on bottom row and Y labels on left column are shown.
+   :type share_labels: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Layers to add to all the plots in the grid.
+   :type layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Grid of dimensionality reduction plots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: pca(data: anndata.AnnData, key: str | None = None, *, mapping: lets_plot.plot.core.FeatureSpec | None = None, use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, **point_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   PCA Dimensionality reduction plot.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param key: The key (cell feature) to color the points by.
+               e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type key: str, default=None
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Dimensional reduction plot.
+   :rtype: PlotSpec
+
+
+.. py:function:: pcas(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, share_labels: bool = True, share_axis: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list[float] | None = None, heights: list[float] | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', **point_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Grid of dimensionality reduction plots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys (cell features) to color the points by.
+                e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param cluster_name: The name to overwrite the clustering key in the dataframe and the plot.
+   :type cluster_name: str, default='Cluster'
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param share_labels: Whether to share the labels across all plots.
+                        If True, only X labels on bottom row and Y labels on left column are shown.
+   :type share_labels: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Layers to add to all the plots in the grid.
+   :type layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Grid of dimensionality reduction plots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: plot(data: anndata.AnnData, mapping: lets_plot.plot.core.FeatureSpec | None = None, *, axis: Literal[0, 1] | None = None, variable_keys: collections.abc.Sequence[str] | None = None, observations_name: str = 'Barcode', variables_name: str = 'Variable', include_dimensions: bool | int = False) -> lets_plot.plot.core.PlotSpec
+
+   Base plot (for plots without data wrangling).
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param mapping: Aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param axis: axis of the data, 0 for observations and 1 for variables.
+   :type axis: Literal[0,1] | None, default=None
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None
+   :param observations_name: The name of the observations column, default is "barcode".
+   :type observations_name: str
+   :param variables_name: Name for the variables index column, default is 'variable'
+   :type variables_name: str
+   :param include_dimensions: Whether to include dimensions in the DataFrame.
+                              Providing an integer will limit the number of dimensions to given number.
+   :type include_dimensions: bool | int, default=False
+
+   :returns: Base ggplot object.
+   :rtype: PlotSpec
+
+
+.. py:function:: tsne(data: anndata.AnnData, key: str | None = None, *, mapping: lets_plot.plot.core.FeatureSpec | None = None, use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, **point_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   tSNE Dimensionality reduction plot.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param key: The key (cell feature) to color the points by.
+               e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type key: str, default=None
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Dimensional reduction plot.
+   :rtype: PlotSpec
+
+
+.. py:function:: tsnes(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, share_labels: bool = True, share_axis: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list[float] | None = None, heights: list[float] | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', **point_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Grid of dimensionality reduction plots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys (cell features) to color the points by.
+                e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param cluster_name: The name to overwrite the clustering key in the dataframe and the plot.
+   :type cluster_name: str, default='Cluster'
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param share_labels: Whether to share the labels across all plots.
+                        If True, only X labels on bottom row and Y labels on left column are shown.
+   :type share_labels: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Layers to add to all the plots in the grid.
+   :type layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Grid of dimensionality reduction plots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: umap(data: anndata.AnnData, key: str | None = None, *, mapping: lets_plot.plot.core.FeatureSpec | None = None, use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, **point_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   UMAP Dimensionality reduction plot.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param key: The key (cell feature) to color the points by.
+               e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type key: str, default=None
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Dimensional reduction plot.
+   :rtype: PlotSpec
+
+
+.. py:function:: umaps(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, use_key: str | None = None, xy: tuple[int, int] | collections.abc.Sequence[int] = (1, 2), size: float = 0.8, variable_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, interactive: bool = False, observations_name: str = 'Barcode', color_low: str = '#e6e6e6', color_mid: str | None = None, color_high: str = '#377eb8', mid_point: Literal['mean', 'median', 'mid'] | float = 'median', axis_type: Literal['axis', 'arrow'] | None = None, arrow_length: float = 0.25, arrow_size: float = 1, arrow_color: str = '#3f3f3f', arrow_angle: float = 10, legend_ondata: bool = False, ondata_size: float = 12, ondata_color: str = '#3f3f3f', ondata_fontface: str = 'bold', ondata_family: str = 'sans', ondata_alpha: float = 1, ondata_weighted: bool = True, share_labels: bool = True, share_axis: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list[float] | None = None, heights: list[float] | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', **point_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Grid of dimensionality reduction plots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys (cell features) to color the points by.
+                e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param xy: The x and y axes to use for the plot.
+              e.g., (1, 2) for UMAP1 and UMAP2.
+   :type xy: tuple[int, int] | Sequence[int], default=(1, 2)
+   :param use_key: The specific key to use for the desired dimensions.
+                   e.g., 'X_umap_2d' or 'X_pca_2d'.
+                   Otherwise, the function will decide on the key based on the dimensions.
+   :type use_key: str, default=None
+   :param size: The size of the points.
+   :type size: float, default=0.8
+   :param variable_keys: Variable keys to add to the DataFrame. If None, no additional keys are added.
+   :type variable_keys: str | Sequence[str] | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param cluster_name: The name to overwrite the clustering key in the dataframe and the plot.
+   :type cluster_name: str, default='Cluster'
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default='Barcode'
+   :param color_low: The color to use for the low end of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_low: str, default='#e6e6e6'
+   :param color_mid: The color to use for the middle part of the color gradient.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                     - Applies to continuous (non-categorical) data.
+   :type color_mid: str, default=None
+   :param color_high: The color to use for the high end of the color gradient.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                      - Applies to continuous (non-categorical) data.
+   :type color_high: str, default='#377EB8'
+   :param mid_point: The midpoint (in data value) of the color gradient.
+                     Can be 'mean', 'median' and 'mid' or a number (float or int).
+                     - If 'mean', the midpoint is the mean of the data.
+                     - If 'median', the midpoint is the median of the data.
+                     - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
+   :type mid_point: Literal["mean", "median", "mid"] | float, default="median"
+   :param axis_type: Whether to use regular axis or arrows as the axis.
+   :type axis_type: Literal["axis", "arrow"] | None
+   :param arrow_length: Length of the arrow head (px).
+   :type arrow_length: float, default=0.25
+   :param arrow_size: Size of the arrow.
+   :type arrow_size: float, default=1
+   :param arrow_color: Color of the arrows.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+                       - Applies to continuous (non-categorical) data.
+   :type arrow_color: str, default='#3f3f3f'
+   :param arrow_angle: Angle of the arrow head in degrees.
+   :type arrow_angle: float, default=10
+   :param legend_ondata: whether to show legend on data
+   :type legend_ondata: bool, default=False
+   :param ondata_size: size of the legend (text) on data.
+   :type ondata_size: float, default=12
+   :param ondata_color: color of the legend (text) on data
+   :type ondata_color: str, default='#3f3f3f'
+   :param ondata_fontface: fontface of the legend (text) on data.
+                           https://lets-plot.org/python/pages/aesthetics.html#font-face
+   :type ondata_fontface: str, default='bold'
+   :param ondata_family: family of the legend (text) on data.
+                         https://lets-plot.org/python/pages/aesthetics.html#font-family
+   :type ondata_family: str, default='sans'
+   :param ondata_alpha: alpha (transparency) of the legend on data.
+   :type ondata_alpha: float, default=1
+   :param ondata_weighted: whether to use weighted mean for the legend on data.
+                           If True, the weighted mean of the group means is used.
+                           If False, the arithmetic mean of the group means is used.
+   :type ondata_weighted: bool, default=True
+   :param share_labels: Whether to share the labels across all plots.
+                        If True, only X labels on bottom row and Y labels on left column are shown.
+   :type share_labels: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Layers to add to all the plots in the grid.
+   :type layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param \*\*point_kwargs: Additional parameters for the `geom_point` layer.
+                            For more information on geom_point parameters, see:
+                            https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+
+   :returns: Grid of dimensionality reduction plots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: violin(data: anndata.AnnData, key: str | collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, axis: Literal[0, 1] | None = None, color: str | None = None, fill: str | None = None, add_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, geom_fill: str | None = '#FF00FF', geom_color: str | None = '#2f2f2f', point_color: str = '#1f1f1f', point_alpha: float = 0.7, point_size: float = 0.5, point_geom: Literal['jitter', 'point', 'sina'] = 'jitter', observations_name: str = 'Barcode', variables_name: str = 'Variable', show_points: bool = True, interactive: bool = False, value_column: str = 'value', variable_column: str = 'variable', point_kwargs: dict[str, Any] | None = None, **geom_kwargs) -> lets_plot.plot.core.PlotSpec
+
+   Violin Plot.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param key: The key(s) to get the values (numerical).
+               e.g., 'total_counts' or a gene name.
+   :type key: str | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param axis: axis of the data, 0 for observations and 1 for variables.
+   :type axis: Literal[0,1] | None, default=None
+   :param color: Color aesthetic to split the violin plot (categorical).
+                 e,g., 'cell_type' or 'leiden'.
+   :type color: str | None, default=None
+   :param fill: Fill aesthetic to split the violin plot (categorical).
+                e,g., 'cell_type' or 'leiden'.
+   :type fill: str | None, default=None
+   :param add_keys: Additional keys to include in the dataframe.
+   :type add_keys: Sequence[str] | str | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param geom_fill: Fill color for all violins in the violin plot.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_fill: str | None, default="#FF00FF"
+   :param geom_color: Border color for all violins in the violin plot.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_color: str | None, default="#2f2f2f"
+   :param point_color: Color for the points in the violin plot.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type point_color: str, default="#1f1f1f"
+   :param point_alpha: Alpha (transparency) for the points in the violin plot.
+   :type point_alpha: float, default=0.7
+   :param point_size: Size for the points in the violin plot.
+   :type point_size: float, default=0.5
+   :param point_geom: Geom type of the points, default is geom_jitter.
+   :type point_geom: Literal["jitter","point","sina"], default is "jitter",
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default="Barcode"
+   :param variables_name: The name to give to variable index column in the dataframe.
+   :type variables_name: str, default="Variable"
+   :param show_points: Whether to show points.
+   :type show_points: bool, default=True
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param variable_column: The name of the variable column in the dataframe.
+   :type variable_column: str, default="variable"
+   :param value_column: The name of the value column in the dataframe.
+   :type value_column: str, default="value"
+   :param point_kwargs: Additional parameters for the `geom_point` layer.
+                        For more information on geom_point parameters, see:
+                        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+   :type point_kwargs: dict[str, Any] | None, default=None
+   :param \*\*geom_kwargs: Additional parameters for the `geom_violin` layer.
+                           For more information on geom_violin parameters, see:
+                           https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+
+   :returns: Violin plot.
+   :rtype: PlotSpec
+
+
+.. py:function:: violins(data: anndata.AnnData, keys: collections.abc.Sequence[str], *, mapping: lets_plot.plot.core.FeatureSpec | None = None, axis: Literal[0, 1] | None = None, color: str | None = None, fill: str | None = None, add_keys: collections.abc.Sequence[str] | str | None = None, tooltips: Literal['none'] | collections.abc.Sequence[str] | lets_plot.plot.core.FeatureSpec | None = None, geom_fill: str = '#FF00FF', geom_color: str = '#2f2f2f', point_color: str = '#1f1f1f', point_alpha: float = 0.7, point_size: float = 0.5, point_geom: Literal['jitter', 'point', 'sina'] = 'jitter', observations_name: str = 'Barcode', variables_name: str = 'Variable', show_points: bool = True, interactive: bool = False, value_column: str = 'value', variable_column: str = 'variable', share_axis: bool = False, share_ticks: bool = False, layers: collections.abc.Sequence[lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec] | lets_plot.plot.core.FeatureSpec | lets_plot.plot.core.LayerSpec | None = None, ncol: int | None = None, sharex: str | None = None, sharey: str | None = None, widths: list | None = None, heights: list | None = None, hspace: float | None = None, vspace: float | None = None, fit: bool | None = None, align: bool | None = None, guides: str = 'auto', point_kwargs: dict[str, Any] | None = None, **geom_kwargs) -> lets_plot.plot.subplots.SupPlotsSpec
+
+   Violin Plots.
+
+   :param data: The AnnData object of the single cell data.
+   :type data: AnnData
+   :param keys: The keys to get the values (numerical).
+                e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+   :type keys: list[str] | tuple[str] | Sequence[str]
+   :param mapping: Additional aesthetic mappings for the plot, the result of `aes()`.
+   :type mapping: FeatureSpec | None, default=None
+   :param axis: axis of the data, 0 for observations and 1 for variables.
+   :type axis: Literal[0,1] | None, default=None
+   :param color: Color aesthetic to split the violin plot (categorical).
+                 e,g., 'cell_type' or 'leiden'.
+   :type color: str | None, default=None
+   :param fill: Fill aesthetic to split the violin plot (categorical).
+                e,g., 'cell_type' or 'leiden'.
+   :type fill: str | None, default=None
+   :param add_keys: Additional keys to include in the dataframe.
+   :type add_keys: Sequence[str] | str | None, default=None
+   :param tooltips: Tooltips to show when hovering over the geom.
+                    Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+                    Use 'none' to disable tooltips.
+   :type tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+   :param geom_fill: Fill color for all violins in the violin plot.
+                     - Accepts:
+                         - hex code e.g. '#f1f1f1'
+                         - color name (of a limited set of colors).
+                         - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_fill: str, default="#FF00FF"
+   :param geom_color: Border color for all violins in the violin plot.
+                      - Accepts:
+                          - hex code e.g. '#f1f1f1'
+                          - color name (of a limited set of colors).
+                          - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type geom_color: str, default="#2f2f2f"
+   :param point_color: Color for the points in the violin plot.
+                       - Accepts:
+                           - hex code e.g. '#f1f1f1'
+                           - color name (of a limited set of colors).
+                           - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+   :type point_color: str, default="#1f1f1f"
+   :param point_alpha: Alpha (transparency) for the points in the violin plot.
+   :type point_alpha: float, default=0.7
+   :param point_size: Size for the points in the violin plot.
+   :type point_size: float, default=0.5
+   :param point_geom: Geom type of the points, default is geom_jitter.
+   :type point_geom: Literal["jitter","point","sina"], default is "jitter",
+   :param trim: Whether to trim the violin plot.
+   :type trim: bool, default=False
+   :param observations_name: The name to give to barcode (or index) column in the dataframe.
+   :type observations_name: str, default="Barcode"
+   :param variables_name: The name to give to variable index column in the dataframe.
+   :type variables_name: str, default="Gene"
+   :param show_points: Whether to show points.
+   :type show_points: bool, default=True
+   :param interactive: Whether to make the plot interactive.
+   :type interactive: bool, default=False
+   :param share_ticks: Whether to share the labels across all plots.
+                       If True, only X tick texts on bottom row and Y tick text on left column are shown.
+   :type share_ticks: bool, default=True
+   :param share_axis: Whether to share the axis across all plots.
+                      If True, only X axis on bottom row and Y axis on left column is shown.
+   :type share_axis: bool, default=False
+   :param layers: Additional layers to add to the plot.
+   :type layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
+   :param variable_column: The name of the variable column in the dataframe.
+   :type variable_column: str, default="variable"
+   :param value_column: The name of the value column in the dataframe.
+   :type value_column: str, default="value"
+   :param ncol: Number of columns in grid. If not specified, shows plots horizontally, in one row.
+   :type ncol: int, default=None
+   :param sharex: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharex: bool, default=None
+   :param sharey: Controls sharing of axis limits between subplots in the grid.
+                  `all`/True - share limits between all subplots.
+                  `none`/False - do not share limits between subplots.
+                  `row` - share limits between subplots in the same row.
+                  `col` - share limits between subplots in the same column.
+   :type sharey: bool, default=None
+   :param widths: Relative width of each column of grid, left to right.
+   :type widths: list[float], default=None
+   :param heights: Relative height of each row of grid, top-down.
+   :type heights: list[float], default=None
+   :param hspace: Cell horizontal spacing in px.
+   :type hspace: float | None = None
+   :param vspace: Cell vertical spacing in px.
+   :type vspace: float | None = None
+   :param fit: Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
+               or to preserve the original aspect ratio of plots (fit=False).
+   :type fit: bool, default=True
+   :param align: If True, align inner areas (i.e. “geom” bounds) of plots.
+                 However, cells containing other (sub)grids are not participating
+                 in the plot “inner areas” layouting.
+   :type align: bool, default=False
+   :param guides: Specifies how guides (legends and colorbars) should be treated in the layout.
+                  - 'collect'- collect guides from all subplots, removing duplicates.
+                  - 'keep' - keep guides in their original subplots; do not collect at this level.
+                  - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
+                  otherwise, keep them in subplots.
+
+                  Duplicates are identified by comparing visual properties:
+                  For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
+                  For colorbars: title, domain limits, breaks, and color gradient.
+   :type guides: str, default="auto"
+   :param For more information on gggrid parameters:
+   :param https:
+   :type https: //lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :param point_kwargs: Additional parameters for the `geom_point` layer.
+                        For more information on geom_point parameters, see:
+                        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+   :type point_kwargs: dict[str, Any] | None, default=None
+   :param \*\*geom_kwargs: Additional parameters for the `geom_violin` layer.
+                           For more information on geom_violin parameters, see:
+                           https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+
+   :returns: Violin Plots.
+   :rtype: SupPlotsSpec
+
+
+.. py:function:: get_mapping(plot: lets_plot.plot.core.PlotSpec, *, index=0) -> dict
+
+   Returns the mapping of the plot.
+
+
+.. py:function:: retrieve(plot: lets_plot.plot.core.PlotSpec | lets_plot.plot.subplots.SupPlotsSpec, index: int = 0) -> polars.DataFrame
+
+   Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
+
+   plot : PlotSpec | SupPlotsSpec
+       The plot to retrieve the dataframe from.
+   index : int, optional
+       The index of the figure to retrieve the dataframe from, by default 0
+
+   :returns: The dataframe utilized in the plot.
+   :rtype: pl.DataFrame
+
+   :raises TypeError: If the plot is not a PlotSpec or SupPlotsSpec object.
+
+
+.. py:function:: slice(grid: lets_plot.plot.subplots.SupPlotsSpec, index: int | collections.abc.Sequence[int], **kwargs) -> lets_plot.plot.core.PlotSpec | lets_plot.plot.subplots.SupPlotsSpec | None
+
+   Slice a ggrid (SupPlotsSpec) objects with given index.
+
+   :param grid: The grid to slice.
+   :type grid: SupPlotsSpec
+   :param index: The index or indices of the plots to slice.
+   :type index: int | Sequence[int]
+   :param \*\*kwargs: Additional arguments for the `gggrid` function.
+                      see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+   :type \*\*kwargs: dict[str, Any]
+
+   :returns: The sliced grid.
+   :rtype: PlotSpec | SupPlotsSpec
+
+   :raises TypeError: If the grid is not a SupPlotsSpec object.
+       If the index is not an int or Sequence[int].
+
+
+.. py:data:: BLUE
+   :value: '#377EB8'
+
+
+.. py:data:: CHERRY
+   :value: '#AF1740'
+
+
+.. py:data:: LIGHT_GRAY
+   :value: '#E6E6E6'
+
+
+.. py:data:: ORANGE
+   :value: '#F14A00'
+
+
+.. py:data:: PINK
+   :value: '#E73879'
+
+
+.. py:data:: PURPLE
+   :value: '#640D5F'
+
+
+.. py:data:: RED
+   :value: '#D2042D'
+
+
+.. py:data:: SNOW
+   :value: '#F9F9F9'
+
+
+.. py:data:: TEAL
+   :value: '#219B9D'
+
+
+.. py:function:: show_colors()
+

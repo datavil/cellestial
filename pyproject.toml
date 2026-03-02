@@ -12,6 +12,7 @@ anndata = "^0.12.10"
 lets-plot = "^4.8.2"
 polars = {extras = ["pyarrow"], version = "^1.38.0"}
 scikit-image = "^0.26.0"
+sphinx = ">=8.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^7.1.0"
