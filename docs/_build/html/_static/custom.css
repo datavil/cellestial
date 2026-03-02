@@ -1,0 +1,37 @@
+/* Hide the sidebar in Furo theme */
+.sidebar-drawer {
+    display: none !important;
+}
+
+/* Make the main content full-width */
+.page {
+    margin-left: 0 !important;
+}
+
+.main-content {
+    max-width: 100% !important;
+}
+
+/* Hide the summary column in autosummary tables */
+table.autosummary td:nth-child(2),
+table.autosummary th:nth-child(2) {
+    display: none !important;
+}
+
+/* Optional: remove table borders and backgrounds to make it look like a list */
+table.autosummary {
+    border: none !important;
+    background: none !important;
+    width: 100% !important;
+}
+
+table.autosummary td {
+    padding: 0.2em 0 !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 67rem) {
+    .sidebar-drawer {
+        display: none !important;
+    }
+}

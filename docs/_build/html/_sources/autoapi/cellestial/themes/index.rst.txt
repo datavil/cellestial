@@ -1,6 +1,0 @@
-cellestial.themes
-=================
-
-.. py:module:: cellestial.themes
-
-
