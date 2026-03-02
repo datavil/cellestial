@@ -67,9 +67,19 @@ add_module_names = False
 
 html_theme = 'furo'
 html_title = 'cellestial documentation'
+html_theme_options = {
+    "source_repository": "https://github.com/datavil/cellestial/",
+    "source_branch": "main",
+    "source_directory": "docs/",
+}
 html_static_path = ['_static']
 html_css_files = ['custom.css']
 
 # Napoleon settings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
+napoleon_use_param = False
+napoleon_use_rtype = False
+napoleon_preprocess_types = True
+napoleon_type_aliases = None
+napoleon_attr_annotations = True

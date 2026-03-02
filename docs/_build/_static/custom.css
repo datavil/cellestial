@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600&display=swap');
+
+/* Main Typography & Colors */
+:root {
+    --font-stack: "JetBrains Mono", monospace;
+    --font-stack--monospace: "JetBrains Mono", monospace;
+
+    /* Branding Colors - Teal Accent */
+    --color-brand-primary: #219B9D !important;
+    --color-brand-content: #219B9D !important;
+    --color-link: #219B9D !important;
+    --color-link--hover: #1b7e80 !important;
+}
+
+body {
+    font-family: var(--font-stack) !important;
+    font-weight: 600 !important;
+    font-size: 1.15rem !important;
+    /* Increased from 1.05rem */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-stack) !important;
+    font-weight: 600 !important;
+}
+
+/* Hide the sidebar in Furo theme */
+.sidebar-drawer {
+    display: none !important;
+}
+
+/* Make the main content full-width */
+.page {
+    margin-left: 0 !important;
+}
+
+.main-content {
+    max-width: 100% !important;
+}
+
+/* Premium Table Styling */
+table.autosummary {
+    width: 100% !important;
+    margin: 1.5em 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    font-size: 1.15rem !important;
+    /* Matches body size */
+    border: 1px solid var(--color-background-border) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+}
+
+table.autosummary thead {
+    display: none !important;
+}
+
+table.autosummary td {
+    padding: 18px 20px !important;
+    /* Increased padding */
+    border-bottom: 1px solid var(--color-background-border) !important;
+    vertical-align: middle !important;
+    line-height: 1.6 !important;
+}
+
+table.autosummary tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Zebra striping - very subtle */
+table.autosummary tr:nth-child(even) {
+    background-color: var(--color-background-secondary) !important;
+}
+
+/* Neutral hover background */
+table.autosummary tr:hover {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="dark"] table.autosummary tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Function Name Column Styling - THE ACCENT */
+table.autosummary td:first-child {
+    width: 35% !important;
+}
+
+table.autosummary a {
+    color: #219B9D !important;
+    /* Explicit Teal */
+    font-weight: 700 !important;
+    /* Extra bold for names */
+    text-decoration: none !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+table.autosummary a:hover {
+    color: #1b7e80 !important;
+    text-decoration: underline !important;
+}
+
+/* Description Column Styling */
+table.autosummary td:last-child {
+    color: var(--color-foreground-muted) !important;
+    font-weight: 500 !important;
+    font-size: 0.95em !important;
+    /* Slightly smaller for description */
+}
+
+/* Space between sections */
+section {
+    margin-bottom: 3rem !important;
+}
+
+table.autosummary tr {
+    transition: background-color 0.2s ease !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 67rem) {
+    .sidebar-drawer {
+        display: none !important;
+    }
+}
