@@ -1,16 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600&display=swap');
 
-/* Main Typography */
+/* Main Typography & Colors */
 :root {
     --font-stack: "JetBrains Mono", monospace;
     --font-stack--monospace: "JetBrains Mono", monospace;
+
+    /* Branding Colors - Teal Accent */
+    --color-brand-primary: #219B9D !important;
+    --color-brand-content: #219B9D !important;
+    --color-link: #219B9D !important;
+    --color-link--hover: #1b7e80 !important;
 }
 
 body {
     font-family: var(--font-stack) !important;
     font-weight: 600 !important;
-    font-size: 1.05rem !important;
-    /* Slightly bigger */
+    font-size: 1.15rem !important;
+    /* Increased from 1.05rem */
 }
 
 h1,
@@ -43,7 +49,8 @@ table.autosummary {
     margin: 1.5em 0 !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    font-size: 1rem !important;
+    font-size: 1.15rem !important;
+    /* Matches body size */
     border: 1px solid var(--color-background-border) !important;
     border-radius: 8px !important;
     overflow: hidden !important;
@@ -52,13 +59,13 @@ table.autosummary {
 
 table.autosummary thead {
     display: none !important;
-    /* Hide column headers if they appear */
 }
 
 table.autosummary td {
-    padding: 16px 20px !important;
+    padding: 18px 20px !important;
+    /* Increased padding */
     border-bottom: 1px solid var(--color-background-border) !important;
-    vertical-align: top !important;
+    vertical-align: middle !important;
     line-height: 1.6 !important;
 }
 
@@ -66,37 +73,45 @@ table.autosummary tr:last-child td {
     border-bottom: none !important;
 }
 
-/* Zebra striping */
+/* Zebra striping - very subtle */
 table.autosummary tr:nth-child(even) {
     background-color: var(--color-background-secondary) !important;
 }
 
+/* Neutral hover background */
 table.autosummary tr:hover {
-    background-color: rgba(33, 155, 157, 0.05) !important;
-    /* Subtle teal tint on hover */
+    background-color: rgba(0, 0, 0, 0.03) !important;
 }
 
-/* Function Name Column Styling */
+[data-theme="dark"] table.autosummary tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Function Name Column Styling - THE ACCENT */
 table.autosummary td:first-child {
-    width: 30% !important;
-    font-weight: 600 !important;
+    width: 35% !important;
 }
 
 table.autosummary a {
-    color: var(--color-brand-primary) !important;
+    color: #219B9D !important;
+    /* Explicit Teal */
+    font-weight: 700 !important;
+    /* Extra bold for names */
     text-decoration: none !important;
-    border-bottom: 1px solid transparent !important;
-    transition: border-color 0.2s ease-in-out !important;
+    transition: all 0.2s ease-in-out !important;
 }
 
 table.autosummary a:hover {
-    border-bottom-color: var(--color-brand-primary) !important;
+    color: #1b7e80 !important;
+    text-decoration: underline !important;
 }
 
 /* Description Column Styling */
 table.autosummary td:last-child {
     color: var(--color-foreground-muted) !important;
     font-weight: 500 !important;
+    font-size: 0.95em !important;
+    /* Slightly smaller for description */
 }
 
 /* Space between sections */
