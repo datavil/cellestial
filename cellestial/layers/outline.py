@@ -5,8 +5,6 @@ import polars as pl
 from lets_plot import aes, geom_path
 from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
 from polars import DataFrame
-from scipy.stats import gaussian_kde
-from skimage import measure
 
 from cellestial.util import get_mapping
 
@@ -22,6 +20,8 @@ def _get_density_boundaries(
     grid_size: int = 200,
 ) -> pl.DataFrame:
     """Creates and Returns a DataFrame to encircle the cluster via `geom_path`."""
+    from scipy.stats import gaussian_kde
+    from skimage import measure
     if isinstance(groups, str):
         groups = [groups]
 
