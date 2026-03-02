@@ -7,30 +7,30 @@
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2024.08.06 -->
         <title>cellestial.single.core.subdimensional.umap - cellestial documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=81380f5c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=e7836cc1" />
     
     
 
 
 <style>
   body {
-    --color-code-background: #f8f8f8;
+    --color-code-background: #f0f0f0;
   --color-code-foreground: black;
   
   }
   @media not print {
     body[data-theme="dark"] {
-      --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
   
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
-        --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
   
       }
     }
@@ -291,9 +291,9 @@
 <dt class="sig sig-object py" id="cellestial.single.core.subdimensional.umap">
 <span class="sig-name descname"><span class="pre">umap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FeatureSpec</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tooltips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'none'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureSpec</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Barcode'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'#e6e6e6'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_mid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_high</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'#377eb8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'mean'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'median'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'mid'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'axis'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'arrow'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrow_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrow_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrow_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'#3f3f3f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrow_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_ondata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ondata_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ondata_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'#3f3f3f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ondata_fontface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'bold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ondata_family</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sans'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ondata_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ondata_weighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">point_kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PlotSpec</span></span></span><a class="reference internal" href="../_modules/cellestial/single/core/subdimensional.html#umap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellestial.single.core.subdimensional.umap" title="Link to this definition">¶</a></dt>
 <dd><p>UMAP Dimensionality reduction plot.</p>
-<dl class="field-list">
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul>
+<dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">AnnData</span></code>) – The AnnData object of the single cell data.</p></li>
 <li><p><strong>key</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – The key (cell feature) to color the points by.
 e.g., ‘leiden’ or ‘louvain’ to color by clusters or gene name for expression.</p></li>
@@ -310,45 +310,45 @@ Accepts Sequence[str] or result of <cite>layer_tooltips()</cite> for more comple
 Use ‘none’ to disable tooltips.</p></li>
 <li><p><strong>interactive</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em> <code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code>) – Whether to make the plot interactive.</p></li>
 <li><p><strong>observations_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'Barcode'</span></code>) – The name to give to barcode (or index) column in the dataframe.</p></li>
-<li><p><strong>color_low</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'#e6e6e6'</span></code>) – The color to use for the low end of the color gradient.
+<li><p><strong>color_low</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'#e6e6e6'</span></code>) – <p>The color to use for the low end of the color gradient.
 - Accepts:</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul>
 <li><p>hex code e.g. ‘#f1f1f1’</p></li>
 <li><p>color name (of a limited set of colors).</p></li>
 <li><p>RGB/RGBA e.g. ‘rgb(0, 0, 255)’, ‘rgba(0, 0, 255, 0.5)’.</p></li>
 </ul>
 </div></blockquote>
-<ul class="simple">
+<ul>
 <li><p>Applies to continuous (non-categorical) data.</p></li>
 </ul>
-</li>
-<li><p><strong>color_mid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – The color to use for the middle part of the color gradient.
+</p></li>
+<li><p><strong>color_mid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – <p>The color to use for the middle part of the color gradient.
 - Accepts:</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul>
 <li><p>hex code e.g. ‘#f1f1f1’</p></li>
 <li><p>color name (of a limited set of colors).</p></li>
 <li><p>RGB/RGBA e.g. ‘rgb(0, 0, 255)’, ‘rgba(0, 0, 255, 0.5)’.</p></li>
 </ul>
 </div></blockquote>
-<ul class="simple">
+<ul>
 <li><p>Applies to continuous (non-categorical) data.</p></li>
 </ul>
-</li>
-<li><p><strong>color_high</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'#377EB8'</span></code>) – The color to use for the high end of the color gradient.
+</p></li>
+<li><p><strong>color_high</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'#377EB8'</span></code>) – <p>The color to use for the high end of the color gradient.
 - Accepts:</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul>
 <li><p>hex code e.g. ‘#f1f1f1’</p></li>
 <li><p>color name (of a limited set of colors).</p></li>
 <li><p>RGB/RGBA e.g. ‘rgb(0, 0, 255)’, ‘rgba(0, 0, 255, 0.5)’.</p></li>
 </ul>
 </div></blockquote>
-<ul class="simple">
+<ul>
 <li><p>Applies to continuous (non-categorical) data.</p></li>
 </ul>
-</li>
+</p></li>
 <li><p><strong>mid_point</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Literal[``</span></code>”mean”<code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">``&quot;median&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mid&quot;</span></code><code class="xref py py-class docutils literal notranslate"><span class="pre">]</span> <span class="pre">|</span> <span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">&quot;median&quot;</span></code>) – The midpoint (in data value) of the color gradient.
 Can be ‘mean’, ‘median’ and ‘mid’ or a number (float or int).
 - If ‘mean’, the midpoint is the mean of the data.
@@ -357,19 +357,19 @@ Can be ‘mean’, ‘median’ and ‘mid’ or a number (float or int).
 <li><p><strong>axis_type</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Literal[``</span></code>”axis”<code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">``&quot;arrow&quot;</span></code><code class="xref py py-class docutils literal notranslate"><span class="pre">]</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Whether to use regular axis or arrows as the axis.</p></li>
 <li><p><strong>arrow_length</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">0.25</span></code>) – Length of the arrow head (px).</p></li>
 <li><p><strong>arrow_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">1</span></code>) – Size of the arrow.</p></li>
-<li><p><strong>arrow_color</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'#3f3f3f'</span></code>) – Color of the arrows.
+<li><p><strong>arrow_color</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">'#3f3f3f'</span></code>) – <p>Color of the arrows.
 - Accepts:</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul>
 <li><p>hex code e.g. ‘#f1f1f1’</p></li>
 <li><p>color name (of a limited set of colors).</p></li>
 <li><p>RGB/RGBA e.g. ‘rgb(0, 0, 255)’, ‘rgba(0, 0, 255, 0.5)’.</p></li>
 </ul>
 </div></blockquote>
-<ul class="simple">
+<ul>
 <li><p>Applies to continuous (non-categorical) data.</p></li>
 </ul>
-</li>
+</p></li>
 <li><p><strong>arrow_angle</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">10</span></code>) – Angle of the arrow head in degrees.</p></li>
 <li><p><strong>legend_ondata</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em> <code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code>) – whether to show legend on data</p></li>
 <li><p><strong>ondata_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">12</span></code>) – size of the legend (text) on data.</p></li>
@@ -467,5 +467,6 @@ For more information on geom_point parameters, see:
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/custom.js?v=688df2e1"></script>
     </body>
 </html>

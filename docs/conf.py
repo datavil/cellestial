@@ -62,6 +62,8 @@ autodoc_default_options = {
 }
 
 add_module_names = False
+pygments_style = 'friendly'
+pygments_dark_style = 'monokai'
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -74,12 +76,17 @@ html_theme_options = {
 }
 html_static_path = ['_static']
 html_css_files = ['custom.css']
+html_js_files = ['custom.js']
 
 # Napoleon settings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
-napoleon_use_param = False
+napoleon_use_param = True
 napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+
+def setup(app):
+    # This can be used for custom CSS or JS if needed
+    pass

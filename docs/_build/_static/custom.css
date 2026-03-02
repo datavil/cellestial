@@ -10,6 +10,19 @@
     --color-brand-content: #219B9D !important;
     --color-link: #219B9D !important;
     --color-link--hover: #1b7e80 !important;
+
+    /* API Signature "Soft" Colors */
+    --color-api-background: #f8fcfc !important;
+    /* Very soft teal tint */
+    --color-api-border: #e6f2f2 !important;
+    --color-api-name: #219B9D !important;
+    --color-api-keyword: #d73a49 !important;
+    --color-api-pre-background: #f8f9fa !important;
+}
+
+[data-theme="dark"] {
+    --color-api-background: #1e2222 !important;
+    --color-api-border: #2c3434 !important;
 }
 
 body {
@@ -128,4 +141,144 @@ table.autosummary tr {
     .sidebar-drawer {
         display: none !important;
     }
+}
+
+/* Function & Class Signature Soft Styling - Restored to single container */
+.article-container dl.py.function>dt.sig,
+.article-container dl.py.class>dt.sig,
+.article-container dt.sig {
+    background-color: #f8fafc !important;
+    /* Extremely soft slate-blue tint */
+    padding: 1.5em 2em !important;
+    border-radius: 16px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 10px solid #219B9D !important;
+    /* Prominent Brand Teal */
+    margin: 3.5em 0 1.5em 0 !important;
+    font-size: 1.1rem !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    line-height: 1.6 !important;
+    display: block !important;
+}
+
+[data-theme="dark"] .article-container dl.py.function>dt.sig,
+[data-theme="dark"] .article-container dl.py.class>dt.sig,
+[data-theme="dark"] .article-container dt.sig {
+    background-color: #1a202c !important;
+    border-color: #2d3748 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Hide 'On this page' (Table of Contents) sidebar as requested */
+.toc-drawer,
+.sidebar-drawer {
+    display: none !important;
+}
+
+/* Hide 'Back to top' if it feels cluttered */
+.back-to-top {
+    display: none !important;
+}
+
+/* Syntax Highlighting inside Signature - VIVID but professional */
+.sig-name,
+.sig-name .pre {
+    color: #219B9D !important;
+    /* Brand Teal */
+    font-weight: 800 !important;
+}
+
+.sig-param,
+.sig-param .pre {
+    font-style: italic !important;
+    color: #4a5568 !important;
+    /* Modern Slate Grey */
+}
+
+[data-theme="dark"] .sig-param,
+[data-theme="dark"] .sig-param .pre {
+    color: #a0aec0 !important;
+}
+
+.sig-punctuation,
+.sig-punctuation .pre {
+    color: #a0aec0 !important;
+    opacity: 1 !important;
+}
+
+.sig-paren,
+.sig-paren .pre {
+    color: #2d3748 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .sig-paren,
+[data-theme="dark"] .sig-paren .pre {
+    color: #e2e8f0 !important;
+}
+
+.sig-return-icon,
+.sig-return-typehint,
+.sig-return-typehint .pre {
+    color: #219B9D !important;
+    font-weight: 700 !important;
+}
+
+.property,
+.keyword,
+.keyword .pre {
+    color: #d73a49 !important;
+    /* Python keywords (def, class) */
+    font-weight: 700 !important;
+}
+
+/* Description block padding - Aligning parameters to the left */
+dd {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    margin-bottom: 2.5em !important;
+}
+
+/* Align field lists (Parameters, Returns) strictly to the left */
+dl.field-list {
+    display: block !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+dl.field-list>dt {
+    display: block !important;
+    margin-top: 1.5em !important;
+    margin-bottom: 0.5em !important;
+    text-align: left !important;
+    width: auto !important;
+    padding-left: 0 !important;
+    font-weight: bold !important;
+}
+
+dl.field-list>dd {
+    display: block !important;
+    margin-left: 0 !important;
+    padding-left: 1.2em !important;
+    /* Minimal indent for items under a header */
+}
+
+/* Parameter list aesthetics */
+.field-list dd ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+.field-list li {
+    margin-bottom: 1em !important;
+    padding-left: 0 !important;
+}
+
+.field-list strong {
+    color: #219B9D !important;
+    font-size: 1.1em !important;
 }
