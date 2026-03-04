@@ -26,3 +26,6 @@ test_plots/
 # IDEs
 .vscode
 .idea
+
+docs/_build
+docs/_build

@@ -4,33 +4,67 @@ from datetime import datetime
 import unittest.mock as mock
 
 # Add the project root to sys.path
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
+templates_path = [os.path.join(os.path.abspath('.'), '_templates')]
 
 # Monkey-patch importlib.metadata.version to avoid PackageNotFoundError during build
 import importlib.metadata
+
 _original_version = importlib.metadata.version
+
+
 def _mock_version(package_name):
     if package_name == "cellestial":
         return "0.10.3"
     return _original_version(package_name)
+
+
 importlib.metadata.version = _mock_version
+
 
 # Advanced Mocking to handle lets-plot additions and subpackages
 class BetterMock(mock.MagicMock):
-    def __add__(self, other): return self
-    def __radd__(self, other): return self
-    def __call__(self, *args, **kwargs): return self
+    def __add__(self, other):
+        return self
+
+    def __radd__(self, other):
+        return self
+
+    def __call__(self, *args, **kwargs):
+        return self
+
     def __getattr__(self, name):
-        if name.startswith('_'):
+        if name.startswith("_"):
             return super().__getattr__(name)
         return self
 
+
 mock_modules = [
-    "anndata", "lets_plot", "lets_plot.plot", "lets_plot.plot.core", 
-    "lets_plot.plot.subplots", "polars", "skimage", "scikit-image", 
-    "ipykernel", "ruff", "mypy", "pooch", "scanpy", "pycairo", 
-    "cairosvg", "scvelo", "ty", "pandas", "tqdm", "pyarrow", 
-    "matplotlib", "seaborn", "numpy", "scipy", "sklearn", "IPython"
+    "anndata",
+    "lets_plot",
+    "lets_plot.plot",
+    "lets_plot.plot.core",
+    "lets_plot.plot.subplots",
+    "polars",
+    "skimage",
+    "scikit-image",
+    "ipykernel",
+    "ruff",
+    "mypy",
+    "pooch",
+    "scanpy",
+    "pycairo",
+    "cairosvg",
+    "scvelo",
+    "ty",
+    "pandas",
+    "tqdm",
+    "pyarrow",
+    "matplotlib",
+    "seaborn",
+    "numpy",
+    "scipy",
+    "sklearn",
 ]
 
 for mod_name in mock_modules:
@@ -38,45 +72,65 @@ for mod_name in mock_modules:
 
 # -- Project information -----------------------------------------------------
 
-project = 'cellestial'
-copyright = f'{datetime.now().year}, Zaf4'
-author = 'Zaf4'
+project = "cellestial"
+copyright = f"{datetime.now().year}, Zaf4"
+author = "Zaf4"
 
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autosummary",
+    "jupyter_sphinx",
 ]
 
 autosummary_generate = True
 
 # Autodoc settings
 autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'show-inheritance': False,
-    'member-order': 'bysource',
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": False,
+    "member-order": "bysource",
 }
 
 add_module_names = False
-pygments_style = 'friendly'
-pygments_dark_style = 'monokai'
 
 # -- Options for HTML output -------------------------------------------------
-
-html_theme = 'furo'
-html_title = 'cellestial documentation'
+html_show_sourcelink = False
+html_theme = "pydata_sphinx_theme"
+html_title = "cellestial documentation"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_js_files = ["custom.js"]
 html_theme_options = {
-    "source_repository": "https://github.com/datavil/cellestial/",
-    "source_branch": "main",
-    "source_directory": "docs/",
+    "logo": {"text": "cellestial"},
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/datavil/cellestial",
+            "icon": "fa-brands fa-github",
+            "type": "fontawesome",
+        },
+    ],
+    # 1. Define the sections to force right-alignment
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": ["navbar-api"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "search_bar_text": "Search",
+    "pygments_light_style": "manni",
+    "pygments_dark_style": "monokai",
+    "show_nav_level": 0,
+    "use_edit_page_button": False,
+    "announcement": None,
+    "show_prev_next": False,
 }
-html_static_path = ['_static']
-html_css_files = ['custom.css']
-html_js_files = ['custom.js']
+
+html_sidebars = {
+    "**": [],                     # no search, links, etc. on any page
+}
 
 # Napoleon settings
 napoleon_google_docstring = True
@@ -86,6 +140,7 @@ napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+
 
 def setup(app):
     # This can be used for custom CSS or JS if needed

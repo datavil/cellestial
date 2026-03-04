@@ -1,5 +1,5 @@
 
-Cellestial
+API Reference
 ==========
 
 Base
@@ -10,53 +10,53 @@ Base
 
    ~cellestial.plot
 
-Basic Plots
+Basic
 -----------
 
 .. autosummary::
    :toctree: generated
    :nosignatures:
 
-   ~cellestial.single.basic.bar.bar
-   ~cellestial.single.basic.heatmap.heatmap
-   ~cellestial.single.basic.scatter.scatter
+   ~cellestial.bar
+   ~cellestial.heatmap
+   ~cellestial.scatter
 
-Common Plots
+Common
 ------------
 
 .. autosummary::
    :toctree: generated
    :nosignatures:
 
-   ~cellestial.single.common.xyplot.xyplot
-   ~cellestial.single.common.xyplots.xyplots
+   ~cellestial.xyplot
+   ~cellestial.xyplots
 
-Special Plots
+Special
 -------------
 
 .. autosummary::
    :toctree: generated
    :nosignatures:
 
-   ~cellestial.single.special.dotplot.dotplot
+   ~cellestial.dotplot
 
-Core Dimensionality & Expression
+Dimensionality Reduction
 --------------------------------
 
 .. autosummary::
    :toctree: generated
    :nosignatures:
 
-   ~cellestial.single.core.subdimensional.expression
-   ~cellestial.single.core.subdimensional.pca
-   ~cellestial.single.core.subdimensional.tsne
-   ~cellestial.single.core.subdimensional.umap
-   ~cellestial.single.core.subdimensionals.dimensionals
-   ~cellestial.single.core.subdimensionals.expressions
-   ~cellestial.single.core.subdimensionals.pcas
-   ~cellestial.single.core.subdimensionals.tsnes
-   ~cellestial.single.core.subdimensionals.umaps
-   ~cellestial.single.core.dimensional.dimensional
+   ~cellestial.dimensional
+   ~cellestial.umap
+   ~cellestial.pca
+   ~cellestial.tsne
+   ~cellestial.expression
+   ~cellestial.dimensionals
+   ~cellestial.umaps
+   ~cellestial.pcas
+   ~cellestial.tsnes
+   ~cellestial.expressions
 
 Distributions
 -------------
@@ -65,10 +65,20 @@ Distributions
    :toctree: generated
    :nosignatures:
 
-   ~cellestial.single.core.distribution.boxplot
-   ~cellestial.single.core.distribution.violin
-   ~cellestial.single.core.distributions.boxplots
-   ~cellestial.single.core.distributions.violins
+   ~cellestial.boxplot
+   ~cellestial.violin
+   ~cellestial.boxplots
+   ~cellestial.violins
+
+Data Frames
+-----------
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   ~cellestial.build_frame
+
 
 Utility
 -------
@@ -77,13 +87,13 @@ Utility
    :toctree: generated
    :nosignatures:
 
-   ~cellestial.util.colors.show_colors
-   ~cellestial.util.utilities.get_mapping
-   ~cellestial.util.utilities.retrieve
-   ~cellestial.util.utilities.slice
+   ~cellestial.show_colors
+   ~cellestial.get_mapping
+   ~cellestial.retrieve
+   ~cellestial.slice
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :hidden:
 
    self

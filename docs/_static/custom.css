@@ -4,281 +4,90 @@
 :root {
     --font-stack: "JetBrains Mono", monospace;
     --font-stack--monospace: "JetBrains Mono", monospace;
-
-    /* Branding Colors - Teal Accent */
-    --color-brand-primary: #219B9D !important;
-    --color-brand-content: #219B9D !important;
-    --color-link: #219B9D !important;
-    --color-link--hover: #1b7e80 !important;
-
-    /* API Signature "Soft" Colors */
-    --color-api-background: #f8fcfc !important;
-    /* Very soft teal tint */
-    --color-api-border: #e6f2f2 !important;
-    --color-api-name: #219B9D !important;
-    --color-api-keyword: #d73a49 !important;
-    --color-api-pre-background: #f8f9fa !important;
 }
 
-[data-theme="dark"] {
-    --color-api-background: #1e2222 !important;
-    --color-api-border: #2c3434 !important;
-}
-
-body {
-    font-family: var(--font-stack) !important;
-    font-weight: 600 !important;
-    font-size: 1.15rem !important;
-    /* Increased from 1.05rem */
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: var(--font-stack) !important;
-    font-weight: 600 !important;
-}
-
-/* Hide the sidebar in Furo theme */
-.sidebar-drawer {
-    display: none !important;
-}
-
-/* Make the main content full-width */
-.page {
-    margin-left: 0 !important;
-}
-
-.main-content {
-    max-width: 100% !important;
-}
-
-/* Premium Table Styling */
-table.autosummary {
-    width: 100% !important;
-    margin: 1.5em 0 !important;
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
-    font-size: 1.15rem !important;
-    /* Matches body size */
-    border: 1px solid var(--color-background-border) !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
-}
-
-table.autosummary thead {
-    display: none !important;
-}
-
-table.autosummary td {
-    padding: 18px 20px !important;
-    /* Increased padding */
-    border-bottom: 1px solid var(--color-background-border) !important;
-    vertical-align: middle !important;
-    line-height: 1.6 !important;
-}
-
-table.autosummary tr:last-child td {
-    border-bottom: none !important;
-}
-
-/* Zebra striping - very subtle */
-table.autosummary tr:nth-child(even) {
-    background-color: var(--color-background-secondary) !important;
-}
-
-/* Neutral hover background */
-table.autosummary tr:hover {
-    background-color: rgba(0, 0, 0, 0.03) !important;
-}
-
-[data-theme="dark"] table.autosummary tr:hover {
-    background-color: rgba(255, 255, 255, 0.03) !important;
-}
-
-/* Function Name Column Styling - THE ACCENT */
-table.autosummary td:first-child {
-    width: 35% !important;
-}
-
-table.autosummary a {
-    color: #219B9D !important;
-    /* Explicit Teal */
-    font-weight: 700 !important;
-    /* Extra bold for names */
-    text-decoration: none !important;
-    transition: all 0.2s ease-in-out !important;
-}
-
-table.autosummary a:hover {
-    color: #1b7e80 !important;
-    text-decoration: underline !important;
-}
-
-/* Description Column Styling */
-table.autosummary td:last-child {
-    color: var(--color-foreground-muted) !important;
-    font-weight: 500 !important;
+/* Code blocks use JetBrains Mono */
+code,
+pre,
+.highlight,
+.highlight pre,
+div.highlight,
+div.highlight pre,
+.literal-block,
+pre.literal-block,
+.code-block,
+tt,
+.rst-content tt,
+.rst-content code {
+    font-family: "JetBrains Mono", monospace !important;
+    font-weight: 400 !important;
     font-size: 0.95em !important;
-    /* Slightly smaller for description */
 }
 
-/* Space between sections */
-section {
-    margin-bottom: 3rem !important;
+/* Inline code */
+code.literal,
+code.docutils,
+code.xref,
+span.pre {
+    font-family: "JetBrains Mono", monospace !important;
+    font-weight: 400 !important;
 }
 
-table.autosummary tr {
-    transition: background-color 0.2s ease !important;
+/* Code blocks background */
+div.highlight pre,
+.highlight pre,
+pre.literal-block {
+    font-family: "JetBrains Mono", monospace !important;
+    font-weight: 400 !important;
 }
 
-/* Mobile adjustments */
-@media (max-width: 67rem) {
-    .sidebar-drawer {
-        display: none !important;
-    }
+/* Move theme switch button to the right */
+.theme-switch-button {
+    margin-left: auto !important;
+    order: 999 !important;
 }
 
-/* Function & Class Signature Soft Styling - Restored to single container */
-.article-container dl.py.function>dt.sig,
-.article-container dl.py.class>dt.sig,
-.article-container dt.sig {
-    background-color: #f8fafc !important;
-    /* Extremely soft slate-blue tint */
-    padding: 1.5em 2em !important;
-    border-radius: 16px !important;
-    border: 1px solid #e2e8f0 !important;
-    border-left: 10px solid #219B9D !important;
-    /* Prominent Brand Teal */
-    margin: 3.5em 0 1.5em 0 !important;
-    font-size: 1.1rem !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-    line-height: 1.6 !important;
-    display: block !important;
+/* Ensure navbar flex layout */
+nav.navbar {
+    display: flex !important;
+    align-items: center !important;
 }
 
-[data-theme="dark"] .article-container dl.py.function>dt.sig,
-[data-theme="dark"] .article-container dl.py.class>dt.sig,
-[data-theme="dark"] .article-container dt.sig {
-    background-color: #1a202c !important;
-    border-color: #2d3748 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+
+/* Force the right-side icons to the far right */
+.bd-header .navbar-end {
+    justify-content: flex-end !important;
+    flex-grow: 1;
 }
 
-/* Hide 'On this page' (Table of Contents) sidebar as requested */
-.toc-drawer,
-.sidebar-drawer {
+/* Ensure the center doesn't take up space if empty */
+.bd-header .navbar-center {
+    flex-grow: 1;
+}
+
+/* Hide the automatically generated nav links but keep the container */
+.bd-navbar-nav .nav-item:not(:first-child) {
+    display: none;
+}
+
+/* Remove the left sidebar column and stretch content */
+.primary-sidebar {
     display: none !important;
 }
 
-/* Hide 'Back to top' if it feels cluttered */
-.back-to-top {
-    display: none !important;
+.bd-main .bd-content .bd-article-container {
+  max-width: 100%;  /* default is 60em */
 }
 
-/* Syntax Highlighting inside Signature - VIVID but professional */
-.sig-name,
-.sig-name .pre {
-    color: #219B9D !important;
-    /* Brand Teal */
-    font-weight: 800 !important;
+/* Make Type Hints thinner and slightly smaller */
+.sig-param .api-type-hint {
+    font-weight: 300 !important;
+    opacity: 0.8;
+    font-size: 0.9em;
 }
 
-.sig-param,
-.sig-param .pre {
-    font-style: italic !important;
-    color: #4a5568 !important;
-    /* Modern Slate Grey */
-}
-
-[data-theme="dark"] .sig-param,
-[data-theme="dark"] .sig-param .pre {
-    color: #a0aec0 !important;
-}
-
-.sig-punctuation,
-.sig-punctuation .pre {
-    color: #a0aec0 !important;
-    opacity: 1 !important;
-}
-
-.sig-paren,
-.sig-paren .pre {
-    color: #2d3748 !important;
-    font-weight: 600 !important;
-}
-
-[data-theme="dark"] .sig-paren,
-[data-theme="dark"] .sig-paren .pre {
-    color: #e2e8f0 !important;
-}
-
-.sig-return-icon,
-.sig-return-typehint,
-.sig-return-typehint .pre {
-    color: #219B9D !important;
-    font-weight: 700 !important;
-}
-
-.property,
-.keyword,
-.keyword .pre {
-    color: #d73a49 !important;
-    /* Python keywords (def, class) */
-    font-weight: 700 !important;
-}
-
-/* Description block padding - Aligning parameters to the left */
-dd {
-    padding-left: 0 !important;
-    margin-left: 0 !important;
-    margin-bottom: 2.5em !important;
-}
-
-/* Align field lists (Parameters, Returns) strictly to the left */
-dl.field-list {
-    display: block !important;
-    padding-left: 0 !important;
-    margin-left: 0 !important;
-    width: 100% !important;
-}
-
-dl.field-list>dt {
-    display: block !important;
-    margin-top: 1.5em !important;
-    margin-bottom: 0.5em !important;
-    text-align: left !important;
-    width: auto !important;
-    padding-left: 0 !important;
-    font-weight: bold !important;
-}
-
-dl.field-list>dd {
-    display: block !important;
-    margin-left: 0 !important;
-    padding-left: 1.2em !important;
-    /* Minimal indent for items under a header */
-}
-
-/* Parameter list aesthetics */
-.field-list dd ul {
-    list-style: none !important;
-    padding-left: 0 !important;
-    margin-left: 0 !important;
-}
-
-.field-list li {
-    margin-bottom: 1em !important;
-    padding-left: 0 !important;
-}
-
-.field-list strong {
-    color: #219B9D !important;
-    font-size: 1.1em !important;
+/* Make Default Values (after the '=') thinner */
+.sig-param .default_value {
+    font-weight: 300 !important;
+    color: #666; /* Subtle grey */
 }

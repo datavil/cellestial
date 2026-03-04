@@ -2,7 +2,7 @@
 {{ obj.name }}
 {{ "=" * obj.name|length }}
 
-.. py:module:: {{ obj.name }}
+.. py:module:: {{ obj.name | replace(" ", "") }}
 
 {% if obj.docstring %}
 {{ obj.docstring }}

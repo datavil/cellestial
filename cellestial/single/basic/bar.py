@@ -59,6 +59,47 @@ def bar(
     -------
     PlotSpec
         Bar plot.
+
+    Examples
+    --------
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10-11
+
+        from lets_plot import *
+        LetsPlot.setup_html()
+
+        import cellestial as cl
+        import scanpy as sc
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        p1 = (
+            cl.bar(data, mapping=aes("leiden", fill="predicted_doublet"))
+            + scale_fill_brewer(palette="Set2", direction=-1)
+        )
+        p1
+
+    Example 2
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10-11
+
+        from lets_plot import *
+        LetsPlot.setup_html()
+
+        import cellestial as cl
+        import scanpy as sc
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        p2 = (
+            cl.bar(data, mapping=aes("cell_type_lvl1", fill="leiden"))
+            + scale_fill_brewer(palette="Set2")
+        )
+        p2
+
     """
     if mapping is not None:
         keys = [v for v in mapping.as_dict().values() if v is not None]

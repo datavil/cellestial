@@ -49,6 +49,47 @@ def plot(
     -------
     PlotSpec
         Base ggplot object.
+
+    Examples
+    --------
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10
+
+        from lets_plot import *
+        LetsPlot.setup_html()
+
+        import cellestial as cl
+        import scanpy as sc
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        p1 = (
+            cl.plot(data, aes(x="cell_type_lvl1", y="n_genes"))
+        )
+        p1 # plot object without layers
+
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10-13
+
+        from lets_plot import *
+        LetsPlot.setup_html()
+
+        import cellestial as cl
+        import scanpy as sc
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        p2 = (
+            cl.plot(data, aes(x="cell_type_lvl1", y="n_genes"))
+            + geom_violin(aes(fill="cell_type_lvl1"), scale="width")
+            + geom_boxplot(width=0.2,outlier_size=0)
+            + scale_fill_viridis()
+        )
+        p2
+
     """
     # Handling Data types
     if not isinstance(data, AnnData):
