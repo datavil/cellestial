@@ -28,4 +28,4 @@ test_plots/
 .idea
 
 docs/_build
-docs/_build
+docs/_build/

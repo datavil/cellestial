@@ -5,7 +5,7 @@ import unittest.mock as mock
 
 # Add the project root to sys.path
 sys.path.insert(0, os.path.abspath(".."))
-templates_path = [os.path.join(os.path.abspath('.'), '_templates')]
+templates_path = [os.path.join(os.path.abspath("."), "_templates")]
 
 # Monkey-patch importlib.metadata.version to avoid PackageNotFoundError during build
 import importlib.metadata
@@ -73,7 +73,7 @@ for mod_name in mock_modules:
 # -- Project information -----------------------------------------------------
 
 project = "cellestial"
-copyright = f"{datetime.now().year}, Zaf4"
+copyright = f"{datetime.now().year}, datavil"
 author = "Zaf4"
 
 # -- General configuration ---------------------------------------------------
@@ -86,7 +86,9 @@ extensions = [
     "jupyter_sphinx",
 ]
 
+
 autosummary_generate = True
+add_module_names = False
 
 # Autodoc settings
 autodoc_default_options = {
@@ -98,10 +100,11 @@ autodoc_default_options = {
 
 add_module_names = False
 
+
 # -- Options for HTML output -------------------------------------------------
 html_show_sourcelink = False
+html_title = ""
 html_theme = "pydata_sphinx_theme"
-html_title = "cellestial documentation"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_js_files = ["custom.js"]
@@ -114,8 +117,13 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
             "type": "fontawesome",
         },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/cellestial",
+            "icon": "_static/pypi.svg",
+            "type": "local",
+        },
     ],
-    # 1. Define the sections to force right-alignment
     "navbar_start": ["navbar-logo"],
     "navbar_center": ["navbar-api"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
@@ -126,10 +134,15 @@ html_theme_options = {
     "use_edit_page_button": False,
     "announcement": None,
     "show_prev_next": False,
+    "footer_start": ["copyright"],
+    "footer_center":["sphinx-version"],
+    "footer_end": ["theme-version"],
+
 }
 
+
 html_sidebars = {
-    "**": [],                     # no search, links, etc. on any page
+    "**": [],  # no search, links, etc. on any page
 }
 
 # Napoleon settings

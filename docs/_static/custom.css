@@ -1,11 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600&display=swap');
 
-/* Main Typography & Colors */
-:root {
-    --font-stack: "JetBrains Mono", monospace;
-    --font-stack--monospace: "JetBrains Mono", monospace;
-}
-
 /* Code blocks use JetBrains Mono */
 code,
 pre,
@@ -25,21 +19,13 @@ tt,
 }
 
 /* Inline code */
-code.literal,
+/* code.literal,
 code.docutils,
 code.xref,
 span.pre {
     font-family: "JetBrains Mono", monospace !important;
     font-weight: 400 !important;
-}
-
-/* Code blocks background */
-div.highlight pre,
-.highlight pre,
-pre.literal-block {
-    font-family: "JetBrains Mono", monospace !important;
-    font-weight: 400 !important;
-}
+} */
 
 /* Move theme switch button to the right */
 .theme-switch-button {
@@ -88,6 +74,6 @@ nav.navbar {
 
 /* Make Default Values (after the '=') thinner */
 .sig-param .default_value {
-    font-weight: 300 !important;
+    font-weight: 100 !important;
     color: #666; /* Subtle grey */
 }

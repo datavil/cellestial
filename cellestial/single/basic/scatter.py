@@ -33,6 +33,8 @@ def scatter(
     """
     Scatter Plot.
 
+    Parameters
+    ----------
     data : AnnData
         The AnnData object of the single cell data.
     mapping : FeatureSpec | None, default=None
@@ -67,18 +69,15 @@ def scatter(
         keys = [v for v in mapping.as_dict().values() if v is not None]
         axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     # BUILD: the scatter plot
-    scttr = (
-        baseplot(
-            data=data,
-            mapping=None,
-            axis=axis,
-            variable_keys=variable_keys,
-            observations_name=observations_name,
-            variables_name=variables_name,
-            include_dimensions=include_dimensions,
-        )
-        + geom_point(mapping=mapping, **geom_kwargs)
-    )
+    scttr = baseplot(
+        data=data,
+        mapping=None,
+        axis=axis,
+        variable_keys=variable_keys,
+        observations_name=observations_name,
+        variables_name=variables_name,
+        include_dimensions=include_dimensions,
+    ) + geom_point(mapping=mapping, **geom_kwargs)
 
     if interactive:
         scttr += ggtb(size_zoomin=-1)
