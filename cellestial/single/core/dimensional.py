@@ -123,14 +123,14 @@ def dimensional(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).

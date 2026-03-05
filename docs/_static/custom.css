@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600&display=swap');
+
+/* Code blocks use JetBrains Mono */
+code,
+pre,
+.highlight,
+.highlight pre,
+div.highlight,
+div.highlight pre,
+.literal-block,
+pre.literal-block,
+.code-block,
+tt,
+.rst-content tt,
+.rst-content code {
+    font-family: "JetBrains Mono", monospace !important;
+    font-weight: 400 !important;
+    font-size: 0.95em !important;
+}
+
+code.literal,
+tt.literal {
+    color: #AF1740;
+}
+
+a code.literal,
+a tt.literal {
+    text-decoration: none;
+}
+
+table.autosummary a {
+    text-decoration: none;
+}
+
+/* Inline code */
+/* code.literal,
+code.docutils,
+code.xref,
+span.pre {
+    font-family: "JetBrains Mono", monospace !important;
+    font-weight: 400 !important;
+} */
+
+/* Move theme switch button to the right */
+.theme-switch-button {
+    margin-left: auto !important;
+    order: 999 !important;
+}
+
+/* Ensure navbar flex layout */
+nav.navbar {
+    display: flex !important;
+    align-items: center !important;
+}
+
+
+/* Force the right-side icons to the far right */
+.bd-header .navbar-end {
+    justify-content: flex-end !important;
+    flex-grow: 1;
+}
+
+/* Ensure the center doesn't take up space if empty */
+.bd-header .navbar-center {
+    flex-grow: 1;
+}
+
+/* Hide the automatically generated nav links but keep the container */
+.bd-navbar-nav .nav-item:not(:first-child) {
+    display: none;
+}
+
+/* Remove the left sidebar column and stretch content */
+.primary-sidebar {
+    display: none !important;
+}
+
+.bd-main .bd-content .bd-article-container {
+  max-width: 100%;  /* default is 60em */
+}
+
+/* Make Type Hints thinner and slightly smaller */
+.sig-param .api-type-hint {
+    font-weight: 200 !important;
+    opacity: 0.8;
+    font-size: 0.9em;
+    color: #4f4f4f; /* Subtle grey */
+}
+
+/* Make Default Values (after the '=') thinner */
+.sig-param .default_value {
+    font-weight: 100 !important;
+    color: #666; /* Subtle grey */
+}
+
+dl.field-list dd ul {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+.field-list ul li {
+    padding-left: 0;
+    margin-left: 0;
+    margin-bottom: 0.8rem;  /* adjust this value */
+}
+
+table.autosummary {
+    table-layout: fixed;
+    width: 100%;
+}
+
+table.autosummary td:first-child {
+    width: 300px;
+}
+
+table.autosummary td:last-child {
+    width: auto;
+}
+
+.highlight-default {
+    background: none !important;
+}
+
+dt.sig {
+    background-color: transparent !important;
+}

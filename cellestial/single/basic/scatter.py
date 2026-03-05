@@ -9,7 +9,6 @@ from lets_plot import (
 )
 
 from cellestial.single.base import plot as baseplot
-from cellestial.themes import _THEME_SCATTER
 from cellestial.util import _determine_axis
 
 if TYPE_CHECKING:
@@ -34,6 +33,8 @@ def scatter(
     """
     Scatter Plot.
 
+    Parameters
+    ----------
     data : AnnData
         The AnnData object of the single cell data.
     mapping : FeatureSpec | None, default=None
@@ -44,9 +45,9 @@ def scatter(
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : Literal[0,1] | None, default=None
         The axis to build the frame for. 0 for observations, 1 for variables.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -68,19 +69,15 @@ def scatter(
         keys = [v for v in mapping.as_dict().values() if v is not None]
         axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     # BUILD: the scatter plot
-    scttr = (
-        baseplot(
-            data=data,
-            mapping=None,
-            axis=axis,
-            variable_keys=variable_keys,
-            observations_name=observations_name,
-            variables_name=variables_name,
-            include_dimensions=include_dimensions,
-        )
-        + geom_point(mapping=mapping, **geom_kwargs)
-        + _THEME_SCATTER
-    )
+    scttr = baseplot(
+        data=data,
+        mapping=None,
+        axis=axis,
+        variable_keys=variable_keys,
+        observations_name=observations_name,
+        variables_name=variables_name,
+        include_dimensions=include_dimensions,
+    ) + geom_point(mapping=mapping, **geom_kwargs)
 
     if interactive:
         scttr += ggtb(size_zoomin=-1)
