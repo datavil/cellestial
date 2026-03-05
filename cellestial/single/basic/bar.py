@@ -41,9 +41,9 @@ def bar(
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : Literal[0,1] | None, default=None
         The axis to build the frame for. 0 for observations, 1 for variables.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -72,11 +72,11 @@ def bar(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
         p1 = (
-            cl.bar(data, mapping=aes("leiden", fill="predicted_doublet"))
-            + scale_fill_brewer(palette="Set2", direction=-1)
+            cl.bar(data, mapping=aes('leiden', fill='predicted_doublet'))
+            + scale_fill_brewer(palette='Set2', direction=-1)
         )
         p1
 
@@ -92,11 +92,11 @@ def bar(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
         p2 = (
-            cl.bar(data, mapping=aes("cell_type_lvl1", fill="leiden"))
-            + scale_fill_brewer(palette="Set2")
+            cl.bar(data, mapping=aes('cell_type_lvl1', fill='leiden'))
+            + scale_fill_brewer(palette='Set2')
         )
         p2
 

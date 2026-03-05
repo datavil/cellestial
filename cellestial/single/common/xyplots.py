@@ -63,9 +63,9 @@ def xyplots(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -95,7 +95,7 @@ def xyplots(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.

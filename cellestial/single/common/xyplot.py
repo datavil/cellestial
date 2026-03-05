@@ -60,9 +60,9 @@ def xyplot(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
