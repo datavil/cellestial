@@ -1,7 +1,7 @@
 Cellestial
 ==========
 
-The grammar of graphic for single-cell omics.
+The *grammar of graphics* for single-cell omics.
 
 Installation
 --------------
@@ -9,15 +9,22 @@ Installation
 
    pip install cellestial
 
-
+Content
+-------
 .. toctree::
    :maxdepth: 1
 
    API
    philosophy
 
+Example 
+---------------
+Hover over the plot 'geoms' to see tooltips, or use **toolbar** above the plot for **zooming and panning** options.
+
+.. raw:: html
+   :file: _static/overall.ggtb.html
 
 About Lets-Plot
 ---------------
 
-Cellestial is built on top of a powerful Python library, Lets-Plot. It is the best Python implementation of ggplot2 with additional features such as *tooltips
+Cellestial is built on top of a powerful Python library, Lets-Plot. It is the best Python implementation of *ggplot2* with additional features such as **tooltips** and **zooming and panning**.
