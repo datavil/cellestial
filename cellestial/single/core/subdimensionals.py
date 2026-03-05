@@ -121,14 +121,14 @@ def dimensionals(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -193,7 +193,7 @@ def dimensionals(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.
@@ -386,14 +386,14 @@ def umaps(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -458,7 +458,7 @@ def umaps(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.
@@ -650,14 +650,14 @@ def tsnes(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -722,7 +722,7 @@ def tsnes(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.
@@ -913,14 +913,14 @@ def pcas(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -985,7 +985,7 @@ def pcas(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.
@@ -1180,14 +1180,14 @@ def expressions(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -1252,7 +1252,7 @@ def expressions(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.

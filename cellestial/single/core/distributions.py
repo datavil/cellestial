@@ -82,19 +82,19 @@ def violins(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str, default="#FF00FF"
+    geom_fill : str, default='#FF00FF'
         Fill color for all violins in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str, default="#2f2f2f"
+    geom_color : str, default='#2f2f2f'
         Border color for all violins in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_color : str, default="#1f1f1f"
+    point_color : str, default='#1f1f1f'
         Color for the points in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
@@ -104,13 +104,13 @@ def violins(
         Alpha (transparency) for the points in the violin plot.
     point_size : float, default=0.5
         Size for the points in the violin plot.
-    point_geom : Literal["jitter","point","sina"], default is "jitter",
+    point_geom : Literal['jitter','point','sina'], default is 'jitter',
         Geom type of the points, default is geom_jitter.
     trim : bool, default=False
         Whether to trim the violin plot.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Gene"
+    variables_name : str, default='Gene'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -124,9 +124,9 @@ def violins(
         If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
-    variable_column : str, default="variable"
+    variable_column : str, default='variable'
         The name of the variable column in the dataframe.
-    value_column : str, default="value"
+    value_column : str, default='value'
         The name of the value column in the dataframe.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -151,7 +151,7 @@ def violins(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.
@@ -298,19 +298,19 @@ def boxplots(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str, default="#FF00FF"
+    geom_fill : str, default='#FF00FF'
         Fill color for all boxplots in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str, default="#2f2f2f"
+    geom_color : str, default='#2f2f2f'
         Border color for all boxplots in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_color : str, default="#1f1f1f"
+    point_color : str, default='#1f1f1f'
         Color for the points in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
@@ -320,11 +320,11 @@ def boxplots(
         Alpha (transparency) for the points in the boxplot.
     point_size : float, default=0.5
         Size for the points in the boxplot.
-    point_geom : Literal["jitter","point","sina"], default is "jitter",
+    point_geom : Literal['jitter','point','sina'], default is 'jitter',
         Geom type of the points, default is geom_jitter.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Gene"
+    variables_name : str, default='Gene'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -338,9 +338,9 @@ def boxplots(
         If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
-    variable_column : str, default="variable"
+    variable_column : str, default='variable'
         The name of the variable column in the dataframe.
-    value_column : str, default="value"
+    value_column : str, default='value'
         The name of the value column in the dataframe.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -365,7 +365,7 @@ def boxplots(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
             - 'collect' collect guides from all subplots, removing duplicates.
             - 'keep' keep guides in their original subplots; do not collect at this level.

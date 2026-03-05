@@ -240,19 +240,19 @@ def violin(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str | None, default="#FF00FF"
+    geom_fill : str | None, default='#FF00FF'
         Fill color for all violins in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str | None, default="#2f2f2f"
+    geom_color : str | None, default='#2f2f2f'
         Border color for all violins in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_color : str, default="#1f1f1f"
+    point_color : str, default='#1f1f1f'
         Color for the points in the violin plot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
@@ -262,19 +262,19 @@ def violin(
         Alpha (transparency) for the points in the violin plot.
     point_size : float, default=0.5
         Size for the points in the violin plot.
-    point_geom : Literal["jitter","point","sina"], default is "jitter",
+    point_geom : Literal['jitter','point','sina'], default is 'jitter',
         Geom type of the points, default is geom_jitter.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    variable_column : str, default="variable"
+    variable_column : str, default='variable'
         The name of the variable column in the dataframe.
-    value_column : str, default="value"
+    value_column : str, default='value'
         The name of the value column in the dataframe.
     point_kwargs : dict[str, Any] | None, default=None
         Additional parameters for the `geom_point` layer.
@@ -368,19 +368,19 @@ def boxplot(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str | None, default="#FF00FF"
+    geom_fill : str | None, default='#FF00FF'
         Fill color for all boxplots in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str | None, default="#2f2f2f"
+    geom_color : str | None, default='#2f2f2f'
         Border color for all boxplots in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
             - color name (of a limited set of colors).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    point_color : str, default="#1f1f1f"
+    point_color : str, default='#1f1f1f'
         Color for the points in the boxplot.
         - Accepts:
             - hex code e.g. '#f1f1f1'
@@ -390,19 +390,19 @@ def boxplot(
         Alpha (transparency) for the points in the boxplot.
     point_size : float, default=0.5
         Size for the points in the boxplot.
-    point_geom : Literal["jitter","point","sina"], default is "jitter",
+    point_geom : Literal['jitter','point','sina'], default is 'jitter',
         Geom type of the points, default is geom_jitter.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    variable_column : str, default="variable"
+    variable_column : str, default='variable'
         The name of the variable column in the dataframe.
-    value_column : str, default="value"
+    value_column : str, default='value'
         The name of the value column in the dataframe.
     point_kwargs : dict[str, Any] | None, default=None
         Additional parameters for the `geom_point` layer.

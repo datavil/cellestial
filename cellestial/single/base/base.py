@@ -38,7 +38,7 @@ def plot(
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str
-        The name of the observations column, default is "barcode".
+        The name of the observations column, default is 'barcode'.
     variables_name : str
         Name for the variables index column, default is 'variable'
     include_dimensions : bool | int, default=False
@@ -62,10 +62,10 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
         p1 = (
-            cl.plot(data, aes(x="cell_type_lvl1", y="n_genes"))
+            cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))
         )
         p1 # plot object without layers
 
@@ -80,11 +80,11 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
         p2 = (
-            cl.plot(data, aes(x="cell_type_lvl1", y="n_genes"))
-            + geom_violin(aes(fill="cell_type_lvl1"), scale="width")
+            cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))
+            + geom_violin(aes(fill='cell_type_lvl1'), scale='width')
             + geom_boxplot(width=0.2,outlier_size=0)
             + scale_fill_viridis()
         )
