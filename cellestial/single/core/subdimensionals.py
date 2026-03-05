@@ -14,11 +14,12 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
 
+
 def dimensionals(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -46,7 +47,7 @@ def dimensionals(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -120,14 +121,14 @@ def dimensionals(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -167,7 +168,7 @@ def dimensionals(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -192,19 +193,19 @@ def dimensionals(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -287,7 +288,7 @@ def umaps(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -314,7 +315,7 @@ def umaps(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -385,14 +386,14 @@ def umaps(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -432,7 +433,7 @@ def umaps(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -457,19 +458,19 @@ def umaps(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -551,7 +552,7 @@ def tsnes(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -578,7 +579,7 @@ def tsnes(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -649,14 +650,14 @@ def tsnes(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -696,7 +697,7 @@ def tsnes(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -721,19 +722,19 @@ def tsnes(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -814,7 +815,7 @@ def pcas(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -841,7 +842,7 @@ def pcas(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -912,14 +913,14 @@ def pcas(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -959,7 +960,7 @@ def pcas(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -984,19 +985,19 @@ def pcas(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -1078,7 +1079,7 @@ def expressions(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -1106,7 +1107,7 @@ def expressions(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -1179,14 +1180,14 @@ def expressions(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal["mean", "median", "mid"] | float, default="median"
+    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -1226,7 +1227,7 @@ def expressions(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -1251,19 +1252,19 @@ def expressions(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.

@@ -49,7 +49,7 @@ def _add_arrow_axis(
         Name of the x axis column.
     y : str
         Name of the y axis column.
-    axis_type : Literal["axis", "arrow"] | None
+    axis_type : Literal['axis', 'arrow'] | None
         Whether to use regular axis or arrows as the axis.
     arrow_size : float
         Size of the arrow.
@@ -290,7 +290,7 @@ def _color_gradient(
 
 
 def get_mapping(plot: PlotSpec, *, index=0) -> dict:
-    """Returns the mapping of the plot."""
+    """Returns the mapping of the plot as a `dict`."""
     return {
         **plot.as_dict().get("mapping"),  # from the global mapping,
         **plot.as_dict().get("layers")[index].get("mapping"),  # from a layer.
@@ -301,6 +301,8 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     """
     Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
 
+    Parameters
+    ----------
     plot : PlotSpec | SupPlotsSpec
         The plot to retrieve the dataframe from.
     index : int, optional
@@ -331,9 +333,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     return frame
 
 
-def slice(
-    grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
-) -> PlotSpec | SupPlotsSpec | None:
+def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec | SupPlotsSpec:
     """
     Slice a ggrid (SupPlotsSpec) objects with given index.
 
