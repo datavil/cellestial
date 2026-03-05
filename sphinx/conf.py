@@ -21,19 +21,26 @@ def _mock_version(package_name):
 
 importlib.metadata.version = _mock_version
 
+
 class BetterMock(mock.MagicMock):
     def __add__(self, other):
         return self
+
     def __radd__(self, other):
         return self
+
     def __call__(self, *args, **kwargs):
         return self
+
     def __bool__(self):
         return True
+
     def __or__(self, other):
         return self
+
     def __ror__(self, other):
         return self
+
 
 # Explicitly set __bool__ on the class to prevent MagicMock from overriding it
 BetterMock.__bool__ = lambda self: True
@@ -135,9 +142,10 @@ author = "Zaf4"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    #"sphinx.ext.viewcode",
+    # "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
     "jupyter_sphinx",
+    "sphinx.ext.githubpages",
 ]
 
 
@@ -186,9 +194,8 @@ html_theme_options = {
     "announcement": None,
     "show_prev_next": False,
     "footer_start": ["copyright"],
-    "footer_center":["sphinx-version"],
+    "footer_center": ["sphinx-version"],
     "footer_end": ["theme-version"],
-
 }
 
 
@@ -204,7 +211,6 @@ napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
-
 
 
 def setup(app):
