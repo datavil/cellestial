@@ -18,6 +18,20 @@ tt,
     font-size: 0.95em !important;
 }
 
+code.literal,
+tt.literal {
+    color: #AF1740;
+}
+
+a code.literal,
+a tt.literal {
+    text-decoration: none;
+}
+
+table.autosummary a {
+    text-decoration: none;
+}
+
 /* Inline code */
 /* code.literal,
 code.docutils,
@@ -67,13 +81,46 @@ nav.navbar {
 
 /* Make Type Hints thinner and slightly smaller */
 .sig-param .api-type-hint {
-    font-weight: 300 !important;
+    font-weight: 200 !important;
     opacity: 0.8;
     font-size: 0.9em;
+    color: #4f4f4f; /* Subtle grey */
 }
 
 /* Make Default Values (after the '=') thinner */
 .sig-param .default_value {
     font-weight: 100 !important;
     color: #666; /* Subtle grey */
+}
+
+dl.field-list dd ul {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+.field-list ul li {
+    padding-left: 0;
+    margin-left: 0;
+    margin-bottom: 0.8rem;  /* adjust this value */
+}
+
+table.autosummary {
+    table-layout: fixed;
+    width: 100%;
+}
+
+table.autosummary td:first-child {
+    width: 300px;
+}
+
+table.autosummary td:last-child {
+    width: auto;
+}
+
+.highlight-default {
+    background: none !important;
+}
+
+dt.sig {
+    background-color: transparent !important;
 }

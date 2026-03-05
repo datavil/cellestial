@@ -3,12 +3,6 @@ Cellestial
 
 The *grammar of graphics* for single-cell omics.
 
-Installation
---------------
-.. code-block:: bash
-
-   pip install cellestial
-
 Content
 -------
 .. toctree::
@@ -16,6 +10,14 @@ Content
 
    API
    philosophy
+   performance
+
+Installation
+--------------
+.. code-block:: bash
+
+   pip install cellestial
+
 
 Example 
 ---------------

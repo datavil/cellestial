@@ -145,6 +145,10 @@ def cluster_outlines(
         For more information on geom_path parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
 
+    Returns
+    -------
+    LayerSpec
+        Cluster Outlines.
     """
     # get mapping
     _mapping = get_mapping(plot, index=0)

@@ -21,7 +21,43 @@ def _mock_version(package_name):
 
 importlib.metadata.version = _mock_version
 
+class BetterMock(mock.MagicMock):
+    def __add__(self, other):
+        return self
+    def __radd__(self, other):
+        return self
+    def __call__(self, *args, **kwargs):
+        return self
+    def __bool__(self):
+        return True
+    def __or__(self, other):
+        return self
+    def __ror__(self, other):
+        return self
 
+# Explicitly set __bool__ on the class to prevent MagicMock from overriding it
+BetterMock.__bool__ = lambda self: True
+
+# Only mock lets_plot manually, let autodoc_mock_imports handle the rest
+for mod_name in ["lets_plot", "lets_plot.plot", "lets_plot.plot.core", "lets_plot.plot.subplots"]:
+    sys.modules[mod_name] = BetterMock()
+
+autodoc_mock_imports = [
+    "anndata",
+    "polars",
+    "skimage",
+    "scipy",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "seaborn",
+    "sklearn",
+    "tqdm",
+    "pyarrow",
+    "scanpy",
+    "scvelo",
+]
+"""
 # Advanced Mocking to handle lets-plot additions and subpackages
 class BetterMock(mock.MagicMock):
     def __add__(self, other):
@@ -70,6 +106,24 @@ mock_modules = [
 for mod_name in mock_modules:
     sys.modules[mod_name] = BetterMock()
 
+"""
+autodoc_mock_imports = [
+    "anndata",
+    "lets_plot",
+    "polars",
+    "skimage",
+    "scipy",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "seaborn",
+    "sklearn",
+    "tqdm",
+    "pyarrow",
+    "scanpy",
+    "scvelo",
+]
+
 # -- Project information -----------------------------------------------------
 
 project = "cellestial"
@@ -81,7 +135,7 @@ author = "Zaf4"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
+    #"sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
     "jupyter_sphinx",
 ]
@@ -97,9 +151,7 @@ autodoc_default_options = {
     "show-inheritance": False,
     "member-order": "bysource",
 }
-
-add_module_names = False
-
+autodoc_preserve_defaults = True
 
 # -- Options for HTML output -------------------------------------------------
 html_show_sourcelink = False
@@ -125,7 +177,6 @@ html_theme_options = {
         },
     ],
     "navbar_start": ["navbar-logo"],
-    
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "search_bar_text": "Search",
     "pygments_light_style": "manni",
@@ -153,6 +204,7 @@ napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+
 
 
 def setup(app):
