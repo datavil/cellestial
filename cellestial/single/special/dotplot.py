@@ -58,7 +58,7 @@ def dotplot(
         The expression threshold to consider a gene as expressed.
     variables_name : str, default='gene'
         The name of the variable column in the long format.
-    value_name : str, default="expression"
+    value_name : str, default='expression'
         The name of the value column in the long format.
     color_low : str, default='#e6e6e6'
         The low color for the gradient.
