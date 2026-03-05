@@ -1,0 +1,6 @@
+﻿cellestial.util.get\_mapping
+============================
+
+.. currentmodule:: cellestial.util
+
+.. autofunction:: get_mapping
