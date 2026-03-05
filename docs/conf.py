@@ -125,7 +125,7 @@ html_theme_options = {
         },
     ],
     "navbar_start": ["navbar-logo"],
-    "navbar_center": ["navbar-api"],
+    
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "search_bar_text": "Search",
     "pygments_light_style": "manni",

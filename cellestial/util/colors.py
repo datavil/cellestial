@@ -29,6 +29,7 @@ LIGHT_GRAY = "#E6E6E6"
 
 
 def show_colors():
+    """Show a grid of hand-picked colors."""
     colors = {
         "TEAL": TEAL,
         "RED": RED,

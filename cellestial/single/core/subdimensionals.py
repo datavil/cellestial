@@ -14,11 +14,12 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
 
+
 def dimensionals(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -46,7 +47,7 @@ def dimensionals(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -194,17 +195,17 @@ def dimensionals(
         in the plot “inner areas” layouting.
     guides : str, default="auto"
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -287,7 +288,7 @@ def umaps(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -314,7 +315,7 @@ def umaps(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -459,17 +460,17 @@ def umaps(
         in the plot “inner areas” layouting.
     guides : str, default="auto"
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -551,7 +552,7 @@ def tsnes(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -578,7 +579,7 @@ def tsnes(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -723,17 +724,17 @@ def tsnes(
         in the plot “inner areas” layouting.
     guides : str, default="auto"
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -814,7 +815,7 @@ def pcas(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float = 0.8,
@@ -841,7 +842,7 @@ def pcas(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -986,17 +987,17 @@ def pcas(
         in the plot “inner areas” layouting.
     guides : str, default="auto"
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
@@ -1078,7 +1079,7 @@ def expressions(
     data: AnnData,
     keys: Sequence[str],
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -1106,7 +1107,7 @@ def expressions(
     # multi plot args
     share_labels: bool = True,
     share_axis: bool = False,
-    layers: Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None = None,
+    layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
     ncol: int | None = None,
     sharex: str | None = None,
@@ -1253,17 +1254,17 @@ def expressions(
         in the plot “inner areas” layouting.
     guides : str, default="auto"
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
