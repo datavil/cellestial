@@ -63,14 +63,14 @@ def xyplots(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -95,19 +95,19 @@ def xyplots(
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
-    guides : str, default="auto"
+    guides : str, default='auto'
         Specifies how guides (legends and colorbars) should be treated in the layout.
-        - 'collect'- collect guides from all subplots, removing duplicates.
-        - 'keep' - keep guides in their original subplots; do not collect at this level.
-        - 'auto' - allow guides to be collected if an upper-level layout uses guides='collect';
-        otherwise, keep them in subplots.
+            - 'collect' collect guides from all subplots, removing duplicates.
+            - 'keep' keep guides in their original subplots; do not collect at this level.
+            - 'auto' allow guides to be collected if an upper-level layout uses guides='collect';
 
+        otherwise, keep them in subplots.
         Duplicates are identified by comparing visual properties:
         For legends: title, labels, and all aesthetic values (colors, shapes, sizes, etc.).
         For colorbars: title, domain limits, breaks, and color gradient.
 
-    For more information on gggrid parameters:
-    https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        For more information on gggrid parameters:
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.

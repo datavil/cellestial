@@ -109,7 +109,7 @@ def cluster_outlines(
         The group(s) to outline. Can be a single group name or a list of group
         Providing string(s) will outline clusters with those group names.
         Providing nested sequences of strings combines each sequence into a their own group.
-        E.g `groups=[["A", "B"]]` will outline groups A and B as if they were one cluster.
+        E.g `groups=[['A', 'B']]` will outline groups A and B as if they were one cluster.
     padding : float, default=1.5
         The spatial buffer added to the cluster's bounding box before calculating density.
         Increasing this value allows the density 'cloud' to expand further from the outermost
@@ -123,28 +123,32 @@ def cluster_outlines(
         A higher value produces a smoother, more 'curvy' path by increasing the number of
         interpolation points, while a lower value improves calculation speed but may
         result in a more jagged or 'pixelated' appearance.
-    color : str, default="#1f1f1f"
+    color : str, default='#1f1f1f'
         The color of the outline.
-    linetype : str, default="dashed"
-        The linetype of the outline. E.g "dashed", "dotted",
+    linetype : str, default='dashed'
+        The linetype of the outline. E.g 'dashed', 'dotted',
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     size : float, default=1
         The size of the outline.
     group_by : str | None, default=None
-        The column name in the data used to group clusters by. e.g "cell_type".
+        The column name in the data used to group clusters by. e.g 'cell_type'.
         If None, it will be inferred from the plot aesthetics.
     x : str | None, default=None
-        The column name in the data used for x-axis coordinates. e.g "X_UMAP1".
+        The column name in the data used for x-axis coordinates. e.g 'X_UMAP1'.
         If None, it will be inferred from the plot aesthetics.
     y : str | None, default=None
-        The column name in the data used for y-axis coordinates. e.g "X_UMAP2".
+        The column name in the data used for y-axis coordinates. e.g 'X_UMAP2'.
         If None, it will be inferred from the plot aesthetics.
     **geom_kwargs
         Additional parameters for the `geom_path` layer.
         For more information on geom_path parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
 
+    Returns
+    -------
+    LayerSpec
+        Cluster Outlines.
     """
     # get mapping
     _mapping = get_mapping(plot, index=0)

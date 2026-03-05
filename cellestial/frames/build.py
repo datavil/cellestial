@@ -52,7 +52,7 @@ def anndata_observations_frame(
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str, optional
-        The name of the observations column, default is "barcode".
+        The name of the observations column, default is 'barcode'.
     include_dimensions : bool | int
         Whether to include dimensions from `obsm` in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
@@ -204,7 +204,7 @@ def build_frame(
     axis : Literal[0,1] | None
         The axis to build the frame for. 0 for observations, 1 for variables.
     observations_name : str
-        The name of the observations column, default is "barcode".
+        The name of the observations column, default is 'barcode'.
     variables_name : str
         Name for the variables index column, default is 'variable'
     include_dimensions : bool | int

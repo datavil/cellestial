@@ -40,9 +40,9 @@ def heatmap(
         axis of the data, 0 for observations and 1 for variables.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str, default="Barcode"
+    observations_name : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default="Variable"
+    variables_name : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
