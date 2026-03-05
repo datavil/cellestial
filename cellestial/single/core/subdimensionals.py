@@ -168,7 +168,7 @@ def dimensionals(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -433,7 +433,7 @@ def umaps(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -697,7 +697,7 @@ def tsnes(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -960,7 +960,7 @@ def pcas(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
@@ -1227,7 +1227,7 @@ def expressions(
     share_axis : bool, default=False
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
-    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None,
+    layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
