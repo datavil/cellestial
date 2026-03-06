@@ -19,7 +19,7 @@ def _get_density_boundaries(
     padding: float = 1,
     level: float = 0.1,
     grid_size: int = 200,
-) -> pl.DataFrame:
+) -> DataFrame:
     """Creates and Returns a DataFrame to encircle the cluster via `geom_path`."""
     from scipy.stats import gaussian_kde
     from skimage import measure

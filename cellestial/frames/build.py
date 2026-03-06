@@ -11,6 +11,8 @@ from cellestial.util.errors import KeyNotFoundError
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from polars import DataFrame
+
 
 def _anndata_variable_columns(
     data: AnnData, column_names: list[str], keys: str | Sequence[str]
@@ -41,7 +43,7 @@ def anndata_observations_frame(
     *,
     observations_name="barcode",
     include_dimensions: bool | int = False,
-) -> pl.DataFrame:
+) -> DataFrame:
     """
     Build an Observations DataFrame from an AnnData object.
 
@@ -119,7 +121,7 @@ def anndata_variables_frame(
     *,
     variables_name: str = "variable",
     include_dimensions: bool | int = False,
-) -> pl.DataFrame:
+) -> DataFrame:
     """
     Build a Variables DataFrame from an AnnData object.
 
@@ -191,7 +193,7 @@ def build_frame(
     observations_name: str = "barcode",
     variables_name: str = "variable",
     include_dimensions: bool | int = False,
-) -> pl.DataFrame:
+) -> DataFrame:
     """
     Build a `polars.DataFrame` from an AnnData object.
 

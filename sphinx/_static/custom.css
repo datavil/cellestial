@@ -124,3 +124,14 @@ table.autosummary td:last-child {
 dt.sig {
     background-color: transparent !important;
 }
+
+/* Type hints in function signatures */
+.sig .n {
+    color: #640D5F;
+    font-weight: 500;
+}
+
+.sig .n:first-child {
+    color: inherit;
+    font-weight: inherit;
+}

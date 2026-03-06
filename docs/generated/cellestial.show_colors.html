@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css?v=572af1d6" />
     <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=841ad7a0" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3e104234" />
   
   <!-- So that users can add custom icons -->
   <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
@@ -102,7 +102,7 @@
   </button>
   
   
-  <div class="col-lg-3 navbar-header-items__start">
+  <div class=" navbar-header-items__start">
     
       <div class="navbar-item">
 
@@ -123,7 +123,7 @@
     
   </div>
   
-  <div class="col-lg-9 navbar-header-items">
+  <div class=" navbar-header-items">
     
     <div class="me-auto navbar-header-items__center">
       
@@ -381,6 +381,811 @@
 <dt class="sig sig-object py" id="cellestial.show_colors">
 <span class="sig-name descname"><span class="pre">show_colors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cellestial.show_colors" title="Link to this definition">#</a></dt>
 <dd><p>Show a grid of hand-picked colors.</p>
+<p class="rubric">Examples</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="kn">import</span><span class="w"> </span><span class="nn">cellestial</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cl</span>
+<span class="linenos">2</span><span class="kn">from</span><span class="w"> </span><span class="nn">lets_plot</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="linenos">3</span><span class="n">LetsPlot</span><span class="o">.</span><span class="n">setup_html</span><span class="p">()</span>
+<span class="linenos">4</span>
+<span class="linenos">5</span><span class="n">cl</span><span class="o">.</span><span class="n">show_colors</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html">
+<div id="6aMsdL"></div>
+<script type="text/javascript" data-lets-plot-script="library">
+    if(!window.letsPlotCallQueue) {
+        window.letsPlotCallQueue = [];
+    };
+    window.letsPlotCall = function(f) {
+        window.letsPlotCallQueue.push(f);
+    };
+    (function() {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = "https://cdn.jsdelivr.net/gh/JetBrains/lets-plot@v4.8.2/js-package/distr/lets-plot.min.js";
+        script.onload = function() {
+            window.letsPlotCall = function(f) {f();};
+            window.letsPlotCallQueue.forEach(function(f) {f();});
+            window.letsPlotCallQueue = [];
+
+        };
+        script.onerror = function(event) {
+            window.letsPlotCall = function(f) {};    // noop
+            window.letsPlotCallQueue = [];
+            var div = document.createElement("div");
+            div.style.color = 'darkred';
+            div.textContent = 'Error loading Lets-Plot JS';
+            document.getElementById("6aMsdL").appendChild(div);
+        };
+        var e = document.getElementById("6aMsdL");
+        e.appendChild(script);
+    })()
+</script>
+</div><div class="output text_html">   <div id="XZFUrh" ></div>
+   <script type="text/javascript" data-lets-plot-script="plot">
+
+   (function() {
+   // ----------
+
+   const forceImmediateRender = false;
+   const responsive = false;
+
+   let sizing = {
+       width_mode: "MIN",
+       height_mode: "SCALED",
+       width: null, 
+       height: null 
+   };
+
+   const preferredWidth = document.body.dataset.letsPlotPreferredWidth;
+   if (preferredWidth !== undefined) {
+       sizing = {
+           width_mode: 'FIXED',
+           height_mode: 'SCALED',
+           width: parseFloat(preferredWidth)
+       };
+   }
+
+   const containerDiv = document.getElementById("XZFUrh");
+   let fig = null;
+
+   function renderPlot() {
+       if (fig === null) {
+           const plotSpec = {
+"ggsize":{
+"width":600.0,
+"height":600.0
+},
+"kind":"subplots",
+"layout":{
+"ncol":3.0,
+"nrow":3.0,
+"hspace":0.0,
+"vspace":0.0,
+"name":"grid"
+},
+"figures":[{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#219B9D",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#219B9D",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"TEAL\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#219B9D",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"1"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#D2042D",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#D2042D",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"RED\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#D2042D",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"2"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#E6E6E6",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#E6E6E6",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"LIGHT_GRAY\n",
+"color":"black",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#E6E6E6",
+"color":"black",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"3"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#377EB8",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#377EB8",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"BLUE\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#377EB8",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"4"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#AF1740",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#AF1740",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"CHERRY\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#AF1740",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"5"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#F9F9F9",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#F9F9F9",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"SNOW\n",
+"color":"black",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#F9F9F9",
+"color":"black",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"6"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#640D5F",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#640D5F",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"PURPLE\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#640D5F",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"7"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#E73879",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#E73879",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"PINK\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#E73879",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"8"
+},{
+"data":{
+"x":[1.0],
+"y":[1.0]
+},
+"mapping":{
+},
+"data_meta":{
+"series_annotations":[{
+"type":"int",
+"column":"x"
+},{
+"type":"int",
+"column":"y"
+}]
+},
+"theme":{
+"name":"classic",
+"line":"blank",
+"axis":"blank",
+"panel_background":{
+"color":"#F14A00",
+"size":13.0,
+"blank":false
+}
+},
+"kind":"plot",
+"scales":[],
+"layers":[{
+"geom":"point",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"fill":"#F14A00",
+"shape":22.0,
+"size":90.0,
+"color":"#1f1f1f",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"ORANGE\n",
+"color":"white",
+"size":14.0,
+"fontface":"bold",
+"family":"Arial",
+"data":{
+}
+},{
+"geom":"text",
+"mapping":{
+"x":"x",
+"y":"y"
+},
+"data_meta":{
+},
+"label":"\n#F14A00",
+"color":"white",
+"size":10.0,
+"fontface":"regular",
+"family":"sans-serif",
+"data":{
+}
+}],
+"metainfo_list":[],
+"spec_id":"9"
+}]
+};
+           window.letsPlotCall(function() { fig = LetsPlot.buildPlotFromProcessedSpecs(plotSpec, containerDiv, sizing); });
+       } else {
+           fig.updateView({});
+       }
+   }
+
+   const renderImmediately = 
+       forceImmediateRender || (
+           sizing.width_mode === 'FIXED' && 
+           (sizing.height_mode === 'FIXED' || sizing.height_mode === 'SCALED')
+       );
+
+   if (renderImmediately) {
+       renderPlot();
+   }
+
+   if (!renderImmediately || responsive) {
+       // Set up observer for initial sizing or continuous monitoring
+       var observer = new ResizeObserver(function(entries) {
+           for (let entry of entries) {
+               if (entry.contentBoxSize && 
+                   entry.contentBoxSize[0].inlineSize > 0) {
+                   if (!responsive && observer) {
+                       observer.disconnect();
+                       observer = null;
+                   }
+                   renderPlot();
+                   if (!responsive) {
+                       break;
+                   }
+               }
+           }
+       });
+
+       observer.observe(containerDiv);
+   }
+
+   // ----------
+   })();
+
+   </script></div></div>
+</div>
 </dd></dl>
 
 </section>
