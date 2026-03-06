@@ -29,7 +29,21 @@ LIGHT_GRAY = "#E6E6E6"
 
 
 def show_colors():
-    """Show a grid of hand-picked colors."""
+    """
+    Show a grid of hand-picked colors.
+
+    Examples
+    --------
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 10-13
+
+        import cellestial as cl
+        from lets_plot import *
+        LetsPlot.setup_html()
+
+        cl.show_colors()
+    """
     colors = {
         "TEAL": TEAL,
         "RED": RED,
