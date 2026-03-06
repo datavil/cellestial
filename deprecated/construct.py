@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Iterable
 
 import polars as pl
 from anndata import AnnData
+from polars import DataFrame
 
 from cellestial.util.errors import ConflictingKeysError, KeyNotFoundError
 
@@ -116,7 +117,7 @@ def _construct_cell_frame(
     xy: tuple[int, int] | Sequence[int] | None = (1, 2),
     use_key: str | None = None,
     observations_name: str = "Barcode",
-) -> pl.DataFrame:
+) -> DataFrame:
     """
     Construct a polars DataFrame from data.
 
