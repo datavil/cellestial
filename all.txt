@@ -1,0 +1,27 @@
+Running Sphinx v9.1.0
+loading translations [en]... done
+[autosummary] generating autosummary for: API.rst, _templates/autoapi/python/module.rst, _templates/autosummary/table.rst, generated/cellestial.bar.rst, generated/cellestial.boxplot.rst, generated/cellestial.boxplots.rst, generated/cellestial.build_frame.rst, generated/cellestial.cluster_outlines.rst, generated/cellestial.dimensional.rst, generated/cellestial.dimensionals.rst, ..., generated/cellestial.tsnes.rst, generated/cellestial.umap.rst, generated/cellestial.umaps.rst, generated/cellestial.violin.rst, generated/cellestial.violins.rst, generated/cellestial.xyplot.rst, generated/cellestial.xyplots.rst, index.rst, performance.rst, philosophy.rst
+building [mo]: all of 0 po files
+writing output... 
+building [html]: all source files
+updating environment: [new config] 33 added, 0 changed, 0 removed
+reading sources... [  3%] API
+reading sources... [  6%] _templates/autoapi/python/module
+reading sources... [  9%] _templates/autosummary/table
+reading sources... [ 12%] generated/cellestial.bar
+executing cellestial.bar
+reading sources... [ 15%] generated/cellestial.boxplot
+reading sources... [ 18%] generated/cellestial.boxplots
+reading sources... [ 21%] generated/cellestial.build_frame
+reading sources... [ 24%] generated/cellestial.cluster_outlines
+reading sources... [ 27%] generated/cellestial.dimensional
+reading sources... [ 30%] generated/cellestial.dimensionals
+reading sources... [ 33%] generated/cellestial.dotplot
+reading sources... [ 36%] generated/cellestial.expression
+reading sources... [ 39%] generated/cellestial.expressions
+reading sources... [ 42%] generated/cellestial.get_mapping
+reading sources... [ 45%] generated/cellestial.heatmap
+reading sources... [ 48%] generated/cellestial.pca
+reading sources... [ 52%] generated/cellestial.pcas
+reading sources... [ 55%] generated/cellestial.plot
+executing cellestial.plot

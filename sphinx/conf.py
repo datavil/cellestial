@@ -18,7 +18,6 @@ def _mock_version(package_name):
         return "0.10.3"
     return _original_version(package_name)
 
-
 importlib.metadata.version = _mock_version
 
 
@@ -43,7 +42,7 @@ class BetterMock(mock.MagicMock):
 
 
 # Explicitly set __bool__ on the class to prevent MagicMock from overriding it
-BetterMock.__bool__ = lambda self: True
+#BetterMock.__bool__ = lambda self: True
 
 # Only mock lets_plot manually, let autodoc_mock_imports handle the rest
 for mod_name in ["lets_plot", "lets_plot.plot", "lets_plot.plot.core", "lets_plot.plot.subplots"]:
@@ -51,72 +50,6 @@ for mod_name in ["lets_plot", "lets_plot.plot", "lets_plot.plot.core", "lets_plo
 
 autodoc_mock_imports = [
     "anndata",
-    "polars",
-    "skimage",
-    "scipy",
-    "numpy",
-    "pandas",
-    "matplotlib",
-    "seaborn",
-    "sklearn",
-    "tqdm",
-    "pyarrow",
-    "scanpy",
-    "scvelo",
-]
-"""
-# Advanced Mocking to handle lets-plot additions and subpackages
-class BetterMock(mock.MagicMock):
-    def __add__(self, other):
-        return self
-
-    def __radd__(self, other):
-        return self
-
-    def __call__(self, *args, **kwargs):
-        return self
-
-    def __getattr__(self, name):
-        if name.startswith("_"):
-            return super().__getattr__(name)
-        return self
-
-
-mock_modules = [
-    "anndata",
-    "lets_plot",
-    "lets_plot.plot",
-    "lets_plot.plot.core",
-    "lets_plot.plot.subplots",
-    "polars",
-    "skimage",
-    "scikit-image",
-    "ipykernel",
-    "ruff",
-    "mypy",
-    "pooch",
-    "scanpy",
-    "pycairo",
-    "cairosvg",
-    "scvelo",
-    "ty",
-    "pandas",
-    "tqdm",
-    "pyarrow",
-    "matplotlib",
-    "seaborn",
-    "numpy",
-    "scipy",
-    "sklearn",
-]
-
-for mod_name in mock_modules:
-    sys.modules[mod_name] = BetterMock()
-
-"""
-autodoc_mock_imports = [
-    "anndata",
-    "lets_plot",
     "polars",
     "skimage",
     "scipy",
@@ -142,11 +75,12 @@ author = "Zaf4"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    # "sphinx.ext.viewcode",
+    #'sphinx.ext.intersphinx',
     "sphinx.ext.autosummary",
     "jupyter_sphinx",
     "sphinx.ext.githubpages",
 ]
+
 
 
 autosummary_generate = True
@@ -156,10 +90,12 @@ add_module_names = False
 autodoc_default_options = {
     "members": True,
     "undoc-members": True,
-    "show-inheritance": False,
+    "show-inheritance": True,
     "member-order": "bysource",
 }
 autodoc_preserve_defaults = True
+autodoc_typehints_format = "short"
+
 
 # -- Options for HTML output -------------------------------------------------
 html_show_sourcelink = False
@@ -185,7 +121,10 @@ html_theme_options = {
         },
     ],
     "navbar_start": ["navbar-logo"],
+    #"navbar_persistent" : ["letsplot.html","search-button"],
+    "navbar_center": ["navbar-nav"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "navbar_align": "left",
     "search_bar_text": "Search",
     "pygments_light_style": "manni",
     "pygments_dark_style": "monokai",
@@ -213,6 +152,7 @@ napoleon_type_aliases = None
 napoleon_attr_annotations = True
 
 
+python_use_unqualified_type_names = True
 def setup(app):
     # This can be used for custom CSS or JS if needed
     pass

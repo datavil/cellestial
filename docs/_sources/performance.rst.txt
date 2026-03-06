@@ -10,7 +10,7 @@ Plotting, the core step, is handled by `Lets-Plot <https://lets-plot.org/python/
 
 
 Example: 100k cells
---------
+-------------------
 
 Using Breast cancer cell atlas.
 

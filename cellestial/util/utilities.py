@@ -25,6 +25,7 @@ from lets_plot.plot.subplots import SupPlotsSpec
 if TYPE_CHECKING:
     import polars as pl
     from lets_plot.plot.core import FeatureSpec
+    from polars import DataFrame
 
 
 def _add_arrow_axis(
@@ -297,7 +298,7 @@ def get_mapping(plot: PlotSpec, *, index=0) -> dict:
     }
 
 
-def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
+def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     """
     Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
 
@@ -310,7 +311,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
 
     Returns
     -------
-    pl.DataFrame
+    DataFrame
         The dataframe utilized in the plot.
 
     Raises
@@ -333,7 +334,9 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> pl.DataFrame:
     return frame
 
 
-def slice(grid: SupPlotsSpec, index: int | Sequence[int], **kwargs) -> PlotSpec | SupPlotsSpec:
+def slice(
+    grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
+) -> PlotSpec | SupPlotsSpec | None:
     """
     Slice a ggrid (SupPlotsSpec) objects with given index.
 
