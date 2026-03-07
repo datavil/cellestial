@@ -1,0 +1,845 @@
+py:class
+    lets_plot.LetsPlot                                                               : python/pages/api/lets_plot.LetsPlot.html#lets_plot.LetsPlot
+    lets_plot.bistro.corr.corr_plot                                                  : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot
+    lets_plot.geo_data.NamesGeocoder                                                 : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder
+    lets_plot.geo_data.geocoder.NamesGeocoder                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder
+    lets_plot.layer_labels                                                           : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels
+    lets_plot.layer_tooltips                                                         : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips
+    lets_plot.plot.annotation.layer_labels                                           : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels
+    lets_plot.plot.core.PlotSpec                                                     : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec
+    lets_plot.plot.tooltip.layer_tooltips                                            : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips
+py:data
+    lets_plot.tilesets.CARTO_ANTIQUE                                                 : python/pages/api/lets_plot.tilesets.CARTO_ANTIQUE.html#lets_plot.tilesets.CARTO_ANTIQUE
+    lets_plot.tilesets.CARTO_ANTIQUE_HIRES                                           : python/pages/api/lets_plot.tilesets.CARTO_ANTIQUE_HIRES.html#lets_plot.tilesets.CARTO_ANTIQUE_HIRES
+    lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS                                         : python/pages/api/lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS.html#lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS
+    lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS_HIRES                                         : python/pages/api/lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS_HIRES.html#lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS_HIRES
+    lets_plot.tilesets.CARTO_FLAT_BLUE                                               : python/pages/api/lets_plot.tilesets.CARTO_FLAT_BLUE.html#lets_plot.tilesets.CARTO_FLAT_BLUE
+    lets_plot.tilesets.CARTO_FLAT_BLUE_HIRES                                         : python/pages/api/lets_plot.tilesets.CARTO_FLAT_BLUE_HIRES.html#lets_plot.tilesets.CARTO_FLAT_BLUE_HIRES
+    lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER                                         : python/pages/api/lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER.html#lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER
+    lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER_HIRES                                         : python/pages/api/lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER_HIRES.html#lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER_HIRES
+    lets_plot.tilesets.CARTO_POSITRON                                                : python/pages/api/lets_plot.tilesets.CARTO_POSITRON.html#lets_plot.tilesets.CARTO_POSITRON
+    lets_plot.tilesets.CARTO_POSITRON_HIRES                                          : python/pages/api/lets_plot.tilesets.CARTO_POSITRON_HIRES.html#lets_plot.tilesets.CARTO_POSITRON_HIRES
+    lets_plot.tilesets.CARTO_POSITRON_NO_LABELS                                         : python/pages/api/lets_plot.tilesets.CARTO_POSITRON_NO_LABELS.html#lets_plot.tilesets.CARTO_POSITRON_NO_LABELS
+    lets_plot.tilesets.CARTO_POSITRON_NO_LABELS_HIRES                                         : python/pages/api/lets_plot.tilesets.CARTO_POSITRON_NO_LABELS_HIRES.html#lets_plot.tilesets.CARTO_POSITRON_NO_LABELS_HIRES
+    lets_plot.tilesets.CARTO_VOYAGER                                                 : python/pages/api/lets_plot.tilesets.CARTO_VOYAGER.html#lets_plot.tilesets.CARTO_VOYAGER
+    lets_plot.tilesets.CARTO_VOYAGER_HIRES                                           : python/pages/api/lets_plot.tilesets.CARTO_VOYAGER_HIRES.html#lets_plot.tilesets.CARTO_VOYAGER_HIRES
+    lets_plot.tilesets.LETS_PLOT_BW                                                  : python/pages/api/lets_plot.tilesets.LETS_PLOT_BW.html#lets_plot.tilesets.LETS_PLOT_BW
+    lets_plot.tilesets.LETS_PLOT_COLOR                                               : python/pages/api/lets_plot.tilesets.LETS_PLOT_COLOR.html#lets_plot.tilesets.LETS_PLOT_COLOR
+    lets_plot.tilesets.LETS_PLOT_DARK                                                : python/pages/api/lets_plot.tilesets.LETS_PLOT_DARK.html#lets_plot.tilesets.LETS_PLOT_DARK
+    lets_plot.tilesets.LETS_PLOT_LIGHT                                               : python/pages/api/lets_plot.tilesets.LETS_PLOT_LIGHT.html#lets_plot.tilesets.LETS_PLOT_LIGHT
+    lets_plot.tilesets.NASA_CITYLIGHTS_2012                                          : python/pages/api/lets_plot.tilesets.NASA_CITYLIGHTS_2012.html#lets_plot.tilesets.NASA_CITYLIGHTS_2012
+    lets_plot.tilesets.NASA_COLOR_SHADED_RELIEF_30M                                         : python/pages/api/lets_plot.tilesets.NASA_COLOR_SHADED_RELIEF_30M.html#lets_plot.tilesets.NASA_COLOR_SHADED_RELIEF_30M
+    lets_plot.tilesets.NASA_GREYSCALE_SHADED_RELIEF_30M                                         : python/pages/api/lets_plot.tilesets.NASA_GREYSCALE_SHADED_RELIEF_30M.html#lets_plot.tilesets.NASA_GREYSCALE_SHADED_RELIEF_30M
+    lets_plot.tilesets.NASA_TERRA_TRUECOLOR                                          : python/pages/api/lets_plot.tilesets.NASA_TERRA_TRUECOLOR.html#lets_plot.tilesets.NASA_TERRA_TRUECOLOR
+    lets_plot.tilesets.OPEN_TOPO_MAP                                                 : python/pages/api/lets_plot.tilesets.OPEN_TOPO_MAP.html#lets_plot.tilesets.OPEN_TOPO_MAP
+    lets_plot.tilesets.OSM                                                           : python/pages/api/lets_plot.tilesets.OSM.html#lets_plot.tilesets.OSM
+    lets_plot.tilesets.SOLID                                                         : python/pages/api/lets_plot.tilesets.SOLID.html#lets_plot.tilesets.SOLID
+py:function
+    lets_plot.aes                                                                    : python/pages/api/lets_plot.aes.html#lets_plot.aes
+    lets_plot.arrow                                                                  : python/pages/api/lets_plot.arrow.html#lets_plot.arrow
+    lets_plot.bistro.im.image_matrix                                                 : python/pages/api/lets_plot.bistro.im.image_matrix.html#lets_plot.bistro.im.image_matrix
+    lets_plot.bistro.joint.joint_plot                                                : python/pages/api/lets_plot.bistro.joint.joint_plot.html#lets_plot.bistro.joint.joint_plot
+    lets_plot.bistro.qq.qq_plot                                                      : python/pages/api/lets_plot.bistro.qq.qq_plot.html#lets_plot.bistro.qq.qq_plot
+    lets_plot.bistro.residual.residual_plot                                          : python/pages/api/lets_plot.bistro.residual.residual_plot.html#lets_plot.bistro.residual.residual_plot
+    lets_plot.bistro.waterfall.waterfall_plot                                         : python/pages/api/lets_plot.bistro.waterfall.waterfall_plot.html#lets_plot.bistro.waterfall.waterfall_plot
+    lets_plot.coord_cartesian                                                        : python/pages/api/lets_plot.coord_cartesian.html#lets_plot.coord_cartesian
+    lets_plot.coord_fixed                                                            : python/pages/api/lets_plot.coord_fixed.html#lets_plot.coord_fixed
+    lets_plot.coord_flip                                                             : python/pages/api/lets_plot.coord_flip.html#lets_plot.coord_flip
+    lets_plot.coord_map                                                              : python/pages/api/lets_plot.coord_map.html#lets_plot.coord_map
+    lets_plot.coord_polar                                                            : python/pages/api/lets_plot.coord_polar.html#lets_plot.coord_polar
+    lets_plot.element_blank                                                          : python/pages/api/lets_plot.element_blank.html#lets_plot.element_blank
+    lets_plot.element_geom                                                           : python/pages/api/lets_plot.element_geom.html#lets_plot.element_geom
+    lets_plot.element_line                                                           : python/pages/api/lets_plot.element_line.html#lets_plot.element_line
+    lets_plot.element_markdown                                                       : python/pages/api/lets_plot.element_markdown.html#lets_plot.element_markdown
+    lets_plot.element_rect                                                           : python/pages/api/lets_plot.element_rect.html#lets_plot.element_rect
+    lets_plot.element_text                                                           : python/pages/api/lets_plot.element_text.html#lets_plot.element_text
+    lets_plot.expand_limits                                                          : python/pages/api/lets_plot.expand_limits.html#lets_plot.expand_limits
+    lets_plot.facet_grid                                                             : python/pages/api/lets_plot.facet_grid.html#lets_plot.facet_grid
+    lets_plot.facet_wrap                                                             : python/pages/api/lets_plot.facet_wrap.html#lets_plot.facet_wrap
+    lets_plot.flavor_darcula                                                         : python/pages/api/lets_plot.flavor_darcula.html#lets_plot.flavor_darcula
+    lets_plot.flavor_high_contrast_dark                                              : python/pages/api/lets_plot.flavor_high_contrast_dark.html#lets_plot.flavor_high_contrast_dark
+    lets_plot.flavor_high_contrast_light                                             : python/pages/api/lets_plot.flavor_high_contrast_light.html#lets_plot.flavor_high_contrast_light
+    lets_plot.flavor_solarized_dark                                                  : python/pages/api/lets_plot.flavor_solarized_dark.html#lets_plot.flavor_solarized_dark
+    lets_plot.flavor_solarized_light                                                 : python/pages/api/lets_plot.flavor_solarized_light.html#lets_plot.flavor_solarized_light
+    lets_plot.flavor_standard                                                        : python/pages/api/lets_plot.flavor_standard.html#lets_plot.flavor_standard
+    lets_plot.font_family_info                                                       : python/pages/api/lets_plot.font_family_info.html#lets_plot.font_family_info
+    lets_plot.font_metrics_adjustment                                                : python/pages/api/lets_plot.font_metrics_adjustment.html#lets_plot.font_metrics_adjustment
+    lets_plot.geo_data.distance                                                      : python/pages/api/lets_plot.geo_data.distance.html#lets_plot.geo_data.distance
+    lets_plot.geo_data.geocode                                                       : python/pages/api/lets_plot.geo_data.geocode.html#lets_plot.geo_data.geocode
+    lets_plot.geo_data.geocode_cities                                                : python/pages/api/lets_plot.geo_data.geocode_cities.html#lets_plot.geo_data.geocode_cities
+    lets_plot.geo_data.geocode_counties                                              : python/pages/api/lets_plot.geo_data.geocode_counties.html#lets_plot.geo_data.geocode_counties
+    lets_plot.geo_data.geocode_countries                                             : python/pages/api/lets_plot.geo_data.geocode_countries.html#lets_plot.geo_data.geocode_countries
+    lets_plot.geo_data.geocode_states                                                : python/pages/api/lets_plot.geo_data.geocode_states.html#lets_plot.geo_data.geocode_states
+    lets_plot.geom_abline                                                            : python/pages/api/lets_plot.geom_abline.html#lets_plot.geom_abline
+    lets_plot.geom_area                                                              : python/pages/api/lets_plot.geom_area.html#lets_plot.geom_area
+    lets_plot.geom_area_ridges                                                       : python/pages/api/lets_plot.geom_area_ridges.html#lets_plot.geom_area_ridges
+    lets_plot.geom_band                                                              : python/pages/api/lets_plot.geom_band.html#lets_plot.geom_band
+    lets_plot.geom_bar                                                               : python/pages/api/lets_plot.geom_bar.html#lets_plot.geom_bar
+    lets_plot.geom_bin2d                                                             : python/pages/api/lets_plot.geom_bin2d.html#lets_plot.geom_bin2d
+    lets_plot.geom_blank                                                             : python/pages/api/lets_plot.geom_blank.html#lets_plot.geom_blank
+    lets_plot.geom_boxplot                                                           : python/pages/api/lets_plot.geom_boxplot.html#lets_plot.geom_boxplot
+    lets_plot.geom_contour                                                           : python/pages/api/lets_plot.geom_contour.html#lets_plot.geom_contour
+    lets_plot.geom_contourf                                                          : python/pages/api/lets_plot.geom_contourf.html#lets_plot.geom_contourf
+    lets_plot.geom_count                                                             : python/pages/api/lets_plot.geom_count.html#lets_plot.geom_count
+    lets_plot.geom_crossbar                                                          : python/pages/api/lets_plot.geom_crossbar.html#lets_plot.geom_crossbar
+    lets_plot.geom_curve                                                             : python/pages/api/lets_plot.geom_curve.html#lets_plot.geom_curve
+    lets_plot.geom_density                                                           : python/pages/api/lets_plot.geom_density.html#lets_plot.geom_density
+    lets_plot.geom_density2d                                                         : python/pages/api/lets_plot.geom_density2d.html#lets_plot.geom_density2d
+    lets_plot.geom_density2df                                                        : python/pages/api/lets_plot.geom_density2df.html#lets_plot.geom_density2df
+    lets_plot.geom_dotplot                                                           : python/pages/api/lets_plot.geom_dotplot.html#lets_plot.geom_dotplot
+    lets_plot.geom_errorbar                                                          : python/pages/api/lets_plot.geom_errorbar.html#lets_plot.geom_errorbar
+    lets_plot.geom_freqpoly                                                          : python/pages/api/lets_plot.geom_freqpoly.html#lets_plot.geom_freqpoly
+    lets_plot.geom_function                                                          : python/pages/api/lets_plot.geom_function.html#lets_plot.geom_function
+    lets_plot.geom_hex                                                               : python/pages/api/lets_plot.geom_hex.html#lets_plot.geom_hex
+    lets_plot.geom_histogram                                                         : python/pages/api/lets_plot.geom_histogram.html#lets_plot.geom_histogram
+    lets_plot.geom_hline                                                             : python/pages/api/lets_plot.geom_hline.html#lets_plot.geom_hline
+    lets_plot.geom_imshow                                                            : python/pages/api/lets_plot.geom_imshow.html#lets_plot.geom_imshow
+    lets_plot.geom_jitter                                                            : python/pages/api/lets_plot.geom_jitter.html#lets_plot.geom_jitter
+    lets_plot.geom_label                                                             : python/pages/api/lets_plot.geom_label.html#lets_plot.geom_label
+    lets_plot.geom_label_repel                                                       : python/pages/api/lets_plot.geom_label_repel.html#lets_plot.geom_label_repel
+    lets_plot.geom_line                                                              : python/pages/api/lets_plot.geom_line.html#lets_plot.geom_line
+    lets_plot.geom_linerange                                                         : python/pages/api/lets_plot.geom_linerange.html#lets_plot.geom_linerange
+    lets_plot.geom_livemap                                                           : python/pages/api/lets_plot.geom_livemap.html#lets_plot.geom_livemap
+    lets_plot.geom_lollipop                                                          : python/pages/api/lets_plot.geom_lollipop.html#lets_plot.geom_lollipop
+    lets_plot.geom_map                                                               : python/pages/api/lets_plot.geom_map.html#lets_plot.geom_map
+    lets_plot.geom_path                                                              : python/pages/api/lets_plot.geom_path.html#lets_plot.geom_path
+    lets_plot.geom_pie                                                               : python/pages/api/lets_plot.geom_pie.html#lets_plot.geom_pie
+    lets_plot.geom_point                                                             : python/pages/api/lets_plot.geom_point.html#lets_plot.geom_point
+    lets_plot.geom_pointdensity                                                      : python/pages/api/lets_plot.geom_pointdensity.html#lets_plot.geom_pointdensity
+    lets_plot.geom_pointrange                                                        : python/pages/api/lets_plot.geom_pointrange.html#lets_plot.geom_pointrange
+    lets_plot.geom_polygon                                                           : python/pages/api/lets_plot.geom_polygon.html#lets_plot.geom_polygon
+    lets_plot.geom_qq                                                                : python/pages/api/lets_plot.geom_qq.html#lets_plot.geom_qq
+    lets_plot.geom_qq2                                                               : python/pages/api/lets_plot.geom_qq2.html#lets_plot.geom_qq2
+    lets_plot.geom_qq2_line                                                          : python/pages/api/lets_plot.geom_qq2_line.html#lets_plot.geom_qq2_line
+    lets_plot.geom_qq_line                                                           : python/pages/api/lets_plot.geom_qq_line.html#lets_plot.geom_qq_line
+    lets_plot.geom_raster                                                            : python/pages/api/lets_plot.geom_raster.html#lets_plot.geom_raster
+    lets_plot.geom_rect                                                              : python/pages/api/lets_plot.geom_rect.html#lets_plot.geom_rect
+    lets_plot.geom_ribbon                                                            : python/pages/api/lets_plot.geom_ribbon.html#lets_plot.geom_ribbon
+    lets_plot.geom_segment                                                           : python/pages/api/lets_plot.geom_segment.html#lets_plot.geom_segment
+    lets_plot.geom_sina                                                              : python/pages/api/lets_plot.geom_sina.html#lets_plot.geom_sina
+    lets_plot.geom_smooth                                                            : python/pages/api/lets_plot.geom_smooth.html#lets_plot.geom_smooth
+    lets_plot.geom_spoke                                                             : python/pages/api/lets_plot.geom_spoke.html#lets_plot.geom_spoke
+    lets_plot.geom_step                                                              : python/pages/api/lets_plot.geom_step.html#lets_plot.geom_step
+    lets_plot.geom_text                                                              : python/pages/api/lets_plot.geom_text.html#lets_plot.geom_text
+    lets_plot.geom_text_repel                                                        : python/pages/api/lets_plot.geom_text_repel.html#lets_plot.geom_text_repel
+    lets_plot.geom_tile                                                              : python/pages/api/lets_plot.geom_tile.html#lets_plot.geom_tile
+    lets_plot.geom_violin                                                            : python/pages/api/lets_plot.geom_violin.html#lets_plot.geom_violin
+    lets_plot.geom_vline                                                             : python/pages/api/lets_plot.geom_vline.html#lets_plot.geom_vline
+    lets_plot.geom_ydotplot                                                          : python/pages/api/lets_plot.geom_ydotplot.html#lets_plot.geom_ydotplot
+    lets_plot.ggbunch                                                                : python/pages/api/lets_plot.ggbunch.html#lets_plot.ggbunch
+    lets_plot.gggrid                                                                 : python/pages/api/lets_plot.gggrid.html#lets_plot.gggrid
+    lets_plot.ggmarginal                                                             : python/pages/api/lets_plot.ggmarginal.html#lets_plot.ggmarginal
+    lets_plot.ggplot                                                                 : python/pages/api/lets_plot.ggplot.html#lets_plot.ggplot
+    lets_plot.ggsave                                                                 : python/pages/api/lets_plot.ggsave.html#lets_plot.ggsave
+    lets_plot.ggsize                                                                 : python/pages/api/lets_plot.ggsize.html#lets_plot.ggsize
+    lets_plot.ggtb                                                                   : python/pages/api/lets_plot.ggtb.html#lets_plot.ggtb
+    lets_plot.ggtitle                                                                : python/pages/api/lets_plot.ggtitle.html#lets_plot.ggtitle
+    lets_plot.guide_colorbar                                                         : python/pages/api/lets_plot.guide_colorbar.html#lets_plot.guide_colorbar
+    lets_plot.guide_legend                                                           : python/pages/api/lets_plot.guide_legend.html#lets_plot.guide_legend
+    lets_plot.guides                                                                 : python/pages/api/lets_plot.guides.html#lets_plot.guides
+    lets_plot.labs                                                                   : python/pages/api/lets_plot.labs.html#lets_plot.labs
+    lets_plot.layer_key                                                              : python/pages/api/lets_plot.layer_key.html#lets_plot.layer_key
+    lets_plot.lims                                                                   : python/pages/api/lets_plot.lims.html#lets_plot.lims
+    lets_plot.mapping.as_discrete                                                    : python/pages/api/lets_plot.mapping.as_discrete.html#lets_plot.mapping.as_discrete
+    lets_plot.maptiles_lets_plot                                                     : python/pages/api/lets_plot.maptiles_lets_plot.html#lets_plot.maptiles_lets_plot
+    lets_plot.maptiles_solid                                                         : python/pages/api/lets_plot.maptiles_solid.html#lets_plot.maptiles_solid
+    lets_plot.maptiles_zxy                                                           : python/pages/api/lets_plot.maptiles_zxy.html#lets_plot.maptiles_zxy
+    lets_plot.position_dodge                                                         : python/pages/api/lets_plot.position_dodge.html#lets_plot.position_dodge
+    lets_plot.position_fill                                                          : python/pages/api/lets_plot.position_fill.html#lets_plot.position_fill
+    lets_plot.position_jitter                                                        : python/pages/api/lets_plot.position_jitter.html#lets_plot.position_jitter
+    lets_plot.position_jitterdodge                                                   : python/pages/api/lets_plot.position_jitterdodge.html#lets_plot.position_jitterdodge
+    lets_plot.position_nudge                                                         : python/pages/api/lets_plot.position_nudge.html#lets_plot.position_nudge
+    lets_plot.position_stack                                                         : python/pages/api/lets_plot.position_stack.html#lets_plot.position_stack
+    lets_plot.sampling_group_random                                                  : python/pages/api/lets_plot.sampling_group_random.html#lets_plot.sampling_group_random
+    lets_plot.sampling_group_systematic                                              : python/pages/api/lets_plot.sampling_group_systematic.html#lets_plot.sampling_group_systematic
+    lets_plot.sampling_pick                                                          : python/pages/api/lets_plot.sampling_pick.html#lets_plot.sampling_pick
+    lets_plot.sampling_random                                                        : python/pages/api/lets_plot.sampling_random.html#lets_plot.sampling_random
+    lets_plot.sampling_random_stratified                                             : python/pages/api/lets_plot.sampling_random_stratified.html#lets_plot.sampling_random_stratified
+    lets_plot.sampling_systematic                                                    : python/pages/api/lets_plot.sampling_systematic.html#lets_plot.sampling_systematic
+    lets_plot.sampling_vertex_dp                                                     : python/pages/api/lets_plot.sampling_vertex_dp.html#lets_plot.sampling_vertex_dp
+    lets_plot.sampling_vertex_vw                                                     : python/pages/api/lets_plot.sampling_vertex_vw.html#lets_plot.sampling_vertex_vw
+    lets_plot.scale_alpha                                                            : python/pages/api/lets_plot.scale_alpha.html#lets_plot.scale_alpha
+    lets_plot.scale_alpha_identity                                                   : python/pages/api/lets_plot.scale_alpha_identity.html#lets_plot.scale_alpha_identity
+    lets_plot.scale_alpha_manual                                                     : python/pages/api/lets_plot.scale_alpha_manual.html#lets_plot.scale_alpha_manual
+    lets_plot.scale_brewer                                                           : python/pages/api/lets_plot.scale_brewer.html#lets_plot.scale_brewer
+    lets_plot.scale_cmapmpl                                                          : python/pages/api/lets_plot.scale_cmapmpl.html#lets_plot.scale_cmapmpl
+    lets_plot.scale_color_brewer                                                     : python/pages/api/lets_plot.scale_color_brewer.html#lets_plot.scale_color_brewer
+    lets_plot.scale_color_cmapmpl                                                    : python/pages/api/lets_plot.scale_color_cmapmpl.html#lets_plot.scale_color_cmapmpl
+    lets_plot.scale_color_continuous                                                 : python/pages/api/lets_plot.scale_color_continuous.html#lets_plot.scale_color_continuous
+    lets_plot.scale_color_discrete                                                   : python/pages/api/lets_plot.scale_color_discrete.html#lets_plot.scale_color_discrete
+    lets_plot.scale_color_gradient                                                   : python/pages/api/lets_plot.scale_color_gradient.html#lets_plot.scale_color_gradient
+    lets_plot.scale_color_gradient2                                                  : python/pages/api/lets_plot.scale_color_gradient2.html#lets_plot.scale_color_gradient2
+    lets_plot.scale_color_gradientn                                                  : python/pages/api/lets_plot.scale_color_gradientn.html#lets_plot.scale_color_gradientn
+    lets_plot.scale_color_grey                                                       : python/pages/api/lets_plot.scale_color_grey.html#lets_plot.scale_color_grey
+    lets_plot.scale_color_hue                                                        : python/pages/api/lets_plot.scale_color_hue.html#lets_plot.scale_color_hue
+    lets_plot.scale_color_identity                                                   : python/pages/api/lets_plot.scale_color_identity.html#lets_plot.scale_color_identity
+    lets_plot.scale_color_manual                                                     : python/pages/api/lets_plot.scale_color_manual.html#lets_plot.scale_color_manual
+    lets_plot.scale_color_viridis                                                    : python/pages/api/lets_plot.scale_color_viridis.html#lets_plot.scale_color_viridis
+    lets_plot.scale_continuous                                                       : python/pages/api/lets_plot.scale_continuous.html#lets_plot.scale_continuous
+    lets_plot.scale_discrete                                                         : python/pages/api/lets_plot.scale_discrete.html#lets_plot.scale_discrete
+    lets_plot.scale_fill_brewer                                                      : python/pages/api/lets_plot.scale_fill_brewer.html#lets_plot.scale_fill_brewer
+    lets_plot.scale_fill_cmapmpl                                                     : python/pages/api/lets_plot.scale_fill_cmapmpl.html#lets_plot.scale_fill_cmapmpl
+    lets_plot.scale_fill_continuous                                                  : python/pages/api/lets_plot.scale_fill_continuous.html#lets_plot.scale_fill_continuous
+    lets_plot.scale_fill_discrete                                                    : python/pages/api/lets_plot.scale_fill_discrete.html#lets_plot.scale_fill_discrete
+    lets_plot.scale_fill_gradient                                                    : python/pages/api/lets_plot.scale_fill_gradient.html#lets_plot.scale_fill_gradient
+    lets_plot.scale_fill_gradient2                                                   : python/pages/api/lets_plot.scale_fill_gradient2.html#lets_plot.scale_fill_gradient2
+    lets_plot.scale_fill_gradientn                                                   : python/pages/api/lets_plot.scale_fill_gradientn.html#lets_plot.scale_fill_gradientn
+    lets_plot.scale_fill_grey                                                        : python/pages/api/lets_plot.scale_fill_grey.html#lets_plot.scale_fill_grey
+    lets_plot.scale_fill_hue                                                         : python/pages/api/lets_plot.scale_fill_hue.html#lets_plot.scale_fill_hue
+    lets_plot.scale_fill_identity                                                    : python/pages/api/lets_plot.scale_fill_identity.html#lets_plot.scale_fill_identity
+    lets_plot.scale_fill_manual                                                      : python/pages/api/lets_plot.scale_fill_manual.html#lets_plot.scale_fill_manual
+    lets_plot.scale_fill_viridis                                                     : python/pages/api/lets_plot.scale_fill_viridis.html#lets_plot.scale_fill_viridis
+    lets_plot.scale_gradient                                                         : python/pages/api/lets_plot.scale_gradient.html#lets_plot.scale_gradient
+    lets_plot.scale_gradient2                                                        : python/pages/api/lets_plot.scale_gradient2.html#lets_plot.scale_gradient2
+    lets_plot.scale_gradientn                                                        : python/pages/api/lets_plot.scale_gradientn.html#lets_plot.scale_gradientn
+    lets_plot.scale_grey                                                             : python/pages/api/lets_plot.scale_grey.html#lets_plot.scale_grey
+    lets_plot.scale_hue                                                              : python/pages/api/lets_plot.scale_hue.html#lets_plot.scale_hue
+    lets_plot.scale_identity                                                         : python/pages/api/lets_plot.scale_identity.html#lets_plot.scale_identity
+    lets_plot.scale_linetype_identity                                                : python/pages/api/lets_plot.scale_linetype_identity.html#lets_plot.scale_linetype_identity
+    lets_plot.scale_linetype_manual                                                  : python/pages/api/lets_plot.scale_linetype_manual.html#lets_plot.scale_linetype_manual
+    lets_plot.scale_linewidth                                                        : python/pages/api/lets_plot.scale_linewidth.html#lets_plot.scale_linewidth
+    lets_plot.scale_linewidth_identity                                               : python/pages/api/lets_plot.scale_linewidth_identity.html#lets_plot.scale_linewidth_identity
+    lets_plot.scale_manual                                                           : python/pages/api/lets_plot.scale_manual.html#lets_plot.scale_manual
+    lets_plot.scale_shape                                                            : python/pages/api/lets_plot.scale_shape.html#lets_plot.scale_shape
+    lets_plot.scale_shape_identity                                                   : python/pages/api/lets_plot.scale_shape_identity.html#lets_plot.scale_shape_identity
+    lets_plot.scale_shape_manual                                                     : python/pages/api/lets_plot.scale_shape_manual.html#lets_plot.scale_shape_manual
+    lets_plot.scale_size                                                             : python/pages/api/lets_plot.scale_size.html#lets_plot.scale_size
+    lets_plot.scale_size_area                                                        : python/pages/api/lets_plot.scale_size_area.html#lets_plot.scale_size_area
+    lets_plot.scale_size_identity                                                    : python/pages/api/lets_plot.scale_size_identity.html#lets_plot.scale_size_identity
+    lets_plot.scale_size_manual                                                      : python/pages/api/lets_plot.scale_size_manual.html#lets_plot.scale_size_manual
+    lets_plot.scale_stroke                                                           : python/pages/api/lets_plot.scale_stroke.html#lets_plot.scale_stroke
+    lets_plot.scale_stroke_identity                                                  : python/pages/api/lets_plot.scale_stroke_identity.html#lets_plot.scale_stroke_identity
+    lets_plot.scale_viridis                                                          : python/pages/api/lets_plot.scale_viridis.html#lets_plot.scale_viridis
+    lets_plot.scale_x_continuous                                                     : python/pages/api/lets_plot.scale_x_continuous.html#lets_plot.scale_x_continuous
+    lets_plot.scale_x_datetime                                                       : python/pages/api/lets_plot.scale_x_datetime.html#lets_plot.scale_x_datetime
+    lets_plot.scale_x_discrete                                                       : python/pages/api/lets_plot.scale_x_discrete.html#lets_plot.scale_x_discrete
+    lets_plot.scale_x_discrete_reversed                                              : python/pages/api/lets_plot.scale_x_discrete_reversed.html#lets_plot.scale_x_discrete_reversed
+    lets_plot.scale_x_log10                                                          : python/pages/api/lets_plot.scale_x_log10.html#lets_plot.scale_x_log10
+    lets_plot.scale_x_log2                                                           : python/pages/api/lets_plot.scale_x_log2.html#lets_plot.scale_x_log2
+    lets_plot.scale_x_reverse                                                        : python/pages/api/lets_plot.scale_x_reverse.html#lets_plot.scale_x_reverse
+    lets_plot.scale_x_time                                                           : python/pages/api/lets_plot.scale_x_time.html#lets_plot.scale_x_time
+    lets_plot.scale_y_continuous                                                     : python/pages/api/lets_plot.scale_y_continuous.html#lets_plot.scale_y_continuous
+    lets_plot.scale_y_datetime                                                       : python/pages/api/lets_plot.scale_y_datetime.html#lets_plot.scale_y_datetime
+    lets_plot.scale_y_discrete                                                       : python/pages/api/lets_plot.scale_y_discrete.html#lets_plot.scale_y_discrete
+    lets_plot.scale_y_discrete_reversed                                              : python/pages/api/lets_plot.scale_y_discrete_reversed.html#lets_plot.scale_y_discrete_reversed
+    lets_plot.scale_y_log10                                                          : python/pages/api/lets_plot.scale_y_log10.html#lets_plot.scale_y_log10
+    lets_plot.scale_y_log2                                                           : python/pages/api/lets_plot.scale_y_log2.html#lets_plot.scale_y_log2
+    lets_plot.scale_y_reverse                                                        : python/pages/api/lets_plot.scale_y_reverse.html#lets_plot.scale_y_reverse
+    lets_plot.scale_y_time                                                           : python/pages/api/lets_plot.scale_y_time.html#lets_plot.scale_y_time
+    lets_plot.stat_ecdf                                                              : python/pages/api/lets_plot.stat_ecdf.html#lets_plot.stat_ecdf
+    lets_plot.stat_sum                                                               : python/pages/api/lets_plot.stat_sum.html#lets_plot.stat_sum
+    lets_plot.stat_summary                                                           : python/pages/api/lets_plot.stat_summary.html#lets_plot.stat_summary
+    lets_plot.stat_summary_bin                                                       : python/pages/api/lets_plot.stat_summary_bin.html#lets_plot.stat_summary_bin
+    lets_plot.theme                                                                  : python/pages/api/lets_plot.theme.html#lets_plot.theme
+    lets_plot.theme_bw                                                               : python/pages/api/lets_plot.theme_bw.html#lets_plot.theme_bw
+    lets_plot.theme_classic                                                          : python/pages/api/lets_plot.theme_classic.html#lets_plot.theme_classic
+    lets_plot.theme_gray                                                             : python/pages/api/lets_plot.theme_gray.html#lets_plot.theme_gray
+    lets_plot.theme_grey                                                             : python/pages/api/lets_plot.theme_grey.html#lets_plot.theme_grey
+    lets_plot.theme_light                                                            : python/pages/api/lets_plot.theme_light.html#lets_plot.theme_light
+    lets_plot.theme_minimal                                                          : python/pages/api/lets_plot.theme_minimal.html#lets_plot.theme_minimal
+    lets_plot.theme_minimal2                                                         : python/pages/api/lets_plot.theme_minimal2.html#lets_plot.theme_minimal2
+    lets_plot.theme_none                                                             : python/pages/api/lets_plot.theme_none.html#lets_plot.theme_none
+    lets_plot.theme_void                                                             : python/pages/api/lets_plot.theme_void.html#lets_plot.theme_void
+    lets_plot.xlab                                                                   : python/pages/api/lets_plot.xlab.html#lets_plot.xlab
+    lets_plot.xlim                                                                   : python/pages/api/lets_plot.xlim.html#lets_plot.xlim
+    lets_plot.ylab                                                                   : python/pages/api/lets_plot.ylab.html#lets_plot.ylab
+    lets_plot.ylim                                                                   : python/pages/api/lets_plot.ylim.html#lets_plot.ylim
+py:method
+    lets_plot.LetsPlot.set                                                           : python/pages/api/lets_plot.LetsPlot.html#lets_plot.LetsPlot.set
+    lets_plot.LetsPlot.set_theme                                                     : python/pages/api/lets_plot.LetsPlot.html#lets_plot.LetsPlot.set_theme
+    lets_plot.LetsPlot.setup_html                                                    : python/pages/api/lets_plot.LetsPlot.html#lets_plot.LetsPlot.setup_html
+    lets_plot.LetsPlot.setup_show_ext                                                : python/pages/api/lets_plot.LetsPlot.html#lets_plot.LetsPlot.setup_show_ext
+    lets_plot.bistro.corr.corr_plot.__init__                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.__init__
+    lets_plot.bistro.corr.corr_plot.build                                            : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.build
+    lets_plot.bistro.corr.corr_plot.labels                                           : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.labels
+    lets_plot.bistro.corr.corr_plot.palette_BrBG                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_BrBG
+    lets_plot.bistro.corr.corr_plot.palette_PRGn                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_PRGn
+    lets_plot.bistro.corr.corr_plot.palette_PiYG                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_PiYG
+    lets_plot.bistro.corr.corr_plot.palette_PuOr                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_PuOr
+    lets_plot.bistro.corr.corr_plot.palette_RdBu                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_RdBu
+    lets_plot.bistro.corr.corr_plot.palette_RdGy                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_RdGy
+    lets_plot.bistro.corr.corr_plot.palette_RdYlBu                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_RdYlBu
+    lets_plot.bistro.corr.corr_plot.palette_RdYlGn                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_RdYlGn
+    lets_plot.bistro.corr.corr_plot.palette_Spectral                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_Spectral
+    lets_plot.bistro.corr.corr_plot.palette_gradient                                         : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.palette_gradient
+    lets_plot.bistro.corr.corr_plot.points                                           : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.points
+    lets_plot.bistro.corr.corr_plot.tiles                                            : python/pages/api/lets_plot.bistro.corr.corr_plot.html#lets_plot.bistro.corr.corr_plot.tiles
+    lets_plot.geo_data.NamesGeocoder.__init__                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.__init__
+    lets_plot.geo_data.NamesGeocoder.allow_ambiguous                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.allow_ambiguous
+    lets_plot.geo_data.NamesGeocoder.counties                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.counties
+    lets_plot.geo_data.NamesGeocoder.countries                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.countries
+    lets_plot.geo_data.NamesGeocoder.get_boundaries                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.get_boundaries
+    lets_plot.geo_data.NamesGeocoder.get_centroids                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.get_centroids
+    lets_plot.geo_data.NamesGeocoder.get_geocodes                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.get_geocodes
+    lets_plot.geo_data.NamesGeocoder.get_limits                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.get_limits
+    lets_plot.geo_data.NamesGeocoder.highlights                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.highlights
+    lets_plot.geo_data.NamesGeocoder.ignore_all_errors                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.ignore_all_errors
+    lets_plot.geo_data.NamesGeocoder.ignore_not_found                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.ignore_not_found
+    lets_plot.geo_data.NamesGeocoder.inc_res                                         : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.inc_res
+    lets_plot.geo_data.NamesGeocoder.scope                                           : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.scope
+    lets_plot.geo_data.NamesGeocoder.states                                          : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.states
+    lets_plot.geo_data.NamesGeocoder.where                                           : python/pages/api/lets_plot.geo_data.NamesGeocoder.html#lets_plot.geo_data.NamesGeocoder.where
+    lets_plot.layer_labels.__init__                                                  : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels.__init__
+    lets_plot.layer_labels.as_dict                                                   : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels.as_dict
+    lets_plot.layer_labels.format                                                    : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels.format
+    lets_plot.layer_labels.inherit_color                                             : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels.inherit_color
+    lets_plot.layer_labels.line                                                      : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels.line
+    lets_plot.layer_labels.size                                                      : python/pages/api/lets_plot.layer_labels.html#lets_plot.layer_labels.size
+    lets_plot.layer_tooltips.__init__                                                : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.__init__
+    lets_plot.layer_tooltips.anchor                                                  : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.anchor
+    lets_plot.layer_tooltips.as_dict                                                 : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.as_dict
+    lets_plot.layer_tooltips.color                                                   : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.color
+    lets_plot.layer_tooltips.disable_splitting                                         : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.disable_splitting
+    lets_plot.layer_tooltips.format                                                  : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.format
+    lets_plot.layer_tooltips.line                                                    : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.line
+    lets_plot.layer_tooltips.min_width                                               : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.min_width
+    lets_plot.layer_tooltips.title                                                   : python/pages/api/lets_plot.layer_tooltips.html#lets_plot.layer_tooltips.title
+    lets_plot.plot.core.PlotSpec.__add__                                             : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.__add__
+    lets_plot.plot.core.PlotSpec.__init__                                            : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.__init__
+    lets_plot.plot.core.PlotSpec.as_dict                                             : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.as_dict
+    lets_plot.plot.core.PlotSpec.get_plot_shared_data                                         : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.get_plot_shared_data
+    lets_plot.plot.core.PlotSpec.has_layers                                          : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.has_layers
+    lets_plot.plot.core.PlotSpec.show                                                : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.show
+    lets_plot.plot.core.PlotSpec.to_html                                             : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.to_html
+    lets_plot.plot.core.PlotSpec.to_pdf                                              : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.to_pdf
+    lets_plot.plot.core.PlotSpec.to_png                                              : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.to_png
+    lets_plot.plot.core.PlotSpec.to_svg                                              : python/pages/api/lets_plot.plot.core.PlotSpec.html#lets_plot.plot.core.PlotSpec.to_svg
+std:doc
+    examples/cookbook/aes_size_color_variadic_lines Variadic lines in geom_path() and geom_line(): examples/cookbook/aes_size_color_variadic_lines.html
+    examples/cookbook/aes_stroke             stroke aesthetic                        : examples/cookbook/aes_stroke.html
+    examples/cookbook/aesthetics/line_types  Line Types                              : examples/cookbook/aesthetics/line_types.html
+    examples/cookbook/aesthetics/point_shapes Point Shapes                            : examples/cookbook/aesthetics/point_shapes.html
+    examples/cookbook/aesthetics/system_colors System Colors                           : examples/cookbook/aesthetics/system_colors.html
+    examples/cookbook/aesthetics/text_style  Text                                    : examples/cookbook/aesthetics/text_style.html
+    examples/cookbook/alternating_ribbon_fill Alternating Ribbon Fill with Disjoint Groups: examples/cookbook/alternating_ribbon_fill.html
+    examples/cookbook/axis_position          Axis Position                           : examples/cookbook/axis_position.html
+    examples/cookbook/axis_text_angle        Rotation of Axis Labels                 : examples/cookbook/axis_text_angle.html
+    examples/cookbook/bar                    Bar Geometry                            : examples/cookbook/bar.html
+    examples/cookbook/bbc_cookbook           BBC Visual and Data Journalism Cookbook for Lets-Plot: examples/cookbook/bbc_cookbook.html
+    examples/cookbook/boxplot_whisker_width  <no title>                              : examples/cookbook/boxplot_whisker_width.html
+    examples/cookbook/colors_viridis         Colors Viridis                          : examples/cookbook/colors_viridis.html
+    examples/cookbook/complete_themes        All Predefined Themes                   : examples/cookbook/complete_themes.html
+    examples/cookbook/continuous_color_scales Continuous Color Scales                 : examples/cookbook/continuous_color_scales.html
+    examples/cookbook/contours               Contours                                : examples/cookbook/contours.html
+    examples/cookbook/coord_flip             Flipping Coordinates                    : examples/cookbook/coord_flip.html
+    examples/cookbook/coordinate_systems     Coordinate Systems                      : examples/cookbook/coordinate_systems.html
+    examples/cookbook/correlation_plot       Correlation Plot                        : examples/cookbook/correlation_plot.html
+    examples/cookbook/customizing_fonts      Customizing fonts                       : examples/cookbook/customizing_fonts.html
+    examples/cookbook/density_2d             2D Density                              : examples/cookbook/density_2d.html
+    examples/cookbook/discrete_color_scales  Discrete Color Scales                   : examples/cookbook/discrete_color_scales.html
+    examples/cookbook/distributions          Distributions                           : examples/cookbook/distributions.html
+    examples/cookbook/dot_plots              Dot Plots                               : examples/cookbook/dot_plots.html
+    examples/cookbook/expand_limits          Expanding Plot Limits with expand_limits(): examples/cookbook/expand_limits.html
+    examples/cookbook/export                 Export Plot to SVG, PDF, HTML, PNG      : examples/cookbook/export.html
+    examples/cookbook/factor_levels          Categorical Data Type                   : examples/cookbook/factor_levels.html
+    examples/cookbook/formatting             Formatting Numbers                      : examples/cookbook/formatting.html
+    examples/cookbook/formatting_axes_etc    Formatting labels on plots              : examples/cookbook/formatting_axes_etc.html
+    examples/cookbook/geocoding/geocoding_geometries_map_brazil Example of Geocoding With Map Geometry: Brazil: examples/cookbook/geocoding/geocoding_geometries_map_brazil.html
+    examples/cookbook/geocoding/geocoding_geometries_map_greece Example of Geocoding With Map Geometry: Greece: examples/cookbook/geocoding/geocoding_geometries_map_greece.html
+    examples/cookbook/geocoding/geocoding_geometries_map_nigeria Example of Geocoding With Map Geometry: Nigeria: examples/cookbook/geocoding/geocoding_geometries_map_nigeria.html
+    examples/cookbook/geocoding/geocoding_geometries_point_georgia Example of Geocoding With Point Geometry: Georgia: examples/cookbook/geocoding/geocoding_geometries_point_georgia.html
+    examples/cookbook/geocoding/geocoding_geometries_point_greenland Example of Geocoding With Point Geometry: Greenland: examples/cookbook/geocoding/geocoding_geometries_point_greenland.html
+    examples/cookbook/geocoding/geocoding_geometries_point_kazakhstan Example of Geocoding With Point Geometry: Kazakhstan: examples/cookbook/geocoding/geocoding_geometries_point_kazakhstan.html
+    examples/cookbook/geocoding/geocoding_geometries_rectangle_cuba Example of Geocoding With Rectangle Geometry: Cuba: examples/cookbook/geocoding/geocoding_geometries_rectangle_cuba.html
+    examples/cookbook/geocoding/geocoding_geometries_rectangle_ireland Example of Geocoding With Rectangle Geometry: Ireland: examples/cookbook/geocoding/geocoding_geometries_rectangle_ireland.html
+    examples/cookbook/geocoding/geocoding_geometries_rectangle_japan Example of Geocoding With Rectangle Geometry: Japan: examples/cookbook/geocoding/geocoding_geometries_rectangle_japan.html
+    examples/cookbook/geocoding/geocoding_level_city_helsinki Example of Geocoding of Cities: Helsinki: examples/cookbook/geocoding/geocoding_level_city_helsinki.html
+    examples/cookbook/geocoding/geocoding_level_city_london Example of Geocoding of Cities: London  : examples/cookbook/geocoding/geocoding_level_city_london.html
+    examples/cookbook/geocoding/geocoding_level_city_nyc Example of Geocoding of Cities: New York City: examples/cookbook/geocoding/geocoding_level_city_nyc.html
+    examples/cookbook/geocoding/geocoding_level_country_canada Example of Geocoding of Countries: Canada: examples/cookbook/geocoding/geocoding_level_country_canada.html
+    examples/cookbook/geocoding/geocoding_level_country_india Example of Geocoding of Countries: India: examples/cookbook/geocoding/geocoding_level_country_india.html
+    examples/cookbook/geocoding/geocoding_level_country_world Example of Geocoding With All Countries : examples/cookbook/geocoding/geocoding_level_country_world.html
+    examples/cookbook/geocoding/geocoding_level_county_italy Example of Geocoding of Counties: Italy : examples/cookbook/geocoding/geocoding_level_county_italy.html
+    examples/cookbook/geocoding/geocoding_level_county_poland Example of Geocoding of Counties: Poland: examples/cookbook/geocoding/geocoding_level_county_poland.html
+    examples/cookbook/geocoding/geocoding_level_county_us Example of Geocoding of Counties: United States: examples/cookbook/geocoding/geocoding_level_county_us.html
+    examples/cookbook/geocoding/geocoding_level_state_australia Example of Geocoding of States: Australia: examples/cookbook/geocoding/geocoding_level_state_australia.html
+    examples/cookbook/geocoding/geocoding_level_state_russia Example of Geocoding of States: Russia  : examples/cookbook/geocoding/geocoding_level_state_russia.html
+    examples/cookbook/geocoding/geocoding_level_state_us Example of Geocoding of States: United States: examples/cookbook/geocoding/geocoding_level_state_us.html
+    examples/cookbook/geocoding_examples     Geocoding Examples                      : examples/cookbook/geocoding_examples.html
+    examples/cookbook/geocoding_levels       Geocoding Levels                        : examples/cookbook/geocoding_levels.html
+    examples/cookbook/geocoding_reference    Geocoding Reference                     : examples/cookbook/geocoding_reference.html
+    examples/cookbook/geodataframe           Geopandas and GeoDataFrame              : examples/cookbook/geodataframe.html
+    examples/cookbook/geom_count             Handling an overplotting on a scatter plot: geom_count()/stat_sum(): examples/cookbook/geom_count.html
+    examples/cookbook/geom_curve             geom_curve()                            : examples/cookbook/geom_curve.html
+    examples/cookbook/geom_function          geom_function()                         : examples/cookbook/geom_function.html
+    examples/cookbook/geom_hex               Hexagonal Heatmap                       : examples/cookbook/geom_hex.html
+    examples/cookbook/geom_lollipop          Lollipop Plot                           : examples/cookbook/geom_lollipop.html
+    examples/cookbook/geom_pointdensity      geom_pointdensity()                     : examples/cookbook/geom_pointdensity.html
+    examples/cookbook/geom_sina              Sina Plot                               : examples/cookbook/geom_sina.html
+    examples/cookbook/geom_spoke             geom_spoke()                            : examples/cookbook/geom_spoke.html
+    examples/cookbook/geom_violin            Violin Plot                             : examples/cookbook/geom_violin.html
+    examples/cookbook/geopandas_kotlin_isl   Map of Kotlin Island with Inset         : examples/cookbook/geopandas_kotlin_isl.html
+    examples/cookbook/geopandas_naturalearth Using Lets-Plot with GeoPandas to Create Maps: examples/cookbook/geopandas_naturalearth.html
+    examples/cookbook/ggbunch                ggbunch()                               : examples/cookbook/ggbunch.html
+    examples/cookbook/gggrid_legend_collect  Collecting Guides in gggrid()           : examples/cookbook/gggrid_legend_collect.html
+    examples/cookbook/gggrid_scale_share     Sharing X,Y-axis Scale Limits           : examples/cookbook/gggrid_scale_share.html
+    examples/cookbook/ggrepel                Dynamic Text Positioning with Repel Geometries: examples/cookbook/ggrepel.html
+    examples/cookbook/graph_edges            Drawing Graph Edges Using geom_segment() and geom_curve(): examples/cookbook/graph_edges.html
+    examples/cookbook/group_override_defaults Overriding Default Grouping with the group Aesthetic: examples/cookbook/group_override_defaults.html
+    examples/cookbook/histogram              Histogram                               : examples/cookbook/histogram.html
+    examples/cookbook/how_to_draw_curve      Simple Way to Draw a Curve              : examples/cookbook/how_to_draw_curve.html
+    examples/cookbook/image_101              geom_imshow()                           : examples/cookbook/image_101.html
+    examples/cookbook/image_alpha_param      The alpha parameter in geom_imshow()    : examples/cookbook/image_alpha_param.html
+    examples/cookbook/image_extent           The extent parameter in geom_imshow()   : examples/cookbook/image_extent.html
+    examples/cookbook/image_fisher_boat      geom_imshow() and geom_raster()         : examples/cookbook/image_fisher_boat.html
+    examples/cookbook/image_grayscale        Using parameters norm, vmain, vmax and cmap in geom_imshow(): examples/cookbook/image_grayscale.html
+    examples/cookbook/image_matrix           Image Matrix                            : examples/cookbook/image_matrix.html
+    examples/cookbook/image_nan_values       geom_imshow() renders NaN values as transparent pixels: examples/cookbook/image_nan_values.html
+    examples/cookbook/ivindo_river           Using geom_imshow() to draw DEM on map  : examples/cookbook/ivindo_river.html
+    examples/cookbook/joint_plot             Joint plot                              : examples/cookbook/joint_plot.html
+    examples/cookbook/joyplot                Joyplot                                 : examples/cookbook/joyplot.html
+    examples/cookbook/latex_support          LaTeX Support                           : examples/cookbook/latex_support.html
+    examples/cookbook/legend                 Customizing the Legend                  : examples/cookbook/legend.html
+    examples/cookbook/legend_theme           Customize Legend Appearance             : examples/cookbook/legend_theme.html
+    examples/cookbook/lets_plot_cheatbook    Lets-Plot Cheatbook                     : examples/cookbook/lets_plot_cheatbook.html
+    examples/cookbook/lib_comparison         Comparison of Charting Libraries Performance: examples/cookbook/lib_comparison.html
+    examples/cookbook/line_type_and_point_shape <no title>                              : examples/cookbook/line_type_and_point_shape.html
+    examples/cookbook/line_vs_path           Line vs. Path                           : examples/cookbook/line_vs_path.html
+    examples/cookbook/linetype_custom        Customizing Line Type                   : examples/cookbook/linetype_custom.html
+    examples/cookbook/manual_legend          Custom Legend with manual_key Option    : examples/cookbook/manual_legend.html
+    examples/cookbook/map_US_household_income Mapping US household income.            : examples/cookbook/map_US_household_income.html
+    examples/cookbook/map_basemap_gallery    Configuring basemap tiles in Lets-Plot  : examples/cookbook/map_basemap_gallery.html
+    examples/cookbook/map_california_housing Visualizing Spatial Information - California Housing: examples/cookbook/map_california_housing.html
+    examples/cookbook/map_quickstart         Visualizing Spatial Information         : examples/cookbook/map_quickstart.html
+    examples/cookbook/map_use_crs            Parameter use_crs                       : examples/cookbook/map_use_crs.html
+    examples/cookbook/marginal_layers        Marginal Plots                          : examples/cookbook/marginal_layers.html
+    examples/cookbook/markdown               Markdown Support                        : examples/cookbook/markdown.html
+    examples/cookbook/missing_values_line_path_area_ribbon Missing Values: Line, Path, Area, and Ribbon: examples/cookbook/missing_values_line_path_area_ribbon.html
+    examples/cookbook/multiple_color_scales  Multiple Color Scales                   : examples/cookbook/multiple_color_scales.html
+    examples/cookbook/named_system_colors    Named System Colors                     : examples/cookbook/named_system_colors.html
+    examples/cookbook/netflix_movies         Netflix Movies                          : examples/cookbook/netflix_movies.html
+    examples/cookbook/numeric_data_on_discrete_scale Combining Discrete and Continuous Layers: examples/cookbook/numeric_data_on_discrete_scale.html
+    examples/cookbook/ordering_examples      Guide to Ordering                       : examples/cookbook/ordering_examples.html
+    examples/cookbook/panel_border           <no title>                              : examples/cookbook/panel_border.html
+    examples/cookbook/param_flat             Geodesic lines on livemap: flat parameter.: examples/cookbook/param_flat.html
+    examples/cookbook/param_geodesic         Param geodesic in geom_segment() and geom_path(): examples/cookbook/param_geodesic.html
+    examples/cookbook/param_width_unit       Absolute Unit Specification for width and height Aesthetics: examples/cookbook/param_width_unit.html
+    examples/cookbook/plot_grid              The gggrid() Function                   : examples/cookbook/plot_grid.html
+    examples/cookbook/position_nudge_unit    Configuring Nudge Units in Position Adjustments: examples/cookbook/position_nudge_unit.html
+    examples/cookbook/position_stack         Stackable Position Adjustments          : examples/cookbook/position_stack.html
+    examples/cookbook/projection_provided    Using Exotic Map Projections: use_crs="provided": examples/cookbook/projection_provided.html
+    examples/cookbook/qq_plots               Q-Q Plots                               : examples/cookbook/qq_plots.html
+    examples/cookbook/quantile_parameters    Showing Quantiles on Density Plots      : examples/cookbook/quantile_parameters.html
+    examples/cookbook/quickstart             Quick Start with Lets-Plot              : examples/cookbook/quickstart.html
+    examples/cookbook/residual_plot          Residual plot                           : examples/cookbook/residual_plot.html
+    examples/cookbook/ridgeline_plot         Ridgeline plot                          : examples/cookbook/ridgeline_plot.html
+    examples/cookbook/sampling_methods       Sampling Methods                        : examples/cookbook/sampling_methods.html
+    examples/cookbook/scale_color_fill_gradientn <no title>                              : examples/cookbook/scale_color_fill_gradientn.html
+    examples/cookbook/scale_functions        New Scale Functions with Parameter aesthetic: examples/cookbook/scale_functions.html
+    examples/cookbook/scale_params_with_dict Using Dictionaries for Customizing Scale’ Breaks, Labels and Values: examples/cookbook/scale_params_with_dict.html
+    examples/cookbook/scale_time             Scale Time                              : examples/cookbook/scale_time.html
+    examples/cookbook/scatter_matrix         Using Lets-Plot to create Scatter Matrix: examples/cookbook/scatter_matrix.html
+    examples/cookbook/scatter_plot           Draw a Scatter Plot                     : examples/cookbook/scatter_plot.html
+    examples/cookbook/smooth_matrix          Smoothing                               : examples/cookbook/smooth_matrix.html
+    examples/cookbook/stat_boxplot_outlier   "boxplot_outlier" Statistics            : examples/cookbook/stat_boxplot_outlier.html
+    examples/cookbook/stat_count2d_vars      Count Stat                              : examples/cookbook/stat_count2d_vars.html
+    examples/cookbook/stat_data_bijection    Preserving Data–Statistic Bijection in Lets-Plot: examples/cookbook/stat_data_bijection.html
+    examples/cookbook/stat_ecdf              stat_ecdf()                             : examples/cookbook/stat_ecdf.html
+    examples/cookbook/stat_summary           stat_summary()                          : examples/cookbook/stat_summary.html
+    examples/cookbook/stat_summary_bin       stat_summary_bin()                      : examples/cookbook/stat_summary_bin.html
+    examples/cookbook/superscript_exponent   Working With Scientific Notation        : examples/cookbook/superscript_exponent.html
+    examples/cookbook/theme_flavors          Theme Flavors                           : examples/cookbook/theme_flavors.html
+    examples/cookbook/time_date_datetime     Plotting Time Series                    : examples/cookbook/time_date_datetime.html
+    examples/cookbook/tooltip_config         Tooltip Customization                   : examples/cookbook/tooltip_config.html
+    examples/cookbook/user_guide             Lets-Plot Usage Guide                   : examples/cookbook/user_guide.html
+    examples/cookbook/waterfall_plot         Waterfall Plot                          : examples/cookbook/waterfall_plot.html
+    examples/cookbook/y_orientation          The orientation Parameter               : examples/cookbook/y_orientation.html
+    examples/cookbook/zooming                Zooming                                 : examples/cookbook/zooming.html
+    examples/demo/2020                       Lets-Plot in 2020                       : examples/demo/2020.html
+    examples/demo/cities_density             African Cities Density                  : examples/demo/cities_density.html
+    examples/demo/covid19_and_mobility       Population mobility and COVID-19        : examples/demo/covid19_and_mobility.html
+    examples/demo/delhi_climate              Time Series Visualizations              : examples/demo/delhi_climate.html
+    examples/demo/earthquake                 Community Internet Intensity Map        : examples/demo/earthquake.html
+    examples/demo/europe_capitals            GeoDataFrame with texts and labels      : examples/demo/europe_capitals.html
+    examples/demo/ggbunch_indonesia          ggbunch() : Combining Plots with Custom Layout: examples/demo/ggbunch_indonesia.html
+    examples/demo/google_play_store          Google Play Store                       : examples/demo/google_play_store.html
+    examples/demo/google_suggestions         Google Suggestions                      : examples/demo/google_suggestions.html
+    examples/demo/heatmap_in_polar_coord     Polar Heatmap                           : examples/demo/heatmap_in_polar_coord.html
+    examples/demo/interact_pan_zoom          Zoom and Pan Interactivity              : examples/demo/interact_pan_zoom.html
+    examples/demo/lets_plot_in_2024          Lets-Plot in 2024                       : examples/demo/lets_plot_in_2024.html
+    examples/demo/lp_verse                   The Observable LP-verse                 : examples/demo/lp_verse.html
+    examples/demo/magnifier_inset            Creating Magnifier Inset Effect with ggbunch(): examples/demo/magnifier_inset.html
+    examples/demo/malnutrition               Malnutrition in the World               : examples/demo/malnutrition.html
+    examples/demo/map_airports               Visualization of Airport Data on Map.   : examples/demo/map_airports.html
+    examples/demo/montenegrin_independence_referendum Montenegrin Independence Referendum     : examples/demo/montenegrin_independence_referendum.html
+    examples/demo/mosaic_image               Mosaic Art                              : examples/demo/mosaic_image.html
+    examples/demo/mpg_corrgram               MPG Correlogram                         : examples/demo/mpg_corrgram.html
+    examples/demo/new_zealand_dem_remake     New Zealand DEM remake                  : examples/demo/new_zealand_dem_remake.html
+    examples/demo/nobel                      Nobel Prize Exploratory Data Analysis with Lets-Plot: examples/demo/nobel.html
+    examples/demo/nyc_metro                  NYC Subway With BigQuery                : examples/demo/nyc_metro.html
+    examples/demo/palmer_penguins            Palmer Penguins                         : examples/demo/palmer_penguins.html
+    examples/demo/periodic_table             Mendeleev’s Periodic Table of Elements  : examples/demo/periodic_table.html
+    examples/demo/plot_layout_scheme         Plot Layout Scheme and Theme Parameters : examples/demo/plot_layout_scheme.html
+    examples/demo/post-punk_remake           A post-punk chart remake                : examples/demo/post-punk_remake.html
+    examples/demo/raincloud                  Raincloud Plot                          : examples/demo/raincloud.html
+    examples/demo/sunshine_hours             Sunshine Hours                          : examples/demo/sunshine_hours.html
+    examples/demo/theme_legend_scheme        Theme Legend Scheme                     : examples/demo/theme_legend_scheme.html
+    examples/demo/titanic                    Visualization of the Titanic’s Voyage   : examples/demo/titanic.html
+    examples/demo/trading_chart              Bitcoin Daily Trend Visualization (2024): examples/demo/trading_chart.html
+    examples/demo/travel_the_world           Tourist Cities                          : examples/demo/travel_the_world.html
+    examples/demo/us_unemployment            Unemployment in the US since 1967       : examples/demo/us_unemployment.html
+    examples/demo/venn_diagram               Venn Diagram                            : examples/demo/venn_diagram.html
+    examples/demo/wind_rose                  Wind Rose                               : examples/demo/wind_rose.html
+    examples/demo/world_coloring             Minimalistic World Coloring             : examples/demo/world_coloring.html
+    index                                    Lets-Plot - Multiplatform Plotting Library Based on the Grammar of Graphics: index.html
+    python/index                             Get Started                             : python/index.html
+    python/pages/advanced_geocoding          Advanced Geocoding                      : python/pages/advanced_geocoding.html
+    python/pages/aesthetics                  Aesthetics                              : python/pages/aesthetics.html
+    python/pages/annotations                 Annotating Charts                       : python/pages/annotations.html
+    python/pages/api                         API Reference                           : python/pages/api.html
+    python/pages/api/lets_plot.LetsPlot      LetsPlot                                : python/pages/api/lets_plot.LetsPlot.html
+    python/pages/api/lets_plot.aes           aes                                     : python/pages/api/lets_plot.aes.html
+    python/pages/api/lets_plot.arrow         arrow                                   : python/pages/api/lets_plot.arrow.html
+    python/pages/api/lets_plot.bistro.corr.corr_plot corr_plot                               : python/pages/api/lets_plot.bistro.corr.corr_plot.html
+    python/pages/api/lets_plot.bistro.im.image_matrix image_matrix                            : python/pages/api/lets_plot.bistro.im.image_matrix.html
+    python/pages/api/lets_plot.bistro.joint.joint_plot joint_plot                              : python/pages/api/lets_plot.bistro.joint.joint_plot.html
+    python/pages/api/lets_plot.bistro.qq.qq_plot qq_plot                                 : python/pages/api/lets_plot.bistro.qq.qq_plot.html
+    python/pages/api/lets_plot.bistro.residual.residual_plot residual_plot                           : python/pages/api/lets_plot.bistro.residual.residual_plot.html
+    python/pages/api/lets_plot.bistro.waterfall.waterfall_plot waterfall_plot                          : python/pages/api/lets_plot.bistro.waterfall.waterfall_plot.html
+    python/pages/api/lets_plot.coord_cartesian coord_cartesian                         : python/pages/api/lets_plot.coord_cartesian.html
+    python/pages/api/lets_plot.coord_fixed   coord_fixed                             : python/pages/api/lets_plot.coord_fixed.html
+    python/pages/api/lets_plot.coord_flip    coord_flip                              : python/pages/api/lets_plot.coord_flip.html
+    python/pages/api/lets_plot.coord_map     coord_map                               : python/pages/api/lets_plot.coord_map.html
+    python/pages/api/lets_plot.coord_polar   coord_polar                             : python/pages/api/lets_plot.coord_polar.html
+    python/pages/api/lets_plot.element_blank element_blank                           : python/pages/api/lets_plot.element_blank.html
+    python/pages/api/lets_plot.element_geom  element_geom                            : python/pages/api/lets_plot.element_geom.html
+    python/pages/api/lets_plot.element_line  element_line                            : python/pages/api/lets_plot.element_line.html
+    python/pages/api/lets_plot.element_markdown element_markdown                        : python/pages/api/lets_plot.element_markdown.html
+    python/pages/api/lets_plot.element_rect  element_rect                            : python/pages/api/lets_plot.element_rect.html
+    python/pages/api/lets_plot.element_text  element_text                            : python/pages/api/lets_plot.element_text.html
+    python/pages/api/lets_plot.expand_limits expand_limits                           : python/pages/api/lets_plot.expand_limits.html
+    python/pages/api/lets_plot.facet_grid    facet_grid                              : python/pages/api/lets_plot.facet_grid.html
+    python/pages/api/lets_plot.facet_wrap    facet_wrap                              : python/pages/api/lets_plot.facet_wrap.html
+    python/pages/api/lets_plot.flavor_darcula flavor_darcula                          : python/pages/api/lets_plot.flavor_darcula.html
+    python/pages/api/lets_plot.flavor_high_contrast_dark flavor_high_contrast_dark               : python/pages/api/lets_plot.flavor_high_contrast_dark.html
+    python/pages/api/lets_plot.flavor_high_contrast_light flavor_high_contrast_light              : python/pages/api/lets_plot.flavor_high_contrast_light.html
+    python/pages/api/lets_plot.flavor_solarized_dark flavor_solarized_dark                   : python/pages/api/lets_plot.flavor_solarized_dark.html
+    python/pages/api/lets_plot.flavor_solarized_light flavor_solarized_light                  : python/pages/api/lets_plot.flavor_solarized_light.html
+    python/pages/api/lets_plot.flavor_standard flavor_standard                         : python/pages/api/lets_plot.flavor_standard.html
+    python/pages/api/lets_plot.font_family_info font_family_info                        : python/pages/api/lets_plot.font_family_info.html
+    python/pages/api/lets_plot.font_metrics_adjustment font_metrics_adjustment                 : python/pages/api/lets_plot.font_metrics_adjustment.html
+    python/pages/api/lets_plot.geo_data.NamesGeocoder NamesGeocoder                           : python/pages/api/lets_plot.geo_data.NamesGeocoder.html
+    python/pages/api/lets_plot.geo_data.distance distance                                : python/pages/api/lets_plot.geo_data.distance.html
+    python/pages/api/lets_plot.geo_data.geocode geocode                                 : python/pages/api/lets_plot.geo_data.geocode.html
+    python/pages/api/lets_plot.geo_data.geocode_cities geocode_cities                          : python/pages/api/lets_plot.geo_data.geocode_cities.html
+    python/pages/api/lets_plot.geo_data.geocode_counties geocode_counties                        : python/pages/api/lets_plot.geo_data.geocode_counties.html
+    python/pages/api/lets_plot.geo_data.geocode_countries geocode_countries                       : python/pages/api/lets_plot.geo_data.geocode_countries.html
+    python/pages/api/lets_plot.geo_data.geocode_states geocode_states                          : python/pages/api/lets_plot.geo_data.geocode_states.html
+    python/pages/api/lets_plot.geom_abline   geom_abline                             : python/pages/api/lets_plot.geom_abline.html
+    python/pages/api/lets_plot.geom_area     geom_area                               : python/pages/api/lets_plot.geom_area.html
+    python/pages/api/lets_plot.geom_area_ridges geom_area_ridges                        : python/pages/api/lets_plot.geom_area_ridges.html
+    python/pages/api/lets_plot.geom_band     geom_band                               : python/pages/api/lets_plot.geom_band.html
+    python/pages/api/lets_plot.geom_bar      geom_bar                                : python/pages/api/lets_plot.geom_bar.html
+    python/pages/api/lets_plot.geom_bin2d    geom_bin2d                              : python/pages/api/lets_plot.geom_bin2d.html
+    python/pages/api/lets_plot.geom_blank    geom_blank                              : python/pages/api/lets_plot.geom_blank.html
+    python/pages/api/lets_plot.geom_boxplot  geom_boxplot                            : python/pages/api/lets_plot.geom_boxplot.html
+    python/pages/api/lets_plot.geom_contour  geom_contour                            : python/pages/api/lets_plot.geom_contour.html
+    python/pages/api/lets_plot.geom_contourf geom_contourf                           : python/pages/api/lets_plot.geom_contourf.html
+    python/pages/api/lets_plot.geom_count    geom_count                              : python/pages/api/lets_plot.geom_count.html
+    python/pages/api/lets_plot.geom_crossbar geom_crossbar                           : python/pages/api/lets_plot.geom_crossbar.html
+    python/pages/api/lets_plot.geom_curve    geom_curve                              : python/pages/api/lets_plot.geom_curve.html
+    python/pages/api/lets_plot.geom_density  geom_density                            : python/pages/api/lets_plot.geom_density.html
+    python/pages/api/lets_plot.geom_density2d geom_density2d                          : python/pages/api/lets_plot.geom_density2d.html
+    python/pages/api/lets_plot.geom_density2df geom_density2df                         : python/pages/api/lets_plot.geom_density2df.html
+    python/pages/api/lets_plot.geom_dotplot  geom_dotplot                            : python/pages/api/lets_plot.geom_dotplot.html
+    python/pages/api/lets_plot.geom_errorbar geom_errorbar                           : python/pages/api/lets_plot.geom_errorbar.html
+    python/pages/api/lets_plot.geom_freqpoly geom_freqpoly                           : python/pages/api/lets_plot.geom_freqpoly.html
+    python/pages/api/lets_plot.geom_function geom_function                           : python/pages/api/lets_plot.geom_function.html
+    python/pages/api/lets_plot.geom_hex      geom_hex                                : python/pages/api/lets_plot.geom_hex.html
+    python/pages/api/lets_plot.geom_histogram geom_histogram                          : python/pages/api/lets_plot.geom_histogram.html
+    python/pages/api/lets_plot.geom_hline    geom_hline                              : python/pages/api/lets_plot.geom_hline.html
+    python/pages/api/lets_plot.geom_imshow   geom_imshow                             : python/pages/api/lets_plot.geom_imshow.html
+    python/pages/api/lets_plot.geom_jitter   geom_jitter                             : python/pages/api/lets_plot.geom_jitter.html
+    python/pages/api/lets_plot.geom_label    geom_label                              : python/pages/api/lets_plot.geom_label.html
+    python/pages/api/lets_plot.geom_label_repel geom_label_repel                        : python/pages/api/lets_plot.geom_label_repel.html
+    python/pages/api/lets_plot.geom_line     geom_line                               : python/pages/api/lets_plot.geom_line.html
+    python/pages/api/lets_plot.geom_linerange geom_linerange                          : python/pages/api/lets_plot.geom_linerange.html
+    python/pages/api/lets_plot.geom_livemap  geom_livemap                            : python/pages/api/lets_plot.geom_livemap.html
+    python/pages/api/lets_plot.geom_lollipop geom_lollipop                           : python/pages/api/lets_plot.geom_lollipop.html
+    python/pages/api/lets_plot.geom_map      geom_map                                : python/pages/api/lets_plot.geom_map.html
+    python/pages/api/lets_plot.geom_path     geom_path                               : python/pages/api/lets_plot.geom_path.html
+    python/pages/api/lets_plot.geom_pie      geom_pie                                : python/pages/api/lets_plot.geom_pie.html
+    python/pages/api/lets_plot.geom_point    geom_point                              : python/pages/api/lets_plot.geom_point.html
+    python/pages/api/lets_plot.geom_pointdensity geom_pointdensity                       : python/pages/api/lets_plot.geom_pointdensity.html
+    python/pages/api/lets_plot.geom_pointrange geom_pointrange                         : python/pages/api/lets_plot.geom_pointrange.html
+    python/pages/api/lets_plot.geom_polygon  geom_polygon                            : python/pages/api/lets_plot.geom_polygon.html
+    python/pages/api/lets_plot.geom_qq       geom_qq                                 : python/pages/api/lets_plot.geom_qq.html
+    python/pages/api/lets_plot.geom_qq2      geom_qq2                                : python/pages/api/lets_plot.geom_qq2.html
+    python/pages/api/lets_plot.geom_qq2_line geom_qq2_line                           : python/pages/api/lets_plot.geom_qq2_line.html
+    python/pages/api/lets_plot.geom_qq_line  geom_qq_line                            : python/pages/api/lets_plot.geom_qq_line.html
+    python/pages/api/lets_plot.geom_raster   geom_raster                             : python/pages/api/lets_plot.geom_raster.html
+    python/pages/api/lets_plot.geom_rect     geom_rect                               : python/pages/api/lets_plot.geom_rect.html
+    python/pages/api/lets_plot.geom_ribbon   geom_ribbon                             : python/pages/api/lets_plot.geom_ribbon.html
+    python/pages/api/lets_plot.geom_segment  geom_segment                            : python/pages/api/lets_plot.geom_segment.html
+    python/pages/api/lets_plot.geom_sina     geom_sina                               : python/pages/api/lets_plot.geom_sina.html
+    python/pages/api/lets_plot.geom_smooth   geom_smooth                             : python/pages/api/lets_plot.geom_smooth.html
+    python/pages/api/lets_plot.geom_spoke    geom_spoke                              : python/pages/api/lets_plot.geom_spoke.html
+    python/pages/api/lets_plot.geom_step     geom_step                               : python/pages/api/lets_plot.geom_step.html
+    python/pages/api/lets_plot.geom_text     geom_text                               : python/pages/api/lets_plot.geom_text.html
+    python/pages/api/lets_plot.geom_text_repel geom_text_repel                         : python/pages/api/lets_plot.geom_text_repel.html
+    python/pages/api/lets_plot.geom_tile     geom_tile                               : python/pages/api/lets_plot.geom_tile.html
+    python/pages/api/lets_plot.geom_violin   geom_violin                             : python/pages/api/lets_plot.geom_violin.html
+    python/pages/api/lets_plot.geom_vline    geom_vline                              : python/pages/api/lets_plot.geom_vline.html
+    python/pages/api/lets_plot.geom_ydotplot geom_ydotplot                           : python/pages/api/lets_plot.geom_ydotplot.html
+    python/pages/api/lets_plot.ggbunch       ggbunch                                 : python/pages/api/lets_plot.ggbunch.html
+    python/pages/api/lets_plot.gggrid        gggrid                                  : python/pages/api/lets_plot.gggrid.html
+    python/pages/api/lets_plot.ggmarginal    ggmarginal                              : python/pages/api/lets_plot.ggmarginal.html
+    python/pages/api/lets_plot.ggplot        ggplot                                  : python/pages/api/lets_plot.ggplot.html
+    python/pages/api/lets_plot.ggsave        ggsave                                  : python/pages/api/lets_plot.ggsave.html
+    python/pages/api/lets_plot.ggsize        ggsize                                  : python/pages/api/lets_plot.ggsize.html
+    python/pages/api/lets_plot.ggtb          ggtb                                    : python/pages/api/lets_plot.ggtb.html
+    python/pages/api/lets_plot.ggtitle       ggtitle                                 : python/pages/api/lets_plot.ggtitle.html
+    python/pages/api/lets_plot.guide_colorbar guide_colorbar                          : python/pages/api/lets_plot.guide_colorbar.html
+    python/pages/api/lets_plot.guide_legend  guide_legend                            : python/pages/api/lets_plot.guide_legend.html
+    python/pages/api/lets_plot.guides        guides                                  : python/pages/api/lets_plot.guides.html
+    python/pages/api/lets_plot.labs          labs                                    : python/pages/api/lets_plot.labs.html
+    python/pages/api/lets_plot.layer_key     layer_key                               : python/pages/api/lets_plot.layer_key.html
+    python/pages/api/lets_plot.layer_labels  layer_labels                            : python/pages/api/lets_plot.layer_labels.html
+    python/pages/api/lets_plot.layer_tooltips layer_tooltips                          : python/pages/api/lets_plot.layer_tooltips.html
+    python/pages/api/lets_plot.lims          lims                                    : python/pages/api/lets_plot.lims.html
+    python/pages/api/lets_plot.mapping.as_discrete as_discrete                             : python/pages/api/lets_plot.mapping.as_discrete.html
+    python/pages/api/lets_plot.maptiles_lets_plot maptiles_lets_plot                      : python/pages/api/lets_plot.maptiles_lets_plot.html
+    python/pages/api/lets_plot.maptiles_solid maptiles_solid                          : python/pages/api/lets_plot.maptiles_solid.html
+    python/pages/api/lets_plot.maptiles_zxy  maptiles_zxy                            : python/pages/api/lets_plot.maptiles_zxy.html
+    python/pages/api/lets_plot.plot.core.PlotSpec PlotSpec                                : python/pages/api/lets_plot.plot.core.PlotSpec.html
+    python/pages/api/lets_plot.position_dodge position_dodge                          : python/pages/api/lets_plot.position_dodge.html
+    python/pages/api/lets_plot.position_fill position_fill                           : python/pages/api/lets_plot.position_fill.html
+    python/pages/api/lets_plot.position_jitter position_jitter                         : python/pages/api/lets_plot.position_jitter.html
+    python/pages/api/lets_plot.position_jitterdodge position_jitterdodge                    : python/pages/api/lets_plot.position_jitterdodge.html
+    python/pages/api/lets_plot.position_nudge position_nudge                          : python/pages/api/lets_plot.position_nudge.html
+    python/pages/api/lets_plot.position_stack position_stack                          : python/pages/api/lets_plot.position_stack.html
+    python/pages/api/lets_plot.sampling_group_random sampling_group_random                   : python/pages/api/lets_plot.sampling_group_random.html
+    python/pages/api/lets_plot.sampling_group_systematic sampling_group_systematic               : python/pages/api/lets_plot.sampling_group_systematic.html
+    python/pages/api/lets_plot.sampling_pick sampling_pick                           : python/pages/api/lets_plot.sampling_pick.html
+    python/pages/api/lets_plot.sampling_random sampling_random                         : python/pages/api/lets_plot.sampling_random.html
+    python/pages/api/lets_plot.sampling_random_stratified sampling_random_stratified              : python/pages/api/lets_plot.sampling_random_stratified.html
+    python/pages/api/lets_plot.sampling_systematic sampling_systematic                     : python/pages/api/lets_plot.sampling_systematic.html
+    python/pages/api/lets_plot.sampling_vertex_dp sampling_vertex_dp                      : python/pages/api/lets_plot.sampling_vertex_dp.html
+    python/pages/api/lets_plot.sampling_vertex_vw sampling_vertex_vw                      : python/pages/api/lets_plot.sampling_vertex_vw.html
+    python/pages/api/lets_plot.scale_alpha   scale_alpha                             : python/pages/api/lets_plot.scale_alpha.html
+    python/pages/api/lets_plot.scale_alpha_identity scale_alpha_identity                    : python/pages/api/lets_plot.scale_alpha_identity.html
+    python/pages/api/lets_plot.scale_alpha_manual scale_alpha_manual                      : python/pages/api/lets_plot.scale_alpha_manual.html
+    python/pages/api/lets_plot.scale_brewer  scale_brewer                            : python/pages/api/lets_plot.scale_brewer.html
+    python/pages/api/lets_plot.scale_cmapmpl scale_cmapmpl                           : python/pages/api/lets_plot.scale_cmapmpl.html
+    python/pages/api/lets_plot.scale_color_brewer scale_color_brewer                      : python/pages/api/lets_plot.scale_color_brewer.html
+    python/pages/api/lets_plot.scale_color_cmapmpl scale_color_cmapmpl                     : python/pages/api/lets_plot.scale_color_cmapmpl.html
+    python/pages/api/lets_plot.scale_color_continuous scale_color_continuous                  : python/pages/api/lets_plot.scale_color_continuous.html
+    python/pages/api/lets_plot.scale_color_discrete scale_color_discrete                    : python/pages/api/lets_plot.scale_color_discrete.html
+    python/pages/api/lets_plot.scale_color_gradient scale_color_gradient                    : python/pages/api/lets_plot.scale_color_gradient.html
+    python/pages/api/lets_plot.scale_color_gradient2 scale_color_gradient2                   : python/pages/api/lets_plot.scale_color_gradient2.html
+    python/pages/api/lets_plot.scale_color_gradientn scale_color_gradientn                   : python/pages/api/lets_plot.scale_color_gradientn.html
+    python/pages/api/lets_plot.scale_color_grey scale_color_grey                        : python/pages/api/lets_plot.scale_color_grey.html
+    python/pages/api/lets_plot.scale_color_hue scale_color_hue                         : python/pages/api/lets_plot.scale_color_hue.html
+    python/pages/api/lets_plot.scale_color_identity scale_color_identity                    : python/pages/api/lets_plot.scale_color_identity.html
+    python/pages/api/lets_plot.scale_color_manual scale_color_manual                      : python/pages/api/lets_plot.scale_color_manual.html
+    python/pages/api/lets_plot.scale_color_viridis scale_color_viridis                     : python/pages/api/lets_plot.scale_color_viridis.html
+    python/pages/api/lets_plot.scale_continuous scale_continuous                        : python/pages/api/lets_plot.scale_continuous.html
+    python/pages/api/lets_plot.scale_discrete scale_discrete                          : python/pages/api/lets_plot.scale_discrete.html
+    python/pages/api/lets_plot.scale_fill_brewer scale_fill_brewer                       : python/pages/api/lets_plot.scale_fill_brewer.html
+    python/pages/api/lets_plot.scale_fill_cmapmpl scale_fill_cmapmpl                      : python/pages/api/lets_plot.scale_fill_cmapmpl.html
+    python/pages/api/lets_plot.scale_fill_continuous scale_fill_continuous                   : python/pages/api/lets_plot.scale_fill_continuous.html
+    python/pages/api/lets_plot.scale_fill_discrete scale_fill_discrete                     : python/pages/api/lets_plot.scale_fill_discrete.html
+    python/pages/api/lets_plot.scale_fill_gradient scale_fill_gradient                     : python/pages/api/lets_plot.scale_fill_gradient.html
+    python/pages/api/lets_plot.scale_fill_gradient2 scale_fill_gradient2                    : python/pages/api/lets_plot.scale_fill_gradient2.html
+    python/pages/api/lets_plot.scale_fill_gradientn scale_fill_gradientn                    : python/pages/api/lets_plot.scale_fill_gradientn.html
+    python/pages/api/lets_plot.scale_fill_grey scale_fill_grey                         : python/pages/api/lets_plot.scale_fill_grey.html
+    python/pages/api/lets_plot.scale_fill_hue scale_fill_hue                          : python/pages/api/lets_plot.scale_fill_hue.html
+    python/pages/api/lets_plot.scale_fill_identity scale_fill_identity                     : python/pages/api/lets_plot.scale_fill_identity.html
+    python/pages/api/lets_plot.scale_fill_manual scale_fill_manual                       : python/pages/api/lets_plot.scale_fill_manual.html
+    python/pages/api/lets_plot.scale_fill_viridis scale_fill_viridis                      : python/pages/api/lets_plot.scale_fill_viridis.html
+    python/pages/api/lets_plot.scale_gradient scale_gradient                          : python/pages/api/lets_plot.scale_gradient.html
+    python/pages/api/lets_plot.scale_gradient2 scale_gradient2                         : python/pages/api/lets_plot.scale_gradient2.html
+    python/pages/api/lets_plot.scale_gradientn scale_gradientn                         : python/pages/api/lets_plot.scale_gradientn.html
+    python/pages/api/lets_plot.scale_grey    scale_grey                              : python/pages/api/lets_plot.scale_grey.html
+    python/pages/api/lets_plot.scale_hue     scale_hue                               : python/pages/api/lets_plot.scale_hue.html
+    python/pages/api/lets_plot.scale_identity scale_identity                          : python/pages/api/lets_plot.scale_identity.html
+    python/pages/api/lets_plot.scale_linetype_identity scale_linetype_identity                 : python/pages/api/lets_plot.scale_linetype_identity.html
+    python/pages/api/lets_plot.scale_linetype_manual scale_linetype_manual                   : python/pages/api/lets_plot.scale_linetype_manual.html
+    python/pages/api/lets_plot.scale_linewidth scale_linewidth                         : python/pages/api/lets_plot.scale_linewidth.html
+    python/pages/api/lets_plot.scale_linewidth_identity scale_linewidth_identity                : python/pages/api/lets_plot.scale_linewidth_identity.html
+    python/pages/api/lets_plot.scale_manual  scale_manual                            : python/pages/api/lets_plot.scale_manual.html
+    python/pages/api/lets_plot.scale_shape   scale_shape                             : python/pages/api/lets_plot.scale_shape.html
+    python/pages/api/lets_plot.scale_shape_identity scale_shape_identity                    : python/pages/api/lets_plot.scale_shape_identity.html
+    python/pages/api/lets_plot.scale_shape_manual scale_shape_manual                      : python/pages/api/lets_plot.scale_shape_manual.html
+    python/pages/api/lets_plot.scale_size    scale_size                              : python/pages/api/lets_plot.scale_size.html
+    python/pages/api/lets_plot.scale_size_area scale_size_area                         : python/pages/api/lets_plot.scale_size_area.html
+    python/pages/api/lets_plot.scale_size_identity scale_size_identity                     : python/pages/api/lets_plot.scale_size_identity.html
+    python/pages/api/lets_plot.scale_size_manual scale_size_manual                       : python/pages/api/lets_plot.scale_size_manual.html
+    python/pages/api/lets_plot.scale_stroke  scale_stroke                            : python/pages/api/lets_plot.scale_stroke.html
+    python/pages/api/lets_plot.scale_stroke_identity scale_stroke_identity                   : python/pages/api/lets_plot.scale_stroke_identity.html
+    python/pages/api/lets_plot.scale_viridis scale_viridis                           : python/pages/api/lets_plot.scale_viridis.html
+    python/pages/api/lets_plot.scale_x_continuous scale_x_continuous                      : python/pages/api/lets_plot.scale_x_continuous.html
+    python/pages/api/lets_plot.scale_x_datetime scale_x_datetime                        : python/pages/api/lets_plot.scale_x_datetime.html
+    python/pages/api/lets_plot.scale_x_discrete scale_x_discrete                        : python/pages/api/lets_plot.scale_x_discrete.html
+    python/pages/api/lets_plot.scale_x_discrete_reversed scale_x_discrete_reversed               : python/pages/api/lets_plot.scale_x_discrete_reversed.html
+    python/pages/api/lets_plot.scale_x_log10 scale_x_log10                           : python/pages/api/lets_plot.scale_x_log10.html
+    python/pages/api/lets_plot.scale_x_log2  scale_x_log2                            : python/pages/api/lets_plot.scale_x_log2.html
+    python/pages/api/lets_plot.scale_x_reverse scale_x_reverse                         : python/pages/api/lets_plot.scale_x_reverse.html
+    python/pages/api/lets_plot.scale_x_time  scale_x_time                            : python/pages/api/lets_plot.scale_x_time.html
+    python/pages/api/lets_plot.scale_y_continuous scale_y_continuous                      : python/pages/api/lets_plot.scale_y_continuous.html
+    python/pages/api/lets_plot.scale_y_datetime scale_y_datetime                        : python/pages/api/lets_plot.scale_y_datetime.html
+    python/pages/api/lets_plot.scale_y_discrete scale_y_discrete                        : python/pages/api/lets_plot.scale_y_discrete.html
+    python/pages/api/lets_plot.scale_y_discrete_reversed scale_y_discrete_reversed               : python/pages/api/lets_plot.scale_y_discrete_reversed.html
+    python/pages/api/lets_plot.scale_y_log10 scale_y_log10                           : python/pages/api/lets_plot.scale_y_log10.html
+    python/pages/api/lets_plot.scale_y_log2  scale_y_log2                            : python/pages/api/lets_plot.scale_y_log2.html
+    python/pages/api/lets_plot.scale_y_reverse scale_y_reverse                         : python/pages/api/lets_plot.scale_y_reverse.html
+    python/pages/api/lets_plot.scale_y_time  scale_y_time                            : python/pages/api/lets_plot.scale_y_time.html
+    python/pages/api/lets_plot.stat_ecdf     stat_ecdf                               : python/pages/api/lets_plot.stat_ecdf.html
+    python/pages/api/lets_plot.stat_sum      stat_sum                                : python/pages/api/lets_plot.stat_sum.html
+    python/pages/api/lets_plot.stat_summary  stat_summary                            : python/pages/api/lets_plot.stat_summary.html
+    python/pages/api/lets_plot.stat_summary_bin stat_summary_bin                        : python/pages/api/lets_plot.stat_summary_bin.html
+    python/pages/api/lets_plot.theme         theme                                   : python/pages/api/lets_plot.theme.html
+    python/pages/api/lets_plot.theme_bw      theme_bw                                : python/pages/api/lets_plot.theme_bw.html
+    python/pages/api/lets_plot.theme_classic theme_classic                           : python/pages/api/lets_plot.theme_classic.html
+    python/pages/api/lets_plot.theme_gray    theme_gray                              : python/pages/api/lets_plot.theme_gray.html
+    python/pages/api/lets_plot.theme_grey    theme_grey                              : python/pages/api/lets_plot.theme_grey.html
+    python/pages/api/lets_plot.theme_light   theme_light                             : python/pages/api/lets_plot.theme_light.html
+    python/pages/api/lets_plot.theme_minimal theme_minimal                           : python/pages/api/lets_plot.theme_minimal.html
+    python/pages/api/lets_plot.theme_minimal2 theme_minimal2                          : python/pages/api/lets_plot.theme_minimal2.html
+    python/pages/api/lets_plot.theme_none    theme_none                              : python/pages/api/lets_plot.theme_none.html
+    python/pages/api/lets_plot.theme_void    theme_void                              : python/pages/api/lets_plot.theme_void.html
+    python/pages/api/lets_plot.tilesets.CARTO_ANTIQUE CARTO_ANTIQUE                           : python/pages/api/lets_plot.tilesets.CARTO_ANTIQUE.html
+    python/pages/api/lets_plot.tilesets.CARTO_ANTIQUE_HIRES CARTO_ANTIQUE_HIRES                     : python/pages/api/lets_plot.tilesets.CARTO_ANTIQUE_HIRES.html
+    python/pages/api/lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS CARTO_DARK_MATTER_NO_LABELS             : python/pages/api/lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS.html
+    python/pages/api/lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS_HIRES CARTO_DARK_MATTER_NO_LABELS_HIRES       : python/pages/api/lets_plot.tilesets.CARTO_DARK_MATTER_NO_LABELS_HIRES.html
+    python/pages/api/lets_plot.tilesets.CARTO_FLAT_BLUE CARTO_FLAT_BLUE                         : python/pages/api/lets_plot.tilesets.CARTO_FLAT_BLUE.html
+    python/pages/api/lets_plot.tilesets.CARTO_FLAT_BLUE_HIRES CARTO_FLAT_BLUE_HIRES                   : python/pages/api/lets_plot.tilesets.CARTO_FLAT_BLUE_HIRES.html
+    python/pages/api/lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER CARTO_MIDNIGHT_COMMANDER                : python/pages/api/lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER.html
+    python/pages/api/lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER_HIRES CARTO_MIDNIGHT_COMMANDER_HIRES          : python/pages/api/lets_plot.tilesets.CARTO_MIDNIGHT_COMMANDER_HIRES.html
+    python/pages/api/lets_plot.tilesets.CARTO_POSITRON CARTO_POSITRON                          : python/pages/api/lets_plot.tilesets.CARTO_POSITRON.html
+    python/pages/api/lets_plot.tilesets.CARTO_POSITRON_HIRES CARTO_POSITRON_HIRES                    : python/pages/api/lets_plot.tilesets.CARTO_POSITRON_HIRES.html
+    python/pages/api/lets_plot.tilesets.CARTO_POSITRON_NO_LABELS CARTO_POSITRON_NO_LABELS                : python/pages/api/lets_plot.tilesets.CARTO_POSITRON_NO_LABELS.html
+    python/pages/api/lets_plot.tilesets.CARTO_POSITRON_NO_LABELS_HIRES CARTO_POSITRON_NO_LABELS_HIRES          : python/pages/api/lets_plot.tilesets.CARTO_POSITRON_NO_LABELS_HIRES.html
+    python/pages/api/lets_plot.tilesets.CARTO_VOYAGER CARTO_VOYAGER                           : python/pages/api/lets_plot.tilesets.CARTO_VOYAGER.html
+    python/pages/api/lets_plot.tilesets.CARTO_VOYAGER_HIRES CARTO_VOYAGER_HIRES                     : python/pages/api/lets_plot.tilesets.CARTO_VOYAGER_HIRES.html
+    python/pages/api/lets_plot.tilesets.LETS_PLOT_BW LETS_PLOT_BW                            : python/pages/api/lets_plot.tilesets.LETS_PLOT_BW.html
+    python/pages/api/lets_plot.tilesets.LETS_PLOT_COLOR LETS_PLOT_COLOR                         : python/pages/api/lets_plot.tilesets.LETS_PLOT_COLOR.html
+    python/pages/api/lets_plot.tilesets.LETS_PLOT_DARK LETS_PLOT_DARK                          : python/pages/api/lets_plot.tilesets.LETS_PLOT_DARK.html
+    python/pages/api/lets_plot.tilesets.LETS_PLOT_LIGHT LETS_PLOT_LIGHT                         : python/pages/api/lets_plot.tilesets.LETS_PLOT_LIGHT.html
+    python/pages/api/lets_plot.tilesets.NASA_CITYLIGHTS_2012 NASA_CITYLIGHTS_2012                    : python/pages/api/lets_plot.tilesets.NASA_CITYLIGHTS_2012.html
+    python/pages/api/lets_plot.tilesets.NASA_COLOR_SHADED_RELIEF_30M NASA_COLOR_SHADED_RELIEF_30M            : python/pages/api/lets_plot.tilesets.NASA_COLOR_SHADED_RELIEF_30M.html
+    python/pages/api/lets_plot.tilesets.NASA_GREYSCALE_SHADED_RELIEF_30M NASA_GREYSCALE_SHADED_RELIEF_30M        : python/pages/api/lets_plot.tilesets.NASA_GREYSCALE_SHADED_RELIEF_30M.html
+    python/pages/api/lets_plot.tilesets.NASA_TERRA_TRUECOLOR NASA_TERRA_TRUECOLOR                    : python/pages/api/lets_plot.tilesets.NASA_TERRA_TRUECOLOR.html
+    python/pages/api/lets_plot.tilesets.OPEN_TOPO_MAP OPEN_TOPO_MAP                           : python/pages/api/lets_plot.tilesets.OPEN_TOPO_MAP.html
+    python/pages/api/lets_plot.tilesets.OSM  OSM                                     : python/pages/api/lets_plot.tilesets.OSM.html
+    python/pages/api/lets_plot.tilesets.SOLID SOLID                                   : python/pages/api/lets_plot.tilesets.SOLID.html
+    python/pages/api/lets_plot.xlab          xlab                                    : python/pages/api/lets_plot.xlab.html
+    python/pages/api/lets_plot.xlim          xlim                                    : python/pages/api/lets_plot.xlim.html
+    python/pages/api/lets_plot.ylab          ylab                                    : python/pages/api/lets_plot.ylab.html
+    python/pages/api/lets_plot.ylim          ylim                                    : python/pages/api/lets_plot.ylim.html
+    python/pages/as_discrete                 Working with Categorical Variables and the as_discrete() Function: python/pages/as_discrete.html
+    python/pages/basemap_tiles               Configuring Basemap Tiles for Interactive Maps: python/pages/basemap_tiles.html
+    python/pages/bistro                      ‘bistro’ Plots                          : python/pages/bistro.html
+    python/pages/charts                      Charts                                  : python/pages/charts.html
+    python/pages/eda                         EDA Examples                            : python/pages/eda.html
+    python/pages/formats                     Formatting                              : python/pages/formats.html
+    python/pages/gallery                     Gallery                                 : python/pages/gallery.html
+    python/pages/geocoding                   Geocoding                               : python/pages/geocoding.html
+    python/pages/geopandas                   GeoPandas Support (GeoPandas and Shapely): python/pages/geopandas.html
+    python/pages/include/aesthetics/named-colors-table_by-name <no title>                              : python/pages/include/aesthetics/named-colors-table_by-name.html
+    python/pages/include/aesthetics/named-colors-table_by-shade <no title>                              : python/pages/include/aesthetics/named-colors-table_by-shade.html
+    python/pages/latex                       LaTeX Support                           : python/pages/latex.html
+    python/pages/licenses                    Licenses                                : python/pages/licenses.html
+    python/pages/maps                        Maps                                    : python/pages/maps.html
+    python/pages/named_colors                Named Colors Reference                  : python/pages/named_colors.html
+    python/pages/no_js_and_offline_mode      ‘No Javascript’ Mode                    : python/pages/no_js_and_offline_mode.html
+    python/pages/sampling                    Sampling in Lets-Plot                   : python/pages/sampling.html
+    python/pages/tooltips                    Tooltip Customization                   : python/pages/tooltips.html
+    python/pages/whats_new                   What Is New in 4.8.0                    : python/pages/whats_new.html
+    python/shared/features                   Key Features                            : python/shared/features.html
+    python/shared/features/export            <no title>                              : python/shared/features/export.html
+    python/shared/features/formatting        <no title>                              : python/shared/features/formatting.html
+    python/shared/features/geospatial_visualization <no title>                              : python/shared/features/geospatial_visualization.html
+    python/shared/features/ggplot2           <no title>                              : python/shared/features/ggplot2.html
+    python/shared/features/ggplot2_landing   <no title>                              : python/shared/features/ggplot2_landing.html
+    python/shared/features/interactive_maps  <no title>                              : python/shared/features/interactive_maps.html
+    python/shared/features/multiplatform     <no title>                              : python/shared/features/multiplatform.html
+    python/shared/features/multiplatform_landing <no title>                              : python/shared/features/multiplatform_landing.html
+    python/shared/features/offline_mode      <no title>                              : python/shared/features/offline_mode.html
+    python/shared/features/sampling          <no title>                              : python/shared/features/sampling.html
+    python/shared/features/show_ext          <no title>                              : python/shared/features/show_ext.html
+    python/shared/features/tooltips          <no title>                              : python/shared/features/tooltips.html
+    python/shared/links                      <no title>                              : python/shared/links.html
+std:label
+    advanced_geocoding                       og:description                          : python/pages/advanced_geocoding.html#advanced-geocoding
+    aesthetics                               og:description                          : python/pages/aesthetics.html#aesthetics
+    aesthetics_color_and_fill                Color and Fill                          : python/pages/aesthetics.html#aesthetics-color-and-fill
+    aesthetics_line_types                    Line Types                              : python/pages/aesthetics.html#aesthetics-line-types
+    aesthetics_point_shapes                  Point Shapes                            : python/pages/aesthetics.html#aesthetics-point-shapes
+    aesthetics_text                          Text                                    : python/pages/aesthetics.html#aesthetics-text
+    annotations                              og:description                          : python/pages/annotations.html#annotations
+    api                                      og:description                          : python/pages/api.html#api
+    as_discrete                              og:description                          : python/pages/as_discrete.html#as-discrete
+    basemap_tiles                            og:description                          : python/pages/basemap_tiles.html#basemap-tiles
+    basemap_tiles_blank_tiles                Blank Tiles                             : python/pages/basemap_tiles.html#basemap-tiles-blank-tiles
+    basemap_tiles_carto_tiles                CARTO                                   : python/pages/basemap_tiles.html#basemap-tiles-carto-tiles
+    basemap_tiles_examples                   Examples                                : python/pages/basemap_tiles.html#basemap-tiles-examples
+    basemap_tiles_global_cfg                 Configuring Globally                    : python/pages/basemap_tiles.html#basemap-tiles-global-cfg
+    basemap_tiles_nasa_tiles                 NASA’s Global Imagery Browse Services (GIBS): python/pages/basemap_tiles.html#basemap-tiles-nasa-tiles
+    basemap_tiles_osm_tiles                  OpenStreetMap                           : python/pages/basemap_tiles.html#basemap-tiles-osm-tiles
+    basemap_tiles_plot_cfg                   Configuring for a Single Plot           : python/pages/basemap_tiles.html#basemap-tiles-plot-cfg
+    basemap_tiles_raster_tiles               Raster Tiles                            : python/pages/basemap_tiles.html#basemap-tiles-raster-tiles
+    basemap_tiles_raster_tiles_man           Configuring Raster Tiles Manually       : python/pages/basemap_tiles.html#basemap-tiles-raster-tiles-man
+    basemap_tiles_topo_tiles                 OpenTopoMap                             : python/pages/basemap_tiles.html#basemap-tiles-topo-tiles
+    basemap_tiles_vector_tiles               Vector Tiles                            : python/pages/basemap_tiles.html#basemap-tiles-vector-tiles
+    bistro                                   og:description                          : python/pages/bistro.html#bistro
+    bistro_corr_plot                         Correlation Plot                        : python/pages/bistro.html#bistro-corr-plot
+    bistro_joint_plot                        Joint Plot                              : python/pages/bistro.html#bistro-joint-plot
+    bistro_qq_plot                           Q-Q Plot                                : python/pages/bistro.html#bistro-qq-plot
+    bistro_residual_plot                     Residual Plot                           : python/pages/bistro.html#bistro-residual-plot
+    bistro_waterfall_plot                    Waterfall Plot                          : python/pages/bistro.html#bistro-waterfall-plot
+    charts                                   og:description                          : python/pages/charts.html#charts
+    charts_presentation_options_flavors      Color Schemes (Flavors)                 : python/pages/charts.html#charts-presentation-options-flavors
+    eda                                      og:description                          : python/pages/eda.html#eda
+    formats                                  og:description                          : python/pages/formats.html#formats
+    formats_annotations                      Annotating Charts                       : python/pages/formats.html#formats-annotations
+    formats_axis_tooltips                    Axis Tooltips                           : python/pages/formats.html#formats-axis-tooltips
+    formats_datetime                         Date and Time Format                    : python/pages/formats.html#formats-datetime
+    formats_demo_notebooks                   Demo                                    : python/pages/formats.html#formats-demo-notebooks
+    formats_examples_datetime                Examples                                : python/pages/formats.html#formats-examples-datetime
+    formats_examples_number_format           Examples                                : python/pages/formats.html#formats-examples-number-format
+    formats_number_format                    Number Format                           : python/pages/formats.html#formats-number-format
+    formats_scientific_notation              Scientific Notation                     : python/pages/formats.html#formats-scientific-notation
+    formats_string_template                  String Template                         : python/pages/formats.html#formats-string-template
+    formats_tooltips                         Tooltip Customization                   : python/pages/formats.html#formats-tooltips
+    gallery                                  orphan                                  : python/pages/gallery.html#gallery
+    genindex                                 Index                                   : genindex.html
+    geocoding                                og:description                          : python/pages/geocoding.html#geocoding
+    geocoding_allow_ambiguous                allow_ambiguous()                       : python/pages/advanced_geocoding.html#geocoding-allow-ambiguous
+    geocoding_ambiguity                      Ambiguity                               : python/pages/advanced_geocoding.html#geocoding-ambiguity
+    geocoding_examples                       Examples                                : python/pages/advanced_geocoding.html#geocoding-examples
+    geocoding_fetch_all                      Fetch All                               : python/pages/advanced_geocoding.html#geocoding-fetch-all
+    geocoding_ignore_all_errors              ignore_all_errors()                     : python/pages/advanced_geocoding.html#geocoding-ignore-all-errors
+    geocoding_ignore_not_found               ignore_not_found()                      : python/pages/advanced_geocoding.html#geocoding-ignore-not-found
+    geocoding_join                           map and map_join                        : python/pages/advanced_geocoding.html#geocoding-join
+    geocoding_join_gdf                       Join with GeoDataFrame                  : python/pages/advanced_geocoding.html#geocoding-join-gdf
+    geocoding_join_geocoder                  Join with Geocoder                      : python/pages/advanced_geocoding.html#geocoding-join-geocoder
+    geocoding_levels                         Levels                                  : python/pages/advanced_geocoding.html#geocoding-levels
+    geocoding_overview                       Overview                                : python/pages/advanced_geocoding.html#geocoding-overview
+    geocoding_parents                        Parents                                 : python/pages/advanced_geocoding.html#geocoding-parents
+    geocoding_plot_gdf                       Plotting a GeoDataFrame                 : python/pages/advanced_geocoding.html#geocoding-plot-gdf
+    geocoding_plot_geocoder                  Plotting a Geocoder                     : python/pages/advanced_geocoding.html#geocoding-plot-geocoder
+    geocoding_reference                      Reference                               : python/pages/advanced_geocoding.html#geocoding-reference
+    geocoding_scope                          Scope                                   : python/pages/advanced_geocoding.html#geocoding-scope
+    geocoding_us_48                          US-48                                   : python/pages/advanced_geocoding.html#geocoding-us-48
+    geocoding_where                          where()                                 : python/pages/advanced_geocoding.html#geocoding-where
+    geocoding_where_closest_to                                                       : python/pages/advanced_geocoding.html#geocoding-where-closest-to
+    geocoding_where_scope                                                            : python/pages/advanced_geocoding.html#geocoding-where-scope
+    geocoding_working_with_plot              Working with Plots                      : python/pages/advanced_geocoding.html#geocoding-working-with-plot
+    geopandas                                og:description                          : python/pages/geopandas.html#geopandas
+    latex                                    og:description                          : python/pages/latex.html#latex
+    licenses                                 orphan                                  : python/pages/licenses.html#licenses
+    maps                                     og:description                          : python/pages/maps.html#maps
+    modindex                                 Module Index                            : py-modindex.html
+    named_colors                             og:description                          : python/pages/named_colors.html#named-colors
+    no_js_and_offline_mode                   og:description                          : python/pages/no_js_and_offline_mode.html#no-js-and-offline-mode
+    py-modindex                              Python Module Index                     : py-modindex.html
+    python-index                             Get Started                             : python/index.html#python-index
+    python-index-installation                Installation                            : python/index.html#python-index-installation
+    python-index-pages                       Explore Your Data with Lets-Plot        : python/index.html#python-index-pages
+    python-index-quick-start                 Quick Start                             : python/index.html#python-index-quick-start
+    python-index-user-guide                  User Guide                              : python/index.html#python-index-user-guide
+    sampling                                 og:description                          : python/pages/sampling.html#sampling
+    search                                   Search Page                             : search.html
+    tooltips                                 og:description                          : python/pages/tooltips.html#tooltips
+    whats_new                                What Is New in 4.8.0                    : python/pages/whats_new.html#whats-new

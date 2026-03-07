@@ -72,7 +72,7 @@ author = "Zaf4"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    #'sphinx.ext.intersphinx',
+    "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "jupyter_sphinx",
     "sphinx.ext.githubpages",
@@ -127,7 +127,7 @@ html_theme_options = {
     "navbar_align": "left",
     "search_bar_text": "Search",
     "pygments_light_style": "manni",
-    "pygments_dark_style": "monokai",
+    "pygments_dark_style": "material",
     "show_nav_level": 0,
     "use_edit_page_button": False,
     "announcement": None,
@@ -150,11 +150,24 @@ napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+napoleon_type_aliases = {
+    "PlotSpec" : ":py:class:`lets_plot.plot.core.PlotSpec`",
+    "FeatureSpec" : ":py:class:`lets_plot.plot.core.FeatureSpec`",
+    "LayerSpec" : ":py:class:`lets_plot.plot.core.LayerSpec`",
+    "SupPlotsSpec" : ":py:class:`lets_plot.plot.core.SupPlotsSpec`",
+}
 
+napoleon_type_aliases = {
+    "PlotSpec": ":py:class:`~lets_plot.plot.core.PlotSpec`",
+    "DataFrame": ":doc:`polars:reference/dataframe/index`",
+    "AnnData" : ":py:class:`~anndata.AnnData`",
+}
 
 python_use_unqualified_type_names = True
 
 
-def setup(app):
-    # This can be used for custom CSS or JS if needed
-    pass
+intersphinx_mapping = {
+    "lets_plot": ("https://lets-plot.org/", None),
+    "anndata": ("https://anndata.readthedocs.io/en/latest/", None),
+    "polars": ("https://docs.pola.rs/api/python/stable/", None),
+}

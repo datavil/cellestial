@@ -161,5 +161,11 @@ div.highlight pre {
 
 /* Sets line highlight to a dark gray with 0.6 opacity */
 div.highlight .hll {
-    background-color: rgba(40, 231, 231, 0.5) !important;
+    background-color: rgba(217, 61, 113, 0.1) !important;
+}
+
+/* external code references underline color to text color */
+a.reference.external code {
+    text-decoration: underline;
+    text-decoration-color: currentColor;
 }
