@@ -73,7 +73,7 @@ def dimensionals(
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
+    dimensions : {'umap', 'pca', 'tsne'}, default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
@@ -87,7 +87,7 @@ def dimensionals(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
@@ -121,14 +121,14 @@ def dimensionals(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
+    mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal['axis', 'arrow'] | None
+    axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -352,7 +352,7 @@ def umaps(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
@@ -386,14 +386,14 @@ def umaps(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
+    mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal['axis', 'arrow'] | None
+    axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -616,7 +616,7 @@ def tsnes(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
@@ -650,14 +650,14 @@ def tsnes(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
+    mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal['axis', 'arrow'] | None
+    axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -879,7 +879,7 @@ def pcas(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
@@ -913,14 +913,14 @@ def pcas(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
+    mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal['axis', 'arrow'] | None
+    axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).
@@ -1132,7 +1132,7 @@ def expressions(
         The keys (gene names) to color the points by.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    dimensions : Literal['umap', 'pca', 'tsne'], default='umap'
+    dimensions : {'umap', 'pca', 'tsne'}, default='umap'
         The dimensional reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
@@ -1146,7 +1146,7 @@ def expressions(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
@@ -1180,14 +1180,14 @@ def expressions(
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
         - Applies to continuous (non-categorical) data.
 
-    mid_point : Literal['mean', 'median', 'mid'] | float, default='median'
+    mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
         - If 'median', the midpoint is the median of the data.
         - If 'mid', the midpoint is the mean of 'min' and 'max' of the data.
 
-    axis_type : Literal['axis', 'arrow'] | None
+    axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
         Length of the arrow head (px).

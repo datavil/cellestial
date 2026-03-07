@@ -55,9 +55,9 @@ def xyplots(
         The key(s) for the y-axis.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    axis : Literal[0,1] | None, default=None
+    axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
