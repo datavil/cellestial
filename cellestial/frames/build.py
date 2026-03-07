@@ -195,7 +195,7 @@ def build_frame(
     include_dimensions: bool | int = False,
 ) -> DataFrame:
     """
-    Build a `polars.DataFrame` from an AnnData object.
+    Build a DataFrame from an AnnData object.
 
     Parameters
     ----------
