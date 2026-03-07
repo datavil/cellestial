@@ -135,3 +135,31 @@ dt.sig {
     color: inherit;
     font-weight: inherit;
 }
+
+/* docs/_static/custom.css */
+.gray {
+    color: #808080 !important;
+    font-weight: 400;
+    font-size: 0.8em;
+    margin-left: 0.3ch;
+}
+
+
+/* Ensure the main container background is also clear */
+.output.text_html {
+    background: transparent !important;
+}
+
+/*remove code line numbers*/
+.linenos {
+    display: none !important;
+}
+/*adjust padding of code lines*/
+div.highlight pre {
+    padding-left: 2em !important;
+}
+
+/* Sets line highlight to a dark gray with 0.6 opacity */
+div.highlight .hll {
+    background-color: rgba(40, 231, 231, 0.5) !important;
+}

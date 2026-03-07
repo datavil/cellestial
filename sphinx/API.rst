@@ -2,6 +2,7 @@
 API Reference
 =============
 
+Cellestial is built on top of Lets-Plot. For further customization options, functionalities, utilities and many more please refer to `Lets-Plot API <https://lets-plot.org/python/pages/api.html>`_.
 
 Base
 -----------

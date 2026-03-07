@@ -1,26 +1,22 @@
 import os
 import sys
-from datetime import datetime
 import unittest.mock as mock
+from datetime import datetime
+from importlib.metadata import version as get_version
+
 
 # Add the project root to sys.path
-sys.path.insert(0, os.path.abspath(".."))
-templates_path = [os.path.join(os.path.abspath("."), "_templates")]
+sys.path.insert(0, os.path.abspath(".."))  # noqa: PTH100
+templates_path = [os.path.join(os.path.abspath("."), "_templates")]  # noqa: PTH100, PTH118
 
-# Monkey-patch importlib.metadata.version to avoid PackageNotFoundError during build
-import importlib.metadata
-
-_original_version = importlib.metadata.version
-
-
-def _mock_version(package_name):
-    if package_name == "cellestial":
-        return "0.10.3"
-    return _original_version(package_name)
-
-importlib.metadata.version = _mock_version
-
-
+# cellestial must be installed in the env
+version = get_version("cellestial")
+release = get_version("cellestial")
+rst_prolog = """
+.. role:: gray
+   :class: gray
+"""
+rst_epilog = f".. |version| replace:: :gray:`v{release}`"
 class BetterMock(mock.MagicMock):
     def __add__(self, other):
         return self
@@ -42,7 +38,7 @@ class BetterMock(mock.MagicMock):
 
 
 # Explicitly set __bool__ on the class to prevent MagicMock from overriding it
-#BetterMock.__bool__ = lambda self: True
+# BetterMock.__bool__ = lambda self: True
 
 # Only mock lets_plot manually, let autodoc_mock_imports handle the rest
 for mod_name in ["lets_plot", "lets_plot.plot", "lets_plot.plot.core", "lets_plot.plot.subplots"]:
@@ -82,7 +78,6 @@ extensions = [
 ]
 
 
-
 autosummary_generate = True
 add_module_names = False
 
@@ -105,7 +100,10 @@ html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_js_files = ["custom.js"]
 html_theme_options = {
-    "logo": {"text": "cellestial"},
+    "logo": {
+        "text": "Cellestial",
+        "version_link": "https://pypi.org/project/cellestial/",
+    },
     "icon_links": [
         {
             "name": "GitHub",
@@ -121,7 +119,7 @@ html_theme_options = {
         },
     ],
     "navbar_start": ["navbar-logo"],
-    #"navbar_persistent" : ["letsplot.html","search-button"],
+    # "navbar_persistent" : ["letsplot.html","search-button"],
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "navbar_align": "left",
@@ -153,6 +151,8 @@ napoleon_attr_annotations = True
 
 
 python_use_unqualified_type_names = True
+
+
 def setup(app):
     # This can be used for custom CSS or JS if needed
     pass
