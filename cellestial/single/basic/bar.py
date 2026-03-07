@@ -35,12 +35,10 @@ def bar(
         The AnnData object of the single cell data.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
-    axis : Literal[0,1] | None, default=None
+    axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    axis : Literal[0,1] | None, default=None
-        The axis to build the frame for. 0 for observations, 1 for variables.
     observations_name : str, default='Barcode'
         The name of the observations column.
     variables_name : str, default='Variable'

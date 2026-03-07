@@ -226,7 +226,7 @@ def violin(
         e.g., 'total_counts' or a gene name.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    axis : Literal[0,1] | None, default=None
+    axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the violin plot (categorical).
