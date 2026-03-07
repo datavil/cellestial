@@ -75,6 +75,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "jupyter_sphinx",
     "sphinx.ext.githubpages",
+    "sphinx_copybutton",
 ]
 
 
