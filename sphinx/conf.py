@@ -4,7 +4,6 @@ import unittest.mock as mock
 from datetime import datetime
 from importlib.metadata import version as get_version
 
-
 # Add the project root to sys.path
 sys.path.insert(0, os.path.abspath(".."))  # noqa: PTH100
 templates_path = [os.path.join(os.path.abspath("."), "_templates")]  # noqa: PTH100, PTH118
@@ -17,6 +16,8 @@ rst_prolog = """
    :class: gray
 """
 rst_epilog = f".. |version| replace:: :gray:`v{release}`"
+
+
 class BetterMock(mock.MagicMock):
     def __add__(self, other):
         return self
