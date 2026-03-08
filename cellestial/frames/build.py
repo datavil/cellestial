@@ -195,7 +195,7 @@ def build_frame(
     include_dimensions: bool | int = False,
 ) -> DataFrame:
     """
-    Build a `polars.DataFrame` from an AnnData object.
+    Build a DataFrame from an AnnData object.
 
     Parameters
     ----------
@@ -203,7 +203,7 @@ def build_frame(
         The AnnData object containing the variables.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    axis : Literal[0,1] | None
+    axis : {0,1} | None
         The axis to build the frame for. 0 for observations, 1 for variables.
     observations_name : str
         The name of the observations column, default is 'barcode'.

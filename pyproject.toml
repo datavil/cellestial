@@ -33,6 +33,8 @@ pydata-sphinx-theme = "^0.16.1"
 jupyter-sphinx = "^0.5.3"
 ipython = "^9.10.0"
 furo = "^2025.12.19"
+sphinx-copybutton = "^0.5.2"
+sphinx-design = "^0.7.0"
 
 [build-system]
 requires = ["poetry-core"]

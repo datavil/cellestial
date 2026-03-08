@@ -74,7 +74,7 @@ def dotplot(
         The name of the percentage column.
     mean_key : str, default='avg_exp'
         The name of the mean expression column.
-    tooltips: Literal['none'] | Sequence[str] | FeatureSpec | None, default=None
+    tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
