@@ -156,7 +156,7 @@ dt.sig {
 }
 /*adjust padding of code lines*/
 div.highlight pre {
-    padding-left: 2em !important;
+    padding-left: 1.5em !important;
 }
 
 /* Sets line highlight to a dark gray with 0.6 opacity */
@@ -173,6 +173,6 @@ a.reference.external code {
 /* Change the border color of the active tab and the content box */
 .sd-tab-set > input:checked + .sd-tab-label,
 .sd-tab-content {
-    border-color: #4f4f4f !important; /* Replace with your hex color */
+    border-color: #4f4f4f !important;
     color: #1f1f1f !important;
 }
