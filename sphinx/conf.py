@@ -77,6 +77,7 @@ extensions = [
     "jupyter_sphinx",
     "sphinx.ext.githubpages",
     "sphinx_copybutton",
+    "sphinx_design",
 ]
 
 
@@ -101,10 +102,10 @@ html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_js_files = ["custom.js"]
+
 html_theme_options = {
     "logo": {
         "text": "Cellestial",
-        "version_link": "https://pypi.org/project/cellestial/",
     },
     "icon_links": [
         {
@@ -136,7 +137,7 @@ html_theme_options = {
     "footer_center": ["sphinx-version"],
     "footer_end": ["theme-version"],
 }
-
+html_favicon = "_static/datavil.svg"
 
 html_sidebars = {
     "**": [],  # no search, links, etc. on any page

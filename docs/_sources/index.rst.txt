@@ -8,9 +8,28 @@ The *grammar of graphics* for single-cell omics.
 
 Installation
 --------------
-.. code-block:: bash
+.. tab-set::
 
-   pip install cellestial
+   .. tab-item:: pip
+      :sync: pip
+
+      .. code-block:: bash
+
+         pip install cellestial
+
+   .. tab-item:: uv
+      :sync: uv
+
+      .. code-block:: bash
+
+         uv add cellestial
+
+   .. tab-item:: poetry
+      :sync: poetry
+
+      .. code-block:: bash
+
+         poetry add cellestial
 
 Documentation
 --------

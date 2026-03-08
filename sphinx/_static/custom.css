@@ -169,3 +169,10 @@ a.reference.external code {
     text-decoration: underline;
     text-decoration-color: currentColor;
 }
+
+/* Change the border color of the active tab and the content box */
+.sd-tab-set > input:checked + .sd-tab-label,
+.sd-tab-content {
+    border-color: #4f4f4f !important; /* Replace with your hex color */
+    color: #1f1f1f !important;
+}
