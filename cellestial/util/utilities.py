@@ -50,7 +50,7 @@ def _add_arrow_axis(
         Name of the x axis column.
     y : str
         Name of the y axis column.
-    axis_type : Literal['axis', 'arrow'] | None
+    axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_size : float
         Size of the arrow.

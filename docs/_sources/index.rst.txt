@@ -1,5 +1,5 @@
-Cellestial
-==========
+Cellestial |version|
+====================
 
 |pypi| |license| |polars| |letsplot|
 
@@ -8,9 +8,28 @@ The *grammar of graphics* for single-cell omics.
 
 Installation
 --------------
-.. code-block:: bash
+.. tab-set::
 
-   pip install cellestial
+   .. tab-item:: pip
+      :sync: pip
+
+      .. code-block:: bash
+
+         pip install cellestial
+
+   .. tab-item:: uv
+      :sync: uv
+
+      .. code-block:: bash
+
+         uv add cellestial
+
+   .. tab-item:: poetry
+      :sync: poetry
+
+      .. code-block:: bash
+
+         poetry add cellestial
 
 Documentation
 --------
@@ -52,7 +71,7 @@ Hover over the plot 'geoms' to see tooltips, or use **toolbar** above the plot f
 .. |polars| image:: https://img.shields.io/badge/Powered%20by-Polars-377eb8?logo=polars&logoColor=white
    :target: https://www.pola.rs/
    :alt: Powered by Polars
-   
+
 .. |letsplot| image:: https://img.shields.io/badge/Graphics-Lets--Plot-FF00CC?logo=jetbrains&logoColor=white
    :target: https://lets-plot.org/
    :alt: Built with Lets-Plot
