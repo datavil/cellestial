@@ -163,6 +163,9 @@ div.highlight pre {
 div.highlight .hll {
     background-color: rgba(217, 61, 113, 0.1) !important;
 }
+a.reference.external  {
+    font-weight: 600;
+}
 
 /* external code references underline color to text color */
 a.reference.external code {
@@ -176,3 +179,4 @@ a.reference.external code {
     border-color: #4f4f4f !important;
     color: #1f1f1f !important;
 }
+

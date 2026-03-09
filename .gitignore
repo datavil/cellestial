@@ -29,3 +29,6 @@ test_plots/
 
 # docs jupyter
 jupyter_execute/
+
+# git snippets
+git.snippets.sh

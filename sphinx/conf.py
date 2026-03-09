@@ -122,7 +122,6 @@ html_theme_options = {
         },
     ],
     "navbar_start": ["navbar-logo"],
-    # "navbar_persistent" : ["letsplot.html","search-button"],
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "navbar_align": "left",
