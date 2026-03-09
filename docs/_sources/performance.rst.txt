@@ -12,7 +12,7 @@ Plotting, the core step, is handled by `Lets-Plot <https://lets-plot.org/python/
 Example: 100k cells
 -------------------
 
-Using Breast cancer cell atlas.
+Using `Human Breast Cancer Single Cell Atlas <https://cellxgene.cziscience.com/collections/9432ae97-4803-4b9f-8f64-2b41e42ad3cb>`_.
 
 .. image:: _static/breast_cancer_atlas_umap.png
    :width: 100%
