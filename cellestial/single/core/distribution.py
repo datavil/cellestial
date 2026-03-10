@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
+import polars as pl
 from anndata import AnnData
 from lets_plot import (
     aes,
@@ -14,6 +15,8 @@ from lets_plot import (
     ggplot,
     ggtb,
     layer_tooltips,
+    position_dodge,
+    position_jitterdodge,
 )
 from lets_plot.plot.core import FeatureSpec, PlotSpec
 
@@ -50,6 +53,7 @@ def _distribution(
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
+    threshold: float | None = None,
     variable_column: str = "variable",
     point_kwargs: dict[str, Any] | None = None,
     **geom_kwargs,
@@ -84,11 +88,12 @@ def _distribution(
         point_kwargs = {}
 
     # determine index to unpivot
-    index = [x for x in [fill, color] if x is not None]
+    index = [x for x in {fill, color} if x is not None]
     if add_keys is not None:
         if isinstance(add_keys, str):
             add_keys = [add_keys]
         index.extend(add_keys)
+    
 
     # DETERMINE: axis if not provided
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
@@ -110,6 +115,10 @@ def _distribution(
 
     frame = frame.unpivot(
         on=keys, index=index, value_name=value_column, variable_name=variable_column
+    )
+    frame = frame.drop_nulls()
+    frame = frame.filter(
+        pl.col(value_column) >= threshold if threshold is not None else True,
     )
     if separator is None or len(keys) > 1:
         separator = variable_column
@@ -167,15 +176,25 @@ def _distribution(
                 "point": geom_point,
                 "sina": geom_sina,
             }
+            dodge_width = geom_kwargs.get("width", 0.95)
+            positions = {
+                "jitter": position_jitterdodge(dodge_width=dodge_width),
+                "point": position_dodge(width=dodge_width),
+                "sina": None,
+            }
             geom_function = geom_functions.get(point_geom, geom_jitter)
-
+            if "position" not in point_kwargs:
+                position = positions.get(point_geom, position_jitterdodge())
+            else:
+                position = point_kwargs.pop("position")
             dst += geom_function(
                 data=frame,
-                mapping=aes(x=separator, y=value_column),
+                mapping=aes(x=separator, y=value_column, color=color, fill=fill),
                 color=point_color,
                 alpha=point_alpha,
                 size=point_size,
                 tooltips=tooltips_spec,
+                position=position,
                 **point_kwargs,
             )
         else:
@@ -289,6 +308,101 @@ def violin(
     -------
     PlotSpec
         Violin plot.
+
+    Examples
+    --------
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+
+        violin = (
+            cl.violin(
+                data,
+                "CD14",
+                fill="cell_type_lvl1",
+                scale="width",
+                point_size=2,
+                threshold=0.1,
+                trim=False,
+            )
+            + ggsize(800, 400)
+            + scale_fill_brewer(palette="Set2")
+            + guides(fill=guide_legend(ncol=2))
+        )
+
+        violin
+
+    Remove the points.
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 19
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+
+        violin = (
+            cl.violin(
+                data,
+                "CD14",
+                fill="cell_type_lvl1",
+                scale="width",
+                point_size=2,
+                threshold=0.1,
+                trim=False,
+                show_points=False,
+            )
+            + ggsize(800, 400)
+            + scale_fill_brewer(palette="Set2")
+            + guides(fill=guide_legend(ncol=2))
+        )
+
+        violin
+
+    Providing a list of keys.
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 13
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+
+        violin = (
+            cl.violin(
+                data,
+                ["pct_counts_in_top_200_genes", "n_genes_by_counts"],
+                fill="cell_type_lvl1",
+                trim=False,
+                scale="width",
+                point_size=0.5,
+                point_alpha=0.4,
+            )
+            + scale_y_log2()
+            + ggsize(800, 400)
+        )
+        violin
     """
     return _distribution(
         data=data,
@@ -417,6 +531,95 @@ def boxplot(
     -------
     PlotSpec
         Boxplot.
+
+    Examples
+    --------
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+
+        boxplot = (
+            cl.boxplot(
+                data,
+                "CD14",
+                fill="cell_type_lvl1",
+                point_size=2,
+                threshold=0.1,
+            )
+            + ggsize(800, 400)
+            + scale_fill_brewer(palette="Set2")
+            + guides(fill=guide_legend(ncol=2))
+        )
+
+        boxplot
+
+    Remove the points.
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 17
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+
+        boxplot = (
+            cl.boxplot(
+                data,
+                "CD14",
+                fill="cell_type_lvl1",
+                point_size=2,
+                threshold=0.1,
+                show_points=False,
+            )
+            + ggsize(800, 400)
+            + scale_fill_brewer(palette="Set2")
+            + guides(fill=guide_legend(ncol=2))
+        )
+
+        boxplot
+
+    Providing a list of keys.
+
+    .. jupyter-execute::
+        :linenos:
+        :emphasize-lines: 13
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+
+        boxplot = (
+            cl.boxplot(
+                data,
+                ["pct_counts_in_top_200_genes", "n_genes_by_counts"],
+                fill="cell_type_lvl1",
+                point_size=0.3,
+                point_alpha=0.4,
+            )
+            + scale_y_log2()
+            + ggsize(800, 400)
+        )
+        boxplot
     """
     return _distribution(
         data=data,

@@ -218,6 +218,33 @@ def build_frame(
     -------
     DataFrame
         A polars DataFrame containing the variables.
+
+    Examples
+    --------
+    Providing axis, 0 for observations axis and 1 for variables axis.
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        frame = cl.build_frame(data, axis=0, include_dimensions=2)
+        frame.head()
+
+    Providing variable_keys allows function to infer the axis as 0.
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        frame = cl.build_frame(data, variable_keys=["CD14", "HBA1"], include_dimensions=2)
+        frame.head()
+
     """
     if isinstance(data, AnnData):
         # infer the axis if not provided
