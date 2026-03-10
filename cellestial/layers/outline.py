@@ -28,10 +28,7 @@ def _get_density_boundaries(
     if isinstance(groups, str):
         groups = [[groups]]
     else:
-        groups = [
-            [g] if isinstance(g, str) else list(g)
-            for g in groups
-        ]
+        groups = [[g] if isinstance(g, str) else list(g) for g in groups]
 
     boundaries = []
     for group in groups:
@@ -149,6 +146,68 @@ def cluster_outlines(
     -------
     LayerSpec
         Cluster Outlines.
+
+    Examples
+    --------
+    Outline a specific group or cluster.
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        umap = (
+            cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
+            + scale_color_hue()
+        )
+        umap + cl.cluster_outlines(umap, groups="B Cells")
+
+    Multiple groups can be outlined.
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        umap = (
+            cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
+            + scale_color_hue()
+        )
+        umap + cl.cluster_outlines(umap, groups=["B Cells", "Erythroid"])
+
+    Grouping multiple clusters with nested lists.
+
+    .. jupyter-execute::
+        :linenos:
+
+        import cellestial as cl
+        import scanpy as sc
+
+        from lets_plot import *
+
+        LetsPlot.setup_html()
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        umap = (
+            cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
+            + scale_color_hue()
+        )
+        umap + cl.cluster_outlines(umap, groups=[["Lymphocytes","Monocytes"],"B Cells"])
     """
     # get mapping
     _mapping = get_mapping(plot, index=0)
