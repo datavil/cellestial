@@ -163,7 +163,7 @@ div.highlight pre {
 div.highlight .hll {
     background-color: rgba(217, 61, 113, 0.1) !important;
 }
-a.reference.external  {
+a.reference.external {
     font-weight: 600;
 }
 
@@ -180,3 +180,8 @@ a.reference.external code {
     color: #1f1f1f !important;
 }
 
+/*dataframe schema borders */
+.bd-content div.cell_output table.dataframe thead tr {
+  background-color: var(--pst-color-table-heading-bg);
+  border-bottom: 1px solid #4f4f4f;
+}

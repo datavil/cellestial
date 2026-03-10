@@ -95,10 +95,16 @@ def dotplot(
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
     # BUILD: dataframe
-    frame = build_frame(data=data, axis=0, variable_keys=keys)
+    frame = build_frame(
+        data=data,
+        axis=0,
+        variable_keys=keys,
+    )
     index_columns = [x for x in frame.columns if x not in keys]
 
-    #  CRITICAL PARTS: Dataframe Operations
+    # CRITICAL PARTS: Dataframe Operations
+    # DataFrame to LazyFrame
+    frame = frame.lazy()
     # 1. Unpivot frame
     frame = frame.unpivot(
         on=keys,
@@ -113,7 +119,8 @@ def dotplot(
             (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
         ]
     )
-
+    # LazyFrame to DataFrame
+    frame = frame.collect()
     # HANDLE: Sorting
     # In case of pseudo-categorical integer group_by temporarily cast to int for proper sorting
     with contextlib.suppress(Exception):  # supress errors if sorting fails
@@ -131,9 +138,7 @@ def dotplot(
         )
     # Cast back to categorical
     if frame[group_by].dtype == pl.Int64:
-        frame = frame.with_columns(
-            pl.col(group_by).cast(pl.String).cast(pl.Categorical)
-        )
+        frame = frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
 
     # HANDLE: tooltips
     if tooltips is None:
