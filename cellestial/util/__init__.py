@@ -1,6 +1,5 @@
 from cellestial.util.legends import _legend_ondata
 from cellestial.util.utilities import (
-    _add_arrow_axis,
     _color_gradient,
     _decide_tooltips,
     _determine_axis,
@@ -11,13 +10,13 @@ from cellestial.util.utilities import (
     _share_axis,
     _share_labels,
     _share_ticks,
+    arrow_axis,
     get_mapping,
     retrieve,
     slice,
 )
 
 __all__ = [
-    "_add_arrow_axis",
     "_color_gradient",
     "_decide_tooltips",
     "_determine_axis",
@@ -29,6 +28,7 @@ __all__ = [
     "_share_axis",
     "_share_labels",
     "_share_ticks",
+    "arrow_axis",
     "get_mapping",
     "retrieve",
     "slice",

@@ -53,11 +53,8 @@ def plot(
     Examples
     --------
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10
 
         from lets_plot import *
-        LetsPlot.setup_html()
 
         import cellestial as cl
         import scanpy as sc
@@ -71,11 +68,8 @@ def plot(
 
 
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10-13
 
         from lets_plot import *
-        LetsPlot.setup_html()
 
         import cellestial as cl
         import scanpy as sc

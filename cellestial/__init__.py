@@ -24,7 +24,7 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
-from cellestial.util import _add_arrow_axis, get_mapping, retrieve, slice
+from cellestial.util import arrow_axis, get_mapping, retrieve, slice
 from cellestial.util.colors import (
     BLUE,
     CHERRY,
@@ -49,7 +49,7 @@ __all__ = [
     "SNOW",
     "TEAL",
     "__version__",
-    "_add_arrow_axis",
+    "arrow_axis",
     "bar",
     "boxplot",
     "boxplots",
@@ -80,3 +80,14 @@ __all__ = [
     "xyplot",
     "xyplots",
 ]
+
+
+try:
+    from IPython.core.interactiveshell import InteractiveShell
+
+    if InteractiveShell.initialized():
+        from lets_plot import LetsPlot
+
+        LetsPlot.setup_html()
+except ImportError:
+    pass

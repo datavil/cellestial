@@ -152,14 +152,11 @@ def cluster_outlines(
     Outline a specific group or cluster.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
@@ -172,14 +169,11 @@ def cluster_outlines(
     Multiple groups can be outlined.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
@@ -192,14 +186,11 @@ def cluster_outlines(
     Grouping multiple clusters with nested lists.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 

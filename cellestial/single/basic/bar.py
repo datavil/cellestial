@@ -61,11 +61,8 @@ def bar(
     Examples
     --------
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10-11
 
         from lets_plot import *
-        LetsPlot.setup_html()
 
         import cellestial as cl
         import scanpy as sc
@@ -81,11 +78,8 @@ def bar(
     Example 2
 
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10-11
 
         from lets_plot import *
-        LetsPlot.setup_html()
 
         import cellestial as cl
         import scanpy as sc

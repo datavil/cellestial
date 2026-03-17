@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
-def _add_arrow_axis(
+def arrow_axis(
     frame: pl.DataFrame,
     *,
     x: str,

@@ -23,11 +23,11 @@ from lets_plot.plot.core import FeatureSpec, PlotSpec
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
-    _add_arrow_axis,
     _color_gradient,
     _is_variable_key,
     _legend_ondata,
     _select_variable_keys,
+    arrow_axis,
 )
 
 if TYPE_CHECKING:
@@ -274,7 +274,7 @@ def dimensional(
         )
 
     # HANDLE: arrow axis
-    scttr += _add_arrow_axis(
+    scttr += arrow_axis(
         frame=frame,
         x=x,
         y=y,

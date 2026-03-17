@@ -40,6 +40,7 @@ def _distribution(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = "#FF00FF",
@@ -53,7 +54,6 @@ def _distribution(
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
-    threshold: float | None = None,
     variable_column: str = "variable",
     point_kwargs: dict[str, Any] | None = None,
     **geom_kwargs,
@@ -93,7 +93,6 @@ def _distribution(
         if isinstance(add_keys, str):
             add_keys = [add_keys]
         index.extend(add_keys)
-    
 
     # DETERMINE: axis if not provided
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
@@ -216,6 +215,7 @@ def violin(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = "#FF00FF",
@@ -253,6 +253,8 @@ def violin(
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -313,14 +315,11 @@ def violin(
     --------
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -344,15 +343,12 @@ def violin(
     Remove the points.
 
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 19
+        :emphasize-lines: 17
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -377,15 +373,12 @@ def violin(
     Providing a list of keys.
 
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 13
+        :emphasize-lines: 11
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -412,6 +405,7 @@ def violin(
         axis=axis,
         color=color,
         fill=fill,
+        threshold=threshold,
         add_keys=add_keys,
         tooltips=tooltips,
         geom_fill=geom_fill,
@@ -439,6 +433,7 @@ def boxplot(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = "#FF00FF",
@@ -476,6 +471,8 @@ def boxplot(
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
         e,g., 'cell_type' or 'leiden'.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -536,14 +533,11 @@ def boxplot(
     --------
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -565,15 +559,12 @@ def boxplot(
     Remove the points.
 
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 17
+        :emphasize-lines: 15
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -596,15 +587,12 @@ def boxplot(
     Providing a list of keys.
 
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 13
+        :emphasize-lines: 11
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -629,6 +617,7 @@ def boxplot(
         axis=axis,
         color=color,
         fill=fill,
+        threshold=threshold,
         add_keys=add_keys,
         tooltips=tooltips,
         geom_fill=geom_fill,
