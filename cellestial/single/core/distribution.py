@@ -343,7 +343,6 @@ def violin(
     Remove the points.
 
     .. jupyter-execute::
-        :linenos:
         :emphasize-lines: 17
 
         import cellestial as cl
@@ -374,7 +373,6 @@ def violin(
     Providing a list of keys.
 
     .. jupyter-execute::
-        :linenos:
         :emphasize-lines: 11
 
         import cellestial as cl
@@ -561,7 +559,6 @@ def boxplot(
     Remove the points.
 
     .. jupyter-execute::
-        :linenos:
         :emphasize-lines: 15
 
         import cellestial as cl
@@ -590,7 +587,6 @@ def boxplot(
     Providing a list of keys.
 
     .. jupyter-execute::
-        :linenos:
         :emphasize-lines: 11
 
         import cellestial as cl

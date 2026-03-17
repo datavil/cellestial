@@ -53,7 +53,6 @@ def plot(
     Examples
     --------
     .. jupyter-execute::
-        :linenos:
 
         from lets_plot import *
 
@@ -69,7 +68,6 @@ def plot(
 
 
     .. jupyter-execute::
-        :linenos:
 
         from lets_plot import *
 

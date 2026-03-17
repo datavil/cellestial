@@ -224,7 +224,6 @@ def build_frame(
     Providing axis, 0 for observations axis and 1 for variables axis.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
@@ -236,7 +235,6 @@ def build_frame(
     Providing variable_keys allows function to infer the axis as 0.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc

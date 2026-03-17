@@ -152,7 +152,6 @@ def cluster_outlines(
     Outline a specific group or cluster.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
@@ -170,7 +169,6 @@ def cluster_outlines(
     Multiple groups can be outlined.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
@@ -188,7 +186,6 @@ def cluster_outlines(
     Grouping multiple clusters with nested lists.
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
