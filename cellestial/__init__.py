@@ -80,3 +80,14 @@ __all__ = [
     "xyplot",
     "xyplots",
 ]
+
+
+try:
+    from IPython.core.interactiveshell import InteractiveShell
+
+    if InteractiveShell.initialized():
+        from lets_plot import LetsPlot
+
+        LetsPlot.setup_html()
+except ImportError:
+    pass
