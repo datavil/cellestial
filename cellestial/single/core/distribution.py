@@ -315,14 +315,11 @@ def violin(
     --------
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -347,14 +344,12 @@ def violin(
 
     .. jupyter-execute::
         :linenos:
-        :emphasize-lines: 19
+        :emphasize-lines: 17
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -380,14 +375,12 @@ def violin(
 
     .. jupyter-execute::
         :linenos:
-        :emphasize-lines: 13
+        :emphasize-lines: 11
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -542,14 +535,11 @@ def boxplot(
     --------
 
     .. jupyter-execute::
-        :linenos:
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -572,14 +562,12 @@ def boxplot(
 
     .. jupyter-execute::
         :linenos:
-        :emphasize-lines: 17
+        :emphasize-lines: 15
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 
@@ -603,14 +591,12 @@ def boxplot(
 
     .. jupyter-execute::
         :linenos:
-        :emphasize-lines: 13
+        :emphasize-lines: 11
 
         import cellestial as cl
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
 

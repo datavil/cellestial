@@ -35,12 +35,8 @@ def show_colors():
     Examples
     --------
     .. jupyter-execute::
-        :linenos:
-        :emphasize-lines: 10-13
 
         import cellestial as cl
-        from lets_plot import *
-        LetsPlot.setup_html()
 
         cl.show_colors()
     """

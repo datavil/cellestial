@@ -159,8 +159,6 @@ def cluster_outlines(
 
         from lets_plot import *
 
-        LetsPlot.setup_html()
-
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
         umap = (
@@ -179,8 +177,6 @@ def cluster_outlines(
 
         from lets_plot import *
 
-        LetsPlot.setup_html()
-
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
         umap = (
@@ -198,8 +194,6 @@ def cluster_outlines(
         import scanpy as sc
 
         from lets_plot import *
-
-        LetsPlot.setup_html()
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
