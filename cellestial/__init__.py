@@ -26,7 +26,8 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
-from cellestial.util import arrow_axis, get_mapping, retrieve, slice
+from cellestial.util import arrow_axis, get_mapping, retrieve
+from cellestial.util import get_slice as slice
 from cellestial.util.colors import (
     BLUE,
     CHERRY,

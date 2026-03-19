@@ -1,0 +1,1 @@
+poetry run sphinx-build sphinx/ docs/ -a -E

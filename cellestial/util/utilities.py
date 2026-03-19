@@ -19,17 +19,21 @@ from lets_plot import (
     scale_color_gradient2,
     theme,
 )
-from lets_plot.plot.core import PlotSpec
+from lets_plot.plot.core import FeatureSpec, PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 if TYPE_CHECKING:
-    import polars as pl
+    from lets_plot import gggrid
+    from lets_plot.plot.core import PlotSpec
+    from lets_plot.plot.subplots import SupPlotsSpec
+
+if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec
     from polars import DataFrame
 
 
 def arrow_axis(
-    frame: pl.DataFrame,
+    frame: DataFrame,
     *,
     x: str,
     y: str,
@@ -290,8 +294,23 @@ def _color_gradient(
         )
 
 
-def get_mapping(plot: PlotSpec, *, index=0) -> dict:
-    """Returns the mapping of the plot as a `dict`."""
+def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
+    """
+    Returns the mapping of the plot as a `dict`.
+
+    Parameters
+    ----------
+    plot : PlotSpec
+        The plot to get mapping from.
+    index : int, defalut=0.
+        index of the layer to get the local mapping from.
+
+    Returns
+    -------
+    dict
+        The combined mapping of the plot.
+
+    """
     return {
         **plot.as_dict().get("mapping"),  # from the global mapping,
         **plot.as_dict().get("layers")[index].get("mapping"),  # from a layer.
@@ -332,51 +351,6 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
         raise ValueError(msg)
 
     return frame
-
-
-def slice(
-    grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
-) -> PlotSpec | SupPlotsSpec | None:
-    """
-    Slice a ggrid (SupPlotsSpec) objects with given index.
-
-    Parameters
-    ----------
-    grid : SupPlotsSpec
-        The grid to slice.
-    index : int | Sequence[int]
-        The index or indices of the plots to slice.
-    **kwargs : dict[str, Any]
-        Additional arguments for the `gggrid` function.
-        see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
-
-    Returns
-    -------
-    PlotSpec | SupPlotsSpec
-        The sliced grid.
-
-    Raises
-    ------
-    TypeError
-        If the grid is not a SupPlotsSpec object.
-        If the index is not an int or Sequence[int].
-    """
-    if isinstance(grid, SupPlotsSpec):
-        figures = grid.as_dict().get("figures")
-
-        if figures is not None:
-            if isinstance(index, int):
-                plot = figures[index]
-                return plot
-            elif isinstance(index, Sequence):
-                list_plots = [figures[i] for i in index]
-                return gggrid(list_plots, **kwargs)
-            else:
-                msg = f"Expected int or Sequence for index, but received {type(index)}"
-                raise TypeError(msg)
-    else:
-        msg = f"Expected `SupPlotsSpec`, but received {type(grid)}"
-        raise TypeError(msg)
 
 
 def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:

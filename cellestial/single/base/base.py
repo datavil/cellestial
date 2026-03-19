@@ -38,7 +38,7 @@ def plot(
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str
-        The name of the observations column, default is 'barcode'.
+        The name of the observations column, default is 'barcode'
     variables_name : str
         Name for the variables index column, default is 'variable'
     include_dimensions : bool | int, default=False
