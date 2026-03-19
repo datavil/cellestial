@@ -283,7 +283,7 @@ def violin(
         Alpha (transparency) for the points in the violin plot.
     point_size : float, default=0.5
         Size for the points in the violin plot.
-    point_geom : {'jitter','point','sina'}, default is 'jitter',
+    point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
@@ -501,7 +501,7 @@ def boxplot(
         Alpha (transparency) for the points in the boxplot.
     point_size : float, default=0.5
         Size for the points in the boxplot.
-    point_geom : {'jitter','point','sina'}, default is 'jitter',
+    point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.

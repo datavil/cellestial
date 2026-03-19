@@ -1,4 +1,8 @@
 from cellestial.util.legends import _legend_ondata
+from cellestial.util.operations import (
+    get_mapping,
+    get_slice,
+)
 from cellestial.util.utilities import (
     _color_gradient,
     _decide_tooltips,
@@ -11,9 +15,7 @@ from cellestial.util.utilities import (
     _share_labels,
     _share_ticks,
     arrow_axis,
-    get_mapping,
     retrieve,
-    slice,
 )
 
 __all__ = [
@@ -30,6 +32,6 @@ __all__ = [
     "_share_ticks",
     "arrow_axis",
     "get_mapping",
+    "get_slice",
     "retrieve",
-    "slice",
 ]

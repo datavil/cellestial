@@ -1,14 +1,18 @@
-from collections.abc import Sequence
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import polars as pl
 from lets_plot import aes, geom_path
-from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
-from polars import DataFrame
 
 from cellestial.util import get_mapping
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
+    from polars import DataFrame
 
 def _get_density_boundaries(
     frame: DataFrame,

@@ -1,3 +1,5 @@
+from lets_plot import LetsPlot
+
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
 from cellestial.layers import cluster_outlines
@@ -24,7 +26,8 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
-from cellestial.util import arrow_axis, get_mapping, retrieve, slice
+from cellestial.util import arrow_axis, get_mapping, retrieve
+from cellestial.util import get_slice as slice
 from cellestial.util.colors import (
     BLUE,
     CHERRY,
@@ -37,6 +40,8 @@ from cellestial.util.colors import (
     TEAL,
     show_colors,
 )
+
+setup_html = LetsPlot.setup_html
 
 __all__ = [
     "BLUE",
@@ -68,6 +73,7 @@ __all__ = [
     "plot",
     "retrieve",
     "scatter",
+    "setup_html",
     "show_colors",
     "slice",
     "tsne",
@@ -80,7 +86,6 @@ __all__ = [
     "xyplot",
     "xyplots",
 ]
-
 
 try:
     from IPython.core.interactiveshell import InteractiveShell
