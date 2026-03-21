@@ -64,7 +64,7 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
     ----------
     plot : PlotSpec
         The plot to get mapping from.
-    index : int, defalut is 0
+    index : int, default=0
         index of the layer to get the local mapping from.
 
     Returns
@@ -87,8 +87,8 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     ----------
     plot : PlotSpec | SupPlotsSpec
         The plot to retrieve the dataframe from.
-    index : int, optional
-        The index of the figure to retrieve the dataframe from, by default 0
+    index : int, default=0
+        The index of the figure to retrieve the dataframe from.
 
     Returns
     -------

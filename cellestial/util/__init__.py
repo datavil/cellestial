@@ -1,11 +1,7 @@
 from cellestial.util.legends import _legend_ondata
-from cellestial.util.operations import (
-    get_mapping,
-    get_slice,
-)
+from cellestial.util.operations import get_mapping, get_slice, retrieve
 from cellestial.util.utilities import (
     _color_gradient,
-    _decide_tooltips,
     _determine_axis,
     _is_observation_key,
     _is_variable_key,
@@ -14,13 +10,10 @@ from cellestial.util.utilities import (
     _share_axis,
     _share_labels,
     _share_ticks,
-    arrow_axis,
-    retrieve,
 )
 
 __all__ = [
     "_color_gradient",
-    "_decide_tooltips",
     "_determine_axis",
     "_is_observation_key",
     "_is_variable_key",
@@ -30,7 +23,6 @@ __all__ = [
     "_share_axis",
     "_share_labels",
     "_share_ticks",
-    "arrow_axis",
     "get_mapping",
     "get_slice",
     "retrieve",
