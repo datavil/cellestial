@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from math import ceil, log10
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
 from lets_plot import (
-    arrow,
     element_blank,
-    element_text,
-    geom_blank,
-    geom_segment,
-    gggrid,
     guide_legend,
     guides,
     layer_tooltips,
@@ -23,177 +17,12 @@ from lets_plot.plot.core import FeatureSpec, PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 if TYPE_CHECKING:
-    from lets_plot import gggrid
-    from lets_plot.plot.core import PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from collections.abc import Sequence
 
-if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec
     from polars import DataFrame
 
 
-def arrow_axis(
-    frame: DataFrame,
-    *,
-    x: str,
-    y: str,
-    axis_type: Literal["axis", "arrow"] | None,
-    arrow_size: float,
-    arrow_color: str,
-    arrow_angle: float,
-    arrow_length: float,
-):
-    """
-    Adds arrows as the X and Y axis to the plot.
-
-    Parameters
-    ----------
-    frame : `polars.DataFrame`
-        DataFrame copied from the single cell data.
-    x : str
-        Name of the x axis column.
-    y : str
-        Name of the y axis column.
-    axis_type : {'axis', 'arrow'} | None
-        Whether to use regular axis or arrows as the axis.
-    arrow_size : float
-        Size of the arrow.
-    arrow_color : str
-        Color of the arrow.
-    arrow_angle : float
-        Angle of the arrow head in degrees.
-    arrow_length : float
-        Length of the arrow head (px).
-
-    Returns
-    -------
-    `FeatureSpec` or `FeatureSpecArray`
-        Theme feature specification.
-
-    for more information on the arrow parameters, see:
-    https://lets-plot.org/python/pages/api/lets_plot.arrow.html
-    """
-    if axis_type is None:
-        return theme(
-            # remove axis elements
-            axis_text_x=element_blank(),
-            axis_text_y=element_blank(),
-            axis_ticks_y=element_blank(),
-            axis_ticks_x=element_blank(),
-            axis_line=element_blank(),
-        )
-
-    elif axis_type == "axis":
-        return geom_blank()
-
-    elif axis_type == "arrow":
-        new_layer = theme(
-            # remove axis elements
-            axis_text_x=element_blank(),
-            axis_text_y=element_blank(),
-            axis_ticks_y=element_blank(),
-            axis_ticks_x=element_blank(),
-            axis_line=element_blank(),
-            # position axis titles according to arrow size
-            axis_title_x=element_text(hjust=arrow_length / 2.5),  # better than 2
-            axis_title_y=element_text(hjust=arrow_length / 2.5),
-        )
-        x_max = frame[x].max()
-        x_min = frame[x].min()
-        y_max = frame[y].max()
-        y_min = frame[y].min()
-
-        # find total difference between the max and min for both axis
-        x_diff = x_max - x_min  # ty:ignore[unsupported-operator]
-        y_diff = y_max - y_min  # ty:ignore[unsupported-operator]
-
-        # find the ends of the arrows
-        # ensure the arrow length is the same for both axis
-        xend = x_min + arrow_length * min(y_diff, x_diff)
-        yend = y_min + arrow_length * min(y_diff, x_diff)
-
-        # adjust bottom ends of arrows
-        adjust_rate = 0.025
-        x0 = x_min - x_diff * adjust_rate
-        y0 = y_min - y_diff * adjust_rate
-
-        # X axis
-        new_layer += geom_segment(
-            x=x0,
-            y=y0,
-            xend=xend,
-            yend=y0,
-            color=arrow_color,
-            size=arrow_size,
-            arrow=arrow(arrow_angle),
-        )
-        # Y axis
-        new_layer += geom_segment(
-            x=x0,
-            y=y0,
-            xend=x0,
-            yend=yend,
-            color=arrow_color,
-            size=arrow_size,
-            arrow=arrow(arrow_angle),
-        )
-    else:
-        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
-        raise ValueError(msg)
-
-    return new_layer
-
-
-# TODO: Deprecate
-def _decide_tooltips(
-    base_tooltips: Sequence[str] | str | None,
-    add_tooltips: Sequence[str] | str | None,
-    custom_tooltips: Sequence[str] | str | None,
-    *,
-    show_tooltips: bool,
-) -> list[str] | Literal["none"]:
-    """
-    Decide on the tooltips.
-
-    Parameters
-    ----------
-    base_tooltips : list[str] | str
-        Base tooltips, default ones by the function.
-    add_tooltips : list[str] | str
-        Additional tooltips, will be appended to the base_tooltips.
-    custom_tooltips : list[str] | str
-        Custom tooltips, will overwrite the base_tooltips.
-    show_tooltips : bool
-        Whether to show tooltips at all.
-        Set tooltip to the Literal 'none' if False.
-
-    Returns
-    -------
-    list[str]
-        Tooltips.
-    """
-    # PART 1: CONVERT str TO list
-    if isinstance(base_tooltips, str):
-        base_tooltips = [base_tooltips]
-    elif base_tooltips is None:
-        base_tooltips = []
-    if isinstance(add_tooltips, str):
-        add_tooltips = [add_tooltips]
-    if isinstance(custom_tooltips, str):
-        custom_tooltips = [custom_tooltips]
-
-    # PART 2: HANDLE TOOLTIP LOGIC
-    if not show_tooltips:
-        tooltips = "none"  # for letsplot, this removes the tooltips
-    else:
-        if isinstance(custom_tooltips, Sequence):
-            tooltips = list(custom_tooltips)
-        elif isinstance(add_tooltips, Sequence):
-            tooltips = list(base_tooltips) + list(add_tooltips)
-        else:
-            tooltips = list(base_tooltips)
-
-    return tooltips
 
 
 def _build_tooltips(

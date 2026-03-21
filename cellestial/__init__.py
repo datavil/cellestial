@@ -2,7 +2,7 @@ from lets_plot import LetsPlot
 
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
-from cellestial.layers import cluster_outlines
+from cellestial.layers import arrow_axis, cluster_outlines
 from cellestial.single import (
     bar,
     boxplot,
@@ -26,7 +26,7 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
-from cellestial.util import arrow_axis, get_mapping, retrieve
+from cellestial.util import get_mapping, retrieve
 from cellestial.util import get_slice as slice
 from cellestial.util.colors import (
     BLUE,

@@ -27,7 +27,7 @@ from lets_plot import (
 )
 from lets_plot.plot.core import PlotSpec
 
-from cellestial.util import _decide_tooltips, _range_inclusive
+from cellestial.util import _range_inclusive
 
 
 def _construct_dotplot_frame(
