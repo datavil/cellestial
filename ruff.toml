@@ -45,7 +45,7 @@ ignore = [
 ]
 
 [lint.pycodestyle]
-max-doc-length = 99
+max-doc-length = 120
 
 [lint.pydocstyle]
 convention = "numpy"

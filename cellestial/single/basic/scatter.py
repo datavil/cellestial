@@ -62,6 +62,62 @@ def scatter(
     PlotSpec
         Scatter plot.
 
+    Examples
+    --------
+    Scatter plot requires mapping of aesthetics.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.scatter(
+            data,
+            mapping=aes(x="n_genes_by_counts", y="pct_counts_in_top_50_genes"),
+            color="grey",
+            alpha=0.6,
+        )
+
+    Further customization via color aesthetic.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+
+        cl.scatter(
+            data,
+            mapping=aes(x="n_genes_by_counts", y="pct_counts_in_top_50_genes", color="cell_type_lvl1"),
+            alpha=0.6,
+        ) + scale_color_viridis()
+
+    Faceting by categorical data is also possible.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+
+        cl.scatter(
+            data,
+            mapping=aes(x="n_genes_by_counts", y="pct_counts_in_top_50_genes", color="cell_type_lvl1"),
+            alpha=0.6,
+        ) + scale_color_viridis() + facet_wrap("cell_type_lvl1")
+
     """
     if mapping is not None:
         keys = [v for v in mapping.as_dict().values() if v is not None]

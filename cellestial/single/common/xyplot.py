@@ -77,6 +77,66 @@ def xyplot(
     PlotSpec
         Scatter plot.
 
+    Examples
+    --------
+    xyplot requires x and y values to be provided directly.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.xyplot(
+            data,
+            x="n_genes_by_counts",
+            y="pct_counts_in_top_50_genes",
+            color="grey",
+            alpha=0.6,
+        )
+
+    xyplot also supports customization of aesthetics via mapping.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.xyplot(
+            data,
+            x="n_genes_by_counts",
+            y="pct_counts_in_top_50_genes",
+            mapping=aes(color="cell_type_lvl1"),
+            alpha=0.6,
+        ) + scale_color_viridis()
+
+    Faceting by categorical data is also possible.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.xyplot(
+            data,
+            x="n_genes_by_counts",
+            y="pct_counts_in_top_50_genes",
+            mapping=aes(color="cell_type_lvl1"),
+            alpha=0.6,
+        ) + scale_color_viridis() + facet_wrap("cell_type_lvl1")
+
+
     """
     # Handling Data types
     if not isinstance(data, AnnData):

@@ -118,6 +118,50 @@ def xyplots(
     -------
     PlotSpec
         Scatter plot.
+
+    Examples
+    --------
+    xyplots allows providing sequences of x and y values.
+    Matching the indiviual x and y values one-by-by.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.xyplots(
+            data,
+            x=["n_genes_by_counts","n_genes"],
+            y=["pct_counts_in_top_200_genes","CD14"],
+            mapping=aes(color="cell_type_lvl1"),
+            alpha=0.6,
+        )
+
+    xyplots also allows broadcasting.
+    Allowing one-to-many relationship.
+
+    .. jupyter-execute::
+        :emphasize-lines: 10
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.xyplots(
+            data,
+            x="n_genes_by_counts", # to be broadcasted to y
+            y=["pct_counts_in_top_200_genes","CD14"],
+            mapping=aes(color="cell_type_lvl1"),
+            alpha=0.6,
+            layers=scale_color_viridis()
+        )
     """
     # str to list for x and y
     if isinstance(x, str):
