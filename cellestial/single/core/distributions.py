@@ -178,9 +178,31 @@ def violins(
     -------
     SupPlotsSpec
         Violin Plots.
+
+    Examples
+    --------
+    Violin Plots.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.violins(
+            data,
+            ["n_genes_by_counts", "HLA-DRA", "log1p_total_counts_mt", "pct_counts_hb"],
+            fill="cell_type_lvl1",
+            layers=[scale_y_log2()],
+            point_size=0.3,
+            ncol=2,
+        )
     """
     plots = []
-    for i,key in enumerate(keys):
+    for i, key in enumerate(keys):
         plot = violin(
             data=data,
             key=key,
@@ -230,6 +252,7 @@ def violins(
         align=align,
         guides=guides,
     )
+
 
 def boxplots(
     data: AnnData,
@@ -392,9 +415,31 @@ def boxplots(
     -------
     SupPlotsSpec
         Boxplots.
+
+    Examples
+    --------
+    Boxplots.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.boxplots(
+            data,
+            ["n_genes_by_counts", "HLA-DRA", "log1p_total_counts_mt", "pct_counts_hb"],
+            fill="cell_type_lvl1",
+            layers=[scale_y_log2()],
+            point_size=0.3,
+            ncol=2,
+        )
     """
     plots = []
-    for i,key in enumerate(keys):
+    for i, key in enumerate(keys):
         plot = boxplot(
             data=data,
             key=key,
@@ -445,4 +490,3 @@ def boxplots(
         align=align,
         guides=guides,
     )
-

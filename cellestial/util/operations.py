@@ -15,7 +15,7 @@ def get_slice(
     grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
 ) -> PlotSpec | SupPlotsSpec | None:
     """
-    Slice a ggrid (SupPlotsSpec) objects with given index.
+    Slice a grid object (SupPlotsSpec) with the given index.
 
     Parameters
     ----------
@@ -37,9 +37,54 @@ def get_slice(
     TypeError
         If the grid is not a SupPlotsSpec object.
         If the index is not an int or Sequence[int].
+
+    Examples
+    --------
+    Get a single plot from a grid.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        grid = cl.expressions(
+            data,
+            keys=["MALAT1", "YBX3", "MNDA" ,"HLA-DRA"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
+
+        cl.slice(grid, index=3)
+
+    Get a multiple plots from a grid.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        grid = cl.expressions(
+            data,
+            keys=["MALAT1", "YBX3", "MNDA" ,"HLA-DRA"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
+
+        cl.slice(grid, index=[1,3])
+
     """
     if isinstance(grid, SupPlotsSpec):
-        figures = grid.as_dict().get("figures")
+        figures = vars(grid).get("_SupPlotsSpec__figures")
 
         if figures is not None:
             if isinstance(index, int):
