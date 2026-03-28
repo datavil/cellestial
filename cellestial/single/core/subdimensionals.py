@@ -74,7 +74,7 @@ def dimensionals(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensional reduction method to use.
+        The dimensionality reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
@@ -1133,7 +1133,7 @@ def expressions(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensional reduction method to use.
+        The dimensionality reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.

@@ -233,6 +233,7 @@ def build_frame(
         frame.head()
 
     Providing variable_keys allows function to infer the axis as 0.
+    It also adds the given variable_keys to the DataFrame.
 
     .. jupyter-execute::
 
