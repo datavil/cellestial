@@ -5,7 +5,19 @@ __version__ = importlib.metadata.version("cellestial")
 
 
 def versions():
-    """Print the in-use versions of the packages and python."""
+    """
+    Print the in-use versions of the packages and python.
+
+    Examples
+    --------
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        cl.versions()
+
+    """
     packages = [
         "cellestial",
         "scanpy",

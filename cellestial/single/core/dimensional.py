@@ -38,7 +38,7 @@ def dimensional(
     data: AnnData,
     key: str | None = None,
     *,
-    mapping : FeatureSpec | None = None,
+    mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -78,7 +78,7 @@ def dimensional(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensional reduction method to use.
+        The dimensionality reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
@@ -172,7 +172,36 @@ def dimensional(
     Returns
     -------
     PlotSpec
-        Dimensional reduction plot.
+        Dimensionality reduction plot.
+
+
+    Examples
+    --------
+    Dimensionality reduction plot with categorical data.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.dimensional(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
+
+    With continuous data.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.dimensional(data,key="CD14",axis_type="arrow",color_high="red")
 
     """
     # HANDLE: Data types
@@ -237,7 +266,7 @@ def dimensional(
     scttr = (
         ggplot(data=frame)
         + geom_point(
-            mapping=aes(x=x, y=y, color=key,**mapping.as_dict()),
+            mapping=aes(x=x, y=y, color=key, **mapping.as_dict()),
             size=size,
             tooltips=tooltips_spec,
             **point_kwargs,

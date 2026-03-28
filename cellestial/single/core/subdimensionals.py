@@ -45,7 +45,7 @@ def dimensionals(
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
     # multi plot args
-    share_labels: bool = True,
+    share_labels: bool = False,
     share_axis: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -74,7 +74,7 @@ def dimensionals(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensional reduction method to use.
+        The dimensionality reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
@@ -162,7 +162,7 @@ def dimensionals(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    share_labels : bool, default=True
+    share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
@@ -217,6 +217,26 @@ def dimensionals(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Examples
+    --------
+    Grid of dimensionality reduction plots via multiple keys.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.dimensionals(
+            data,
+            keys=["cell_type_lvl1", "sample", "MALAT1", "YBX3"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
@@ -313,7 +333,7 @@ def umaps(
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
     # multi plot args
-    share_labels: bool = True,
+    share_labels: bool = False,
     share_axis: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -427,7 +447,7 @@ def umaps(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    share_labels : bool, default=True
+    share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
@@ -482,6 +502,26 @@ def umaps(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Examples
+    --------
+    Grid of dimensionality reduction plots via multiple keys.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.umaps(
+            data,
+            keys=["cell_type_lvl1", "sample", "MALAT1", "YBX3"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
@@ -577,7 +617,7 @@ def tsnes(
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
     # multi plot args
-    share_labels: bool = True,
+    share_labels: bool = False,
     share_axis: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -691,7 +731,7 @@ def tsnes(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    share_labels : bool, default=True
+    share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
@@ -746,6 +786,26 @@ def tsnes(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Examples
+    --------
+    Grid of dimensionality reduction plots via multiple keys.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.tsnes(
+            data,
+            keys=["cell_type_lvl1", "sample", "MALAT1", "YBX3"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
@@ -840,7 +900,7 @@ def pcas(
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
     # multi plot args
-    share_labels: bool = True,
+    share_labels: bool = False,
     share_axis: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -954,7 +1014,7 @@ def pcas(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    share_labels : bool, default=True
+    share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
@@ -1009,6 +1069,26 @@ def pcas(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Examples
+    --------
+    Grid of dimensionality reduction plots via multiple keys.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.pcas(
+            data,
+            keys=["cell_type_lvl1", "sample", "MALAT1", "YBX3"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
@@ -1105,7 +1185,7 @@ def expressions(
     ondata_alpha: float = 1,
     ondata_weighted: bool = True,
     # multi plot args
-    share_labels: bool = True,
+    share_labels: bool = False,
     share_axis: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
     # grid args
@@ -1133,7 +1213,7 @@ def expressions(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensional reduction method to use.
+        The dimensionality reduction method to use.
         e.g., 'umap' or 'pca' or 'tsne'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
@@ -1221,7 +1301,7 @@ def expressions(
         whether to use weighted mean for the legend on data.
         If True, the weighted mean of the group means is used.
         If False, the arithmetic mean of the group means is used.
-    share_labels : bool, default=True
+    share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
     share_axis : bool, default=False
@@ -1276,6 +1356,26 @@ def expressions(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Examples
+    --------
+    Grid of dimensionality reduction plots via multiple keys.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.expressions(
+            data,
+            keys=["MALAT1", "YBX3", "MNDA" ,"HLA-DRA"],
+            axis_type="arrow",
+            color_high="red",
+            ncol=2,
+        )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"

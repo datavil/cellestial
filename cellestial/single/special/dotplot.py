@@ -89,6 +89,54 @@ def dotplot(
     -------
     PlotSpec
         Dotplot.
+
+    Examples
+    --------
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        markers = [
+            "ITGB1",
+            "SYNGR1",
+            "HBA1",
+            "TCF7L2",
+            "HBM",
+            "IGHD",
+            "FCN1",
+            "GYPA",
+            "FCGR3A",
+            "PAX5",
+            "COL4A4",
+            "HBB",
+            "LYN",
+            "PRDM1",
+            "CD14",
+            "IGHM",
+            "CDK6",
+            "MS4A1",
+            "BLK",
+            "IRF4",
+            "BCL11A",
+            "MKI67",
+        ]
+
+        (
+            cl.dotplot(
+                data,
+                keys=markers,
+                group_by="cell_type_lvl1",
+                color_high="red",
+                sort_by="avg_exp",
+            )
+            + scale_y_discrete(expand=[0.1, 0.1])
+            + theme(axis_text_y=element_text(angle=90, size=12))
+        )
     """
     # HANDLE: Data types
     if not isinstance(data, AnnData):

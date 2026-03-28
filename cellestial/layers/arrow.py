@@ -94,8 +94,8 @@ def _modify_axis(
 
         # find the ends of the arrows
         # ensure the arrow length is the same for both axis
-        xend = x_min + arrow_length * min(y_diff, x_diff)
-        yend = y_min + arrow_length * min(y_diff, x_diff)
+        xend = x_min + arrow_length * x_diff
+        yend = y_min + arrow_length * y_diff
 
         # adjust bottom ends of arrows
         adjust_rate = 0.025
@@ -131,10 +131,11 @@ def _modify_axis(
 def arrow_axis(
     plot: PlotSpec,
     /,
-    size: float,
-    color: str,
-    angle: float,
-    length: float,
+    *,
+    size: float = 1,
+    length: float = 0.25,
+    angle: float = 10,
+    color: str = "#3f3f3f",
     **arrow_kwargs,
 ):
     """
@@ -162,6 +163,50 @@ def arrow_axis(
     `FeatureSpec` or `FeatureSpecArray`
         Theme feature specification.
 
+    Examples
+    --------
+    Without arrow.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        umap = cl.umap(data,"HBA2")
+        umap
+
+    Adding the arrow axis.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        umap = cl.umap(data,"HBA2")
+        umap + cl.arrow_axis(umap)
+
+    Arrow customization.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        umap = cl.umap(data,"HBA2")
+        umap + cl.arrow_axis(umap,length=0.20,color="dark_violet")
+
     """
     frame = plot.get_plot_shared_data()
     mapping = get_mapping(plot, index=0)
@@ -188,9 +233,8 @@ def arrow_axis(
     y_diff = y_max - y_min  # ty:ignore[unsupported-operator]
 
     # find the ends of the arrows
-    # ensure the arrow length is the same for both axis
-    xend = x_min + length * min(y_diff, x_diff)
-    yend = y_min + length * min(y_diff, x_diff)
+    xend = x_min + length * x_diff
+    yend = y_min + length * y_diff
 
     # adjust bottom ends of arrows
     adjust_rate = 0.025
