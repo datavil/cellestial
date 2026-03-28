@@ -182,9 +182,9 @@ def dimensionals(
         Relative width of each column of grid, left to right.
     heights : list[float], default=None
         Relative height of each row of grid, top-down.
-    hspace : float | None = None
+    hspace : float | None, default=None
         Cell horizontal spacing in px.
-    vspace : float | None = None
+    vspace : float | None, default=None
         Cell vertical spacing in px.
     fit : bool, default=True
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
@@ -467,9 +467,9 @@ def umaps(
         Relative width of each column of grid, left to right.
     heights : list[float], default=None
         Relative height of each row of grid, top-down.
-    hspace : float | None = None
+    hspace : float | None, default=None
         Cell horizontal spacing in px.
-    vspace : float | None = None
+    vspace : float | None, default=None
         Cell vertical spacing in px.
     fit : bool, default=True
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
@@ -751,9 +751,9 @@ def tsnes(
         Relative width of each column of grid, left to right.
     heights : list[float], default=None
         Relative height of each row of grid, top-down.
-    hspace : float | None = None
+    hspace : float | None, default=None
         Cell horizontal spacing in px.
-    vspace : float | None = None
+    vspace : float | None, default=None
         Cell vertical spacing in px.
     fit : bool, default=True
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
@@ -1034,9 +1034,9 @@ def pcas(
         Relative width of each column of grid, left to right.
     heights : list[float], default=None
         Relative height of each row of grid, top-down.
-    hspace : float | None = None
+    hspace : float | None, default=None
         Cell horizontal spacing in px.
-    vspace : float | None = None
+    vspace : float | None, default=None
         Cell vertical spacing in px.
     fit : bool, default=True
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
@@ -1321,9 +1321,9 @@ def expressions(
         Relative width of each column of grid, left to right.
     heights : list[float], default=None
         Relative height of each row of grid, top-down.
-    hspace : float | None = None
+    hspace : float | None, default=None
         Cell horizontal spacing in px.
-    vspace : float | None = None
+    vspace : float | None, default=None
         Cell vertical spacing in px.
     fit : bool, default=True
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),

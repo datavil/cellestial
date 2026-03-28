@@ -14,8 +14,9 @@ from lets_plot import (
 from cellestial.util import get_mapping
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
+    from lets_plot.plot.core import FeatureSpecArray, PlotSpec
     from polars import DataFrame
+
 
 def _modify_axis(
     frame: DataFrame,
@@ -128,6 +129,7 @@ def _modify_axis(
 
     return new_layer
 
+
 def arrow_axis(
     plot: PlotSpec,
     /,
@@ -137,7 +139,7 @@ def arrow_axis(
     angle: float = 10,
     color: str = "#3f3f3f",
     **arrow_kwargs,
-):
+) -> FeatureSpecArray:
     """
     Adds arrows as the X and Y axis to the plot.
 
@@ -249,7 +251,7 @@ def arrow_axis(
         yend=y0,
         color=color,
         size=size,
-        arrow=arrow(angle,**arrow_kwargs),
+        arrow=arrow(angle, **arrow_kwargs),
     )
     # Y axis
     new_layer += geom_segment(
@@ -259,7 +261,7 @@ def arrow_axis(
         yend=yend,
         color=color,
         size=size,
-        arrow=arrow(angle,**arrow_kwargs),
+        arrow=arrow(angle, **arrow_kwargs),
     )
 
     return new_layer
