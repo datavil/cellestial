@@ -161,7 +161,7 @@ def umap(
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
-        cl.dimensional(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
+        cl.umap(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
     With continuous data.
 
@@ -174,7 +174,7 @@ def umap(
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
-        cl.dimensional(data,key="CD14",axis_type="arrow",color_high="red")
+        cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
     """
     return dimensional(

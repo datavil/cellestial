@@ -117,6 +117,21 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
     dict
         The combined mapping of the plot as a dict.
 
+    Examples
+    --------
+    Get the mapping of a plot.
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
+
+        cl.get_mapping(umap)
     """
     return {
         **plot.as_dict().get("mapping"),  # from the global mapping,
@@ -144,6 +159,21 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     ------
     TypeError
         If the plot is not a PlotSpec or SupPlotsSpec object.
+
+    Examples
+    --------
+
+    .. jupyter-execute ::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
+
+        cl.retrieve(umap).head()
     """
     if isinstance(plot, PlotSpec):
         frame = plot.as_dict().get("data")
