@@ -23,8 +23,6 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
-
-
 def _build_tooltips(
     *,
     tooltips: list[str] | str,

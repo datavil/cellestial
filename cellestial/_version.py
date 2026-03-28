@@ -28,7 +28,7 @@ def versions():
     text = ""
     for package in packages:
         text += f"{package:<12}: {importlib.metadata.version(package)}\n"
-    text+=f"{"Python":12}: {sys.version.split()[0]}"
+    text += f"{'Python':12}: {sys.version.split()[0]}"
     print(text)
 
 

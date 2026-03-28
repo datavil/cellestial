@@ -84,21 +84,27 @@ def violins(
         Use 'none' to disable tooltips.
     geom_fill : str, default='#FF00FF'
         Fill color for all violins in the violin plot.
-        - Accepts:
+
+            **Accepts:**
+
             - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     geom_color : str, default='#2f2f2f'
         Border color for all violins in the violin plot.
-        - Accepts:
+
+            **Accepts:**
+
             - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     point_color : str, default='#1f1f1f'
         Color for the points in the violin plot.
-        - Accepts:
+
+            **Accepts:**
+
             - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     point_alpha : float, default=0.7
         Alpha (transparency) for the points in the violin plot.
@@ -323,21 +329,27 @@ def boxplots(
         Use 'none' to disable tooltips.
     geom_fill : str, default='#FF00FF'
         Fill color for all boxplots in the boxplot.
-        - Accepts:
+
+            **Accepts:**
+
             - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     geom_color : str, default='#2f2f2f'
         Border color for all boxplots in the boxplot.
-        - Accepts:
+
+            **Accepts:**
+
             - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     point_color : str, default='#1f1f1f'
         Color for the points in the boxplot.
-        - Accepts:
+
+            **Accepts:**
+
             - hex code e.g. '#f1f1f1'
-            - color name (of a limited set of colors).
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     point_alpha : float, default=0.7
         Alpha (transparency) for the points in the boxplot.

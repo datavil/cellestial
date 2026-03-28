@@ -11,4 +11,3 @@ _THEME_DIST = (
     + scale_fill_hue()
     + ggsize(400, 400)
 )
-

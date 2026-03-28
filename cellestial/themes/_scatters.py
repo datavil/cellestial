@@ -29,20 +29,17 @@ _THEME_DIMENSION = (
     + ggsize(500, 400)
 )
 
-_THEME_SCATTER = (
-    theme(
-        # customize all text
-        text=element_text(color="#1f1f1f", family="Arial"),
-        # customize all titles (includes legend)
-        title=element_text(color="#1f1f1f", family="Arial"),
-        # customize axis titles (labels)
-        axis_title=element_text(color="#3f3f3f", family="Arial"),
-        # customize legend text
-        legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
-        # customize legend columns
-    )
-    + scale_color_brewer(palette="Set2")
-)
+_THEME_SCATTER = theme(
+    # customize all text
+    text=element_text(color="#1f1f1f", family="Arial"),
+    # customize all titles (includes legend)
+    title=element_text(color="#1f1f1f", family="Arial"),
+    # customize axis titles (labels)
+    axis_title=element_text(color="#3f3f3f", family="Arial"),
+    # customize legend text
+    legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
+    # customize legend columns
+) + scale_color_brewer(palette="Set2")
 
 _THEME_DOTPLOT = (
     theme_classic()
@@ -56,7 +53,7 @@ _THEME_DOTPLOT = (
         legend_box_spacing=0,
         legend_key_spacing_y=0,
     )
-    + scale_y_discrete(expand=[0.05, 0.05]) # offsets for points from the frame
+    + scale_y_discrete(expand=[0.05, 0.05])  # offsets for points from the frame
     + scale_x_discrete(expand=[0.025, 0.025])
-    + scale_size(trans="sqrt", breaks=[0, 25, 50, 75, 100]) # to be replaced by scale_size_area
+    + scale_size(trans="sqrt", breaks=[0, 25, 50, 75, 100])  # to be replaced by scale_size_area
 )

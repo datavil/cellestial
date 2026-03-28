@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
     from polars import DataFrame
 
+
 def _get_density_boundaries(
     frame: DataFrame,
     x: str,
