@@ -132,7 +132,6 @@ def _modify_axis(
 
 def arrow_axis(
     plot: PlotSpec,
-    /,
     *,
     size: float = 1,
     length: float = 0.25,
@@ -141,7 +140,7 @@ def arrow_axis(
     **arrow_kwargs,
 ) -> FeatureSpecArray:
     """
-    Adds arrows as the X and Y axis to the plot.
+    Layer of arrows as the X and Y axis to the plot.
 
     Parameters
     ----------
@@ -162,8 +161,7 @@ def arrow_axis(
 
     Returns
     -------
-    `FeatureSpec` or `FeatureSpecArray`
-        Theme feature specification.
+    FeatureSpecArray
 
     Examples
     --------

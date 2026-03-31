@@ -83,7 +83,6 @@ def _get_density_boundaries(
 
 def cluster_outlines(
     plot: PlotSpec,
-    /,
     groups: str | Sequence[str | Sequence[str]],
     *,
     padding: float = 1.5,
