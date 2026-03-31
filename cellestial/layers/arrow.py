@@ -210,8 +210,8 @@ def arrow_axis(
     """
     frame = plot.get_plot_shared_data()
     mapping = get_mapping(plot, index=0)
-    x = mapping.get("x")
-    y = mapping.get("y")
+    x: str = mapping.get("x")
+    y: str = mapping.get("y")
     new_layer = theme(
         # remove axis elements
         axis_text_x=element_blank(),

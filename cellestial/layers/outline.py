@@ -206,9 +206,9 @@ def cluster_outlines(
     """
     # get mapping
     _mapping = get_mapping(plot, index=0)
-    x = _mapping.get("x") if x is None else x
-    y = _mapping.get("y") if y is None else y
-    group_by = _mapping.get("color") if group_by is None else group_by
+    x: str = _mapping.get("x") if x is None else x
+    y: str = _mapping.get("y") if y is None else y
+    group_by: str = _mapping.get("color") if group_by is None else group_by
     if x is None:
         msg = "`x` is present neither as argument nor in the plot aesthetics."
         raise ValueError(msg)

@@ -165,8 +165,8 @@ def stream(
     # extract data and mapping from plot
     frame = retrieve(plot)
     _mapping = get_mapping(plot)
-    x = _mapping.get("x")
-    y = _mapping.get("y")
+    x: str = _mapping.get("x")
+    y: str = _mapping.get("y")
 
     # determine velocity column names
     if velocity_name is not None:  # if the velocity name is provided
