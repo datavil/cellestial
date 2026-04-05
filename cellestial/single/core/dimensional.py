@@ -42,7 +42,7 @@ def dimensional(
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
-    size: float = 0.8,
+    size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -87,7 +87,7 @@ def dimensional(
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.
         Otherwise, the function will decide on the key based on the dimensions.
-    size : float, default=0.8
+    size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
@@ -271,6 +271,8 @@ def dimensional(
     )
 
     # BUILD: scatter plot
+    if "size" in mapping.as_dict():
+        size = None
     scttr = (
         ggplot(data=frame)
         + geom_point(

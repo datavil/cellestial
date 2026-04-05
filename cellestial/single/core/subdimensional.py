@@ -19,7 +19,7 @@ def umap(
     mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
-    size: float = 0.8,
+    size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -61,7 +61,7 @@ def umap(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    size : float, default=0.8
+    size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
@@ -224,7 +224,7 @@ def tsne(
     mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
-    size: float = 0.8,
+    size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -266,7 +266,7 @@ def tsne(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    size : float, default=0.8
+    size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
@@ -429,7 +429,7 @@ def pca(
     mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
-    size: float = 0.8,
+    size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -471,7 +471,7 @@ def pca(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    size : float, default=0.8
+    size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
@@ -635,7 +635,7 @@ def expression(
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
-    size: float = 0.8,
+    size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -644,7 +644,7 @@ def expression(
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     mid_point: Literal["mean", "median", "mid"] | float = "median",
-    axis_type: Literal["axis", "arrow"] | None = "arrow",
+    axis_type: Literal["axis", "arrow"] | None = "axis",
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",
@@ -679,7 +679,7 @@ def expression(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    size : float, default=0.8
+    size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.

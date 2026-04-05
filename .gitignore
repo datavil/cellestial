@@ -32,3 +32,6 @@ jupyter_execute/
 
 # git snippets
 git.snippets.sh
+
+# figures
+figures/

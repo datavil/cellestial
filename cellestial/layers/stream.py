@@ -34,7 +34,7 @@ def stream(
     max_length: float = 4,
     integration_direction: Literal["forward", "backward", "both"] = "both",
     mapping: FeatureSpec | None = None,
-    arrow_color: str  = "#1f1f1f",
+    arrow_color: str = "#1f1f1f",
     arrow_size: float = 1,
     arrow_alpha: float = 0.7,
     arrows: FeatureSpec | None = None,
