@@ -14,7 +14,7 @@ from lets_plot import (
     layer_tooltips,
     scale_fill_hue,
 )
-from lets_plot.plot.core import FeatureSpec
+from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
 from cellestial.util import (
@@ -23,7 +23,7 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import LayerSpec, PlotSpec
+    from lets_plot.plot.core import PlotSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 
 
@@ -101,31 +101,27 @@ def ridge(
         ridge = (
             cl.ridge(
                 data,
-                "CD14",
+                key="B2M",
                 group_by="cell_type_lvl1",
             )
         )
 
         ridge
 
-    With fill mapped to group.
+    Customize the geom.
 
     .. jupyter-execute::
-        :emphasize-lines: 10
-
-        import cellestial as cl
-        import scanpy as sc
-
-        from lets_plot import *
-
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        :emphasize-lines: 6-7
 
         ridge = (
             cl.ridge(
                 data,
-                "CD14",
+                key="B2M",
                 group_by="cell_type_lvl1",
-            ) + scale_fill_hue()
+                alpha=0.7,
+                color="#1f1f1f",
+            )
+        )
 
         ridge
     """
@@ -235,9 +231,9 @@ def ridges(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    key : str
-        The key to get the values (numerical).
-        e.g., 'total_counts' or a gene name.
+    keys : Sequence[str]
+        The keys to get the values (numerical).
+        e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
     group_by : str
         The key to group the ridges by (categorical).
         e.g., 'cell_type' or 'leiden'.
@@ -308,6 +304,32 @@ def ridges(
     -------
     SupPlotsSpec
         Ridge plot.
+
+    Examples
+    --------
+
+    .. jupyter-execute::
+
+        import numpy as np
+        import scanpy as sc
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        # get the top 8 genes with the highest mean expression
+        gene_means = np.asarray(data.X.mean(axis=0)).flatten()
+        top8_genes = data.var_names[np.argsort(gene_means)[::-1][:8]].tolist()
+
+        cl.ridges(
+            data,
+            keys=top8_genes,
+            group_by="cell_type_lvl1",
+            alpha=0.7,
+            scale=2,
+            ncol=2,
+            color="#3f3f3f",
+            guides="collect",
+        )
     """
     plots = []
     for key in keys:
@@ -347,4 +369,3 @@ def ridges(
         align=align,
         guides=guides,
     )
-
