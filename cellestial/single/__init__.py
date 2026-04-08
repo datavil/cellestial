@@ -17,6 +17,7 @@ from cellestial.single.core import (
     violin,
     violins,
 )
+from cellestial.single.quick import ridge, ridges
 from cellestial.single.special import dotplot
 
 __all__ = [
@@ -32,6 +33,8 @@ __all__ = [
     "pca",
     "pcas",
     "plot",
+    "ridge",
+    "ridges",
     "scatter",
     "tsne",
     "tsnes",

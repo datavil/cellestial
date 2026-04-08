@@ -122,6 +122,11 @@ def violins(
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    variable_column : str, default='variable'
+        The name of the variable column in the dataframe.
+    value_column : str, default='value'
+        Additional layers to add to the plot.
+        The name of the value column in the dataframe.
     share_ticks : bool, default=True
         Whether to share the labels across all plots.
         If True, only X tick texts on bottom row and Y tick text on left column are shown.
@@ -129,11 +134,6 @@ def violins(
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
-        Additional layers to add to the plot.
-    variable_column : str, default='variable'
-        The name of the variable column in the dataframe.
-    value_column : str, default='value'
-        The name of the value column in the dataframe.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -365,6 +365,10 @@ def boxplots(
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    variable_column : str, default='variable'
+        The name of the variable column in the dataframe.
+    value_column : str, default='value'
+        The name of the value column in the dataframe.
     share_ticks : bool, default=True
         Whether to share the labels across all plots.
         If True, only X tick texts on bottom row and Y tick text on left column are shown.
@@ -373,10 +377,6 @@ def boxplots(
         If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
-    variable_column : str, default='variable'
-        The name of the variable column in the dataframe.
-    value_column : str, default='value'
-        The name of the value column in the dataframe.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
