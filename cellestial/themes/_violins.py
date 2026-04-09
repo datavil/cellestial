@@ -9,5 +9,4 @@ _THEME_DIST = (
         axis_title_x=element_blank(),
     )
     + scale_fill_hue()
-    + ggsize(400, 400)
 )
