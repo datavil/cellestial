@@ -2,75 +2,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
 import polars as pl
 from anndata import AnnData
 from lets_plot import (
     aes,
-    coord_flip,
-    element_blank,
-    element_text,
     geom_boxplot,
     ggplot,
-    scale_fill_hue,
-    theme,
-    ylab,
 )
-from polars import DataFrame
-from scipy.sparse import issparse
 
-from cellestial.frames.build import anndata_variable_columns
+from cellestial.frames import _highest_expressed_genes_frame
+from cellestial.themes import _THEME_HIGHEST
 
 if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpec, PlotSpec
-
-
-_THEME_HIGHEST = (
-    scale_fill_hue()
-    + theme(
-        text=element_text(family="Arial", color="#1f1f1f"),
-        title=element_text(family="Arial", color="#1f1f1f"),
-        legend_title=element_text(family="Arial", color="#1f1f1f", face="Bold"),
-        axis_title_x=element_blank(),
-        legend_position="none",
-    )
-    + ylab("Percentage of Total Counts")
-    + coord_flip()
-)
-
-
-def _highest_expressed_genes_frame(
-    data: AnnData,
-    n: int = 10,
-) -> DataFrame:
-    """Get the top n highest expressed genes by mean percentage across all cells."""
-    if isinstance(data, AnnData):
-        X = data.X
-        # normalize each cell to sum to 100 (percentage)
-        if issparse(X):
-            row_sums = np.array(X.sum(axis=1)).ravel()
-            row_sums[row_sums == 0] = 1
-            X_normalized = X.multiply(100 / row_sums[:, np.newaxis])
-            mean_percent = np.array(X_normalized.mean(axis=0)).ravel()
-        else:
-            row_sums = X.sum(axis=1, keepdims=True)
-            row_sums[row_sums == 0] = 1
-            X_normalized = X / row_sums * 100
-            mean_percent = X_normalized.mean(axis=0)
-
-        top_idx = np.argsort(mean_percent)[::-1][:n]
-        genes = data.var_names[top_idx].tolist()
-        if issparse(X_normalized):
-            X_normalized = X_normalized.tocsr()
-        norm_data = AnnData(X=X_normalized, var=data.var, obs=data.obs)
-        frame = pl.DataFrame(anndata_variable_columns(norm_data, keys=genes, column_names=[]))
-    else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
-
-    return frame
-
 
 def highest_expressed_genes(
     data: AnnData,
@@ -88,6 +33,45 @@ def highest_expressed_genes(
     fatten: float = 1,
     **geom_kwargs,
 ) -> PlotSpec:
+    """
+    Highest Expressed Genes Plot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    n : int, default=20
+        Number of top expressed genes to display, ranked by mean percentage across all cells.
+    mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the plot, the result of `aes()`.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
+    observations_name : str, default='Barcode'
+        The name to give to barcode (or index) column in the dataframe.
+    value_column : str, default='value'
+        The name to give to the value column after unpivoting.
+    variable_column : str, default='variable'
+        The name to give to the variable column after unpivoting.
+    color : str, default='#1f1f1f'
+        Border color of the boxplots.
+    size : float, default=0.5
+        Line size of the boxplots.
+    outlier_size : float, default=0.2
+        Size of the outlier points.
+    outlier_alpha : float, default=0.5
+        Transparency of the outlier points.
+    fatten : float, default=1
+        Factor to fatten the median line.
+    **geom_kwargs
+        Additional parameters for the `geom_boxplot` layer.
+        For more information on geom_boxplot parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
+
+    Returns
+    -------
+    PlotSpec
+        Highest expressed genes boxplot.
+    """
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
