@@ -71,6 +71,41 @@ def highest_expressed_genes(
     -------
     PlotSpec
         Highest expressed genes boxplot.
+
+    Examples
+    --------
+    A simple Highest expressed genes boxplot.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.highest_expressed_genes(data,n=20)
+
+    Customize the plot.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        cl.highest_expressed_genes(
+            data,
+            n=10,
+            outlier_size=0.1,
+            outlier_alpha=0.2,
+            outlier_shape=5)+scale_fill_viridis()
+
+
     """
     # Handling Data types
     if not isinstance(data, AnnData):
