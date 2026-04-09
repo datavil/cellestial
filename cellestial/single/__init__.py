@@ -17,7 +17,7 @@ from cellestial.single.core import (
     violin,
     violins,
 )
-from cellestial.single.quick import ridge, ridges
+from cellestial.single.quick import highest_expressed_genes, ridge, ridges
 from cellestial.single.special import dotplot
 
 __all__ = [
@@ -30,6 +30,7 @@ __all__ = [
     "expression",
     "expressions",
     "heatmap",
+    "highest_expressed_genes",
     "pca",
     "pcas",
     "plot",

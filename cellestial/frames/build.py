@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
-def _anndata_variable_columns(
+def anndata_variable_columns(
     data: AnnData, column_names: list[str], keys: str | Sequence[str]
 ) -> list[pl.Series]:
     """Return a list of variable columns as Polars `Series`."""
@@ -110,7 +110,7 @@ def anndata_observations_frame(
     if variable_keys is not None:
         column_names = [column.name for column in columns]
         columns.extend(
-            _anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
+            anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
         )
 
     return pl.DataFrame(columns)
