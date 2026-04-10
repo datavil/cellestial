@@ -245,8 +245,7 @@ def stream(
         _arrow_kwargs.update(arrow_kwargs)
 
     # handle mapping
-    if mapping is None:
-        mapping = aes()
+    mapping = mapping or aes()
 
     # handle arrow
     if arrows is None:

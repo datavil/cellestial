@@ -19,14 +19,15 @@ def violins(
     data: AnnData,
     keys: Sequence[str],
     *,
+    group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    geom_fill: str = "#FF00FF",
-    geom_color: str = "#2f2f2f",
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
@@ -66,15 +67,20 @@ def violins(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    group_by : str | None, default=None
+        Column to group observations on the x-axis.
+        If not provided, falls back to ``fill``, ``color``, or the variable column.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the violin plot (categorical).
+        Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
+        Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
@@ -82,7 +88,7 @@ def violins(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str, default='#FF00FF'
+    geom_fill : str | None, default=None
         Fill color for all violins in the violin plot.
 
             **Accepts:**
@@ -90,7 +96,7 @@ def violins(
             - hex code e.g. '#f1f1f1'
             - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str, default='#2f2f2f'
+    geom_color : str | None, default=None
         Border color for all violins in the violin plot.
 
             **Accepts:**
@@ -134,6 +140,7 @@ def violins(
         Whether to share the axis across all plots.
         If True, only X axis on bottom row and Y axis on left column is shown.
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
+        Additional layers to add to the plot.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : bool, default=None
@@ -212,6 +219,7 @@ def violins(
         plot = violin(
             data=data,
             key=key,
+            group_by=group_by,
             mapping=mapping,
             axis=axis,
             color=color,
@@ -264,14 +272,15 @@ def boxplots(
     data: AnnData,
     keys: Sequence[str],
     *,
+    group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    geom_fill: str = "#FF00FF",
-    geom_color: str = "#2f2f2f",
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
@@ -311,15 +320,20 @@ def boxplots(
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
+    group_by : str | None, default=None
+        Column to group observations on the x-axis.
+        If not provided, falls back to ``fill``, ``color``, or the variable column.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the boxplot (categorical).
+        Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
+        Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
@@ -327,7 +341,7 @@ def boxplots(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str, default='#FF00FF'
+    geom_fill : str | None, default=None
         Fill color for all boxplots in the boxplot.
 
             **Accepts:**
@@ -335,7 +349,7 @@ def boxplots(
             - hex code e.g. '#f1f1f1'
             - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str, default='#2f2f2f'
+    geom_color : str | None, default=None
         Border color for all boxplots in the boxplot.
 
             **Accepts:**
@@ -455,6 +469,7 @@ def boxplots(
         plot = boxplot(
             data=data,
             key=key,
+            group_by=group_by,
             mapping=mapping,
             axis=axis,
             color=color,

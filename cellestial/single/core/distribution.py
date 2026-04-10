@@ -35,6 +35,7 @@ def _distribution(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     geom: Literal["violin", "boxplot"] = "violin",
     axis: Literal[0, 1] | None = None,
@@ -43,12 +44,13 @@ def _distribution(
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    geom_fill: str | None = "#FF00FF",
-    geom_color: str | None = "#2f2f2f",
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_points: bool = True,
@@ -64,8 +66,19 @@ def _distribution(
         raise TypeError(msg)
 
     # HANDLE: mapping
-    if mapping is None:
-        mapping = aes()
+    mapping = mapping or aes()
+    point_mapping = point_mapping or aes()
+
+    # merge standalone color/fill into mapping
+    _mapping = mapping.as_dict()
+    if color is not None and "color" not in _mapping:
+        _mapping["color"] = color
+    if fill is not None and "fill" not in _mapping:
+        _mapping["fill"] = fill
+    mapping = aes(**_mapping)
+
+    mapping_color = _mapping.get("color")
+    mapping_fill = _mapping.get("fill")
 
     # convert to list if single string
     if isinstance(key, str):
@@ -77,18 +90,13 @@ def _distribution(
     if len(keys) == 1:
         value_column = keys[0]
 
-    # determine separator
-    separator = None
-    if fill is not None:
-        separator = fill
-    elif color is not None:
-        separator = color
-
-    if point_kwargs is None:
-        point_kwargs = {}
+    # determine separator (group_by)
+    group_by = group_by or mapping_fill or mapping_color
+    # initialize point kwargs if necessary
+    point_kwargs = point_kwargs or {}
 
     # determine index to unpivot
-    index = [x for x in {fill, color} if x is not None]
+    index = [x for x in {group_by, mapping_fill, mapping_color} if x is not None]
     if add_keys is not None:
         if isinstance(add_keys, str):
             add_keys = [add_keys]
@@ -96,10 +104,6 @@ def _distribution(
 
     # DETERMINE: axis if not provided
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
-
-    # handle fill and color
-    geom_fill = None if fill is not None else geom_fill
-    geom_color = None if color is not None else geom_color
 
     # BUILD: the DataFrame
     variable_keys = _select_variable_keys(data=data, keys=keys)
@@ -119,8 +123,8 @@ def _distribution(
     frame = frame.filter(
         pl.col(value_column) >= threshold if threshold is not None else True,
     )
-    if separator is None or len(keys) > 1:
-        separator = variable_column
+    if group_by is None or len(keys) > 1:
+        group_by = variable_column
 
     # HANDLE: tooltips
     if tooltips is None:
@@ -141,10 +145,8 @@ def _distribution(
     if geom == "violin":
         dst += geom_violin(
             mapping=aes(
-                x=separator,
+                x=group_by,
                 y=value_column,
-                color=color,
-                fill=fill,
                 **mapping.as_dict(),
             ),
             fill=geom_fill,
@@ -155,10 +157,8 @@ def _distribution(
     elif geom == "boxplot":
         dst += geom_boxplot(
             mapping=aes(
-                x=separator,
+                x=group_by,
                 y=value_column,
-                color=color,
-                fill=fill,
                 **mapping.as_dict(),
             ),
             fill=geom_fill,
@@ -186,12 +186,13 @@ def _distribution(
                 position = positions.get(point_geom, position_jitterdodge())
             else:
                 position = point_kwargs.pop("position")
+
+            point_kwargs.update(color=point_color, alpha=point_alpha, size=point_size)
+            for k in point_mapping.as_dict():
+                point_kwargs.pop(k)
             dst += geom_function(
                 data=frame,
-                mapping=aes(x=separator, y=value_column, color=color, fill=fill),
-                color=point_color,
-                alpha=point_alpha,
-                size=point_size,
+                mapping=aes(x=group_by, y=value_column, **point_mapping.as_dict()),
                 tooltips=tooltips_spec,
                 position=position,
                 **point_kwargs,
@@ -211,6 +212,7 @@ def violin(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
@@ -218,12 +220,13 @@ def violin(
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    geom_fill: str | None = "#FF00FF",
-    geom_color: str | None = "#2f2f2f",
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_points: bool = True,
@@ -243,15 +246,20 @@ def violin(
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    group_by : str | None, default=None
+        Column to group observations on the x-axis.
+        If not provided, falls back to ``fill``, ``color``, or the variable column.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the violin plot (categorical).
+        Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
+        Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
@@ -261,7 +269,7 @@ def violin(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str | None, default='#FF00FF'
+    geom_fill : str | None, default=None
         Fill color for all violins in the violin plot.
 
             **Accepts:**
@@ -269,7 +277,7 @@ def violin(
             - hex code e.g. '#f1f1f1'
             - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str | None, default='#2f2f2f'
+    geom_color : str | None, default=None
         Border color for all violins in the violin plot.
 
             **Accepts:**
@@ -291,6 +299,8 @@ def violin(
         Size for the points in the violin plot.
     point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
+    point_mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the points, the result of `aes()`.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default='Variable'
@@ -406,6 +416,7 @@ def violin(
     return _distribution(
         data=data,
         key=key,
+        group_by=group_by,
         mapping=mapping,
         geom="violin",
         axis=axis,
@@ -420,6 +431,7 @@ def violin(
         point_alpha=point_alpha,
         point_size=point_size,
         point_geom=point_geom,
+        point_mapping=point_mapping,
         observations_name=observations_name,
         variables_name=variables_name,
         show_points=show_points,
@@ -435,6 +447,7 @@ def boxplot(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
@@ -442,12 +455,13 @@ def boxplot(
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    geom_fill: str | None = "#FF00FF",
-    geom_color: str | None = "#2f2f2f",
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     point_color: str = "#1f1f1f",
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_points: bool = True,
@@ -467,15 +481,20 @@ def boxplot(
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    group_by : str | None, default=None
+        Column to group observations on the x-axis.
+        If not provided, falls back to ``fill``, ``color``, or the variable column.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     color : str | None, default=None
         Color aesthetic to split the boxplot (categorical).
+        Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
+        Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
@@ -485,7 +504,7 @@ def boxplot(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    geom_fill : str | None, default='#FF00FF'
+    geom_fill : str | None, default=None
         Fill color for all boxplots in the boxplot.
 
             **Accepts:**
@@ -493,7 +512,7 @@ def boxplot(
             - hex code e.g. '#f1f1f1'
             - color name (https://lets-plot.org/python/pages/named_colors.html).
             - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-    geom_color : str | None, default='#2f2f2f'
+    geom_color : str | None, default=None
         Border color for all boxplots in the boxplot.
 
             **Accepts:**
@@ -515,6 +534,8 @@ def boxplot(
         Size for the points in the boxplot.
     point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
+    point_mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the points, the result of `aes()`.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default='Variable'
@@ -624,6 +645,7 @@ def boxplot(
     return _distribution(
         data=data,
         key=key,
+        group_by=group_by,
         mapping=mapping,
         geom="boxplot",
         axis=axis,
@@ -638,6 +660,7 @@ def boxplot(
         point_alpha=point_alpha,
         point_size=point_size,
         point_geom=point_geom,
+        point_mapping=point_mapping,
         observations_name=observations_name,
         variables_name=variables_name,
         show_points=show_points,

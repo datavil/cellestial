@@ -232,8 +232,7 @@ def cluster_outlines(
         grid_size=grid_size,
     )
     # create and return the plot
-    if mapping is None:
-        mapping = aes()
+    mapping = mapping or aes()
     return geom_path(
         data=frame,
         mapping=aes(x=x, y=y, group="path", **mapping.as_dict()),

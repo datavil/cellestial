@@ -131,8 +131,7 @@ def ridge(
         raise TypeError(msg)
 
     # HANDLE: mapping
-    if mapping is None:
-        mapping = aes()
+    mapping = mapping or aes()
 
     keys = [key]
 

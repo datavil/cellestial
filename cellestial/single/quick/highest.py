@@ -14,8 +14,8 @@ from cellestial.frames import _highest_expressed_genes_frame
 from cellestial.themes import _THEME_HIGHEST
 
 if TYPE_CHECKING:
-
     from lets_plot.plot.core import FeatureSpec, PlotSpec
+
 
 def highest_expressed_genes(
     data: AnnData,
@@ -113,13 +113,10 @@ def highest_expressed_genes(
         raise TypeError(msg)
 
     # HANDLE: mapping
-    default_mapping = aes(variable_column, value_column, fill=variable_column)
+    defaults = aes(x=variable_column, y=value_column, fill=variable_column).as_dict()
     if mapping is not None:
-        _mapping = default_mapping.as_dict()
-        _mapping.update(mapping.as_dict())
-        mapping = aes(**_mapping)
-    else:
-        mapping = default_mapping
+        defaults.update(mapping.as_dict())
+    mapping = aes(**defaults)
 
     # get the top n highest expressed genes by mean percentage across all cells
     frame = _highest_expressed_genes_frame(data, n=n)
