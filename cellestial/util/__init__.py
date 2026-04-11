@@ -3,6 +3,7 @@ from cellestial.util.operations import get_mapping, get_slice, retrieve
 from cellestial.util.utilities import (
     _color_gradient,
     _determine_axis,
+    _fill_gradient,
     _is_observation_key,
     _is_variable_key,
     _range_inclusive,
@@ -15,6 +16,7 @@ from cellestial.util.utilities import (
 __all__ = [
     "_color_gradient",
     "_determine_axis",
+    "_fill_gradient",
     "_is_observation_key",
     "_is_variable_key",
     "_legend_ondata",

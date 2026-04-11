@@ -1,5 +1,5 @@
 from cellestial.single.base import plot
-from cellestial.single.basic import bar, heatmap, scatter
+from cellestial.single.basic import bar, scatter
 from cellestial.single.common import xyplot, xyplots
 from cellestial.single.core import (
     boxplot,
@@ -18,7 +18,7 @@ from cellestial.single.core import (
     violins,
 )
 from cellestial.single.quick import highest_expressed_genes, ridge, ridges
-from cellestial.single.special import dotplot
+from cellestial.single.special import dotplot, heatmap
 
 __all__ = [
     "bar",
