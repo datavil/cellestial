@@ -35,11 +35,11 @@ _GROUP_BAR_GAP = 0.5
 
 def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFrame]:
     """
-    Get or compute the dendrogram for a groupby key and extract segments.
+    Get or compute the dendrogram for a group_by key and extract segments.
 
-    Checks ``data.uns[f'dendrogram_{group_by}']``. If not present,
-    runs ``scanpy.tl.dendrogram`` to compute it. Extracts the icoord/dcoord
-    arrays into a Polars DataFrame of segments with normalized positions.
+    Checks ``data.uns[f'dendrogram_{group_by}']``.
+    For AnnData, if not present, runs ``scanpy.tl.dendrogram`` on  to compute it.
+    Extracts the icoord/dcoord arrays into a Polars DataFrame of segments with normalized positions.
     """
     import numpy as np
 
@@ -239,7 +239,7 @@ def heatmap(
     aggregate: bool = True,
     group_bars: bool = True,
     group_bars_size: float = 6,
-    group_bars_titles: bool = False,
+    group_bars_labels: bool = False,
     group_lines: bool = True,
     group_lines_color: str = "black",
     group_lines_size: float = 1.0,
@@ -275,32 +275,25 @@ def heatmap(
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'
-        Which lets_plot geom to use. ``raster`` is much faster and is
-        forced for non-aggregated heatmaps because tiles are
-        prohibitively expensive at cell resolution. ``raster`` does not
-        support tooltips.
+        The geom to use,. Use 'raster' for performance.
+        Use 'tile' to enable tooltips.
     dendrogram : bool, default=False
         Whether to add a dendrogram for the ``group_by`` axis.
         Uses ``scanpy.tl.dendrogram`` if not already computed.
     aggregate : bool, default=True
-        If True, aggregate values per group (mean) so each row is a group.
-        If False, plot one row per observation (cell). Cells are sorted by
-        group in dendrogram order (or input order). Y ticks/labels are
-        hidden and a colored vertical bar on the left marks group
-        membership.
+        If True, aggregate values per group by mean so each row is a group.
+        If False, plot one row per observation (i.e., cell).
     group_bars : bool, default=True
-        Whether to draw colored vertical bars on the left marking group
-        membership. Only used when ``aggregate=False``.
+        Whether to draw colored vertical bars on the left marking group membership.
+        Only used when ``aggregate=False``.
     group_bars_size : float, default=6
         Size (thickness) of the group color bars.
-    group_bars_titles : bool, default=False
-        Whether to show group names on the y-axis at each group's center
-        (next to the bars on their left) instead of relying on the color
-        legend. When True, the color legend for ``group_by`` is hidden.
-        Only used when ``aggregate=False`` and ``group_bars=True``.
+    group_bars_labels : bool, default=False
+        Whether to show group names as labels along the y-axis.
+        Removes the related legend.
+        Only applies when ``group_bars=True`` and ``aggregate=False``.
     group_lines : bool, default=True
-        Whether to draw horizontal lines within the heatmap separating
-        groups.
+        Whether to draw horizontal lines within the heatmap separating groups.
     group_lines_color : str, default='black'
         Color of the group separator lines.
     group_lines_size : float, default=1.0
@@ -310,16 +303,16 @@ def heatmap(
     dendrogram_size : float, default=0.5
         Size (thickness) of the dendrogram segments.
     aggregate_kwargs : dict | None, default=None
-        Additional parameters forwarded to the main heatmap geom layer.
+        Additional parameters to pass to the main heatmap geom layer.
     group_lines_kwargs : dict | None, default=None
-        Additional parameters forwarded to the group separator lines geom_segment.
+        Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
-        Additional parameters forwarded to the dendrogram geom_segment.
+        Additional parameters to pass to the dendrogram geom_segment.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize a dimension between 0 and 1.
-        If 0, standardize each variable (column). If 1, standardize each
-        row (group when ``aggregate`` is True, cell otherwise). For each
-        entry, subtracts the minimum and divides by the maximum.
+        Subtracts the minimum and divides by the maximum.
+        If 0, standardize each variable (column).
+        If 1, standardize each row (group when ``aggregate`` is True, observation otherwise).
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -428,7 +421,7 @@ def heatmap(
             group_lines_color="white",
             dendrogram=True,
             dendrogram_size="0.7",
-            group_bars_titles=True,
+            group_bars_labels=True,
             group_bars=True,
         ) + scale_fill_viridis()
         htmp
@@ -511,7 +504,7 @@ def heatmap(
     # Y scale: groups for aggregate, group-center labels when titling bars, else hidden
     if aggregate:
         htmp += scale_y_continuous(breaks=list(range(n_y)), labels=y_order_groups)
-    elif group_bars and group_bars_titles:
+    elif group_bars and group_bars_labels:
         htmp += scale_y_continuous(breaks=group_centers, labels=y_order_groups)
         htmp += guides(color="none")
     else:
