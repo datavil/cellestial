@@ -26,6 +26,7 @@ scvelo = "^0.3.3"
 ty = "^0.0.17"
 pandas = "2.2.2" # pinned to avoid 3.0
 tqdm = "^4.67.3"
+pytest = "^9.0.3"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"

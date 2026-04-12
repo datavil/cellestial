@@ -15,6 +15,9 @@ def _highest_expressed_genes_frame(
 ) -> DataFrame:
     """Get the top n highest expressed genes by mean percentage across all cells."""
     if isinstance(data, AnnData):
+        if n > data.n_vars:
+            msg = f"Requested n={n} genes, but only {data.n_vars} genes available in data."
+            raise ValueError(msg)
         X = data.X
         # normalize each cell to sum to 100 (percentage)
         if issparse(X):
