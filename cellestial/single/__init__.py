@@ -18,7 +18,7 @@ from cellestial.single.core import (
     violins,
 )
 from cellestial.single.quick import highest_expressed_genes, ridge, ridges
-from cellestial.single.special import dotplot, heatmap
+from cellestial.single.special import dotplot, heatmap, imshow
 
 __all__ = [
     "bar",
@@ -31,6 +31,7 @@ __all__ = [
     "expressions",
     "heatmap",
     "highest_expressed_genes",
+    "imshow",
     "pca",
     "pcas",
     "plot",
