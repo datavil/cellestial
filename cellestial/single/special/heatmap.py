@@ -565,5 +565,3 @@ def heatmap(
 
     return htmp
 
-
-imshow = heatmap
