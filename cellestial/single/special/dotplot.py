@@ -1,4 +1,5 @@
 from __future__ import annotations
+from matplotlib.pylab import ma
 
 import contextlib
 from collections.abc import Sequence
@@ -9,16 +10,20 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     geom_point,
+    geom_segment,
     ggplot,
     ggtb,
     layer_tooltips,
     scale_color_gradient,
     scale_fill_gradient,
+    scale_x_continuous,
+    scale_y_continuous,
 )
 from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DOTPLOT
+from cellestial.util import _get_dendrogram, _get_dendrogram_segment_frame
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -29,16 +34,19 @@ def dotplot(
     keys: Sequence[str],
     group_by: str,
     *,
+    mapping: FeatureSpec | None = None,
     threshold: float = 0,
-    variables_name: str = "gene",
-    value_name: str = "expression",
+    variables_name: str = "variable",
     color_low: str = "#e6e6e6",
     color_high: str = "#D2042D",
-    fill: bool = False,
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
     percentage_key: str = "pct_exp",
     mean_key: str = "avg_exp",
+    dendrogram: bool = False,
+    dendrogram_color: str = "black",
+    dendrogram_size: float = 0.5,
+    dendrogram_kwargs: dict | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -58,8 +66,6 @@ def dotplot(
         The expression threshold to consider a gene as expressed.
     variables_name : str, default='gene'
         The name of the variable column in the long format.
-    value_name : str, default='expression'
-        The name of the value column in the long format.
     color_low : str, default='#e6e6e6'
         The low color for the gradient.
     color_high : str, default='#D2042D'
@@ -74,6 +80,16 @@ def dotplot(
         The name of the percentage column.
     mean_key : str, default='avg_exp'
         The name of the mean expression column.
+    dendrogram : bool, default=False
+        Whether to add a dendrogram for the ``group_by`` axis.
+        Uses ``scanpy.tl.dendrogram`` if not already computed.
+        When True, group order is determined by the dendrogram.
+    dendrogram_color : str, default='black'
+        Color of the dendrogram segments.
+    dendrogram_size : float, default=0.5
+        Size (thickness) of the dendrogram segments.
+    dendrogram_kwargs : dict | None, default=None
+        Additional parameters to pass to the dendrogram geom_segment.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -142,6 +158,9 @@ def dotplot(
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
+
+    mapping = mapping or aes()
+
     # BUILD: dataframe
     frame = build_frame(
         data=data,
@@ -154,6 +173,7 @@ def dotplot(
     # DataFrame to LazyFrame
     frame = frame.lazy()
     # 1. Unpivot frame
+    value_name: str = "value"
     frame = frame.unpivot(
         on=keys,
         index=index_columns,
@@ -188,9 +208,31 @@ def dotplot(
     if frame[group_by].dtype == pl.Int64:
         frame = frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
 
+    dendrogram_kwargs = dict(dendrogram_kwargs) if dendrogram_kwargs else {}
+
+    # DETERMINE: y order of groups
+    if dendrogram:
+        y_order_groups, segments = _get_dendrogram(data, group_by)
+    else:
+        y_order_groups = (
+            frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
+        )
+        segments = None
+
+    # ASSIGN: numeric _x / _y positions
+    x_keys = list(keys)
+    n_x = len(x_keys)
+    n_y = len(y_order_groups)
+    x_pos = {k: i for i, k in enumerate(x_keys)}
+    y_pos = {g: i for i, g in enumerate(y_order_groups)}
+    frame = frame.with_columns(
+        pl.col(variables_name).replace_strict(x_pos, return_dtype=pl.Float64).alias("_x"),
+        pl.col(group_by).cast(pl.String).replace_strict(y_pos, return_dtype=pl.Float64).alias("_y"),
+    )
+
     # HANDLE: tooltips
     if tooltips is None:
-        tooltips = [variables_name, group_by]
+        tooltips = [group_by, variables_name]
         tooltips_spec = layer_tooltips(tooltips)
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
@@ -205,21 +247,37 @@ def dotplot(
         tooltips_spec = tooltips
 
     # BUILD: Dotplot
-    if not fill:  # use color aesthetic
-        dtplt = (
-            ggplot(frame, aes(x=variables_name, y=group_by))
-            + geom_point(
-                aes(size=percentage_key, color=mean_key), tooltips=tooltips_spec, **geom_kwargs
-            )
-            + scale_color_gradient(low=color_low, high=color_high)
+    use_fill = "fill" in mapping.as_dict()
+    color_or_fill = "fill" if use_fill else "color"
+    scale = scale_fill_gradient if use_fill else scale_color_gradient
+
+    dtplt = (
+        ggplot(frame, aes(x="_x", y="_y"))
+        + geom_point(
+            aes(size=percentage_key, **{color_or_fill: mean_key},**mapping.as_dict()),
+            tooltips=tooltips_spec,
+            **geom_kwargs,
         )
-    else:  # elif fill: use fill aesthetic
-        dtplt = (
-            ggplot(frame, aes(x=variables_name, y=group_by))
-            + geom_point(
-                aes(size=percentage_key, fill=mean_key), tooltips=tooltips_spec, **geom_kwargs
-            )
-            + scale_fill_gradient(low=color_low, high=color_high)
+        + scale(low=color_low, high=color_high)
+    )
+
+
+    # AXES: discrete labels via continuous breaks
+    dtplt += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)
+    dtplt += scale_y_continuous(breaks=list(range(n_y)), labels=y_order_groups)
+
+    # DENDROGRAM (right side, along y-axis)
+    if dendrogram:
+        group_centers = [float(i) for i in range(n_y)]
+        dendro_frame = _get_dendrogram_segment_frame(
+            segments, n_x=n_x, n_groups=n_y, group_centers=group_centers
+        )
+        dtplt += geom_segment(
+            data=dendro_frame,
+            mapping=aes(x="x", y="y", xend="xend", yend="yend"),
+            color=dendrogram_color,
+            size=dendrogram_size,
+            **dendrogram_kwargs,
         )
 
     # ADD: layers
