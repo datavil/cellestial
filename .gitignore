@@ -35,3 +35,9 @@ git.snippets.sh
 
 # figures
 figures/
+
+# pytest
+.pytest_cache
+
+# claude
+claude/
