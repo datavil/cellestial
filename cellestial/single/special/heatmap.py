@@ -82,17 +82,17 @@ def _assign_positions(
         return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
 
     # non-aggregate: rescale per-cell _y to span [0, n_x] for square-ish aspect
-    grp_idx = {g: i for i, g in enumerate(y_order_groups)}
+    group_index = {g: i for i, g in enumerate(y_order_groups)}
     cell_frame = (
         frame.select(observations_name, group_by)
         .unique()
         .with_columns(
             pl.col(group_by)
             .cast(pl.String)
-            .replace_strict(grp_idx, return_dtype=pl.Int64)
-            .alias("_grp_idx")
+            .replace_strict(group_index, return_dtype=pl.Int64)
+            .alias("_group_index")
         )
-        .sort(["_grp_idx", observations_name])
+        .sort(["_group_index", observations_name])
     )
     n_y = cell_frame.height
     y_step = (n_x - 1) / max(n_y - 1, 1)
@@ -102,8 +102,8 @@ def _assign_positions(
     frame = frame.join(cell_frame.select(observations_name, "_y"), on=observations_name)
     centers_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
-        .agg(pl.col("_y").mean().alias("_center"), pl.col("_grp_idx").first())
-        .sort("_grp_idx")
+        .agg(pl.col("_y").mean().alias("_center"), pl.col("_group_index").first())
+        .sort("_group_index")
     )
     return frame, cell_frame, n_x, n_y, centers_frame["_center"].to_list()
 
@@ -121,9 +121,9 @@ def _get_group_bar_frame(
         .agg(
             pl.col("_y").min().alias("y_min"),
             pl.col("_y").max().alias("y_max"),
-            pl.col("_grp_idx").first(),
+            pl.col("_group_index").first(),
         )
-        .sort("_grp_idx")
+        .sort("_group_index")
         .with_columns(pl.lit(bar_x_mid).alias("x"))
     )
     return bar_frame, bar_x_mid
@@ -144,8 +144,8 @@ def _get_group_lines_frame(
     else:
         boundaries = (
             cell_frame.group_by(group_by, maintain_order=False)
-            .agg(pl.col("_y").max().alias("y_max"), pl.col("_grp_idx").first())
-            .sort("_grp_idx")
+            .agg(pl.col("_y").max().alias("y_max"), pl.col("_group_index").first())
+            .sort("_group_index")
             .head(n_groups - 1)["y_max"]
             .to_list()
         )
@@ -166,8 +166,8 @@ def _get_group_lines_frame(
 
 def heatmap(
     data: AnnData,
+    keys: Sequence[str],
     group_by: str,
-    keys: Sequence[str] | None = None,
     *,
     mapping: FeatureSpec | None = None,
     geom: Literal["raster", "tile"] = "raster",
@@ -205,10 +205,10 @@ def heatmap(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    group_by : str
-        The key to group the data by.
     keys : Sequence[str] | None, default=None
         Variable keys to include. If None, no additional keys are added.
+    group_by : str
+        The key to group the data by.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'

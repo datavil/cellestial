@@ -1,5 +1,4 @@
 from __future__ import annotations
-from matplotlib.pylab import ma
 
 import contextlib
 from collections.abc import Sequence
@@ -36,7 +35,7 @@ def dotplot(
     *,
     mapping: FeatureSpec | None = None,
     threshold: float = 0,
-    variables_name: str = "variable",
+    variable_column: str = "variable",
     color_low: str = "#e6e6e6",
     color_high: str = "#D2042D",
     sort_by: str | Sequence[str] | None = None,
@@ -62,10 +61,12 @@ def dotplot(
         The variable keys or names to include in the dotplot.
     group_by : str
         The key to group the data by.
+    mapping : FeatureSpec | None, default=None
+        Aesthetic mappings for the plot, the result of `aes()`.
     threshold : float, default=0
         The expression threshold to consider a gene as expressed.
-    variables_name : str, default='gene'
-        The name of the variable column in the long format.
+    variable_column : str, default='variable'
+        Name for the variable column after unpivoting.
     color_low : str, default='#e6e6e6'
         The low color for the gradient.
     color_high : str, default='#D2042D'
@@ -160,6 +161,7 @@ def dotplot(
         raise TypeError(msg)
 
     mapping = mapping or aes()
+    dendrogram_kwargs = dict(dendrogram_kwargs) if dendrogram_kwargs else {}
 
     # BUILD: dataframe
     frame = build_frame(
@@ -177,11 +179,11 @@ def dotplot(
     frame = frame.unpivot(
         on=keys,
         index=index_columns,
-        variable_name=variables_name,
+        variable_name=variable_column,
         value_name=value_name,
     )
     # 2. Aggregate and compute stats
-    frame = frame.group_by([group_by, variables_name]).agg(
+    frame = frame.group_by([group_by, variable_column]).agg(
         [
             pl.col(value_name).mean().alias(mean_key),
             (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
@@ -208,7 +210,7 @@ def dotplot(
     if frame[group_by].dtype == pl.Int64:
         frame = frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
 
-    dendrogram_kwargs = dict(dendrogram_kwargs) if dendrogram_kwargs else {}
+
 
     # DETERMINE: y order of groups
     if dendrogram:
@@ -226,13 +228,16 @@ def dotplot(
     x_pos = {k: i for i, k in enumerate(x_keys)}
     y_pos = {g: i for i, g in enumerate(y_order_groups)}
     frame = frame.with_columns(
-        pl.col(variables_name).replace_strict(x_pos, return_dtype=pl.Float64).alias("_x"),
-        pl.col(group_by).cast(pl.String).replace_strict(y_pos, return_dtype=pl.Float64).alias("_y"),
+        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("_x"),
+        pl.col(group_by)
+        .cast(pl.String)
+        .replace_strict(y_pos, return_dtype=pl.Float64)
+        .alias("_y"),
     )
 
     # HANDLE: tooltips
     if tooltips is None:
-        tooltips = [group_by, variables_name]
+        tooltips = [group_by, variable_column]
         tooltips_spec = layer_tooltips(tooltips)
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
@@ -252,15 +257,14 @@ def dotplot(
     scale = scale_fill_gradient if use_fill else scale_color_gradient
 
     dtplt = (
-        ggplot(frame, aes(x="_x", y="_y"))
+        ggplot(frame)
         + geom_point(
-            aes(size=percentage_key, **{color_or_fill: mean_key},**mapping.as_dict()),
+            aes(x="_x", y="_y",size=percentage_key, **{color_or_fill: mean_key}, **mapping.as_dict()),
             tooltips=tooltips_spec,
             **geom_kwargs,
         )
         + scale(low=color_low, high=color_high)
     )
-
 
     # AXES: discrete labels via continuous breaks
     dtplt += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)
