@@ -27,6 +27,7 @@ ty = "^0.0.17"
 pandas = "2.2.2" # pinned to avoid 3.0
 tqdm = "^4.67.3"
 pytest = "^9.0.3"
+pytest-cov = "^7.1.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"
@@ -36,6 +37,13 @@ ipython = "^9.10.0"
 furo = "^2025.12.19"
 sphinx-copybutton = "^0.5.2"
 sphinx-design = "^0.7.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=cellestial --cov-report=term-missing"
+
+[tool.coverage.run]
+data_file = "tests/.coverage"
 
 [build-system]
 requires = ["poetry-core"]
