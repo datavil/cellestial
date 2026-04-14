@@ -1,0 +1,741 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" display="block" class="plt-container" width="1100.0" height="450.0">
+  <style type="text/css">
+  .plt-container {
+   font-family: sans-serif;
+   user-select: none;
+   -webkit-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+}
+text {
+   text-rendering: optimizeLegibility;
+}
+#p3nECll .plot-title {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 16.0px;
+
+}
+#p3nECll .plot-subtitle {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 15.0px;
+
+}
+#p3nECll .plot-caption {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#p3nECll .plot-tag {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 16.0px;
+
+}
+#p3nECll .hyperlink-element {
+fill: #118ed8;
+font-weight: normal;
+font-style: normal;
+
+}
+#p3nECll .legend-title {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 15.0px;
+
+}
+#p3nECll .legend-item {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#p3nECll .axis-title-x {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 15.0px;
+
+}
+#p3nECll .axis-text-x {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#dGwK8yF .axis-tooltip-text-x {
+fill: #ffffff;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#p3nECll .axis-title-y {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 15.0px;
+
+}
+#p3nECll .axis-text-y {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#dGwK8yF .axis-tooltip-text-y {
+fill: #ffffff;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#p3nECll .facet-strip-text-x {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#p3nECll .facet-strip-text-y {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#dGwK8yF .tooltip-text {
+fill: #474747;
+font-weight: normal;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#dGwK8yF .tooltip-title {
+fill: #474747;
+font-weight: bold;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+#dGwK8yF .tooltip-label {
+fill: #474747;
+font-weight: bold;
+font-style: normal;
+font-family: sans-serif;
+font-size: 13.0px;
+
+}
+
+  </style>
+  <g id="p3nECll">
+    <path fill-rule="evenodd" fill="rgb(255,255,255)" fill-opacity="1.0" d="M0.0 0.0 L0.0 450.00000000000006 L1100.0 450.00000000000006 L1100.0 0.0 Z">
+    </path>
+    <g transform="translate(21.0 22.0 ) ">
+      <g>
+        <g transform="translate(35.01530667574961 19.0 ) ">
+          <g>
+          </g>
+        </g>
+        <g transform="translate(35.01530667574961 19.0 ) ">
+          <g>
+          </g>
+        </g>
+      </g>
+      <g clip-path="url(#cRLbcM8)" clip-bounds-jfx="[rect (35.01530667574961, 19.0), (441.3639998206162, 103.66666666666667)]">
+        <g transform="translate(35.01530667574961 19.0 ) ">
+          <g>
+            <g buffered-rendering="static">
+              <g>
+                <path d="M220.68199991030815 85.35665632706055 L220.68199991030815 85.35665632706055 " fill="none" stroke-width="2.2" stroke="rgb(55,126,184)" stroke-opacity="1.0">
+                </path>
+              </g>
+              <g>
+                <path d="M220.68199991030815 1.6898934898975426 L220.68199991030815 1.6898934898975426 " fill="none" stroke-width="2.2" stroke="rgb(228,26,28)" stroke-opacity="1.0">
+                </path>
+              </g>
+            </g>
+            <g buffered-rendering="static">
+              <g>
+                <g >
+                  <circle fill="#377eb8" stroke="#377eb8" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="85.35665632706055" r="3.3000000000000003" />
+                  <circle fill="#e41a1c" stroke="#e41a1c" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="1.6898934898975426" r="3.3000000000000003" />
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+        <defs>
+          <clipPath id="cQnzHl8">
+            <rect x="35.01530667574961" y="19.0" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+        <defs>
+          <clipPath id="cRLbcM8">
+            <rect x="35.01530667574961" y="19.0" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+      </g>
+      <g>
+        <g transform="translate(35.01530667574961 122.66666666666667 ) ">
+        </g>
+        <g transform="translate(35.01530667574961 19.0 ) ">
+          <g transform="translate(0.0 66.97011305464203 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.01</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 21.883593427213796 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.03</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="0.0" y2="103.66666666666667" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+      </g>
+      <rect x="35.01530667574961" y="0.0" height="19.0" width="441.3639998206162" stroke-width="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+      </rect>
+      <g transform="translate(255.69730658605772 13.4 ) ">
+        <text style="font-size:13.0px;" y="0.0" class="facet-strip-text-x" text-anchor="middle">
+          <tspan>dotplot</tspan>
+        </text>
+      </g>
+    </g>
+    <g transform="translate(21.0 22.0 ) ">
+      <g>
+        <g transform="translate(529.3752186275836 19.0 ) ">
+          <g>
+          </g>
+        </g>
+        <g transform="translate(529.3752186275836 19.0 ) ">
+          <g>
+          </g>
+        </g>
+      </g>
+      <g clip-path="url(#c6sf8Lb)" clip-bounds-jfx="[rect (529.3752186275836, 19.0), (441.3639998206162, 103.66666666666667)]">
+        <g transform="translate(529.3752186275836 19.0 ) ">
+          <g>
+            <g buffered-rendering="static">
+              <g>
+                <path d="M220.68199991030815 86.04854143475647 L220.68199991030815 86.04854143475647 " fill="none" stroke-width="2.2" stroke="rgb(55,126,184)" stroke-opacity="1.0">
+                </path>
+              </g>
+              <g>
+                <path d="M220.68199991030815 1.7309332913087587 L220.68199991030815 1.7309332913087587 " fill="none" stroke-width="2.2" stroke="rgb(228,26,28)" stroke-opacity="1.0">
+                </path>
+              </g>
+            </g>
+            <g buffered-rendering="static">
+              <g>
+                <g >
+                  <circle fill="#377eb8" stroke="#377eb8" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="86.04854143475647" r="3.3000000000000003" />
+                  <circle fill="#e41a1c" stroke="#e41a1c" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="1.7309332913087587" r="3.3000000000000003" />
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+        <defs>
+          <clipPath id="cNajCzi">
+            <rect x="529.3752186275836" y="19.0" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+        <defs>
+          <clipPath id="c6sf8Lb">
+            <rect x="529.3752186275836" y="19.0" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+      </g>
+      <g>
+        <g transform="translate(529.3752186275836 122.66666666666667 ) ">
+        </g>
+        <g transform="translate(529.3752186275836 19.0 ) ">
+          <g transform="translate(0.0 67.7756355481901 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.01</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 21.294883391607144 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.03</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="0.0" y2="103.66666666666667" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+      </g>
+      <rect x="529.3752186275836" y="0.0" height="19.0" width="441.3639998206162" stroke-width="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+      </rect>
+      <g transform="translate(750.0572185378917 13.4 ) ">
+        <text style="font-size:13.0px;" y="0.0" class="facet-strip-text-x" text-anchor="middle">
+          <tspan>heatmap</tspan>
+        </text>
+      </g>
+    </g>
+    <g transform="translate(21.0 22.0 ) ">
+      <g>
+        <g transform="translate(35.01530667574961 151.66666666666669 ) ">
+          <g>
+          </g>
+        </g>
+        <g transform="translate(35.01530667574961 151.66666666666669 ) ">
+          <g>
+          </g>
+        </g>
+      </g>
+      <g clip-path="url(#cQPUX3m)" clip-bounds-jfx="[rect (35.01530667574961, 151.66666666666669), (441.3639998206162, 103.66666666666667)]">
+        <g transform="translate(35.01530667574961 151.66666666666669 ) ">
+          <g>
+            <g buffered-rendering="static">
+              <g>
+                <path d="M220.68199991030815 96.10637421412912 L220.68199991030815 96.10637421412912 " fill="none" stroke-width="2.2" stroke="rgb(55,126,184)" stroke-opacity="1.0">
+                </path>
+              </g>
+              <g>
+                <path d="M220.68199991030815 3.096175212006358 L220.68199991030815 3.096175212006358 " fill="none" stroke-width="2.2" stroke="rgb(228,26,28)" stroke-opacity="1.0">
+                </path>
+              </g>
+            </g>
+            <g buffered-rendering="static">
+              <g>
+                <g >
+                  <circle fill="#377eb8" stroke="#377eb8" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="96.10637421412912" r="3.3000000000000003" />
+                  <circle fill="#e41a1c" stroke="#e41a1c" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="3.096175212006358" r="3.3000000000000003" />
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+        <defs>
+          <clipPath id="c6Ma9yz">
+            <rect x="35.01530667574961" y="151.66666666666669" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+        <defs>
+          <clipPath id="cQPUX3m">
+            <rect x="35.01530667574961" y="151.66666666666669" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+      </g>
+      <g>
+        <g transform="translate(35.01530667574961 255.33333333333337 ) ">
+        </g>
+        <g transform="translate(35.01530667574961 151.66666666666669 ) ">
+          <g transform="translate(0.0 98.73481362662704 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.03</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 48.01666950400244 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.04</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="0.0" y2="103.66666666666667" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+      </g>
+      <rect x="35.01530667574961" y="132.66666666666669" height="19.0" width="441.3639998206162" stroke-width="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+      </rect>
+      <g transform="translate(255.69730658605772 146.0666666666667 ) ">
+        <text style="font-size:13.0px;" y="0.0" class="facet-strip-text-x" text-anchor="middle">
+          <tspan>umap_cluster</tspan>
+        </text>
+      </g>
+    </g>
+    <g transform="translate(21.0 22.0 ) ">
+      <g>
+        <g transform="translate(529.3752186275836 151.66666666666669 ) ">
+          <g>
+          </g>
+        </g>
+        <g transform="translate(529.3752186275836 151.66666666666669 ) ">
+          <g>
+          </g>
+        </g>
+      </g>
+      <g clip-path="url(#cID1tXD)" clip-bounds-jfx="[rect (529.3752186275836, 151.66666666666669), (441.3639998206162, 103.66666666666667)]">
+        <g transform="translate(529.3752186275836 151.66666666666669 ) ">
+          <g>
+            <g buffered-rendering="static">
+              <g>
+                <path d="M220.68199991030815 96.71907036655978 L220.68199991030815 96.71907036655978 " fill="none" stroke-width="2.2" stroke="rgb(55,126,184)" stroke-opacity="1.0">
+                </path>
+              </g>
+              <g>
+                <path d="M220.68199991030815 3.3147098313160086 L220.68199991030815 3.3147098313160086 " fill="none" stroke-width="2.2" stroke="rgb(228,26,28)" stroke-opacity="1.0">
+                </path>
+              </g>
+            </g>
+            <g buffered-rendering="static">
+              <g>
+                <g >
+                  <circle fill="#377eb8" stroke="#377eb8" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="96.71907036655978" r="3.3000000000000003" />
+                  <circle fill="#e41a1c" stroke="#e41a1c" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="3.3147098313160086" r="3.3000000000000003" />
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+        <defs>
+          <clipPath id="cOirX2I">
+            <rect x="529.3752186275836" y="151.66666666666669" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+        <defs>
+          <clipPath id="cID1tXD">
+            <rect x="529.3752186275836" y="151.66666666666669" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+      </g>
+      <g>
+        <g transform="translate(529.3752186275836 255.33333333333337 ) ">
+          <g transform="translate(87.81819695807076 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>1,000</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(176.09099692219388 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>1,585</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(264.36379688631723 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>2,512</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(352.6365968504406 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>3,981</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(440.90939681456393 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>6,310</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="441.3639998206162" y2="0.0" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+        <g transform="translate(529.3752186275836 151.66666666666669 ) ">
+          <g transform="translate(0.0 73.24747702717241 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.032</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 42.591845365162555 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.04</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 11.936213703152589 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.05</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="0.0" y2="103.66666666666667" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+      </g>
+      <rect x="529.3752186275836" y="132.66666666666669" height="19.0" width="441.3639998206162" stroke-width="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+      </rect>
+      <g transform="translate(750.0572185378917 146.0666666666667 ) ">
+        <text style="font-size:13.0px;" y="0.0" class="facet-strip-text-x" text-anchor="middle">
+          <tspan>umap_gene</tspan>
+        </text>
+      </g>
+    </g>
+    <g transform="translate(21.0 22.0 ) ">
+      <g>
+        <g transform="translate(35.01530667574961 284.33333333333337 ) ">
+          <g>
+          </g>
+        </g>
+        <g transform="translate(35.01530667574961 284.33333333333337 ) ">
+          <g>
+          </g>
+        </g>
+      </g>
+      <g clip-path="url(#c9WeVjg)" clip-bounds-jfx="[rect (35.01530667574961, 284.33333333333337), (441.3639998206162, 103.66666666666667)]">
+        <g transform="translate(35.01530667574961 284.33333333333337 ) ">
+          <g>
+            <g buffered-rendering="static">
+              <g>
+                <path d="M220.68199991030815 2.975088260304176 L220.68199991030815 2.975088260304176 " fill="none" stroke-width="2.2" stroke="rgb(55,126,184)" stroke-opacity="1.0">
+                </path>
+              </g>
+              <g>
+                <path d="M220.68199991030815 95.71133804850771 L220.68199991030815 95.71133804850771 " fill="none" stroke-width="2.2" stroke="rgb(228,26,28)" stroke-opacity="1.0">
+                </path>
+              </g>
+            </g>
+            <g buffered-rendering="static">
+              <g>
+                <g >
+                  <circle fill="#377eb8" stroke="#377eb8" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="2.975088260304176" r="3.3000000000000003" />
+                  <circle fill="#e41a1c" stroke="#e41a1c" stroke-opacity="0.0" stroke-width="0.0" cx="220.68199991030815" cy="95.71133804850771" r="3.3000000000000003" />
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+        <defs>
+          <clipPath id="c9f83dN">
+            <rect x="35.01530667574961" y="284.33333333333337" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+        <defs>
+          <clipPath id="c9WeVjg">
+            <rect x="35.01530667574961" y="284.33333333333337" width="441.3639998206162" height="103.66666666666667">
+            </rect>
+          </clipPath>
+        </defs>
+      </g>
+      <g>
+        <g transform="translate(35.01530667574961 388.00000000000006 ) ">
+          <g transform="translate(87.81819695807076 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>1,000</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(176.09099692219388 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>1,585</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(264.36379688631723 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>2,512</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(352.6365968504406 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>3,981</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(440.90939681456393 0.0 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="0.0" y2="4.0">
+            </line>
+            <g transform="translate(0.0 6.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-x" text-anchor="middle" dy="0.7em">
+                <tspan>6,310</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="441.3639998206162" y2="0.0" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+        <g transform="translate(35.01530667574961 284.33333333333337 ) ">
+          <g transform="translate(0.0 79.4745095346023 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.1</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 33.506191158431335 ) ">
+            <line stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" x2="-4.0" y2="0.0">
+            </line>
+            <g transform="translate(-6.0 0.0 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="axis-text-y" text-anchor="end" dy="0.35em">
+                <tspan>0.16</tspan>
+              </text>
+            </g>
+          </g>
+          <line x1="0.0" y1="0.0" x2="0.0" y2="103.66666666666667" stroke-width="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+          </line>
+        </g>
+      </g>
+      <rect x="35.01530667574961" y="265.33333333333337" height="19.0" width="441.3639998206162" stroke-width="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke="rgb(71,71,71)" stroke-opacity="1.0">
+      </rect>
+      <g transform="translate(255.69730658605772 278.73333333333335 ) ">
+        <text style="font-size:13.0px;" y="0.0" class="facet-strip-text-x" text-anchor="middle">
+          <tspan>violin</tspan>
+        </text>
+      </g>
+    </g>
+    <g transform="translate(56.01530667574961 15.8 ) ">
+      <text style="font-size:16.0px;" y="0.0" class="plot-title">
+        <tspan>Scaling — total</tspan>
+      </text>
+    </g>
+    <g transform="translate(15.0 225.50000000000003 ) rotate(-90.0 ) ">
+      <text style="font-size:15.0px;" y="0.0" class="axis-title-y" text-anchor="middle">
+        <tspan>total time (s)</tspan>
+      </text>
+    </g>
+    <g transform="translate(523.8772625619747 444.00000000000006 ) ">
+      <text style="font-size:15.0px;" y="0.0" class="axis-title-x" text-anchor="middle">
+        <tspan>n cells</tspan>
+      </text>
+    </g>
+    <g transform="translate(994.7392184481998 186.25000000000003 ) ">
+      <rect x="0.0" y="0.0" height="78.5" width="102.26078155180015" stroke="rgb(71,71,71)" stroke-opacity="1.0" stroke-width="0.0" fill="rgb(255,255,255)" fill-opacity="1.0">
+      </rect>
+      <g transform="translate(5.0 5.0 ) ">
+        <g transform="translate(0.0 12.0 ) ">
+          <text style="font-size:15.0px;" y="0.0" class="legend-title">
+            <tspan>framework</tspan>
+          </text>
+        </g>
+        <g transform="translate(0.0 22.5 ) ">
+          <g transform="">
+            <g>
+              <g transform="translate(1.0 1.0 ) ">
+                <g>
+                  <line x1="0.0" y1="10.5" x2="21.0" y2="10.5" stroke="rgb(55,126,184)" stroke-opacity="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke-width="1.6500000000000001">
+                  </line>
+                </g>
+                <g>
+                  <g >
+                    <circle fill="#377eb8" stroke="#377eb8" stroke-opacity="0.0" stroke-width="0.0" cx="10.5" cy="10.5" r="5.5" />
+                  </g>
+                </g>
+              </g>
+            </g>
+            <g transform="translate(26.9903027277341 11.5 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="legend-item" dy="0.35em">
+                <tspan>cellestial</tspan>
+              </text>
+            </g>
+          </g>
+          <g transform="translate(0.0 23.0 ) ">
+            <g>
+              <g transform="translate(1.0 1.0 ) ">
+                <g>
+                  <line x1="0.0" y1="10.5" x2="21.0" y2="10.5" stroke="rgb(228,26,28)" stroke-opacity="1.0" fill="rgb(255,255,255)" fill-opacity="1.0" stroke-width="1.6500000000000001">
+                  </line>
+                </g>
+                <g>
+                  <g >
+                    <circle fill="#e41a1c" stroke="#e41a1c" stroke-opacity="0.0" stroke-width="0.0" cx="10.5" cy="10.5" r="5.5" />
+                  </g>
+                </g>
+              </g>
+            </g>
+            <g transform="translate(26.9903027277341 11.5 ) ">
+              <text style="font-size:13.0px;" y="0.0" class="legend-item" dy="0.35em">
+                <tspan>scanpy</tspan>
+              </text>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+    <path fill="rgb(0,0,0)" fill-opacity="0.0" stroke="rgb(71,71,71)" stroke-opacity="1.0" stroke-width="0.0" d="M0.0 0.0 L0.0 450.00000000000006 L1100.0 450.00000000000006 L1100.0 0.0 Z" pointer-events="none">
+    </path>
+  </g>
+  <g id="dGwK8yF">
+  </g>
+</svg>
