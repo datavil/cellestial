@@ -9,12 +9,14 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     geom_point,
+    geom_rect,
     geom_segment,
     ggplot,
     ggtb,
     layer_tooltips,
     scale_color_gradient,
     scale_fill_gradient,
+    scale_size,
     scale_x_continuous,
     scale_y_continuous,
 )
@@ -22,7 +24,12 @@ from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DOTPLOT
-from cellestial.util import _get_dendrogram, _get_dendrogram_segment_frame
+from cellestial.util import (
+    _color_gradient,
+    _fill_gradient,
+    _get_dendrogram,
+    _get_dendrogram_segment_frame,
+)
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -35,17 +42,23 @@ def dotplot(
     *,
     mapping: FeatureSpec | None = None,
     threshold: float = 0,
+    size_scale: float = 1.0,
     variable_column: str = "variable",
     color_low: str = "#e6e6e6",
+    color_mid: str | None = None,
     color_high: str = "#D2042D",
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
     percentage_key: str = "pct_exp",
     mean_key: str = "avg_exp",
+    rectangle: bool = True,
     dendrogram: bool = False,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_kwargs: dict | None = None,
+    rectangle_size: float = 0.4,
+    rectangle_color: str = "#3f3f3f",
+    rectangle_kwargs: dict | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -65,12 +78,16 @@ def dotplot(
         Aesthetic mappings for the plot, the result of `aes()`.
     threshold : float, default=0
         The expression threshold to consider a gene as expressed.
+    point_size : float, default=1.0
+        Scaling factor for the point sizes in the plot.
     variable_column : str, default='variable'
         Name for the variable column after unpivoting.
     color_low : str, default='#e6e6e6'
-        The low color for the gradient.
+        Color for low values in the gradient.
+    color_mid : str | None, default=None
+        Color for mid values in the gradient.
     color_high : str, default='#D2042D'
-        The high color for the gradient.
+        Color for high values in the gradient.
     fill : bool, optional
         Whether to use fill aesthetic instead of color, by default False.
     sort_by : str | None
@@ -81,6 +98,8 @@ def dotplot(
         The name of the percentage column.
     mean_key : str, default='avg_exp'
         The name of the mean expression column.
+    rectangle : bool, default=True
+        Whether to add a rectangle border around the data area
     dendrogram : bool, default=False
         Whether to add a dendrogram for the ``group_by`` axis.
         Uses ``scanpy.tl.dendrogram`` if not already computed.
@@ -91,6 +110,12 @@ def dotplot(
         Size (thickness) of the dendrogram segments.
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_segment.
+    rectangle_size : float, default=0.4
+        Size (thickness) of the rectangle border.
+    rectangle_color : str, default='#3f3f3f'
+        Color of the rectangle border.
+    rectangle_kwargs : dict | None, default=None
+        Additional parameters to pass to the rectangle geom_rect.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -161,7 +186,6 @@ def dotplot(
         raise TypeError(msg)
 
     mapping = mapping or aes()
-    dendrogram_kwargs = dict(dendrogram_kwargs) if dendrogram_kwargs else {}
 
     # BUILD: dataframe
     frame = build_frame(
@@ -169,6 +193,8 @@ def dotplot(
         axis=0,
         variable_keys=keys,
     )
+    # DROP: rows with null group_by to avoid null labels downstream
+    frame = frame.filter(pl.col(group_by).is_not_null())
     index_columns = [x for x in frame.columns if x not in keys]
 
     # CRITICAL PARTS: Dataframe Operations
@@ -209,8 +235,6 @@ def dotplot(
     # Cast back to categorical
     if frame[group_by].dtype == pl.Int64:
         frame = frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
-
-
 
     # DETERMINE: y order of groups
     if dendrogram:
@@ -254,16 +278,37 @@ def dotplot(
     # BUILD: Dotplot
     use_fill = "fill" in mapping.as_dict()
     color_or_fill = "fill" if use_fill else "color"
-    scale = scale_fill_gradient if use_fill else scale_color_gradient
+    _gradient = _fill_gradient if use_fill else _color_gradient
+
+    # DEFINE: mapping with defaults
+    _mapping = {
+        "x": "_x",
+        "y": "_y",
+        "size": percentage_key,
+        color_or_fill: mean_key,
+    }
+    _mapping.update(mapping.as_dict())
+
+    # Adjust point size range (keeps aes(size=...) mapping and its legend):
+    n_max = max(n_x, n_y)
+    size_max = 120 / n_max * size_scale
+    _size_scale = scale_size(range=[size_max * 0.1, size_max])
 
     dtplt = (
         ggplot(frame)
         + geom_point(
-            aes(x="_x", y="_y",size=percentage_key, **{color_or_fill: mean_key}, **mapping.as_dict()),
+            aes(**_mapping),
             tooltips=tooltips_spec,
             **geom_kwargs,
         )
-        + scale(low=color_low, high=color_high)
+        + _gradient(
+            frame[mean_key],
+            color_low=color_low,
+            color_mid=color_mid,
+            color_high=color_high,
+            mid_point="mid",
+        )
+        + _size_scale
     )
 
     # AXES: discrete labels via continuous breaks
@@ -281,7 +326,24 @@ def dotplot(
             mapping=aes(x="x", y="y", xend="xend", yend="yend"),
             color=dendrogram_color,
             size=dendrogram_size,
-            **dendrogram_kwargs,
+            **(dendrogram_kwargs or {}),
+        )
+
+    # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
+    if rectangle:
+        dtplt += geom_rect(
+            data={
+                "xmin": [-0.5],
+                "xmax": [n_x - 0.5],
+                "ymin": [-0.5],
+                "ymax": [n_y - 0.5],
+            },
+            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
+            color=rectangle_color,
+            size=rectangle_size,
+            fill="rgba(0,0,0,0)",
+            inherit_aes=False,
+            **(rectangle_kwargs or {}),
         )
 
     # ADD: layers
