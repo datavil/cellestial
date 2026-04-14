@@ -311,23 +311,37 @@ def dotplot(
         + _size_scale
     )
 
-    # AXES: discrete labels via continuous breaks
-    dtplt += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)
-    dtplt += scale_y_continuous(breaks=list(range(n_y)), labels=y_order_groups)
-
-    # DENDROGRAM (right side, along y-axis)
+    # DENDROGRAM (right side, along y-axis) — built first so we can derive tight x limits
+    x_max_limit = n_x - 0.5
     if dendrogram:
         group_centers = [float(i) for i in range(n_y)]
-        dendro_frame = _get_dendrogram_segment_frame(
+        dendrogram_frame = _get_dendrogram_segment_frame(
             segments, n_x=n_x, n_groups=n_y, group_centers=group_centers
         )
+        x_max_limit = float(
+            max(dendrogram_frame["x"].max(), dendrogram_frame["xend"].max())
+        )
         dtplt += geom_segment(
-            data=dendro_frame,
+            data=dendrogram_frame,
             mapping=aes(x="x", y="y", xend="xend", yend="yend"),
             color=dendrogram_color,
             size=dendrogram_size,
             **(dendrogram_kwargs or {}),
         )
+
+    # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
+    dtplt += scale_x_continuous(
+        breaks=list(range(n_x)),
+        labels=x_keys,
+        limits=[-0.5, x_max_limit],
+        expand=[0, 0],
+    )
+    dtplt += scale_y_continuous(
+        breaks=list(range(n_y)),
+        labels=y_order_groups,
+        limits=[-0.5, n_y - 0.5],
+        expand=[0, 0],
+    )
 
     # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
     if rectangle:

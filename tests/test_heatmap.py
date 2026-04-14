@@ -101,6 +101,50 @@ def test_dotplot_invalid_gene(adata, group_key):
         cl.dotplot(adata, keys=["NOT_A_GENE_xyz"], group_by=group_key)
 
 
+def test_dotplot_dendrogram(adata, markers, group_key):
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, dendrogram=True)
+    assert isinstance(plot, PlotSpec)
+    # Render to SVG so lets-plot validates the computed x/y limits against all layers.
+    assert plot.to_svg() is not None
+
+
+def test_dotplot_dendrogram_without_rectangle(adata, markers, group_key):
+    plot = cl.dotplot(
+        adata, keys=markers, group_by=group_key, dendrogram=True, rectangle=False
+    )
+    assert isinstance(plot, PlotSpec)
+    assert plot.to_svg() is not None
+
+
+def test_dotplot_single_key(adata, group_key):
+    # n_x == 1: x limits collapse to [-0.5, 0.5]; dendrogram extends rightward.
+    plot = cl.dotplot(adata, keys=["CD3D"], group_by=group_key, dendrogram=True)
+    assert isinstance(plot, PlotSpec)
+    assert plot.to_svg() is not None
+
+
+def test_dotplot_dendrogram_custom_style(adata, markers, group_key):
+    plot = cl.dotplot(
+        adata,
+        keys=markers,
+        group_by=group_key,
+        dendrogram=True,
+        dendrogram_color="blue",
+        dendrogram_size=1.2,
+    )
+    assert isinstance(plot, PlotSpec)
+    assert plot.to_svg() is not None
+
+
+def test_dotplot_no_dendrogram_no_rectangle(adata, markers, group_key):
+    # Fallback path: x_max_limit should default to n_x - 0.5.
+    plot = cl.dotplot(
+        adata, keys=markers, group_by=group_key, dendrogram=False, rectangle=False
+    )
+    assert isinstance(plot, PlotSpec)
+    assert plot.to_svg() is not None
+
+
 # ---- highest_expressed_genes ----
 
 
