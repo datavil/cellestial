@@ -12,10 +12,14 @@ The patched UMAP/PCA coordinates are random — we are benchmarking the
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
+import anndata as ad
 import numpy as np
 import scanpy as sc
 from anndata import AnnData
+
+LOCAL_DATA_DIR = Path("~/data").expanduser()
 
 
 @dataclass(frozen=True)
@@ -48,7 +52,7 @@ def load_pbmc68k_reduced() -> DatasetSpec:
         name="pbmc68k_reduced",
         adata=adata,
         cluster_key=cluster_key,
-        gene_keys=_pick_genes(adata, n=10),
+        gene_keys=_pick_genes(adata, n=40),
     )
 
 
@@ -59,7 +63,7 @@ def load_pbmc3k_processed() -> DatasetSpec:
         name="pbmc3k_processed",
         adata=adata,
         cluster_key=cluster_key,
-        gene_keys=_pick_genes(adata, n=10),
+        gene_keys=_pick_genes(adata, n=40),
     )
 
 
@@ -71,7 +75,7 @@ def load_pbmc3k() -> DatasetSpec:
         name="pbmc3k",
         adata=adata,
         cluster_key="cluster",
-        gene_keys=_pick_genes(adata, n=10),
+        gene_keys=_pick_genes(adata, n=40),
     )
 
 
@@ -90,7 +94,7 @@ def load_paul15() -> DatasetSpec:
         name="paul15",
         adata=adata,
         cluster_key="paul15_clusters",
-        gene_keys=_pick_genes(adata, n=10),
+        gene_keys=_pick_genes(adata, n=40),
     )
 
 
@@ -108,7 +112,7 @@ def load_ebi_expression_atlas(
         name=f"ebi_{accession}",
         adata=adata,
         cluster_key="cluster",
-        gene_keys=_pick_genes(adata, n=10),
+        gene_keys=_pick_genes(adata, n=40),
     )
 
 
@@ -162,7 +166,7 @@ def load_blobs(
         name=f"blobs_{n_observations}",
         adata=adata,
         cluster_key="cluster",
-        gene_keys=_pick_genes(adata, n=10),
+        gene_keys=_pick_genes(adata, n=40),
     )
 
 
@@ -172,4 +176,77 @@ REAL_LOADERS = {
     "pbmc3k": load_pbmc3k,
     "paul15": load_paul15,
     "ebi_expression_atlas": load_ebi_expression_atlas,
+}
+
+
+def _autodetect_cluster_key(adata: AnnData) -> str:
+    """Pick the categorical obs column with the most reasonable group count."""
+    candidates: list[tuple[str, int]] = []
+    for column_name in adata.obs.columns:
+        series = adata.obs[column_name]
+        if series.dtype.name == "category" or series.dtype == object:
+            n_unique = series.nunique(dropna=True)
+            if 2 <= n_unique <= 100:
+                candidates.append((column_name, n_unique))
+    if not candidates:
+        raise ValueError("No suitable cluster column found in adata.obs")
+    preferred = ("cell_type", "celltype", "cluster", "clusters", "leiden", "louvain")
+    for name in preferred:
+        for column_name, _ in candidates:
+            if column_name.lower() == name:
+                return column_name
+    candidates.sort(key=lambda item: item[1])
+    return candidates[0][0]
+
+
+def load_local_h5ad(
+    path: Path | str,
+    *,
+    name: str | None = None,
+    cluster_key: str | None = None,
+    n_genes: int = 40,
+    subsample: int | None = None,
+    seed: int = 0,
+) -> DatasetSpec:
+    """Load a local .h5ad file and wrap it as a DatasetSpec.
+
+    Missing UMAP/PCA embeddings are patched with synthetic ones so we remain
+    focused on benchmarking the plotting pipeline. ``subsample`` caps the
+    number of cells (random without replacement) to keep iteration quick on
+    very large atlases.
+    """
+    resolved = Path(path).expanduser()
+    if not resolved.exists():
+        raise FileNotFoundError(f"Local h5ad not found: {resolved}")
+    adata = ad.read_h5ad(resolved)
+    if subsample is not None and adata.n_obs > subsample:
+        rng = np.random.default_rng(seed)
+        indices = rng.choice(adata.n_obs, size=subsample, replace=False)
+        indices.sort()
+        adata = adata[indices].to_memory() if hasattr(adata, "to_memory") else adata[indices].copy()
+    if cluster_key is None:
+        cluster_key = _autodetect_cluster_key(adata)
+    if adata.obs[cluster_key].dtype.name != "category":
+        adata.obs[cluster_key] = adata.obs[cluster_key].astype("category")
+    if "X_umap" not in adata.obsm or "X_pca" not in adata.obsm:
+        n_centers = max(2, int(adata.obs[cluster_key].nunique()))
+        _patch_synthetic_embeddings(adata, n_centers=min(n_centers, 20), seed=7)
+    return DatasetSpec(
+        name=name or resolved.stem,
+        adata=adata,
+        cluster_key=cluster_key,
+        gene_keys=_pick_genes(adata, n=n_genes),
+    )
+
+
+def load_breast_cancer_atlas(*, subsample: int | None = None) -> DatasetSpec:
+    return load_local_h5ad(
+        LOCAL_DATA_DIR / "breast_cancer_atlas.h5ad",
+        name="breast_cancer_atlas" if subsample is None else f"breast_cancer_atlas_{subsample}",
+        subsample=subsample,
+    )
+
+
+LOCAL_LOADERS = {
+    "breast_cancer_atlas": load_breast_cancer_atlas,
 }

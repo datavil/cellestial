@@ -39,6 +39,10 @@ def _render_lets_plot(plot) -> None:
     plot.to_svg()
 
 
+def _render_lets_plot_html(plot) -> None:
+    plot.to_html()
+
+
 def _render_matplotlib(fig) -> None:
     buf = io.BytesIO()
     fig.savefig(buf, format="svg")
@@ -46,13 +50,15 @@ def _render_matplotlib(fig) -> None:
 
 
 # ---------- cellestial constructors ----------
+# sampling='none' disables lets-plot's default point sampling (~100k cap) so
+# large datasets are fully rendered, matching scanpy's no-sampling behavior.
 
 def _cl_umap_gene(adata: AnnData, ctx: dict):
-    return cl.expression(adata, key=ctx["gene"])
+    return cl.expression(adata, key=ctx["gene"], sampling="none")
 
 
 def _cl_umap_cluster(adata: AnnData, ctx: dict):
-    return cl.umap(adata, key=ctx["cluster_key"])
+    return cl.umap(adata, key=ctx["cluster_key"], sampling="none")
 
 
 def _cl_dotplot(adata: AnnData, ctx: dict):
@@ -116,9 +122,13 @@ CASES: dict[str, Case] = {
 }
 
 
-def render_for(framework: str) -> Callable[[Any], None]:
+def render_for(framework: str, *, fmt: str = "svg") -> Callable[[Any], None]:
     if framework == "cellestial":
-        return _render_lets_plot
+        if fmt == "svg":
+            return _render_lets_plot
+        if fmt == "html":
+            return _render_lets_plot_html
+        raise ValueError(fmt)
     if framework == "scanpy":
         return _render_matplotlib
     raise ValueError(framework)

@@ -101,7 +101,7 @@ def _run_case_framework(
         "framework": framework,
         "n_repeats": repeats,
     }
-    return [
+    rows = [
         Row(
             **base,
             phase="construct",
@@ -127,6 +127,47 @@ def _run_case_framework(
             peak_mem_mb=peak_mem,
         ),
     ]
+
+    # cellestial also supports HTML rendering via lets-plot's to_html().
+    if framework == "cellestial":
+        render_html = render_for(framework, fmt="html")
+
+        def _render_html_once() -> None:
+            plot = construct(adata, ctx)
+            render_html(plot)
+
+        total_html_stats = time_it(_render_html_once, warmup=warmup, repeats=repeats)
+
+        prebuilt_html = [construct(adata, ctx) for _ in range(repeats + warmup)]
+        idx_html = {"i": 0}
+
+        def _render_html_prebuilt() -> None:
+            render_html(prebuilt_html[idx_html["i"]])
+            idx_html["i"] += 1
+
+        render_html_stats = time_it(_render_html_prebuilt, warmup=warmup, repeats=repeats)
+        peak_mem_html = measure_peak_memory_mb(_render_html_once)
+
+        rows.extend([
+            Row(
+                **base,
+                phase="render_html",
+                time_median_s=render_html_stats.median,
+                time_iqr_s=render_html_stats.iqr,
+                time_min_s=render_html_stats.min,
+                peak_mem_mb=0.0,
+            ),
+            Row(
+                **base,
+                phase="total_html",
+                time_median_s=total_html_stats.median,
+                time_iqr_s=total_html_stats.iqr,
+                time_min_s=total_html_stats.min,
+                peak_mem_mb=peak_mem_html,
+            ),
+        ])
+
+    return rows
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -201,9 +242,17 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     rows.extend(case_rows)
                     total = next(r for r in case_rows if r.phase == "total")
+                    total_html = next(
+                        (r for r in case_rows if r.phase == "total_html"), None
+                    )
+                    extra = (
+                        f"  total_html={total_html.time_median_s * 1000:7.1f}ms"
+                        if total_html
+                        else ""
+                    )
                     print(
                         f"total={total.time_median_s * 1000:7.1f}ms  "
-                        f"peak={total.peak_mem_mb:6.1f}MB"
+                        f"peak={total.peak_mem_mb:6.1f}MB{extra}"
                     )
                 except Exception as exc:  # noqa: BLE001
                     print(f"FAILED: {exc!r}")
