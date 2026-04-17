@@ -11,6 +11,7 @@ from lets_plot import (
     element_line,
     geom_path,
     geom_point,
+    geom_rect,
     ggplot,
     ggtb,
     layer_tooltips,
@@ -177,10 +178,10 @@ def dotplot(
             keys=markers,
             group_by="cell_type_lvl1",
             dendrogram=True,
-            dendrogram_color="blue",
+            dendrogram_color="gray",
             dendrogram_size=1,
-            rectangle_color="blue",
-            rectangle_size=1,
+            rectangle_color="gray",
+            rectangle_size=3,
         )
         dot
 
@@ -348,15 +349,17 @@ def dotplot(
 
     # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
     if rectangle:
-        dtplt += geom_path(
+        dtplt += geom_rect(
             data={
-                "x": [-0.5, n_x - 0.5, n_x - 0.5, -0.5, -0.5],
-                "y": [-0.5, -0.5, n_y - 0.5, n_y - 0.5, -0.5],
-                "group": [0, 0, 0, 0, 0],
+                "xmin": [-0.5],
+                "xmax": [n_x - 0.5],
+                "ymin": [-0.5],
+                "ymax": [n_y - 0.5],
             },
-            mapping=aes(x="x", y="y", group="group"),
+            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
             color=rectangle_color,
             size=rectangle_size,
+            fill="rgba(0,0,0,0)",
             inherit_aes=False,
             **(rectangle_kwargs or {}),
         )
