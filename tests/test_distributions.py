@@ -5,7 +5,6 @@ from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 
-
 # ---- violin / boxplot (singular) ----
 
 
@@ -113,9 +112,7 @@ def test_ridges_multiple(adata, group_key):
 
 
 def test_ridges_ncol(adata, group_key):
-    plot = cl.ridges(
-        adata, keys=["CD14", "MS4A1", "NKG7", "CST3"], group_by=group_key, ncol=2
-    )
+    plot = cl.ridges(adata, keys=["CD14", "MS4A1", "NKG7", "CST3"], group_by=group_key, ncol=2)
     assert isinstance(plot, SupPlotsSpec)
 
 

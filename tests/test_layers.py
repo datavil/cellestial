@@ -35,9 +35,7 @@ def test_cluster_outlines_multiple_groups(adata, group_key):
 
 def test_cluster_outlines_nested_groups(adata, group_key):
     umap = cl.umap(adata, key=group_key)
-    outline = cl.cluster_outlines(
-        umap, groups=[["Lymphocytes", "Monocytes"], "B Cells"]
-    )
+    outline = cl.cluster_outlines(umap, groups=[["Lymphocytes", "Monocytes"], "B Cells"])
     combined = umap + outline
     assert isinstance(combined, PlotSpec)
 

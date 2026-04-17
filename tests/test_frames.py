@@ -18,9 +18,7 @@ def test_build_frame_obs_axis_with_dims(adata):
 
 
 def test_build_frame_variable_keys_infers_axis(adata):
-    frame = cl.build_frame(
-        adata, variable_keys=["CD14", "MS4A1"], include_dimensions=2
-    )
+    frame = cl.build_frame(adata, variable_keys=["CD14", "MS4A1"], include_dimensions=2)
     assert isinstance(frame, pl.DataFrame)
     assert "CD14" in frame.columns
     assert "MS4A1" in frame.columns

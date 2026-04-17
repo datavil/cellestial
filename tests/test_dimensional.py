@@ -5,7 +5,6 @@ from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 
-
 # ---- singular: dimensional / umap / pca / tsne ----
 
 
