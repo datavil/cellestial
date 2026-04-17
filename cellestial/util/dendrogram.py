@@ -47,7 +47,16 @@ def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFra
             yend.append(float(dcoord[i][j + 1]))
 
     segments = pl.DataFrame({"x": x, "xend": xend, "y": y, "yend": yend})
-    return categories_ordered, segments
+
+    path_x, path_y, path_group = [], [], []
+    for i in range(len(icoord)):
+        for j in range(icoord.shape[1]):
+            path_x.append(float(icoord[i][j]))
+            path_y.append(float(dcoord[i][j]))
+            path_group.append(i)
+    paths = pl.DataFrame({"x": path_x, "y": path_y, "group": path_group})
+
+    return categories_ordered, segments, paths
 
 
 def _get_dendrogram_segment_frame(
@@ -71,5 +80,28 @@ def _get_dendrogram_segment_frame(
             "xend": (n_x - 0.5) + segments["yend"].to_numpy() * y_dendrogram_size,
             "y": seg_y,
             "yend": seg_yend,
+        }
+    )
+
+
+def _get_dendrogram_path_frame(
+    paths: pl.DataFrame,
+    *,
+    n_x: int,
+    n_groups: int,
+    group_centers: list[float],
+    dendrogram_ratio: float = 0.15,
+) -> pl.DataFrame:
+    """Map normalized dendrogram paths into plot coordinates (right side along y-axis)."""
+    import numpy as np
+
+    y_dendrogram_size = n_x * dendrogram_ratio
+    leaf_xp = np.arange(n_groups, dtype=float)
+    plot_y = np.interp(paths["x"].to_numpy(), leaf_xp, group_centers)
+    return pl.DataFrame(
+        {
+            "x": (n_x - 0.5) + paths["y"].to_numpy() * y_dendrogram_size,
+            "y": plot_y,
+            "group": paths["group"],
         }
     )

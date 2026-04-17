@@ -1,4 +1,8 @@
-from cellestial.util.dendrogram import _get_dendrogram, _get_dendrogram_segment_frame
+from cellestial.util.dendrogram import (
+    _get_dendrogram,
+    _get_dendrogram_path_frame,
+    _get_dendrogram_segment_frame,
+)
 from cellestial.util.legends import _legend_ondata
 from cellestial.util.operations import get_mapping, get_slice, retrieve
 from cellestial.util.utilities import (
@@ -19,6 +23,7 @@ __all__ = [
     "_determine_axis",
     "_fill_gradient",
     "_get_dendrogram",
+    "_get_dendrogram_path_frame",
     "_get_dendrogram_segment_frame",
     "_is_observation_key",
     "_is_variable_key",

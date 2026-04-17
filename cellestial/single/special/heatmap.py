@@ -8,6 +8,7 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     element_blank,
+    geom_path,
     geom_raster,
     geom_segment,
     geom_tile,
@@ -21,7 +22,7 @@ from lets_plot import (
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_segment_frame
+from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -67,7 +68,7 @@ def _assign_positions(
     n_x = len(x_keys)
     x_pos = {k: i for i, k in enumerate(x_keys)}
     frame = frame.with_columns(
-        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("_x")
+        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("position_x")
     )
 
     if aggregate:
@@ -77,7 +78,7 @@ def _assign_positions(
             pl.col(group_by)
             .cast(pl.String)
             .replace_strict(y_pos, return_dtype=pl.Float64)
-            .alias("_y"),
+            .alias("position_y"),
         )
         return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
 
@@ -97,12 +98,12 @@ def _assign_positions(
     n_y = cell_frame.height
     y_step = (n_x - 1) / max(n_y - 1, 1)
     cell_frame = cell_frame.with_columns(
-        (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("_y")
+        (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
     )
-    frame = frame.join(cell_frame.select(observations_name, "_y"), on=observations_name)
+    frame = frame.join(cell_frame.select(observations_name, "position_y"), on=observations_name)
     centers_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
-        .agg(pl.col("_y").mean().alias("_center"), pl.col("_group_index").first())
+        .agg(pl.col("position_y").mean().alias("_center"), pl.col("_group_index").first())
         .sort("_group_index")
     )
     return frame, cell_frame, n_x, n_y, centers_frame["_center"].to_list()
@@ -119,8 +120,8 @@ def _get_group_bar_frame(
     bar_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
         .agg(
-            pl.col("_y").min().alias("y_min"),
-            pl.col("_y").max().alias("y_max"),
+            pl.col("position_y").min().alias("y_min"),
+            pl.col("position_y").max().alias("y_max"),
             pl.col("_group_index").first(),
         )
         .sort("_group_index")
@@ -144,7 +145,7 @@ def _get_group_lines_frame(
     else:
         boundaries = (
             cell_frame.group_by(group_by, maintain_order=False)
-            .agg(pl.col("_y").max().alias("y_max"), pl.col("_group_index").first())
+            .agg(pl.col("position_y").max().alias("y_max"), pl.col("_group_index").first())
             .sort("_group_index")
             .head(n_groups - 1)["y_max"]
             .to_list()
@@ -406,12 +407,12 @@ def heatmap(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, segments = _get_dendrogram(data, group_by)
+        y_order_groups, _, paths = _get_dendrogram(data, group_by)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        segments = None
+        paths = None
 
     # ASSIGN: _x / _y positions and layout metadata
     x_keys = list(keys)
@@ -426,7 +427,7 @@ def heatmap(
     )
 
     # BUILD: heatmap layer
-    aes_main = aes(x="_x", y="_y", fill=value_column, **mapping.as_dict())
+    aes_main = aes(x="position_x", y="position_y", fill=value_column, **mapping.as_dict())
     geom_kwargs.pop("tooltips", None)
     geom_layer = (
         geom_raster(aes_main, **geom_kwargs)
@@ -477,12 +478,12 @@ def heatmap(
 
     # DENDROGRAM (right side, along y-axis)
     if dendrogram:
-        dendro_frame = _get_dendrogram_segment_frame(
-            segments, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
+        dendro_frame = _get_dendrogram_path_frame(
+            paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
         )
-        htmp += geom_segment(
+        htmp += geom_path(
             data=dendro_frame,
-            mapping=aes(x="x", y="y", xend="xend", yend="yend"),
+            mapping=aes(x="x", y="y", group="group"),
             color=dendrogram_color,
             size=dendrogram_size,
             **dendrogram_kwargs,

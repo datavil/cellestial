@@ -8,17 +8,16 @@ import polars as pl
 from anndata import AnnData
 from lets_plot import (
     aes,
+    element_line,
+    geom_path,
     geom_point,
-    geom_rect,
-    geom_segment,
     ggplot,
     ggtb,
     layer_tooltips,
-    scale_color_gradient,
-    scale_fill_gradient,
     scale_size,
     scale_x_continuous,
     scale_y_continuous,
+    theme,
 )
 from lets_plot.plot.core import FeatureSpec
 
@@ -28,7 +27,7 @@ from cellestial.util import (
     _color_gradient,
     _fill_gradient,
     _get_dendrogram,
-    _get_dendrogram_segment_frame,
+    _get_dendrogram_path_frame,
 )
 
 if TYPE_CHECKING:
@@ -134,6 +133,8 @@ def dotplot(
 
     Examples
     --------
+    A simple dotplot.
+
     .. jupyter-execute::
 
         import scanpy as sc
@@ -143,42 +144,46 @@ def dotplot(
 
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
-        markers = [
-            "ITGB1",
-            "SYNGR1",
-            "HBA1",
-            "TCF7L2",
-            "HBM",
-            "IGHD",
-            "FCN1",
-            "GYPA",
-            "FCGR3A",
-            "PAX5",
-            "COL4A4",
-            "HBB",
-            "LYN",
-            "PRDM1",
-            "CD14",
-            "IGHM",
-            "CDK6",
-            "MS4A1",
-            "BLK",
-            "IRF4",
-            "BCL11A",
-            "MKI67",
-        ]
+        markers = ["C1QA", "PSAP", "CD79A", "CD79B", "CST3", "LYZ"]
 
-        (
-            cl.dotplot(
-                data,
-                keys=markers,
-                group_by="cell_type_lvl1",
-                color_high="red",
-                sort_by="avg_exp",
-            )
-            + scale_y_discrete(expand=[0.1, 0.1])
-            + theme(axis_text_y=element_text(angle=90, size=12))
+        dot = cl.dotplot(
+            data,
+            keys=markers,
+            group_by="cell_type_lvl1",
         )
+        dot
+
+    Dotplot allows dendrograms among the groups.
+
+    .. jupyter-execute::
+        :emphasize-lines: 5
+
+        dot = cl.dotplot(
+            data,
+            keys=markers,
+            group_by="cell_type_lvl1",
+            dendrogram=True,
+        )
+        dot
+
+
+    Modify the dendrofgram and rectangle borders.
+
+    .. jupyter-execute::
+        :emphasize-lines: 6-9
+
+        dot = cl.dotplot(
+            data,
+            keys=markers,
+            group_by="cell_type_lvl1",
+            dendrogram=True,
+            dendrogram_color="blue",
+            dendrogram_size=1,
+            rectangle_color="blue",
+            rectangle_size=1,
+        )
+        dot
+
     """
     # HANDLE: Data types
     if not isinstance(data, AnnData):
@@ -238,25 +243,25 @@ def dotplot(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, segments = _get_dendrogram(data, group_by)
+        y_order_groups, _, paths = _get_dendrogram(data, group_by)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        segments = None
+        paths = None
 
     # ASSIGN: numeric _x / _y positions
     x_keys = list(keys)
     n_x = len(x_keys)
     n_y = len(y_order_groups)
-    x_pos = {k: i for i, k in enumerate(x_keys)}
-    y_pos = {g: i for i, g in enumerate(y_order_groups)}
+    x_position = {k: i for i, k in enumerate(x_keys)}
+    y_position = {g: i for i, g in enumerate(y_order_groups)}
     frame = frame.with_columns(
-        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("_x"),
+        pl.col(variable_column).replace_strict(x_position, return_dtype=pl.Float64).alias("position_x"),
         pl.col(group_by)
         .cast(pl.String)
-        .replace_strict(y_pos, return_dtype=pl.Float64)
-        .alias("_y"),
+        .replace_strict(y_position, return_dtype=pl.Float64)
+        .alias("position_y"),
     )
 
     # HANDLE: tooltips
@@ -282,8 +287,8 @@ def dotplot(
 
     # DEFINE: mapping with defaults
     _mapping = {
-        "x": "_x",
-        "y": "_y",
+        "x": "position_x",
+        "y": "position_y",
         "size": percentage_key,
         color_or_fill: mean_key,
     }
@@ -315,15 +320,13 @@ def dotplot(
     x_max_limit = n_x - 0.5
     if dendrogram:
         group_centers = [float(i) for i in range(n_y)]
-        dendrogram_frame = _get_dendrogram_segment_frame(
-            segments, n_x=n_x, n_groups=n_y, group_centers=group_centers
+        dendrogram_frame = _get_dendrogram_path_frame(
+            paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
         )
-        x_max_limit = float(
-            max(dendrogram_frame["x"].max(), dendrogram_frame["xend"].max())
-        )
-        dtplt += geom_segment(
+        x_max_limit = float(dendrogram_frame["x"].max())
+        dtplt += geom_path(
             data=dendrogram_frame,
-            mapping=aes(x="x", y="y", xend="xend", yend="yend"),
+            mapping=aes(x="x", y="y", group="group"),
             color=dendrogram_color,
             size=dendrogram_size,
             **(dendrogram_kwargs or {}),
@@ -345,20 +348,20 @@ def dotplot(
 
     # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
     if rectangle:
-        dtplt += geom_rect(
+        dtplt += geom_path(
             data={
-                "xmin": [-0.5],
-                "xmax": [n_x - 0.5],
-                "ymin": [-0.5],
-                "ymax": [n_y - 0.5],
+                "x": [-0.5, n_x - 0.5, n_x - 0.5, -0.5, -0.5],
+                "y": [-0.5, -0.5, n_y - 0.5, n_y - 0.5, -0.5],
+                "group": [0, 0, 0, 0, 0],
             },
-            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
+            mapping=aes(x="x", y="y", group="group"),
             color=rectangle_color,
             size=rectangle_size,
-            fill="rgba(0,0,0,0)",
             inherit_aes=False,
             **(rectangle_kwargs or {}),
         )
+    else:
+        dtplt += theme(axis_line=element_line(color="#1f1f1f"))
 
     # ADD: layers
     dtplt += _THEME_DOTPLOT
