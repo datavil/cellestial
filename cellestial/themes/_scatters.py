@@ -4,9 +4,6 @@ from lets_plot import (
     ggsize,
     scale_color_brewer,
     scale_size,
-    scale_size_area,  # for letsplot 4.8.3 or above
-    scale_x_discrete,
-    scale_y_discrete,
     theme,
     theme_classic,
 )

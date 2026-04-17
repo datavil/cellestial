@@ -210,8 +210,8 @@ def arrow_axis(
     """
     frame = plot.get_plot_shared_data()
     mapping = get_mapping(plot, index=0)
-    x: str = mapping.get("x")
-    y: str = mapping.get("y")
+    x: str = mapping["x"]
+    y: str = mapping["y"]
     new_layer = theme(
         # remove axis elements
         axis_text_x=element_blank(),
@@ -229,8 +229,8 @@ def arrow_axis(
     y_min = frame[y].min()
 
     # find total difference between the max and min for both axis
-    x_diff = x_max - x_min  # ty:ignore[unsupported-operator]
-    y_diff = y_max - y_min  # ty:ignore[unsupported-operator]
+    x_diff = x_max - x_min
+    y_diff = y_max - y_min
 
     # find the ends of the arrows
     xend = x_min + length * x_diff

@@ -143,6 +143,7 @@ def _get_group_lines_frame(
     if aggregate:
         line_ys = [i + 0.5 for i in range(n_groups - 1)]
     else:
+        assert cell_frame is not None
         boundaries = (
             cell_frame.group_by(group_by, maintain_order=False)
             .agg(pl.col("position_y").max().alias("y_max"), pl.col("_group_index").first())
@@ -183,7 +184,6 @@ def heatmap(
     group_lines_size: float = 1.0,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
-    aggregate_kwargs: dict | None = None,
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
     value_column: str = "value",
@@ -240,8 +240,6 @@ def heatmap(
         Color of the dendrogram segments.
     dendrogram_size : float, default=0.5
         Size (thickness) of the dendrogram segments.
-    aggregate_kwargs : dict | None, default=None
-        Additional parameters to pass to the main heatmap geom layer.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
@@ -365,10 +363,11 @@ def heatmap(
         htmp
 
     """
+    if not isinstance(data, AnnData):
+        msg = "data must be an `AnnData` object"
+        raise TypeError(msg)
+
     mapping = mapping or aes()
-    aggregate_kwargs = dict(aggregate_kwargs) if aggregate_kwargs else {}
-    group_lines_kwargs = dict(group_lines_kwargs) if group_lines_kwargs else {}
-    dendrogram_kwargs = dict(dendrogram_kwargs) if dendrogram_kwargs else {}
 
     if "tooltips" in geom_kwargs and geom == "raster":
         warn(
@@ -407,7 +406,7 @@ def heatmap(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, _, paths = _get_dendrogram(data, group_by)
+        y_order_groups, paths = _get_dendrogram(data, group_by)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
@@ -428,7 +427,6 @@ def heatmap(
 
     # BUILD: heatmap layer
     aes_main = aes(x="position_x", y="position_y", fill=value_column, **mapping.as_dict())
-    geom_kwargs.pop("tooltips", None)
     geom_layer = (
         geom_raster(aes_main, **geom_kwargs)
         if geom == "raster"
@@ -450,12 +448,12 @@ def heatmap(
 
     # GROUP color bar on left for non-aggregate
     if not aggregate and group_bars:
+        assert cell_frame is not None
         group_bar_frame, _ = _get_group_bar_frame(cell_frame, group_by=group_by, n_x=n_x)
         htmp += geom_segment(
             data=group_bar_frame,
             mapping=aes(x="x", xend="x", y="y_min", yend="y_max", color=group_by),
             size=group_bars_size,
-            **aggregate_kwargs,
         )
 
     # GROUP separator lines (horizontal, within heatmap)
@@ -473,11 +471,12 @@ def heatmap(
             mapping=aes(x="x", xend="xend", y="y", yend="yend"),
             color=group_lines_color,
             size=group_lines_size,
-            **group_lines_kwargs,
+            **(group_lines_kwargs or {}),
         )
 
     # DENDROGRAM (right side, along y-axis)
     if dendrogram:
+        assert paths is not None
         dendro_frame = _get_dendrogram_path_frame(
             paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
         )
@@ -486,7 +485,7 @@ def heatmap(
             mapping=aes(x="x", y="y", group="group"),
             color=dendrogram_color,
             size=dendrogram_size,
-            **dendrogram_kwargs,
+            **(dendrogram_kwargs or {}),
         )
 
     # FILL gradient

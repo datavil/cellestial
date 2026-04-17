@@ -10,11 +10,11 @@ if TYPE_CHECKING:
 
 def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFrame]:
     """
-    Get or compute the dendrogram for a group_by key and extract segments.
+    Get or compute the dendrogram for a group_by key and extract paths.
 
     Checks ``data.uns[f'dendrogram_{group_by}']``.
-    For AnnData, if not present, runs ``scanpy.tl.dendrogram`` on  to compute it.
-    Extracts the icoord/dcoord arrays into a Polars DataFrame of segments with normalized positions.
+    For AnnData, if not present, runs ``scanpy.tl.dendrogram`` to compute it.
+    Extracts the icoord/dcoord arrays into a Polars DataFrame of paths with normalized positions.
     """
     import numpy as np
 
@@ -38,16 +38,6 @@ def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFra
     if max_height > 0:
         dcoord = dcoord / max_height
 
-    x, xend, y, yend = [], [], [], []
-    for i in range(len(icoord)):
-        for j in range(3):
-            x.append(float(icoord[i][j]))
-            xend.append(float(icoord[i][j + 1]))
-            y.append(float(dcoord[i][j]))
-            yend.append(float(dcoord[i][j + 1]))
-
-    segments = pl.DataFrame({"x": x, "xend": xend, "y": y, "yend": yend})
-
     path_x, path_y, path_group = [], [], []
     for i in range(len(icoord)):
         for j in range(icoord.shape[1]):
@@ -56,32 +46,8 @@ def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFra
             path_group.append(i)
     paths = pl.DataFrame({"x": path_x, "y": path_y, "group": path_group})
 
-    return categories_ordered, segments, paths
+    return categories_ordered, paths
 
-
-def _get_dendrogram_segment_frame(
-    segments: pl.DataFrame,
-    *,
-    n_x: int,
-    n_groups: int,
-    group_centers: list[float],
-    dendrogram_ratio: float = 0.15,
-) -> pl.DataFrame:
-    """Map normalized dendrogram segments into plot coordinates (right side along y-axis)."""
-    import numpy as np
-
-    y_dendrogram_size = n_x * dendrogram_ratio
-    leaf_xp = np.arange(n_groups, dtype=float)
-    seg_y = np.interp(segments["x"].to_numpy(), leaf_xp, group_centers)
-    seg_yend = np.interp(segments["xend"].to_numpy(), leaf_xp, group_centers)
-    return pl.DataFrame(
-        {
-            "x": (n_x - 0.5) + segments["y"].to_numpy() * y_dendrogram_size,
-            "xend": (n_x - 0.5) + segments["yend"].to_numpy() * y_dendrogram_size,
-            "y": seg_y,
-            "yend": seg_yend,
-        }
-    )
 
 
 def _get_dendrogram_path_frame(

@@ -205,15 +205,15 @@ def xyplots(
 
     scttrs = gggrid(
         plots,
-        ncol=ncol,
-        sharex=sharex,
-        sharey=sharey,
-        widths=widths,
-        heights=heights,
-        hspace=hspace,
-        vspace=vspace,
-        fit=fit,
-        align=align,
+        ncol=ncol, # ty:ignore[invalid-argument-type]
+        sharex=sharex, # ty:ignore[invalid-argument-type]
+        sharey=sharey, # ty:ignore[invalid-argument-type]
+        widths=widths, # ty:ignore[invalid-argument-type]
+        heights=heights, # ty:ignore[invalid-argument-type]
+        hspace=hspace, # ty:ignore[invalid-argument-type]
+        vspace=vspace, # ty:ignore[invalid-argument-type]
+        fit=fit, # ty:ignore[invalid-argument-type]
+        align=align, # ty:ignore[invalid-argument-type]
         guides=guides,
     )
 

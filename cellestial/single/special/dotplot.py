@@ -32,6 +32,7 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
+
     from lets_plot.plot.core import PlotSpec
 
 
@@ -47,6 +48,7 @@ def dotplot(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#D2042D",
+    mid_point: Literal["mean", "median", "mid"] | float = "mid",
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
     percentage_key: str = "pct_exp",
@@ -78,6 +80,8 @@ def dotplot(
         Aesthetic mappings for the plot, the result of `aes()`.
     threshold : float, default=0
         The expression threshold to consider a gene as expressed.
+    Size_scale : float, default=1.0
+        Scaling factor for the point sizes in the plot.
     point_size : float, default=1.0
         Scaling factor for the point sizes in the plot.
     variable_column : str, default='variable'
@@ -88,6 +92,8 @@ def dotplot(
         Color for mid values in the gradient.
     color_high : str, default='#D2042D'
         Color for high values in the gradient.
+    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+        Midpoint for the color gradient.
     fill : bool, optional
         Whether to use fill aesthetic instead of color, by default False.
     sort_by : str | None
@@ -168,7 +174,7 @@ def dotplot(
         dot
 
 
-    Modify the dendrofgram and rectangle borders.
+    Modify the dendrogram and rectangle borders.
 
     .. jupyter-execute::
         :emphasize-lines: 6-9
@@ -244,12 +250,11 @@ def dotplot(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, _, paths = _get_dendrogram(data, group_by)
+        y_order_groups, paths = _get_dendrogram(data, group_by)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        paths = None
 
     # ASSIGN: numeric _x / _y positions
     x_keys = list(keys)
@@ -312,7 +317,7 @@ def dotplot(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
-            mid_point="mid",
+            mid_point=mid_point,
         )
         + _size_scale
     )
@@ -324,7 +329,7 @@ def dotplot(
         dendrogram_frame = _get_dendrogram_path_frame(
             paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
         )
-        x_max_limit = float(dendrogram_frame["x"].max())
+        x_max_limit = dendrogram_frame["x"].max()
         dtplt += geom_path(
             data=dendrogram_frame,
             mapping=aes(x="x", y="y", group="group"),

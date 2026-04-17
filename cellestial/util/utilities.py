@@ -3,6 +3,7 @@ from __future__ import annotations
 from math import ceil, log10
 from typing import TYPE_CHECKING, Literal
 
+import polars as pl
 from anndata import AnnData
 from lets_plot import (
     element_blank,

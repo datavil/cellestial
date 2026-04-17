@@ -165,13 +165,16 @@ def stream(
     # extract data and mapping from plot
     frame = retrieve(plot)
     _mapping = get_mapping(plot)
-    x: str = _mapping.get("x")
-    y: str = _mapping.get("y")
+    x: str = _mapping["x"]
+    y: str = _mapping["y"]
 
     # determine velocity column names
     if velocity_name is not None:  # if the velocity name is provided
         x_match = re.match(r"(.+?)(\d+)$", x)
         y_match = re.match(r"(.+?)(\d+)$", y)
+        if x_match is None or y_match is None:
+            msg = f"Could not parse dimension number from mapping keys: x={x!r}, y={y!r}"
+            raise ValueError(msg)
         *_, x_number = x_match.groups()
         *_, y_number = y_match.groups()
         x_velocity = f"{velocity_name}{x_number}"
