@@ -178,7 +178,7 @@ def heatmap(
     aggregate: bool = True,
     group_bars: bool = True,
     group_bars_size: float = 6,
-    group_bars_labels: bool = False,
+    group_bars_labels: bool = True,
     group_lines: bool = True,
     group_lines_color: str = "black",
     group_lines_size: float = 1.0,
@@ -226,7 +226,7 @@ def heatmap(
         Only used when ``aggregate=False``.
     group_bars_size : float, default=6
         Size (thickness) of the group color bars.
-    group_bars_labels : bool, default=False
+    group_bars_labels : bool, default=True
         Whether to show group names as labels along the y-axis.
         Removes the related legend.
         Only applies when ``group_bars=True`` and ``aggregate=False``.
