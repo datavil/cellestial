@@ -111,7 +111,7 @@ def _assign_positions(
 
 def _get_group_bar_frame(
     cell_frame: pl.DataFrame, *, group_by: str, n_x: int
-) -> tuple[pl.DataFrame, float]:
+) -> pl.DataFrame:
     """Build the per-group colored bar frame drawn to the left of the heatmap."""
     bar_width = max(1.0, n_x * _GROUP_BAR_RATIO)
     bar_xend = -_GROUP_BAR_GAP
@@ -127,7 +127,7 @@ def _get_group_bar_frame(
         .sort("_group_index")
         .with_columns(pl.lit(bar_x_mid).alias("x"))
     )
-    return bar_frame, bar_x_mid
+    return bar_frame
 
 
 def _get_group_lines_frame(
@@ -449,7 +449,7 @@ def heatmap(
     # GROUP color bar on left for non-aggregate
     if not aggregate and group_bars:
         assert cell_frame is not None
-        group_bar_frame, _ = _get_group_bar_frame(cell_frame, group_by=group_by, n_x=n_x)
+        group_bar_frame= _get_group_bar_frame(cell_frame, group_by=group_by, n_x=n_x)
         htmp += geom_segment(
             data=group_bar_frame,
             mapping=aes(x="x", xend="x", y="y_min", yend="y_max", color=group_by),
