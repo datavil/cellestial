@@ -161,7 +161,8 @@ def bracket(
     y_step: float | None = None,
     y_padding: float = 0.08,
     color: str = "#1f1f1f",
-    size: float = 1,
+    label_size: float | None = None,
+    segment_size: float = 1,
     x: str | None = None,
     y: str | None = None,
     mapping: FeatureSpec | None = None,
@@ -210,8 +211,10 @@ def bracket(
         and as the default spacing between stacked brackets.
     color : str, default='#1f1f1f'
         Color of the brackets and labels.
-    size : float, default=1
-        Size of the brackets.
+    label_size : float | None, default=None
+        Font size of the label text. If None, `geom_bracket`'s default is used.
+    segment_size : float, default=1
+        Line width of the bracket segments.
     x : str | None, default=None
         The column name holding the grouping categories. If None, inferred from
         the plot's `x` aesthetic.
@@ -255,13 +258,6 @@ def bracket(
 
     .. jupyter-execute::
 
-        import cellestial as cl
-        import scanpy as sc
-
-        from lets_plot import *
-
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
-
         violin = cl.violin(
             data,
             key="CD3D",
@@ -277,13 +273,6 @@ def bracket(
     Hide non-significant brackets by setting a threshold on the adjusted p-value.
 
     .. jupyter-execute::
-
-        import cellestial as cl
-        import scanpy as sc
-
-        from lets_plot import *
-
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
         violin = cl.violin(
             data,
@@ -324,10 +313,12 @@ def bracket(
 
     # build and return the layer
     mapping = mapping or aes()
+    size_kwargs = {} if label_size is None else {"size": label_size}
     return geom_bracket(
         data=brackets,
         mapping=aes(xmin="xmin", xmax="xmax", y="y", label="label", **mapping.as_dict()),
         color=color,
-        size=size,
+        segment_size=segment_size,
+        **size_kwargs,
         **geom_kwargs,
     )
