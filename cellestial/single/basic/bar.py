@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def bar(
     data: AnnData,
-    mapping: FeatureSpec | None = None,
+    mapping: FeatureSpec,
     *,
     axis: Literal[0, 1] | None = None,
     variable_keys: Sequence[str] | None = None,
@@ -93,13 +93,13 @@ def bar(
         p2
 
     """
-    mapping = mapping or aes()
     keys = [v for v in mapping.as_dict().values() if v is not None]
     if variable_keys is None:
         variable_keys = _select_variable_keys(data, keys)
     else:
         list(variable_keys).extend(_select_variable_keys(data, keys))
     axis = axis or _determine_axis(data=data, keys=keys)
+    print(axis)
     # BUILD: the bar plot
     br = baseplot(
         data=data,

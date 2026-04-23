@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 def scatter(
     data: AnnData,
-    mapping: FeatureSpec | None = None,
+    mapping: FeatureSpec,
     *,
     axis: Literal[0, 1] | None = None,
     variable_keys: Sequence[str] | None = None,
@@ -120,7 +120,6 @@ def scatter(
         ) + scale_color_viridis() + facet_wrap("cell_type_lvl1")
 
     """
-    mapping = mapping or aes()
     keys = [v for v in mapping.as_dict().values() if v is not None]
     if variable_keys is None:
         variable_keys = _select_variable_keys(data,keys)
