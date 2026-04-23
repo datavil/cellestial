@@ -25,7 +25,7 @@ def stream(
     alpha: float = 0.7,
     size: float = 1,
     velocity_prefix: str = "velocity_",
-    velocity_name: str | None = None,
+    velocity_key: str | None = None,
     grid_density: float = 1,
     smooth: float = 0.5,
     n_neighbors: int | None = None,
@@ -61,9 +61,9 @@ def stream(
         Prefix for the velocity columns in the data.
         The function will look for columns with this prefix followed by the embedding number.
         (e.g. "velocity_UMAP1", "velocity_UMAP2").
-    velocity_name : str | None, default=None
+    velocity_key : str | None, default=None
         If provided, will be used as the column names for the velocity.
-        E.g f"{velocity_name}1", f"{velocity_name}2".
+        E.g f"{velocity_key}1", f"{velocity_key}2".
         If None, defaults to using velocity_prefix + embedding name.
     grid_density : float, default=1
         Density of the grid for velocity embedding.
@@ -178,7 +178,7 @@ def stream(
         y: str = _mapping["y"]
 
         # determine velocity column names
-        if velocity_name is not None:  # if the velocity name is provided
+        if velocity_key is not None:  # if the velocity name is provided
             x_match = re.match(r"(.+?)(\d+)$", x)
             y_match = re.match(r"(.+?)(\d+)$", y)
             if x_match is None or y_match is None:
@@ -186,9 +186,9 @@ def stream(
                 raise ValueError(msg)
             *_, x_number = x_match.groups()
             *_, y_number = y_match.groups()
-            x_velocity = f"{velocity_name}{x_number}"
-            y_velocity = f"{velocity_name}{y_number}"
-        elif velocity_name is None:  # default to velocity_prefix + embedding name
+            x_velocity = f"{velocity_key}{x_number}"
+            y_velocity = f"{velocity_key}{y_number}"
+        elif velocity_key is None:  # default to velocity_prefix + embedding name
             prefix = velocity_prefix.upper()  # cellestial converts embedding names to uppercase
             x_velocity = x.replace("X_", prefix)
             y_velocity = y.replace("X_", prefix)
