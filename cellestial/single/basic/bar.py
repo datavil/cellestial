@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import geom_bar, ggtb
+from lets_plot import aes, geom_bar, ggtb
 
 from cellestial.single.base import plot as baseplot
-from cellestial.util import _determine_axis
+from cellestial.util import _determine_axis, _select_variable_keys
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -93,9 +93,14 @@ def bar(
         p2
 
     """
-    if mapping is not None:
-        keys = [v for v in mapping.as_dict().values() if v is not None]
-        axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    mapping = mapping or aes()
+    keys = [v for v in mapping.as_dict().values() if v is not None]
+    if variable_keys is None:
+        variable_keys = _select_variable_keys(data, keys)
+    else:
+        list(variable_keys).extend(_select_variable_keys(data, keys))
+    axis = axis or _determine_axis(data=data, keys=keys)
+    # BUILD: the bar plot
     br = baseplot(
         data=data,
         mapping=None,

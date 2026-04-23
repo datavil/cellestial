@@ -40,17 +40,28 @@ def _correct_pvalues(
     raise ValueError(msg)
 
 
+_STAR_THRESHOLDS = (
+    (0.0001, "****"),
+    (0.001, "***"),
+    (0.01, "**"),
+    (0.05, "*"),
+)
+
+
 def _significance_stars(pvalue: float) -> str:
     """Convert a p-value into an asterisk significance label."""
-    if pvalue < 0.0001:
-        return "****"
-    if pvalue < 0.001:
-        return "***"
-    if pvalue < 0.01:
-        return "**"
-    if pvalue < 0.05:
-        return "*"
+    for threshold, stars in _STAR_THRESHOLDS:
+        if pvalue < threshold:
+            return stars
     return "ns"
+
+
+def _star_threshold(pvalue: float) -> float | None:
+    """Return the star-bracket upper bound for a p-value, or None if not significant."""
+    for threshold, _ in _STAR_THRESHOLDS:
+        if pvalue < threshold:
+            return threshold
+    return None
 
 
 def _compute_bracket_frame(
@@ -62,8 +73,11 @@ def _compute_bracket_frame(
     test: Literal["mannwhitney", "ttest"],
     alternative: Literal["two-sided", "less", "greater"],
     correction: Literal["none", "bonferroni", "fdr_bh"],
-    label: Literal["stars", "pvalue", "padj"],
+    label: Literal["stars", "pvalue", "padj"] | Sequence[Literal["stars", "pvalue", "padj"]],
     label_format: str,
+    prefix: str,
+    prefix_style: Literal["=", "<"] | None,
+    separator: str,
     threshold: float | None,
     y_position: float | None,
     y_step: float | None,
@@ -74,7 +88,7 @@ def _compute_bracket_frame(
 
     # determine which pairs to compare
     if comparisons is None:
-        groups = frame[x].unique().to_list()
+        groups = frame[x].drop_nulls().unique().to_list()
         pairs = list(combinations(groups, 2))
     else:
         pairs = [tuple(pair) for pair in comparisons]
@@ -122,16 +136,46 @@ def _compute_bracket_frame(
         if len(brackets) == 0:
             return brackets
 
-    # build the label column
-    pvalues_for_label = brackets["pvalue_adj" if correction != "none" else "pvalue"].to_list()
-    if label == "stars":
-        labels = [_significance_stars(pvalue) for pvalue in pvalues_for_label]
-    elif label in {"pvalue", "padj"}:
-        source = "pvalue_adj" if label == "padj" else "pvalue"
-        labels = [f"{pvalue:{label_format}}" for pvalue in brackets[source].to_list()]
-    else:
-        msg = f"`label` must be one of 'stars', 'pvalue', 'padj'. Received: {label!r}"
+    # build the label column - one component per label kind, merged row-wise
+    label_kinds = [label] if isinstance(label, str) else list(label)
+    valid_kinds = {"stars", "pvalue", "padj"}
+    invalid = [kind for kind in label_kinds if kind not in valid_kinds]
+    if invalid:
+        msg = (
+            "`label` entries must be from 'stars', 'pvalue', 'padj'. "
+            f"Received invalid: {invalid!r}"
+        )
         raise ValueError(msg)
+    if len(label_kinds) == 0:
+        msg = "`label` must contain at least one entry."
+        raise ValueError(msg)
+
+    pvalues_raw = brackets["pvalue"].to_list()
+    pvalues_adj = brackets["pvalue_adj"].to_list()
+    pvalues_for_stars = brackets["pvalue_adj" if correction != "none" else "pvalue"].to_list()
+
+    def _format_pvalue(pvalue: float) -> str:
+        if prefix_style == "<":
+            threshold = _star_threshold(pvalue)
+            symbol, value = (">", 0.05) if threshold is None else ("<", threshold)
+            return f"{prefix} {symbol} {value:{label_format}}".lstrip()
+        if prefix_style == "=":
+            return f"{prefix} = {pvalue:{label_format}}".lstrip()
+        if prefix_style is None:
+            return f"{prefix}{pvalue:{label_format}}"
+        msg = f"`prefix_style` must be '=', '<', or None. Received: {prefix_style!r}"
+        raise ValueError(msg)
+
+    components = []
+    for kind in label_kinds:
+        if kind == "stars":
+            components.append([_significance_stars(pvalue) for pvalue in pvalues_for_stars])
+        elif kind == "pvalue":
+            components.append([_format_pvalue(pvalue) for pvalue in pvalues_raw])
+        else:  # "padj"
+            components.append([_format_pvalue(pvalue) for pvalue in pvalues_adj])
+
+    labels = [separator.join(parts) for parts in zip(*components, strict=True)]
     brackets = brackets.with_columns(label=pl.Series(labels))
 
     # compute y positions so brackets stack above the data without overlapping
@@ -154,15 +198,19 @@ def bracket(
     test: Literal["mannwhitney", "ttest"] = "mannwhitney",
     alternative: Literal["two-sided", "less", "greater"] = "two-sided",
     correction: Literal["none", "bonferroni", "fdr_bh"] = "fdr_bh",
-    label: Literal["stars", "pvalue", "padj"] = "stars",
+    label: Literal["stars", "pvalue", "padj"]
+    | Sequence[Literal["stars", "pvalue", "padj"]] = "stars",
     label_format: str = ".3g",
+    prefix: str = "",
+    prefix_style: Literal["=", "<"] | None = "=",
+    separator: str = " ",
     threshold: float | None = None,
     y_position: float | None = None,
     y_step: float | None = None,
     y_padding: float = 0.08,
-    color: str = "#1f1f1f",
+    color: str | None = "#1f1f1f",
     label_size: float | None = None,
-    segment_size: float = 1,
+    segment_size: float = 0.5,
     x: str | None = None,
     y: str | None = None,
     mapping: FeatureSpec | None = None,
@@ -190,13 +238,34 @@ def bracket(
         The alternative hypothesis passed to the underlying test.
     correction : {'none', 'bonferroni', 'fdr_bh'}, default='fdr_bh'
         Multiple-testing correction applied across the pairwise p-values.
-    label : {'stars', 'pvalue', 'padj'}, default='stars'
+    label : {'stars', 'pvalue', 'padj'} or sequence of those, default='stars'
         The bracket label to draw.
         'stars' maps p-values to asterisks (``****`` < 0.0001, ``***`` < 0.001,
         ``**`` < 0.01, ``*`` < 0.05, ``ns`` otherwise).
         'pvalue' prints the raw p-value and 'padj' prints the adjusted p-value.
+        A sequence merges each component with a newline, e.g.
+        ``label=("stars", "padj")`` stacks the stars on top of the adjusted p-value.
     label_format : str, default='.3g'
-        Format string used when `label` is 'pvalue' or 'padj'.
+        Format string used when `label` contains 'pvalue' or 'padj'.
+    prefix : str, default=''
+        Text prepended to the numeric p-value/padj labels. Ignored for the
+        'stars' component. When `prefix_style` is '=' or '<', the symbol is
+        inserted between `prefix` and the value with whitespace around it,
+        so ``prefix='p'`` with ``prefix_style='='`` renders ``'p = 0.001'``.
+        When `prefix_style` is None, `prefix` is used as-is, so the caller
+        is responsible for including any symbol and spacing.
+    prefix_style : {'=', '<'} or None, default='='
+        How the numeric portion of the label is rendered.
+        '=' shows the actual p-value with ``' = '`` inserted after `prefix`.
+        '<' replaces the p-value with the star-bracket threshold it falls
+        below, with ``' < '`` inserted after `prefix`, giving
+        ``'p < 0.0001'``, ``'p < 0.001'``, ``'p < 0.01'``, or ``'p < 0.05'``.
+        Non-significant comparisons render as ``'p > 0.05'``.
+        None disables symbol insertion; the caller supplies any symbol via
+        `prefix`.
+    separator : str, default=' '
+        Separator used to join components when `label` is a sequence with
+        more than one entry (e.g. ``('stars', 'padj')``).
     threshold : float | None, default=None
         If provided, only comparisons whose p-value (adjusted if `correction` is not
         'none') is below this threshold are drawn.
@@ -235,7 +304,7 @@ def bracket(
 
     Examples
     --------
-    Annotate a violin plot with pairwise significance stars.
+    Annotate a violin plot (or boxplot) with pairwise significance stars.
 
     .. jupyter-execute::
 
@@ -252,35 +321,58 @@ def bracket(
             fill="cell_type_lvl1",
             threshold=0.1,
         )
-        violin + cl.bracket(violin)
+        violin + cl.bracket(violin,y_padding=0.2)
 
     Restrict the comparisons and show adjusted p-values instead of stars.
 
     .. jupyter-execute::
 
-        violin = cl.violin(
+        box = cl.boxplot(
             data,
             key="CD3D",
             fill="cell_type_lvl1",
             threshold=0.1,
         )
-        violin + cl.bracket(
-            violin,
-            comparisons=[("Lymphocytes", "Monocytes"), ("Lymphocytes", "B Cells")],
+        box + cl.bracket(
+            box,
+            comparisons=[("Monocytes", "Erythroid"), ("Monocytes", "B Cells")],
             label="padj",
+            y_padding=0.2,
         )
 
     Hide non-significant brackets by setting a threshold on the adjusted p-value.
 
     .. jupyter-execute::
 
-        violin = cl.violin(
-            data,
-            key="CD3D",
-            fill="cell_type_lvl1",
-            threshold=0.1,
+        box + cl.bracket(box, threshold=0.001,y_padding=0.2)
+
+    Adjust the label format places and add a prefix.
+
+    .. jupyter-execute::
+        :emphasize-lines: 5-6
+
+        box + cl.bracket(
+            box,
+            threshold=0.05,
+            label="pvalue",
+            prefix="p",
+            prefix_style="=",
+            y_padding=0.2,
         )
-        violin + cl.bracket(violin, threshold=0.05)
+
+    Use "<" notation instead.
+
+    .. jupyter-execute::
+        :emphasize-lines: 5
+
+        box + cl.bracket(
+            box,
+            threshold=0.05,
+            label="pvalue",
+            prefix="p",
+            prefix_style="<",
+            y_padding=0.2,
+        )
     """
     # extract data and mapping from the plot
     frame = retrieve(plot)
@@ -305,6 +397,9 @@ def bracket(
         correction=correction,
         label=label,
         label_format=label_format,
+        prefix=prefix,
+        prefix_style=prefix_style,
+        separator=separator,
         threshold=threshold,
         y_position=y_position,
         y_step=y_step,
@@ -314,6 +409,7 @@ def bracket(
     # build and return the layer
     mapping = mapping or aes()
     size_kwargs = {} if label_size is None else {"size": label_size}
+    color = None if "color" in mapping.as_dict() else color
     return geom_bracket(
         data=brackets,
         mapping=aes(xmin="xmin", xmax="xmax", y="y", label="label", **mapping.as_dict()),
