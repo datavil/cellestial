@@ -101,7 +101,7 @@ def cluster_outlines(
     **geom_kwargs,
 ) -> DeferredLayer:
     """
-    Returns a Layer of `geom_path` that outlines the given clusters.
+    Layer of `geom_path` that outlines the given clusters.
 
     Parameters
     ----------

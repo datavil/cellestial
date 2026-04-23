@@ -218,7 +218,7 @@ def bracket(
     **geom_kwargs,
 ) -> DeferredLayer:
     """
-    Returns a Layer of `geom_bracket` annotating pairwise significance between groups.
+    Layer of `geom_bracket` annotating pairwise significance between groups.
 
     Pairwise tests are computed from the plot's retrieved DataFrame using the `x`
     aesthetic as the grouping column and the `y` aesthetic as the value column.
