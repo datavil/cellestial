@@ -7,6 +7,7 @@ import numpy as np
 import polars as pl
 from lets_plot import aes, geom_bracket
 
+from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
 
 if TYPE_CHECKING:
@@ -192,8 +193,8 @@ def _compute_bracket_frame(
 
 
 def bracket(
-    plot: PlotSpec,
     *,
+    plot: PlotSpec | None = None,
     comparisons: Sequence[Sequence[str]] | None = None,
     test: Literal["mannwhitney", "ttest"] = "mannwhitney",
     alternative: Literal["two-sided", "less", "greater"] = "two-sided",
@@ -215,7 +216,7 @@ def bracket(
     y: str | None = None,
     mapping: FeatureSpec | None = None,
     **geom_kwargs,
-) -> LayerSpec:
+) -> DeferredLayer:
     """
     Returns a Layer of `geom_bracket` annotating pairwise significance between groups.
 
@@ -224,8 +225,10 @@ def bracket(
 
     Parameters
     ----------
-    plot : PlotSpec
-        The plot to which the layer will be added. Used to extract data and aesthetics.
+    plot : PlotSpec | None, default=None
+        If provided, brackets are computed from this plot's data and aesthetics
+        regardless of which plot the resulting layer is added to. When ``None``,
+        the layer is deferred and introspects the plot it is added to via ``+``.
         Expected to be a distribution plot (e.g. `violin`, `boxplot`).
     comparisons : Sequence[Sequence[str]] | None, default=None
         Specific group pairs to test, e.g. ``[("A", "B"), ("A", "C")]``.
@@ -321,7 +324,7 @@ def bracket(
             fill="cell_type_lvl1",
             threshold=0.1,
         )
-        violin + cl.bracket(violin,y_padding=0.2)
+        violin + cl.bracket(y_padding=0.2)
 
     Restrict the comparisons and show adjusted p-values instead of stars.
 
@@ -334,7 +337,6 @@ def bracket(
             threshold=0.1,
         )
         box + cl.bracket(
-            box,
             comparisons=[("Monocytes", "Erythroid"), ("Monocytes", "B Cells")],
             label="padj",
             y_padding=0.2,
@@ -344,15 +346,14 @@ def bracket(
 
     .. jupyter-execute::
 
-        box + cl.bracket(box, threshold=0.001,y_padding=0.2)
+        box + cl.bracket(threshold=0.001,y_padding=0.2)
 
     Adjust the label format places and add a prefix.
 
     .. jupyter-execute::
-        :emphasize-lines: 5-6
+        :emphasize-lines: 4-5
 
         box + cl.bracket(
-            box,
             threshold=0.05,
             label="pvalue",
             prefix="p",
@@ -363,10 +364,9 @@ def bracket(
     Use "<" notation instead.
 
     .. jupyter-execute::
-        :emphasize-lines: 5
+        :emphasize-lines: 4
 
         box + cl.bracket(
-            box,
             threshold=0.05,
             label="pvalue",
             prefix="p",
@@ -374,47 +374,55 @@ def bracket(
             y_padding=0.2,
         )
     """
-    # extract data and mapping from the plot
-    frame = retrieve(plot)
-    _mapping = get_mapping(plot)
-    x = _mapping.get("x") if x is None else x
-    y = _mapping.get("y") if y is None else y
-    if x is None:
-        msg = "`x` is present neither as argument nor in the plot aesthetics."
-        raise ValueError(msg)
-    if y is None:
-        msg = "`y` is present neither as argument nor in the plot aesthetics."
-        raise ValueError(msg)
+    explicit_plot = plot
+    explicit_x = x
+    explicit_y = y
 
-    # compute the pairwise significance frame
-    brackets = _compute_bracket_frame(
-        frame,
-        x=x,
-        y=y,
-        comparisons=comparisons,
-        test=test,
-        alternative=alternative,
-        correction=correction,
-        label=label,
-        label_format=label_format,
-        prefix=prefix,
-        prefix_style=prefix_style,
-        separator=separator,
-        threshold=threshold,
-        y_position=y_position,
-        y_step=y_step,
-        y_padding=y_padding,
-    )
+    def _build(receiving_plot: PlotSpec) -> LayerSpec:
+        source = explicit_plot if explicit_plot is not None else receiving_plot
+        # extract data and mapping from the plot
+        frame = retrieve(source)
+        _mapping = get_mapping(source)
+        x = _mapping.get("x") if explicit_x is None else explicit_x
+        y = _mapping.get("y") if explicit_y is None else explicit_y
+        if x is None:
+            msg = "`x` is present neither as argument nor in the plot aesthetics."
+            raise ValueError(msg)
+        if y is None:
+            msg = "`y` is present neither as argument nor in the plot aesthetics."
+            raise ValueError(msg)
 
-    # build and return the layer
-    mapping = mapping or aes()
-    size_kwargs = {} if label_size is None else {"size": label_size}
-    color = None if "color" in mapping.as_dict() else color
-    return geom_bracket(
-        data=brackets,
-        mapping=aes(xmin="xmin", xmax="xmax", y="y", label="label", **mapping.as_dict()),
-        color=color,
-        segment_size=segment_size,
-        **size_kwargs,
-        **geom_kwargs,
-    )
+        # compute the pairwise significance frame
+        brackets = _compute_bracket_frame(
+            frame,
+            x=x,
+            y=y,
+            comparisons=comparisons,
+            test=test,
+            alternative=alternative,
+            correction=correction,
+            label=label,
+            label_format=label_format,
+            prefix=prefix,
+            prefix_style=prefix_style,
+            separator=separator,
+            threshold=threshold,
+            y_position=y_position,
+            y_step=y_step,
+            y_padding=y_padding,
+        )
+
+        # build and return the layer
+        local_mapping = mapping or aes()
+        size_kwargs = {} if label_size is None else {"size": label_size}
+        local_color = None if "color" in local_mapping.as_dict() else color
+        return geom_bracket(
+            data=brackets,
+            mapping=aes(xmin="xmin", xmax="xmax", y="y", label="label", **local_mapping.as_dict()),
+            color=local_color,
+            segment_size=segment_size,
+            **size_kwargs,
+            **geom_kwargs,
+        )
+
+    return DeferredLayer(_build)

@@ -11,6 +11,7 @@ from lets_plot import (
     geom_segment,
 )
 
+from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
 
 if TYPE_CHECKING:
@@ -18,8 +19,8 @@ if TYPE_CHECKING:
 
 
 def stream(
-    plot: PlotSpec,
     *,
+    plot: PlotSpec | None = None,
     color: str = "#1f1f1f",
     alpha: float = 0.7,
     size: float = 1,
@@ -40,14 +41,16 @@ def stream(
     arrows: FeatureSpec | None = None,
     arrow_kwargs: dict | None = None,
     **geom_kwargs,
-) -> FeatureSpecArray:
+) -> DeferredLayer:
     """
     Layer of streams of velocities on the embedding.
 
     Parameters
     ----------
-    plot : PlotSpec
-        The plot to which the layer will be added. Used to extract data and aesthetics.
+    plot : PlotSpec | None, default=None
+        If provided, streams are computed from this plot's data and aesthetics
+        regardless of which plot the resulting layer is added to. When ``None``,
+        the layer is deferred and introspects the plot it is added to via ``+``.
     color : str, default="#1f1f1f"
         Color of the stream lines.
     alpha : float, default=0.7
@@ -105,7 +108,7 @@ def stream(
 
     Returns
     -------
-        FeatureSpecArray
+        DeferredLayer
 
     Examples
     --------
@@ -129,9 +132,11 @@ def stream(
             legend_ondata=True,
             ondata_color="black",
         )
-        plot + cl.stream(plot)
+        plot + cl.stream()
 
     Stream as a separate layer to showcase the modularity of layers in Cellestial.
+    Here the data source is passed explicitly because the receiving plot
+    (``ggplot()``) has no embedding to introspect.
 
     .. jupyter-execute::
 
@@ -151,7 +156,7 @@ def stream(
             legend_ondata=True,
             ondata_color="black",
         )
-        gggrid([plot,ggplot() + cl.stream(plot)])
+        gggrid([plot, ggplot() + cl.stream(plot=plot)])
 
     """
     # contained imports
@@ -162,110 +167,115 @@ def stream(
         msg = "`scvelo` must be installed to use the stream layer."
         raise ImportError(msg) from err
 
-    # extract data and mapping from plot
-    frame = retrieve(plot)
-    _mapping = get_mapping(plot)
-    x: str = _mapping["x"]
-    y: str = _mapping["y"]
+    explicit_plot = plot
 
-    # determine velocity column names
-    if velocity_name is not None:  # if the velocity name is provided
-        x_match = re.match(r"(.+?)(\d+)$", x)
-        y_match = re.match(r"(.+?)(\d+)$", y)
-        if x_match is None or y_match is None:
-            msg = f"Could not parse dimension number from mapping keys: x={x!r}, y={y!r}"
-            raise ValueError(msg)
-        *_, x_number = x_match.groups()
-        *_, y_number = y_match.groups()
-        x_velocity = f"{velocity_name}{x_number}"
-        y_velocity = f"{velocity_name}{y_number}"
-    elif velocity_name is None:  # default to velocity_prefix + embedding name
-        prefix = velocity_prefix.upper()  # cellestial converts the embedding names to uppercase
-        x_velocity = x.replace("X_", prefix)
-        y_velocity = y.replace("X_", prefix)
+    def _build(receiving_plot: PlotSpec) -> FeatureSpecArray:
+        source = explicit_plot if explicit_plot is not None else receiving_plot
+        # extract data and mapping from plot
+        frame = retrieve(source)
+        _mapping = get_mapping(source)
+        x: str = _mapping["x"]
+        y: str = _mapping["y"]
 
-    # extract coordinates and velocities as numpy arrays
-    dimensions = frame.select(pl.col(x), pl.col(y)).to_numpy()
-    velocities = frame.select(pl.col(x_velocity), pl.col(y_velocity)).to_numpy()
+        # determine velocity column names
+        if velocity_name is not None:  # if the velocity name is provided
+            x_match = re.match(r"(.+?)(\d+)$", x)
+            y_match = re.match(r"(.+?)(\d+)$", y)
+            if x_match is None or y_match is None:
+                msg = f"Could not parse dimension number from mapping keys: x={x!r}, y={y!r}"
+                raise ValueError(msg)
+            *_, x_number = x_match.groups()
+            *_, y_number = y_match.groups()
+            x_velocity = f"{velocity_name}{x_number}"
+            y_velocity = f"{velocity_name}{y_number}"
+        elif velocity_name is None:  # default to velocity_prefix + embedding name
+            prefix = velocity_prefix.upper()  # cellestial converts embedding names to uppercase
+            x_velocity = x.replace("X_", prefix)
+            y_velocity = y.replace("X_", prefix)
 
-    # compute velocity grid using scvelo's compute_velocity_on_grid
-    X_grid, V_grid = compute_velocity_on_grid(
-        X_emb=dimensions,  # UMAP/tSNE etc. coords
-        V_emb=velocities,  # velocities
-        density=grid_density,
-        smooth=smooth,
-        n_neighbors=n_neighbors,
-        min_mass=min_mass,
-        autoscale=False,
-        adjust_for_stream=True,  # reshapes output into the meshgrid format needed for streams
-        cutoff_perc=cutoff_percentile,
-    )
+        # extract coordinates and velocities as numpy arrays
+        dimensions = frame.select(pl.col(x), pl.col(y)).to_numpy()
+        velocities = frame.select(pl.col(x_velocity), pl.col(y_velocity)).to_numpy()
 
-    # mock build streamplot to extract line segment coordinates
-    ax = Figure().add_subplot(1, 1, 1)
-    _stream = ax.streamplot(
-        X_grid[0],
-        X_grid[1],
-        V_grid[0],
-        V_grid[1],
-        density=density,
-        maxlength=max_length,
-        integration_direction=integration_direction,
-    )
-    line_paths = _stream.lines.get_paths()  # extract line segment coordinates
-
-    # extract path segments from streamplot and convert to DataFrame
-    records_path = [
-        {"x": float(x), "y": float(y), "group": i}
-        for i, path in enumerate(line_paths)
-        for x, y in path.vertices
-    ]
-    frame_streams = pl.DataFrame(records_path)
-    # compute arrow coordinates (midpoint of each path segment)
-    frame_arrows = (
-        (
-            frame_streams.group_by("group")
-            .agg(pl.col("x"), pl.col("y"))
-            .with_columns(mid=pl.col("x").list.len() // 2)
+        # compute velocity grid using scvelo's compute_velocity_on_grid
+        X_grid, V_grid = compute_velocity_on_grid(
+            X_emb=dimensions,  # UMAP/tSNE etc. coords
+            V_emb=velocities,  # velocities
+            density=grid_density,
+            smooth=smooth,
+            n_neighbors=n_neighbors,
+            min_mass=min_mass,
+            autoscale=False,
+            adjust_for_stream=True,  # reshape output into the meshgrid format for streams
+            cutoff_perc=cutoff_percentile,
         )
-        .with_columns(
-            pl.col("x").list.get(pl.col("mid")).alias("x"),
-            pl.col("y").list.get(pl.col("mid")).alias("y"),
-            pl.col("x").list.get(pl.col("mid").add(1)).alias("xend"),
-            pl.col("y").list.get(pl.col("mid").add(1)).alias("yend"),
+
+        # mock build streamplot to extract line segment coordinates
+        ax = Figure().add_subplot(1, 1, 1)
+        _stream = ax.streamplot(
+            X_grid[0],
+            X_grid[1],
+            V_grid[0],
+            V_grid[1],
+            density=density,
+            maxlength=max_length,
+            integration_direction=integration_direction,
         )
-        .drop("mid")
-        .sort("group")
-    )
+        line_paths = _stream.lines.get_paths()  # extract line segment coordinates
 
-    # handle arrow kwargs
-    _arrow_kwargs = {
-        "color": arrow_color,
-        "size": arrow_size,
-        "alpha": arrow_alpha,
-    }
-    if arrow_kwargs is not None:
-        _arrow_kwargs.update(arrow_kwargs)
+        # extract path segments from streamplot and convert to DataFrame
+        records_path = [
+            {"x": float(x), "y": float(y), "group": i}
+            for i, path in enumerate(line_paths)
+            for x, y in path.vertices
+        ]
+        frame_streams = pl.DataFrame(records_path)
+        # compute arrow coordinates (midpoint of each path segment)
+        frame_arrows = (
+            (
+                frame_streams.group_by("group")
+                .agg(pl.col("x"), pl.col("y"))
+                .with_columns(mid=pl.col("x").list.len() // 2)
+            )
+            .with_columns(
+                pl.col("x").list.get(pl.col("mid")).alias("x"),
+                pl.col("y").list.get(pl.col("mid")).alias("y"),
+                pl.col("x").list.get(pl.col("mid").add(1)).alias("xend"),
+                pl.col("y").list.get(pl.col("mid").add(1)).alias("yend"),
+            )
+            .drop("mid")
+            .sort("group")
+        )
 
-    # handle mapping
-    mapping = mapping or aes()
+        # handle arrow kwargs
+        _arrow_kwargs = {
+            "color": arrow_color,
+            "size": arrow_size,
+            "alpha": arrow_alpha,
+        }
+        if arrow_kwargs is not None:
+            _arrow_kwargs.update(arrow_kwargs)
 
-    # handle arrow
-    if arrows is None:
-        arrows = arrow()
+        # handle mapping
+        local_mapping = mapping or aes()
 
-    # build the stream layer
-    layer = geom_path(
-        data=frame_streams,
-        mapping=aes("x", "y", group="group", **mapping.as_dict()),
-        color=color,
-        alpha=alpha,
-        size=size,
-        **geom_kwargs,
-    ) + geom_segment(
-        data=frame_arrows,
-        mapping=aes("x", "y", xend="xend", yend="yend"),
-        arrow=arrows,
-        **_arrow_kwargs,
-    )
-    return layer
+        # handle arrow
+        local_arrows = arrow() if arrows is None else arrows
+
+        # build the stream layer
+        layer = geom_path(
+            data=frame_streams,
+            mapping=aes("x", "y", group="group", **local_mapping.as_dict()),
+            color=color,
+            alpha=alpha,
+            size=size,
+            **geom_kwargs,
+        ) + geom_segment(
+            data=frame_arrows,
+            mapping=aes("x", "y", xend="xend", yend="yend"),
+            arrow=local_arrows,
+            **_arrow_kwargs,
+        )
+        return layer
+
+    return DeferredLayer(_build)

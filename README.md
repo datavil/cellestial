@@ -72,7 +72,7 @@ The ggplot-like API allows adding layers and customizing the plot.
 # modify plot size and color palette
 umap += ggsize(800, 600) + scale_color_hue()
 # highlight clusters
-umap + cl.cluster_outlines(dim,["B Cells","Erythroid"])
+umap + cl.cluster_outlines(["B Cells","Erythroid"])
 ```
 <img src="./assets/highlight.png" alt="highliht" width="700">
 

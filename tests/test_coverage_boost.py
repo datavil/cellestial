@@ -11,6 +11,7 @@ from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+from cellestial.layers import DeferredLayer
 
 # ===========================================================================
 # dimensional.py — uncovered: TypeError, use_key, legend_ondata, color_mid,
@@ -217,8 +218,10 @@ def test_dimensional_axis_type_none(adata):
 
 def test_arrow_axis_default(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(umap)
-    assert isinstance(arrow, (FeatureSpec, FeatureSpecArray))
+    arrow = cl.arrow_axis()
+    assert isinstance(arrow, DeferredLayer)
+    combined = umap + arrow
+    assert isinstance(combined, PlotSpec)
 
 
 # ===========================================================================

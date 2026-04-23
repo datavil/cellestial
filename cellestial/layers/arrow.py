@@ -11,6 +11,7 @@ from lets_plot import (
     theme,
 )
 
+from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping
 
 if TYPE_CHECKING:
@@ -131,21 +132,23 @@ def _modify_axis(
 
 
 def arrow_axis(
-    plot: PlotSpec,
     *,
+    plot: PlotSpec | None = None,
     size: float = 1,
     length: float = 0.25,
     angle: float = 10,
     color: str = "#3f3f3f",
     **arrow_kwargs,
-) -> FeatureSpecArray:
+) -> DeferredLayer:
     """
     Layer of arrows as the X and Y axis to the plot.
 
     Parameters
     ----------
-    plot : PlotSpec
-        The plot to which the layer will be added. Used to extract data and aesthetics.
+    plot : PlotSpec | None, default=None
+        If provided, the arrow axis is built from this plot's data and aesthetics
+        regardless of which plot the resulting layer is added to. When ``None``,
+        the layer is deferred and introspects the plot it is added to via ``+``.
     size : float
         Size of the arrow.
     color : str
@@ -161,7 +164,7 @@ def arrow_axis(
 
     Returns
     -------
-    FeatureSpecArray
+    DeferredLayer
 
     Examples
     --------
@@ -191,7 +194,7 @@ def arrow_axis(
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
         umap = cl.umap(data,"HBA2")
-        umap + cl.arrow_axis(umap)
+        umap + cl.arrow_axis()
 
     Arrow customization.
 
@@ -205,61 +208,66 @@ def arrow_axis(
         data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
 
         umap = cl.umap(data,"HBA2")
-        umap + cl.arrow_axis(umap,length=0.20,color="dark_violet")
+        umap + cl.arrow_axis(length=0.20,color="dark_violet")
 
     """
-    frame = plot.get_plot_shared_data()
-    mapping = get_mapping(plot, index=0)
-    x: str = mapping["x"]
-    y: str = mapping["y"]
-    new_layer = theme(
-        # remove axis elements
-        axis_text_x=element_blank(),
-        axis_text_y=element_blank(),
-        axis_ticks_y=element_blank(),
-        axis_ticks_x=element_blank(),
-        axis_line=element_blank(),
-        # position axis titles according to arrow size
-        axis_title_x=element_text(hjust=length / 2.5),  # better than 2
-        axis_title_y=element_text(hjust=length / 2.5),
-    )
-    x_max = frame[x].max()
-    x_min = frame[x].min()
-    y_max = frame[y].max()
-    y_min = frame[y].min()
+    explicit_plot = plot
 
-    # find total difference between the max and min for both axis
-    x_diff = x_max - x_min
-    y_diff = y_max - y_min
+    def _build(receiving_plot: PlotSpec) -> FeatureSpecArray:
+        source = explicit_plot if explicit_plot is not None else receiving_plot
+        frame = source.get_plot_shared_data()
+        mapping = get_mapping(source, index=0)
+        x: str = mapping["x"]
+        y: str = mapping["y"]
+        new_layer = theme(
+            # remove axis elements
+            axis_text_x=element_blank(),
+            axis_text_y=element_blank(),
+            axis_ticks_y=element_blank(),
+            axis_ticks_x=element_blank(),
+            axis_line=element_blank(),
+            # position axis titles according to arrow size
+            axis_title_x=element_text(hjust=length / 2.5),  # better than 2
+            axis_title_y=element_text(hjust=length / 2.5),
+        )
+        x_max = frame[x].max()
+        x_min = frame[x].min()
+        y_max = frame[y].max()
+        y_min = frame[y].min()
 
-    # find the ends of the arrows
-    xend = x_min + length * x_diff
-    yend = y_min + length * y_diff
+        # find total difference between the max and min for both axis
+        x_diff = x_max - x_min
+        y_diff = y_max - y_min
 
-    # adjust bottom ends of arrows
-    adjust_rate = 0.025
-    x0 = x_min - x_diff * adjust_rate
-    y0 = y_min - y_diff * adjust_rate
+        # find the ends of the arrows
+        xend = x_min + length * x_diff
+        yend = y_min + length * y_diff
 
-    # X axis
-    new_layer += geom_segment(
-        x=x0,
-        y=y0,
-        xend=xend,
-        yend=y0,
-        color=color,
-        size=size,
-        arrow=arrow(angle, **arrow_kwargs),
-    )
-    # Y axis
-    new_layer += geom_segment(
-        x=x0,
-        y=y0,
-        xend=x0,
-        yend=yend,
-        color=color,
-        size=size,
-        arrow=arrow(angle, **arrow_kwargs),
-    )
+        # adjust bottom ends of arrows
+        adjust_rate = 0.025
+        x0 = x_min - x_diff * adjust_rate
+        y0 = y_min - y_diff * adjust_rate
 
-    return new_layer
+        # X axis
+        new_layer += geom_segment(
+            x=x0,
+            y=y0,
+            xend=xend,
+            yend=y0,
+            color=color,
+            size=size,
+            arrow=arrow(angle, **arrow_kwargs),
+        )
+        # Y axis
+        new_layer += geom_segment(
+            x=x0,
+            y=y0,
+            xend=x0,
+            yend=yend,
+            color=color,
+            size=size,
+            arrow=arrow(angle, **arrow_kwargs),
+        )
+        return new_layer
+
+    return DeferredLayer(_build)

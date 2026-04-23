@@ -6,6 +6,7 @@ import numpy as np
 import polars as pl
 from lets_plot import aes, geom_path
 
+from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping
 
 if TYPE_CHECKING:
@@ -82,9 +83,9 @@ def _get_density_boundaries(
 
 
 def cluster_outlines(
-    plot: PlotSpec,
     groups: str | Sequence[str | Sequence[str]],
     *,
+    plot: PlotSpec | None = None,
     padding: float = 1.5,
     level: float = 0.04,
     grid_size: int = 200,
@@ -98,19 +99,21 @@ def cluster_outlines(
     x: str | None = None,
     y: str | None = None,
     **geom_kwargs,
-) -> LayerSpec:
+) -> DeferredLayer:
     """
     Returns a Layer of `geom_path` that outlines the given clusters.
 
     Parameters
     ----------
-    plot : PlotSpec
-        The plot to which the layer will be added. Used to extract data and aesthetics.
     groups : str | Sequence[str | Sequence[str]]
         The group(s) to outline. Can be a single group name or a list of group
         Providing string(s) will outline clusters with those group names.
         Providing nested sequences of strings combines each sequence into a their own group.
         E.g `groups=[['A', 'B']]` will outline groups A and B as if they were one cluster.
+    plot : PlotSpec | None, default=None
+        If provided, outlines are computed from this plot's data and aesthetics
+        regardless of which plot the resulting layer is added to. When ``None``,
+        the layer is deferred and introspects the plot it is added to via ``+``.
     padding : float, default=1.5
         The spatial buffer added to the cluster's bounding box before calculating density.
         Increasing this value allows the density 'cloud' to expand further from the outermost
@@ -168,7 +171,7 @@ def cluster_outlines(
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
             + scale_color_hue()
         )
-        umap + cl.cluster_outlines(umap, groups="B Cells")
+        umap + cl.cluster_outlines(groups="B Cells")
 
     Multiple groups can be outlined.
 
@@ -185,7 +188,7 @@ def cluster_outlines(
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
             + scale_color_hue()
         )
-        umap + cl.cluster_outlines(umap, groups=["B Cells", "Erythroid"])
+        umap + cl.cluster_outlines(groups=["B Cells", "Erythroid"])
 
     Grouping multiple clusters with nested lists.
 
@@ -202,42 +205,51 @@ def cluster_outlines(
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
             + scale_color_hue()
         )
-        umap + cl.cluster_outlines(umap, groups=[["Lymphocytes","Monocytes"],"B Cells"])
+        umap + cl.cluster_outlines(groups=[["Lymphocytes","Monocytes"],"B Cells"])
     """
-    # get mapping
-    _mapping = get_mapping(plot, index=0)
-    x = _mapping["x"] if x is None else x
-    y = _mapping["y"] if y is None else y
-    group_by = _mapping["color"] if group_by is None else group_by
-    if x is None:
-        msg = "`x` is present neither as argument nor in the plot aesthetics."
-        raise ValueError(msg)
-    if y is None:
-        msg = "`y` is present neither as argument nor in the plot aesthetics."
-        raise ValueError(msg)
-    if group_by is None:
-        msg = "`group_by` is present neither as argument nor in the plot aesthetics."
-        raise ValueError(msg)
-    # get data
-    frame = plot.get_plot_shared_data()
-    # get boundaries
-    frame = _get_density_boundaries(
-        frame,
-        x=x,
-        y=y,
-        group_by=group_by,
-        groups=groups,
-        padding=padding,
-        level=level,
-        grid_size=grid_size,
-    )
-    # create and return the plot
-    mapping = mapping or aes()
-    return geom_path(
-        data=frame,
-        mapping=aes(x=x, y=y, group="path", **mapping.as_dict()),
-        color=color,
-        linetype=linetype,
-        size=size,
-        **geom_kwargs,
-    )
+    explicit_plot = plot
+    explicit_x = x
+    explicit_y = y
+    explicit_group_by = group_by
+
+    def _build(receiving_plot: PlotSpec) -> LayerSpec:
+        source = explicit_plot if explicit_plot is not None else receiving_plot
+        # get mapping
+        _mapping = get_mapping(source, index=0)
+        x = _mapping["x"] if explicit_x is None else explicit_x
+        y = _mapping["y"] if explicit_y is None else explicit_y
+        group_by = _mapping["color"] if explicit_group_by is None else explicit_group_by
+        if x is None:
+            msg = "`x` is present neither as argument nor in the plot aesthetics."
+            raise ValueError(msg)
+        if y is None:
+            msg = "`y` is present neither as argument nor in the plot aesthetics."
+            raise ValueError(msg)
+        if group_by is None:
+            msg = "`group_by` is present neither as argument nor in the plot aesthetics."
+            raise ValueError(msg)
+        # get data
+        frame = source.get_plot_shared_data()
+        # get boundaries
+        frame = _get_density_boundaries(
+            frame,
+            x=x,
+            y=y,
+            group_by=group_by,
+            groups=groups,
+            padding=padding,
+            level=level,
+            grid_size=grid_size,
+        )
+        # create and return the layer
+        local_mapping = mapping or aes()
+        return geom_path(
+            data=frame,
+            mapping=aes(x=x, y=y, group="path", **local_mapping.as_dict()),
+            color=color,
+            linetype=linetype,
+            size=size,
+            **geom_kwargs,
+        )
+
+    return DeferredLayer(_build)
