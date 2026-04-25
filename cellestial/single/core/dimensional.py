@@ -21,12 +21,11 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 from cellestial.frames import build_frame
-from cellestial.layers import _modify_axis
+from cellestial.layers import _modify_axis, ondata_legend
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _color_gradient,
     _is_variable_key,
-    _legend_ondata,
     _select_variable_keys,
 )
 
@@ -329,11 +328,7 @@ def dimensional(
     # HANDLE: legend on data
     if key is not None and legend_ondata:
         if frame[key].dtype == pl.Categorical:
-            scttr += _legend_ondata(
-                frame=frame,
-                x=x,
-                y=y,
-                group_by=key,
+            scttr += ondata_legend(
                 size=ondata_size,
                 color=ondata_color,
                 fontface=ondata_fontface,

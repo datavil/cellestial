@@ -2,7 +2,7 @@ from lets_plot import LetsPlot
 
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
-from cellestial.layers import arrow_axis, bracket, cluster_outlines, stream
+from cellestial.layers import arrow_axis, bracket, cluster_outlines, ondata_legend, stream
 from cellestial.single import (
     bar,
     boxplot,
@@ -75,6 +75,7 @@ __all__ = [
     "highest_expressed_genes",
     "interactive",
     "matrixplot",
+    "ondata_legend",
     "pca",
     "pcas",
     "plot",
