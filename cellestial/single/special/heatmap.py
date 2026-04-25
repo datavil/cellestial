@@ -173,7 +173,7 @@ def heatmap(
     geom: Literal["raster", "tile"] = "raster",
     scale_axis: Literal[0, 1] | None = None,
     dendrogram: bool = False,
-    aggregate: bool = True,
+    aggregate: bool = False,
     group_bars: bool = True,
     group_bars_size: float = 6,
     group_bars_labels: bool = True,
@@ -216,9 +216,10 @@ def heatmap(
     dendrogram : bool, default=False
         Whether to add a dendrogram for the ``group_by`` axis.
         Uses ``scanpy.tl.dendrogram`` if not already computed.
-    aggregate : bool, default=True
-        If True, aggregate values per group by mean so each row is a group.
+    aggregate : bool, default=False
         If False, plot one row per observation (i.e., cell).
+        If True, aggregate values per group by mean so each row is a group.
+        For the aggregated view, prefer :func:`matrixplot`.
     group_bars : bool, default=True
         Whether to draw colored vertical bars on the left marking group membership.
         Only used when ``aggregate=False``.
@@ -280,7 +281,7 @@ def heatmap(
 
     Examples
     --------
-    Heatmap aggregates per group_by, by default.
+    Heatmap plots one row per observation (cell), grouped by ``group_by``.
 
     .. jupyter-execute::
 
@@ -298,7 +299,7 @@ def heatmap(
             group_by="cell_type_lvl1",
             keys=markers,
             dendrogram=True,
-        )
+        ) + scale_fill_viridis()
 
     To enable tooltips, use ``geom='tile'``.
 
@@ -311,7 +312,7 @@ def heatmap(
             dendrogram=True,
             geom="tile",
             tooltips=["value"],
-        )
+        ) + scale_fill_viridis()
 
     Values can be standardized per-row or per-column with ``scale_axis``.
 
@@ -323,34 +324,18 @@ def heatmap(
             keys=markers,
             dendrogram=True,
             scale_axis=1,
-        )
-
-    If ``aggregate=False``, each cell is plotted as a separate row.
-
-    .. jupyter-execute::
-        :emphasize-lines: 6
-
-        htmp=cl.heatmap(
-            data,
-            group_by="cell_type_lvl1",
-            keys=markers,
-            geom="raster",
-            aggregate=False,
         ) + scale_fill_viridis()
-        htmp
-
 
     Heatmap components (group separator lines, group bars, dendrogram) can be added or customized.
 
     .. jupyter-execute::
-        :emphasize-lines: 7-13
+        :emphasize-lines: 6-12
 
-        htmp=cl.heatmap(
+        cl.heatmap(
             data,
             group_by="cell_type_lvl1",
             keys=markers,
             geom="raster",
-            aggregate=False,
             group_lines_size=0.5,
             group_lines_color="white",
             dendrogram=True,
@@ -358,7 +343,20 @@ def heatmap(
             group_bars_labels=True,
             group_bars=True,
         ) + scale_fill_viridis()
-        htmp
+
+    For the aggregated view (one row per group), use :func:`matrixplot`
+    or pass ``aggregate=True``.
+
+    .. jupyter-execute::
+        :emphasize-lines: 5
+
+        cl.heatmap(
+            data,
+            group_by="cell_type_lvl1",
+            keys=markers,
+            aggregate=True,
+            dendrogram=True,
+        )
 
     """
     if not isinstance(data, AnnData):
