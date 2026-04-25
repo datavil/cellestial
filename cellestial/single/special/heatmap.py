@@ -502,3 +502,167 @@ def heatmap(
 
     return htmp
 
+def matrixplot(
+    data: AnnData,
+    keys: Sequence[str],
+    group_by: str,
+    *,
+    mapping: FeatureSpec | None = None,
+    geom: Literal["raster", "tile"] = "raster",
+    scale_axis: Literal[0, 1] | None = None,
+    dendrogram: bool = False,
+    group_lines: bool = True,
+    group_lines_color: str = "black",
+    group_lines_size: float = 1.0,
+    dendrogram_color: str = "black",
+    dendrogram_size: float = 0.5,
+    group_lines_kwargs: dict | None = None,
+    dendrogram_kwargs: dict | None = None,
+    value_column: str = "value",
+    variable_column: str = "variable",
+    color_low: str = "#0000ff",
+    color_mid: str = "#ffffff",
+    color_high: str = "#ff0000",
+    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    axis: Literal[0, 1] | None = 0,
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
+    include_dimensions: bool | int = False,
+    interactive: bool = False,
+    **geom_kwargs,
+) -> PlotSpec:
+    """
+    Matrix plot.
+
+    A heatmap with one row per ``group_by`` group, where each cell shows the
+    mean of ``keys`` across observations in that group. Equivalent to calling
+    :func:`heatmap` with ``aggregate=True``.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    keys : Sequence[str]
+        Variable keys to include.
+    group_by : str
+        The key to group the data by.
+    mapping : FeatureSpec | None, default=None
+        Aesthetic mappings for the plot, the result of `aes()`.
+    geom : {'raster', 'tile'}, default='raster'
+        The geom to use. Use 'raster' for performance.
+        Use 'tile' to enable tooltips.
+    scale_axis : {0, 1} | None, default=None
+        Whether to standardize a dimension between 0 and 1.
+        Subtracts the minimum and divides by the maximum.
+        If 0, standardize each variable (column).
+        If 1, standardize each group (row).
+    dendrogram : bool, default=False
+        Whether to add a dendrogram for the ``group_by`` axis.
+        Uses ``scanpy.tl.dendrogram`` if not already computed.
+    group_lines : bool, default=True
+        Whether to draw horizontal lines within the plot separating groups.
+    group_lines_color : str, default='black'
+        Color of the group separator lines.
+    group_lines_size : float, default=1.0
+        Size (thickness) of the group separator lines.
+    dendrogram_color : str, default='black'
+        Color of the dendrogram segments.
+    dendrogram_size : float, default=0.5
+        Size (thickness) of the dendrogram segments.
+    group_lines_kwargs : dict | None, default=None
+        Additional parameters to pass to the group separator lines geom_segment.
+    dendrogram_kwargs : dict | None, default=None
+        Additional parameters to pass to the dendrogram geom_segment.
+    value_column : str, default='value'
+        Name for the value column after unpivoting.
+    variable_column : str, default='variable'
+        Name for the variable column after unpivoting.
+    color_low : str, default='#0000ff'
+        Color for low values in the gradient.
+    color_mid : str, default='#ffffff'
+        Color for mid values in the gradient.
+    color_high : str, default='#ff0000'
+        Color for high values in the gradient.
+    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+        Midpoint for the color gradient.
+    axis : {0,1} | None, default=0
+        Axis of the data, 0 for observations and 1 for variables.
+    observations_name : str, default='Barcode'
+        The name of the observations column.
+    variables_name : str, default='Variable'
+        Name for the variables index column.
+    include_dimensions : bool | int, default=False
+        Whether to include dimensions in the DataFrame.
+        Providing an integer will limit the number of dimensions to given number.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    **geom_kwargs
+        Additional parameters for the heatmap geom layer.
+
+    Returns
+    -------
+    PlotSpec
+        Matrix plot.
+
+    Examples
+    --------
+    Matrix plot of marker expression aggregated per cell type.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read("data/pbmc3k_pped.h5ad")
+
+        markers = ["C1QA", "PSAP", "CD79A", "CD79B", "CST3", "LYZ"]
+
+        cl.matrixplot(
+            data,
+            group_by="cell_type_lvl1",
+            keys=markers,
+            dendrogram=True,
+        )
+
+    Standardize per-variable so each marker spans 0-1 across groups.
+
+    .. jupyter-execute::
+
+        cl.matrixplot(
+            data,
+            group_by="cell_type_lvl1",
+            keys=markers,
+            scale_axis=0,
+        )
+    """
+    return heatmap(
+        data,
+        keys=keys,
+        group_by=group_by,
+        mapping=mapping,
+        geom=geom,
+        scale_axis=scale_axis,
+        dendrogram=dendrogram,
+        aggregate=True,
+        group_lines=group_lines,
+        group_lines_color=group_lines_color,
+        group_lines_size=group_lines_size,
+        dendrogram_color=dendrogram_color,
+        dendrogram_size=dendrogram_size,
+        group_lines_kwargs=group_lines_kwargs,
+        dendrogram_kwargs=dendrogram_kwargs,
+        value_column=value_column,
+        variable_column=variable_column,
+        color_low=color_low,
+        color_mid=color_mid,
+        color_high=color_high,
+        mid_point=mid_point,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+        include_dimensions=include_dimensions,
+        interactive=interactive,
+        **geom_kwargs,
+    )
