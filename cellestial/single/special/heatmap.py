@@ -109,9 +109,7 @@ def _assign_positions(
     return frame, cell_frame, n_x, n_y, centers_frame["_center"].to_list()
 
 
-def _get_group_bar_frame(
-    cell_frame: pl.DataFrame, *, group_by: str, n_x: int
-) -> pl.DataFrame:
+def _get_group_bar_frame(cell_frame: pl.DataFrame, *, group_by: str, n_x: int) -> pl.DataFrame:
     """Build the per-group colored bar frame drawn to the left of the heatmap."""
     bar_width = max(1.0, n_x * _GROUP_BAR_RATIO)
     bar_xend = -_GROUP_BAR_GAP
@@ -449,7 +447,7 @@ def heatmap(
     # GROUP color bar on left for non-aggregate
     if not aggregate and group_bars:
         assert cell_frame is not None
-        group_bar_frame= _get_group_bar_frame(cell_frame, group_by=group_by, n_x=n_x)
+        group_bar_frame = _get_group_bar_frame(cell_frame, group_by=group_by, n_x=n_x)
         htmp += geom_segment(
             data=group_bar_frame,
             mapping=aes(x="x", xend="x", y="y_min", yend="y_max", color=group_by),
@@ -502,6 +500,7 @@ def heatmap(
 
     return htmp
 
+
 def matrixplot(
     data: AnnData,
     keys: Sequence[str],
@@ -534,9 +533,7 @@ def matrixplot(
     """
     Matrix plot.
 
-    A heatmap with one row per ``group_by`` group, where each cell shows the
-    mean of ``keys`` across observations in that group. Equivalent to calling
-    :func:`heatmap` with ``aggregate=True``.
+    Basically a heatmap with fixed ``aggregate=True`` argument.
 
     Parameters
     ----------
