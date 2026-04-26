@@ -32,7 +32,7 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
-from cellestial.util import get_mapping, retrieve
+from cellestial.util import get_mapping, retrieve, save
 from cellestial.util import get_slice as slice
 from cellestial.util.colors import (
     BLUE,
@@ -84,6 +84,7 @@ __all__ = [
     "retrieve",
     "ridge",
     "ridges",
+    "save",
     "scatter",
     "setup_html",
     "show_colors",

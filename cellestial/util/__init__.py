@@ -3,6 +3,7 @@ from cellestial.util.dendrogram import (
     _get_dendrogram_path_frame,
 )
 from cellestial.util.operations import get_mapping, get_slice, retrieve
+from cellestial.util.save import save
 from cellestial.util.utilities import (
     _color_gradient,
     _determine_axis,
@@ -32,4 +33,5 @@ __all__ = [
     "get_mapping",
     "get_slice",
     "retrieve",
+    "save"
 ]
