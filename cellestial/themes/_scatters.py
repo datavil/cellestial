@@ -1,7 +1,6 @@
 from lets_plot import (
     element_blank,
     element_text,
-    ggsize,
     scale_color_brewer,
     scale_size,
     theme,
@@ -21,7 +20,6 @@ _THEME_DIMENSION = (
         legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
         # customize legend columns
     )
-    + ggsize(500, 400)
 )
 
 _THEME_SCATTER = theme(
@@ -35,6 +33,18 @@ _THEME_SCATTER = theme(
     legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
     # customize legend columns
 ) + scale_color_brewer(palette="Set2")
+
+_THEME_SCATTER_BASE = theme(
+    # customize all text
+    text=element_text(color="#1f1f1f", family="Arial"),
+    # customize all titles (includes legend)
+    title=element_text(color="#1f1f1f", family="Arial"),
+    # customize axis titles (labels)
+    axis_title=element_text(color="#3f3f3f", family="Arial"),
+    # customize legend text
+    legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
+    # customize legend columns
+)
 
 _THEME_DOTPLOT = (
     theme_classic()

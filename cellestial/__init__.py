@@ -27,6 +27,8 @@ from cellestial.single import (
     umaps,
     violin,
     violins,
+    volcano,
+    volcanos,
     xyplot,
     xyplots,
 )
@@ -94,6 +96,8 @@ __all__ = [
     "versions",
     "violin",
     "violins",
+    "volcano",
+    "volcanos",
     "xyplot",
     "xyplots",
 ]

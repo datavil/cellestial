@@ -18,7 +18,7 @@ from cellestial.single.core import (
     violins,
 )
 from cellestial.single.quick import highest_expressed_genes, ridge, ridges
-from cellestial.single.special import dotplot, heatmap, matrixplot
+from cellestial.single.special import dotplot, heatmap, matrixplot, volcano, volcanos
 
 __all__ = [
     "bar",
@@ -44,6 +44,8 @@ __all__ = [
     "umaps",
     "violin",
     "violins",
+    "volcano",
+    "volcanos",
     "xyplot",
     "xyplots",
 ]
