@@ -17,8 +17,9 @@ from cellestial.single.core import (
     violin,
     violins,
 )
+from cellestial.single.differential import volcano, volcanos
+from cellestial.single.heatmap import dotplot, heatmap, matrixplot
 from cellestial.single.quick import highest_expressed_genes, ridge, ridges
-from cellestial.single.special import dotplot, heatmap, matrixplot, volcano, volcanos
 
 __all__ = [
     "bar",

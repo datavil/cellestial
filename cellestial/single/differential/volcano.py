@@ -169,6 +169,12 @@ def _build_volcano_frame(
         .cast(pl.Categorical)
         .alias(significance_column),
     )
+    # 3. Round float columns to keep the embedded JSON compact when the frame
+    #    is serialized into the plot output (significant on-disk size win).
+    frame = frame.with_columns(
+        pl.col(logfoldchange_column).round(4),
+        pl.col(neg_log_pvalue_column).round(4),
+    )
 
     return frame
 
@@ -198,6 +204,7 @@ def volcano(
     label_size: float = 4.0,
     segment_size: float = 0.4,
     label_kwargs: dict | None = None,
+    nonsignificant_subsample: int | None = 2000,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
     pvalue_column: str = "pvalue",
@@ -273,6 +280,13 @@ def volcano(
         Width of the line segment connecting the label to the point.
     label_kwargs : dict | None, default=None
         Additional parameters passed to the ``geom_text`` label layer.
+    nonsignificant_subsample : int | None, default=2000
+        Maximum number of non-significant points to keep. Significant points
+        (up/down) are always kept in full. Reducing this shrinks the embedded
+        data in the rendered plot (smaller HTML/notebook output) at no visible
+        cost since the non-significant cloud is heavily overplotted. Set to
+        ``None`` to keep every non-significant point. Sampling is deterministic
+        (``seed=42``).
     variable_column : str, default='variable'
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
@@ -353,6 +367,16 @@ def volcano(
     frame = frame.filter(
         pl.col(neg_log_pvalue_column).is_finite() & pl.col(logfoldchange_column).is_finite()
     )
+
+    # SUBSAMPLE: cap non-significant points to keep the embedded data small.
+    # The non-significant cloud overplots itself heavily, so dropping most of
+    # it has no visible effect but shrinks the rendered plot's on-disk size.
+    if nonsignificant_subsample is not None:
+        nonsignificant = frame.filter(pl.col(significance_column) == nonsignificant_label)
+        if nonsignificant.height > nonsignificant_subsample:
+            significant = frame.filter(pl.col(significance_column) != nonsignificant_label)
+            nonsignificant = nonsignificant.sample(n=nonsignificant_subsample, seed=42)
+            frame = pl.concat([significant, nonsignificant])
 
     # HANDLE: tooltips
     default_tooltip_columns = [
@@ -488,6 +512,7 @@ def volcanos(
     label_size: float = 4.0,
     segment_size: float = 0.4,
     label_kwargs: dict | None = None,
+    nonsignificant_subsample: int | None = 2000,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
     pvalue_column: str = "pvalue",
@@ -576,6 +601,13 @@ def volcanos(
         Width of the line segment connecting the label to the point.
     label_kwargs : dict | None, default=None
         Additional parameters passed to the ``geom_text_repel`` label layer.
+    nonsignificant_subsample : int | None, default=2000
+        Maximum number of non-significant points to keep per subplot. Significant
+        points (up/down) are always kept in full. Reducing this shrinks the
+        embedded data in the rendered grid (smaller HTML/notebook output) at no
+        visible cost since the non-significant cloud is heavily overplotted. Set
+        to ``None`` to keep every non-significant point. Sampling is deterministic
+        (``seed=42``).
     variable_column : str, default='variable'
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
@@ -680,6 +712,7 @@ def volcanos(
             label_size=label_size,
             segment_size=segment_size,
             label_kwargs=label_kwargs,
+            nonsignificant_subsample=nonsignificant_subsample,
             variable_column=variable_column,
             logfoldchange_column=logfoldchange_column,
             pvalue_column=pvalue_column,
