@@ -58,7 +58,7 @@ def dotplot(
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_kwargs: dict | None = None,
-    rectangle_size: float = 0.4,
+    rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -116,7 +116,7 @@ def dotplot(
         Size (thickness) of the dendrogram segments.
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_segment.
-    rectangle_size : float, default=0.4
+    rectangle_size : float, default=0.8
         Size (thickness) of the rectangle border.
     rectangle_color : str, default='#3f3f3f'
         Color of the rectangle border.

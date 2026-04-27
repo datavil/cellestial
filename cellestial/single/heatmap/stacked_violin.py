@@ -1,0 +1,509 @@
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal
+
+import numpy as np
+import polars as pl
+from anndata import AnnData
+from lets_plot import (
+    aes,
+    element_line,
+    geom_path,
+    geom_polygon,
+    geom_rect,
+    ggplot,
+    ggtb,
+    layer_tooltips,
+    scale_x_continuous,
+    scale_y_continuous,
+    theme,
+)
+from lets_plot.plot.core import FeatureSpec
+
+from cellestial.frames import build_frame
+from cellestial.themes import _THEME_DOTPLOT
+from cellestial.util import (
+    _fill_gradient,
+    _get_dendrogram,
+    _get_dendrogram_path_frame,
+)
+
+if TYPE_CHECKING:
+    from lets_plot.plot.core import PlotSpec
+
+
+def _compute_violin_polygons(
+    frame: pl.DataFrame,
+    *,
+    variable_column: str,
+    value_column: str,
+    group_by: str,
+    x_keys: list[str],
+    y_order_groups: list[str],
+    n_points: int,
+    scale: Literal["area", "count", "width"],
+    width_scale: float,
+    height_scale: float,
+    aggregate: Literal["mean", "median"],
+    aggregate_key: str,
+) -> pl.DataFrame:
+    """
+    Build a polygon-vertex frame for one violin per (variable, group) cell.
+
+    Each violin is centered at ``(x=variable_index, y=group_index)`` with value
+    mapped to local y inside the row band and density mapped to local x around
+    the column position.
+    """
+    from scipy.stats import gaussian_kde
+
+    var_stats = frame.group_by(variable_column).agg(
+        pl.col(value_column).min().alias("_vmin"),
+        pl.col(value_column).max().alias("_vmax"),
+    )
+    var_range = {
+        row[variable_column]: (row["_vmin"], row["_vmax"])
+        for row in var_stats.iter_rows(named=True)
+    }
+
+    rows: list[dict] = []
+    polygon_id = 0
+    half_height = height_scale / 2
+    half_width_max = width_scale / 2
+
+    for x_index, var_key in enumerate(x_keys):
+        if var_key not in var_range:
+            continue
+        var_min, var_max = var_range[var_key]
+        if var_min is None or var_max is None or var_max <= var_min:
+            continue
+        value_span = var_max - var_min
+
+        var_frame = frame.filter(pl.col(variable_column) == var_key)
+        kde_results: dict[str, tuple[int, np.ndarray, np.ndarray, int, float]] = {}
+
+        for y_index, group_key in enumerate(y_order_groups):
+            group_values = (
+                var_frame.filter(pl.col(group_by).cast(pl.String) == group_key)[value_column]
+                .drop_nulls()
+                .to_numpy()
+            )
+            if len(group_values) < 2 or group_values.std() == 0:
+                continue
+            try:
+                kde = gaussian_kde(group_values)
+            except Exception:
+                continue
+            grid = np.linspace(var_min, var_max, n_points)
+            density = kde(grid)
+            agg_value = (
+                float(np.median(group_values))
+                if aggregate == "median"
+                else float(group_values.mean())
+            )
+            kde_results[group_key] = (
+                y_index,
+                grid,
+                density,
+                len(group_values),
+                agg_value,
+            )
+
+        if not kde_results:
+            continue
+
+        if scale == "width":
+            normalizers = {gk: float(d.max()) for gk, (_, _, d, _, _) in kde_results.items()}
+        elif scale == "count":
+            normalizers = {
+                gk: float((d * n).max()) for gk, (_, _, d, n, _) in kde_results.items()
+            }
+        elif scale == "area":
+            max_d = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
+            normalizers = dict.fromkeys(kde_results, max_d)
+        else:
+            msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
+            raise ValueError(msg)
+
+        for group_key, (y_index, grid, density, n_obs, agg_value) in kde_results.items():
+            if scale == "count":
+                density = density * n_obs
+            normalizer = normalizers[group_key]
+            if normalizer <= 0:
+                continue
+
+            half_width = (density / normalizer) * half_width_max
+            y_local = (y_index - half_height) + (grid - var_min) / value_span * height_scale
+            x_left = x_index - half_width
+            x_right = x_index + half_width
+            poly_x = np.concatenate([x_right, x_left[::-1]])
+            poly_y = np.concatenate([y_local, y_local[::-1]])
+
+            for px, py in zip(poly_x.tolist(), poly_y.tolist(), strict=True):
+                rows.append(
+                    {
+                        "polygon_id": polygon_id,
+                        "x": px,
+                        "y": py,
+                        variable_column: var_key,
+                        group_by: group_key,
+                        aggregate_key: agg_value,
+                    }
+                )
+            polygon_id += 1
+
+    if not rows:
+        schema = {
+            "polygon_id": pl.Int64,
+            "x": pl.Float64,
+            "y": pl.Float64,
+            variable_column: pl.String,
+            group_by: pl.String,
+            aggregate_key: pl.Float64,
+        }
+        return pl.DataFrame(schema=schema)
+    return pl.DataFrame(rows)
+
+
+def stacked_violin(
+    data: AnnData,
+    keys: Sequence[str],
+    group_by: str,
+    *,
+    mapping: FeatureSpec | None = None,
+    threshold: float | None = None,
+    scale: Literal["area", "count", "width"] = "width",
+    width_scale: float = 0.85,
+    height_scale: float = 0.85,
+    n_points: int = 64,
+    color_by: Literal["median", "mean", "group", "variable"] | None = "median",
+    size: float = 0.2,
+    color_low: str = "#F5F5F5",
+    color_mid: str | None = None,
+    color_high: str = "#00008B",
+    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    geom_fill: str | None = None,
+    geom_color: str | None = "#1f1f1f",
+    dendrogram: bool = False,
+    dendrogram_color: str = "black",
+    dendrogram_size: float = 0.5,
+    dendrogram_kwargs: dict | None = None,
+    rectangle: bool = True,
+    rectangle_size: float = 0.8,
+    rectangle_color: str = "#3f3f3f",
+    rectangle_kwargs: dict | None = None,
+    aggregate_key: str = "expression",
+    value_column: str = "value",
+    variable_column: str = "variable",
+    observations_name: str = "Barcode",
+    variables_name: str = "Variable",
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
+    interactive: bool = False,
+    **geom_kwargs,
+) -> PlotSpec:
+    """
+    Stacked Violin Plot.
+
+    Parameters
+    ----------
+    data : AnnData
+        The AnnData object of the single cell data.
+    keys : Sequence[str]
+        Variable keys laid out along the x-axis. One column of violins per key.
+    group_by : str
+        The key used to group observations along the y-axis.
+    mapping : FeatureSpec | None, default=None
+        Aesthetic mappings for the plot, the result of `aes()`.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
+    scale : {'area', 'count', 'width'}, default='width'
+        Method for scaling violin widths.
+        ``'width'`` — every violin has the same maximum width.
+        ``'count'`` — width is proportional to the number of observations.
+        ``'area'`` — widths preserve density area across groups within a variable.
+    width_scale : float, default=0.85
+        Maximum total width of a violin in x units (1 unit = one variable column).
+    height_scale : float, default=0.85
+        Total height of a violin in y units (1 unit = one group row).
+    n_points : int, default=64
+        Number of grid points for the kernel density estimate.
+    color_by : {'median', 'mean', 'group', 'variable'} | None, default='median'
+        Which value drives the fill aesthetic of each violin.
+        ``'median'`` colors by median expression per (variable, group).
+        ``'mean'`` colors by mean expression per (variable, group).
+        ``'group'`` colors by ``group_by`` (categorical palette).
+        ``'variable'`` colors by ``variable_column`` (categorical palette).
+        ``None`` disables fill mapping (use ``geom_fill`` for a static fill).
+    size : float, default=0.2
+        Stroke size (edge width) of the violins.
+    color_low : str, default='#F5F5F5'
+        Color for low values in the gradient (used when ``color_by='mean'``).
+    color_mid : str | None, default=None
+        Color for mid values in the gradient.
+    color_high : str, default='#00008B'
+        Color for high values in the gradient.
+    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+        Midpoint for the color gradient.
+    geom_fill : str | None, default=None
+        Static fill color for all violins. Overrides any fill aesthetic.
+
+            **Accepts:**
+
+            - hex code e.g. '#f1f1f1'
+            - color name (https://lets-plot.org/python/pages/named_colors.html).
+            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
+    geom_color : str | None, default=None
+        Border color for all violins.
+    dendrogram : bool, default=False
+        Whether to add a dendrogram for the ``group_by`` axis.
+        Uses ``scanpy.tl.dendrogram`` if not already computed.
+        When True, group order is determined by the dendrogram.
+    dendrogram_color : str, default='black'
+        Color of the dendrogram segments.
+    dendrogram_size : float, default=0.5
+        Size (thickness) of the dendrogram segments.
+    dendrogram_kwargs : dict | None, default=None
+        Additional parameters to pass to the dendrogram geom_path.
+    rectangle : bool, default=True
+        Whether to add a rectangle border around the data area.
+    rectangle_size : float, default=0.8
+        Size (thickness) of the rectangle border.
+    rectangle_color : str, default='#3f3f3f'
+        Color of the rectangle border.
+    rectangle_kwargs : dict | None, default=None
+        Additional parameters to pass to the rectangle geom_rect.
+    aggregate_key : str, default='expression'
+        Name of the per-(variable, group) aggregate column attached to each violin
+        (median or mean, selected by ``color_by``).
+    value_column : str, default='value'
+        Name for the value column after unpivoting.
+    variable_column : str, default='variable'
+        Name for the variable column after unpivoting.
+    observations_name : str, default='Barcode'
+        The name of the observations column.
+    variables_name : str, default='Variable'
+        Name for the variables index column.
+    tooltips : {'none'} | Sequence[str] | FeatureSpec | None, default=None
+        Tooltips to show when hovering over the geom.
+        Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
+        Use 'none' to disable tooltips.
+    interactive : bool, default=False
+        Whether to make the plot interactive.
+    **geom_kwargs
+        Additional parameters for the `geom_polygon` layer.
+        For further detail on geom_polygon.
+        https://lets-plot.org/python/pages/api/lets_plot.geom_polygon.html
+
+    Returns
+    -------
+    PlotSpec
+        Stacked violin plot.
+
+    Examples
+    --------
+    A simple stacked violin plot of marker genes across cell types.
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+        from lets_plot import *
+
+        import cellestial as cl
+
+        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+
+        markers = ["C1QA", "PSAP", "CD79A", "CD79B", "CST3", "LYZ"]
+
+        cl.stacked_violin(
+            data,
+            keys=markers,
+            group_by="cell_type_lvl1",
+        )
+
+    Reorder groups along the y-axis with a dendrogram.
+
+    .. jupyter-execute::
+        :emphasize-lines: 5
+
+        cl.stacked_violin(
+            data,
+            keys=markers,
+            group_by="cell_type_lvl1",
+            dendrogram=True,
+        )
+
+    Color violins by ``group_by`` instead of the per-cell aggregate.
+
+    .. jupyter-execute::
+        :emphasize-lines: 5
+
+        cl.stacked_violin(
+            data,
+            keys=markers,
+            group_by="cell_type_lvl1",
+            color_by="group",
+        )
+    """
+    # HANDLE: Data types
+    if not isinstance(data, AnnData):
+        msg = "data must be an `AnnData` object"
+        raise TypeError(msg)
+
+    mapping = mapping or aes()
+
+    # BUILD: dataframe
+    keys_list = list(keys)
+    frame = build_frame(
+        data=data,
+        axis=0,
+        variable_keys=keys_list,
+        observations_name=observations_name,
+        variables_name=variables_name,
+    )
+    # DROP: rows with null group_by to avoid null labels downstream
+    frame = frame.filter(pl.col(group_by).is_not_null())
+
+    # CRITICAL PARTS: Dataframe Operations
+    # 1. Unpivot to long format
+    frame = frame.unpivot(
+        on=keys_list,
+        index=[observations_name, group_by],
+        variable_name=variable_column,
+        value_name=value_column,
+    )
+    frame = frame.drop_nulls(subset=[value_column])
+    # 2. Apply threshold filter
+    if threshold is not None:
+        frame = frame.filter(pl.col(value_column) >= threshold)
+
+    # DETERMINE: y order of groups (dendrogram or first-seen order)
+    if dendrogram:
+        y_order_groups, paths = _get_dendrogram(data, group_by)
+    else:
+        y_order_groups = (
+            frame.select(group_by)
+            .unique(maintain_order=True)[group_by]
+            .cast(pl.String)
+            .to_list()
+        )
+        paths = None
+
+    x_keys = keys_list
+    n_x = len(x_keys)
+    n_y = len(y_order_groups)
+
+    # COMPUTE: KDE polygons — one violin per (variable, group)
+    poly_frame = _compute_violin_polygons(
+        frame,
+        variable_column=variable_column,
+        value_column=value_column,
+        group_by=group_by,
+        x_keys=x_keys,
+        y_order_groups=y_order_groups,
+        n_points=n_points,
+        scale=scale,
+        width_scale=width_scale,
+        height_scale=height_scale,
+        aggregate="mean" if color_by == "mean" else "median",
+        aggregate_key=aggregate_key,
+    )
+
+    # HANDLE: tooltips
+    if tooltips is None:
+        tooltips_spec = layer_tooltips([variable_column, group_by, aggregate_key])
+    elif tooltips == "none" or isinstance(tooltips, str):
+        tooltips_spec = tooltips
+    elif isinstance(tooltips, Sequence):
+        tooltips = list(tooltips)
+        tooltips_spec = layer_tooltips(tooltips)
+    elif isinstance(tooltips, FeatureSpec):
+        tooltips_spec = tooltips
+
+    # DEFINE: mapping with defaults
+    _mapping = {"x": "x", "y": "y", "group": "polygon_id"}
+    if color_by in ("mean", "median"):
+        _mapping["fill"] = aggregate_key
+    elif color_by == "group":
+        _mapping["fill"] = group_by
+    elif color_by == "variable":
+        _mapping["fill"] = variable_column
+    _mapping.update(mapping.as_dict())
+
+    # BUILD: stacked violin
+    plot = ggplot(poly_frame) + geom_polygon(
+        aes(**_mapping),
+        fill=geom_fill,
+        color=geom_color,
+        tooltips=tooltips_spec,
+        size=size,
+        **geom_kwargs,
+    )
+
+    # ADD: continuous fill gradient when coloring by mean/median expression
+    if color_by in ("mean", "median") and poly_frame.height > 0:
+        plot += _fill_gradient(
+            poly_frame[aggregate_key],
+            color_low=color_low,
+            color_mid=color_mid,
+            color_high=color_high,
+            mid_point=mid_point,
+        )
+
+    # DENDROGRAM (right side, along y-axis) — built first so we can derive tight x limits
+    x_max_limit = n_x - 0.5
+    if dendrogram:
+        assert paths is not None
+        group_centers = [float(i) for i in range(n_y)]
+        dendrogram_frame = _get_dendrogram_path_frame(
+            paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
+        )
+        x_max_limit = dendrogram_frame["x"].max()
+        plot += geom_path(
+            data=dendrogram_frame,
+            mapping=aes(x="x", y="y", group="group"),
+            color=dendrogram_color,
+            size=dendrogram_size,
+            **(dendrogram_kwargs or {}),
+        )
+
+    # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
+    plot += scale_x_continuous(
+        breaks=list(range(n_x)),
+        labels=x_keys,
+        limits=[-0.5, x_max_limit],
+        expand=[0, 0],
+    )
+    plot += scale_y_continuous(
+        breaks=list(range(n_y)),
+        labels=y_order_groups,
+        limits=[-0.5, n_y - 0.5],
+        expand=[0, 0],
+    )
+
+    # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
+    if rectangle:
+        plot += geom_rect(
+            data={
+                "xmin": [-0.5],
+                "xmax": [n_x - 0.5],
+                "ymin": [-0.5],
+                "ymax": [n_y - 0.5],
+            },
+            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
+            color=rectangle_color,
+            size=rectangle_size,
+            fill="rgba(0,0,0,0)",
+            inherit_aes=False,
+            **(rectangle_kwargs or {}),
+        )
+    else:
+        plot += theme(axis_line=element_line(color="#1f1f1f"))
+
+    # ADD: theme
+    plot += _THEME_DOTPLOT
+
+    # HANDLE: interactive
+    if interactive:
+        plot += ggtb(size_zoomin=-1)
+
+    return plot
