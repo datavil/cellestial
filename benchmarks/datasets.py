@@ -1,11 +1,12 @@
-"""Dataset loaders for cellestial benchmarks.
+"""
+Dataset loaders for cellestial benchmarks.
 
 Goals:
 - Provide a few real, preprocessed scanpy datasets for realism.
 - Provide a scalable synthetic dataset (`blobs`) with UMAP/PCA/cluster labels
   patched in, so we can sweep cell counts without paying for real dimred.
 
-The patched UMAP/PCA coordinates are random — we are benchmarking the
+The patched UMAP/PCA coordinates are random, we are benchmarking the
 *plotting pipeline*, not dimensionality reduction.
 """
 
@@ -68,7 +69,7 @@ def load_pbmc3k_processed() -> DatasetSpec:
 
 
 def load_pbmc3k() -> DatasetSpec:
-    """Raw pbmc3k (~2.7k cells, no UMAP/clusters) — patch embeddings."""
+    """Raw pbmc3k (~2.7k cells, no UMAP/clusters), patch embeddings."""
     adata = sc.datasets.pbmc3k()
     _patch_synthetic_embeddings(adata, n_centers=8, seed=3)
     return DatasetSpec(
@@ -103,7 +104,7 @@ def load_ebi_expression_atlas(
 ) -> DatasetSpec:
     """EBI Expression Atlas dataset (downloads on first run).
 
-    No UMAP/clusters in the raw download — we patch synthetic embeddings so
+    No UMAP/clusters in the raw download, we patch synthetic embeddings so
     we're still benchmarking plotting, not preprocessing.
     """
     adata = sc.datasets.ebi_expression_atlas(accession)
@@ -223,7 +224,9 @@ def load_local_h5ad(
         rng = np.random.default_rng(seed)
         indices = rng.choice(adata.n_obs, size=subsample, replace=False)
         indices.sort()
-        adata = adata[indices].to_memory() if hasattr(adata, "to_memory") else adata[indices].copy()
+        adata = (
+            adata[indices].to_memory() if hasattr(adata, "to_memory") else adata[indices].copy()
+        )
     if cluster_key is None:
         cluster_key = _autodetect_cluster_key(adata)
     if adata.obs[cluster_key].dtype.name != "category":

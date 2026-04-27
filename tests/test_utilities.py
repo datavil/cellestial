@@ -1,4 +1,4 @@
-"""Tests for cellestial.util.utilities — internal helpers."""
+"""Tests for cellestial.util.utilities, internal helpers."""
 
 import polars as pl
 import pytest

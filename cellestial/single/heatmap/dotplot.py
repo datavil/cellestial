@@ -35,7 +35,9 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import PlotSpec
 
-
+# AI-MODIFIED: Gemini 2.5 and Claude 4.6
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def dotplot(
     data: AnnData,
     keys: Sequence[str],
@@ -80,7 +82,7 @@ def dotplot(
         Aesthetic mappings for the plot, the result of `aes()`.
     threshold : float, default=0
         The expression threshold to consider a gene as expressed.
-    Size_scale : float, default=1.0
+    size_scale : float, default=1.0
         Scaling factor for the point sizes in the plot.
     point_size : float, default=1.0
         Scaling factor for the point sizes in the plot.
@@ -322,7 +324,7 @@ def dotplot(
         + _size_scale
     )
 
-    # DENDROGRAM (right side, along y-axis) — built first so we can derive tight x limits
+    # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits
     x_max_limit = n_x - 0.5
     if dendrogram:
         group_centers = [float(i) for i in range(n_y)]

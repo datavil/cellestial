@@ -9,7 +9,9 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpecArray, LayerSpec
 
-
+# AI-GENERATED: Claude 4.7
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 class DeferredLayer(PlotSpec):
     """
     A layer whose construction depends on an existing plot's data and aesthetics.
@@ -24,7 +26,7 @@ class DeferredLayer(PlotSpec):
     class, ``b.__radd__(a)`` is tried *before* ``a.__add__(b)``. Lets-Plot's
     ``PlotSpec.__add__`` raises ``TypeError`` for unknown types instead of
     returning ``NotImplemented``, so the usual ``__radd__`` fallback would
-    never fire — subclassing restores that fallback via the priority rule.
+    never fire, subclassing restores that fallback via the priority rule.
     The base ``__init__`` is deliberately bypassed because ``DeferredLayer``
     does not carry real plot data; only :meth:`__radd__` is ever used.
 
@@ -41,7 +43,7 @@ class DeferredLayer(PlotSpec):
         self,
         builder: Callable[[PlotSpec], LayerSpec | FeatureSpec | FeatureSpecArray],
     ) -> None:
-        # bypass `PlotSpec.__init__` — this wrapper does not carry plot data.
+        # bypass `PlotSpec.__init__`, this wrapper does not carry plot data.
         FeatureSpec.__init__(self, kind="deferred", name=None)
         self._builder = builder
 

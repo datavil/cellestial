@@ -115,9 +115,7 @@ def _compute_violin_polygons(
         if scale == "width":
             normalizers = {gk: float(d.max()) for gk, (_, _, d, _, _) in kde_results.items()}
         elif scale == "count":
-            normalizers = {
-                gk: float((d * n).max()) for gk, (_, _, d, n, _) in kde_results.items()
-            }
+            normalizers = {gk: float((d * n).max()) for gk, (_, _, d, n, _) in kde_results.items()}
         elif scale == "area":
             max_d = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
             normalizers = dict.fromkeys(kde_results, max_d)
@@ -165,6 +163,9 @@ def _compute_violin_polygons(
     return pl.DataFrame(rows)
 
 
+# AI-GENERATED: Claude 4.7
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def stacked_violin(
     data: AnnData,
     keys: Sequence[str],
@@ -218,9 +219,9 @@ def stacked_violin(
         If provided, filters out rows where the value column is below the threshold.
     scale : {'area', 'count', 'width'}, default='width'
         Method for scaling violin widths.
-        ``'width'`` — every violin has the same maximum width.
-        ``'count'`` — width is proportional to the number of observations.
-        ``'area'`` — widths preserve density area across groups within a variable.
+        ``'width'``, every violin has the same maximum width.
+        ``'count'``, width is proportional to the number of observations.
+        ``'area'``, widths preserve density area across groups within a variable.
     width_scale : float, default=0.85
         Maximum total width of a violin in x units (1 unit = one variable column).
     height_scale : float, default=0.85
@@ -381,10 +382,7 @@ def stacked_violin(
         y_order_groups, paths = _get_dendrogram(data, group_by)
     else:
         y_order_groups = (
-            frame.select(group_by)
-            .unique(maintain_order=True)[group_by]
-            .cast(pl.String)
-            .to_list()
+            frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
         paths = None
 
@@ -392,7 +390,7 @@ def stacked_violin(
     n_x = len(x_keys)
     n_y = len(y_order_groups)
 
-    # COMPUTE: KDE polygons — one violin per (variable, group)
+    # COMPUTE: KDE polygons, one violin per (variable, group)
     poly_frame = _compute_violin_polygons(
         frame,
         variable_column=variable_column,
@@ -449,7 +447,7 @@ def stacked_violin(
             mid_point=mid_point,
         )
 
-    # DENDROGRAM (right side, along y-axis) — built first so we can derive tight x limits
+    # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits
     x_max_limit = n_x - 0.5
     if dendrogram:
         assert paths is not None

@@ -130,7 +130,9 @@ def _modify_axis(
 
     return new_layer
 
-
+# AI-MODIFIED: Claude 4.7
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line
 def arrow_axis(
     *,
     plot: PlotSpec | None = None,

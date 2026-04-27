@@ -53,7 +53,7 @@ def _scaling_plot(df: pl.DataFrame, phase: str, out_path: Path) -> None:
         )
         + facet_wrap("case", scales="free_y")
         + labs(x="n cells", y=f"{phase} time (s)")
-        + ggtitle(f"Scaling — {phase}")
+        + ggtitle(f"Scaling, {phase}")
         + theme_classic()
         + ggsize(1100, 450)
     )
@@ -76,7 +76,7 @@ def _bar_plot(df: pl.DataFrame, dataset: str, out_path: Path) -> None:
             breaks=["cellestial", "scanpy"],
         )
         + labs(x="", y="total time (s)")
-        + ggtitle(f"Total time per case — {dataset}")
+        + ggtitle(f"Total time per case, {dataset}")
         + theme_classic()
         + ggsize(800, 420)
     )

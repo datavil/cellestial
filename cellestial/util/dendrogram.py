@@ -4,6 +4,9 @@ import polars as pl
 from anndata import AnnData
 
 
+# AI-GENERATED: Claude 4.6
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFrame]:
     """
     Get or compute the dendrogram for a group_by key and extract paths.
@@ -46,7 +49,9 @@ def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFra
     return categories_ordered, paths
 
 
-
+# AI-GENERATED: Claude 4.6
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def _get_dendrogram_path_frame(
     paths: pl.DataFrame,
     *,

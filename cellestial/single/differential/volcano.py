@@ -178,7 +178,9 @@ def _build_volcano_frame(
 
     return frame
 
-
+# AI-GENERATED: Claude 4.7
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def volcano(
     data: AnnData,
     group: str,

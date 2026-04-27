@@ -28,7 +28,7 @@ def test_expression_invalid_gene(adata):
 
 def test_expression_obs_key_raises_or_returns(adata, group_key):
     # expression is intended for genes; passing an obs column should either
-    # raise or handle gracefully — either is acceptable as long as it's deterministic.
+    # raise or handle gracefully, either is acceptable as long as it's deterministic.
     try:
         result = cl.expression(adata, key=group_key)
     except Exception:

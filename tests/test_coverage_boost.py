@@ -14,7 +14,7 @@ import cellestial as cl
 from cellestial.layers import DeferredLayer
 
 # ===========================================================================
-# dimensional.py — uncovered: TypeError, use_key, legend_ondata, color_mid,
+# dimensional.py, uncovered: TypeError, use_key, legend_ondata, color_mid,
 #                  interactive, FeatureSpec tooltips
 # ===========================================================================
 
@@ -65,7 +65,7 @@ def test_dimensional_xy_invalid_length(adata):
 
 
 # ===========================================================================
-# distribution.py — uncovered: TypeError, FeatureSpec tooltips, interactive,
+# distribution.py, uncovered: TypeError, FeatureSpec tooltips, interactive,
 #                   invalid point_geom
 # ===========================================================================
 
@@ -101,7 +101,7 @@ def test_violin_multi_key_with_group(adata, group_key):
 
 
 # ===========================================================================
-# distributions.py — uncovered: share_ticks, share_axis, layers
+# distributions.py, uncovered: share_ticks, share_axis, layers
 # ===========================================================================
 
 
@@ -126,7 +126,7 @@ def test_boxplots_share_axis(adata, group_key):
 
 
 # ===========================================================================
-# subdimensionals.py — uncovered: share_labels, share_axis, layers, TypeError
+# subdimensionals.py, uncovered: share_labels, share_axis, layers, TypeError
 # ===========================================================================
 
 
@@ -202,7 +202,7 @@ def test_dimensionals_with_layers(adata, group_key):
 
 
 # ===========================================================================
-# arrow.py — uncovered: _modify_axis paths, arrow_axis
+# arrow.py, uncovered: _modify_axis paths, arrow_axis
 # ===========================================================================
 
 
@@ -225,12 +225,12 @@ def test_arrow_axis_default(adata):
 
 
 # ===========================================================================
-# legends.py — _legend_ondata (covered via legend_ondata tests above)
+# legends.py, _legend_ondata (covered via legend_ondata tests above)
 # ===========================================================================
 
 
 # ===========================================================================
-# operations.py — uncovered: error paths in get_slice, retrieve
+# operations.py, uncovered: error paths in get_slice, retrieve
 # ===========================================================================
 
 
@@ -245,7 +245,7 @@ def test_retrieve_invalid_type():
 
 
 # ===========================================================================
-# xyplot.py — uncovered: TypeError, tooltips variants, interactive
+# xyplot.py, uncovered: TypeError, tooltips variants, interactive
 # ===========================================================================
 
 
@@ -295,7 +295,7 @@ def test_xyplot_interactive(adata):
 
 
 # ===========================================================================
-# xyplots.py — uncovered: layers, broadcasting y
+# xyplots.py, uncovered: layers, broadcasting y
 # ===========================================================================
 
 
@@ -322,7 +322,7 @@ def test_xyplots_with_layers(adata):
 
 
 # ===========================================================================
-# ridge.py — uncovered: TypeError, tooltips, interactive
+# ridge.py, uncovered: TypeError, tooltips, interactive
 # ===========================================================================
 
 
@@ -365,7 +365,7 @@ def test_ridges_with_layers(adata, group_key):
 
 
 # ===========================================================================
-# highest.py — uncovered: TypeError, mapping
+# highest.py, uncovered: TypeError, mapping
 # ===========================================================================
 
 
@@ -380,7 +380,7 @@ def test_highest_expressed_genes_with_mapping(adata):
 
 
 # ===========================================================================
-# heatmap.py — uncovered: TypeError, raster tooltips warning
+# heatmap.py, uncovered: TypeError, raster tooltips warning
 # ===========================================================================
 
 

@@ -17,7 +17,9 @@ from cellestial.util import get_mapping, retrieve
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
-
+# AI-MODIFIED: Claude 4.7
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def stream(
     *,
     plot: PlotSpec | None = None,
