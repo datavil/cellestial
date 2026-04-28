@@ -28,6 +28,7 @@ pandas = "2.2.2" # pinned to avoid 3.0
 tqdm = "^4.67.3"
 pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
+squidpy = "^1.8.1"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"

@@ -3,6 +3,7 @@ from lets_plot import LetsPlot
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
 from cellestial.layers import arrow_axis, bracket, cluster_outlines, ondata_legend, stream
+from cellestial.spatial import spatial, spatials
 from cellestial.single import (
     bar,
     boxplot,
@@ -90,6 +91,8 @@ __all__ = [
     "setup_html",
     "show_colors",
     "slice",
+    "spatial",
+    "spatials",
     "stacked_violin",
     "stream",
     "tsne",

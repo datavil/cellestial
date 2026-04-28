@@ -22,6 +22,22 @@ _THEME_DIMENSION = (
     )
 )
 
+# AI-GENERATED: Claude 4.7
+# VERIFIED: behavior
+# UNAUDITED: not reviewed line-by-line
+_THEME_SPATIAL = (
+    theme_classic()
+    + theme(
+        text=element_text(color="#1f1f1f", family="Arial"),
+        title=element_text(color="#1f1f1f", family="Arial"),
+        axis_title=element_blank(),
+        axis_text=element_blank(),
+        axis_ticks=element_blank(),
+        axis_line=element_blank(),
+        legend_text=element_text(color="#1f1f1f", size=11, face="plain"),
+    )
+)
+
 _THEME_SCATTER = theme(
     # customize all text
     text=element_text(color="#1f1f1f", family="Arial"),

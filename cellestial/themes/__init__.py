@@ -5,6 +5,7 @@ from cellestial.themes._scatters import (
     _THEME_DOTPLOT,
     _THEME_SCATTER,
     _THEME_SCATTER_BASE,
+    _THEME_SPATIAL,
 )
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "_THEME_HIGHEST",
     "_THEME_SCATTER",
     "_THEME_SCATTER_BASE",
+    "_THEME_SPATIAL",
 ]
