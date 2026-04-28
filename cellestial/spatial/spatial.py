@@ -208,6 +208,10 @@ def spatial(
     PlotSpec
         Spatial plot of tissue spots over the H&E image.
 
+    Notes
+    -----
+    Currently only compatible with Visium style.
+
     Examples
     --------
     An example interactive spatial plot with a categorical key.
@@ -222,7 +226,6 @@ def spatial(
         data = sc.read_h5ad("data/V1_Human_Lymph_Node_pped.h5ad")
 
         cl.spatial(data,key="clusters",interactive=True)
-
 
 
     With a gene name as the key.

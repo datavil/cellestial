@@ -156,6 +156,10 @@ def spatials(
     SupPlotsSpec
         Grid of spatial plots, one per key.
 
+    Notes
+    -----
+    Currently only compatible with Visium style.
+
     Examples
     --------
     A grid of spatial plots with a sequnce of keys.
