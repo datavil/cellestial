@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import gggrid
+from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.spatial.spatial import spatial
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 # AI-GENERATED: Claude 4.7
 # VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
+# UNAUDITED: not reviewed line-by-line
 def spatials(
     data: AnnData,
     keys: Sequence[str],
@@ -30,6 +30,7 @@ def spatials(
     norm: bool | None = None,
     vmin: float | None = None,
     vmax: float | None = None,
+    scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
     crop: Sequence[int] | None = None,
     mapping: FeatureSpec | None = None,
@@ -41,7 +42,7 @@ def spatials(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
-    color_low: str = "#e6e6e6",
+    color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     mid_point: Literal["mean", "median", "mid"] | float = "median",
@@ -62,7 +63,7 @@ def spatials(
     **point_kwargs,
 ) -> SupPlotsSpec:
     """
-    Grid of spatial transcriptomics plots.
+    Grid of spatial plots.
 
     Parameters
     ----------
@@ -78,6 +79,8 @@ def spatials(
         Which image to render and which scalefactor to use for spot alignment.
     greyscale, image_alpha, cmap, norm, vmin, vmax
         Image-rendering controls. See `cl.spatial`.
+    scale_axis : {0, 1} | None, default=None
+        Whether to standardize each plot's ``key`` values between 0 and 1.
     spatial_key : str, default='spatial'
         The `obsm` key containing spot coordinates in fullres pixel space.
     crop : Sequence[int] | None, default=None
@@ -133,19 +136,34 @@ def spatials(
 
     Examples
     --------
+    A grid of spatial plots with a sequnce of keys.
+
     .. jupyter-execute::
 
         import scanpy as sc
+        from lets_plot import *
+
         import cellestial as cl
 
-        data = sc.datasets.visium_sge("V1_Mouse_Kidney")
-        data.var_names_make_unique()
+        data = sc.read_h5ad("data/V1_Human_Lymph_Node_pped.h5ad")
 
-        cl.spatials(
-            data,
-            keys=["in_tissue", "Slc34a1"],
-            ncol=2,
-        )
+        cl.spatials(data,keys=["clusters","MS4A1"],interactive=True)
+
+    With another dataset.
+
+    .. jupyter-execute::
+
+        import squidpy as sq
+
+        data_hne = sq.datasets.visium_hne_adata()
+
+        cl.spatials(data_hne,keys=["leiden","Mef2c"], interactive=True)
+
+    Adjust the layout via setting a column number.
+
+    .. jupyter-execute::
+
+        cl.spatials(data_hne,keys=["leiden","Mef2c"], ncol=1, interactive=True) + ggsize(500,1000)
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be a Sequence of strings"
@@ -165,6 +183,7 @@ def spatials(
             norm=norm,
             vmin=vmin,
             vmax=vmax,
+            scale_axis=scale_axis,
             spatial_key=spatial_key,
             crop=crop,
             mapping=mapping,
@@ -174,7 +193,6 @@ def spatials(
             variable_keys=variable_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -193,7 +211,7 @@ def spatials(
 
         plots.append(plot)
 
-    return gggrid(
+    sptls = gggrid(
         plots,
         ncol=ncol,  # ty:ignore[invalid-argument-type]
         sharex=sharex,  # ty:ignore[invalid-argument-type]
@@ -206,3 +224,7 @@ def spatials(
         align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+    if interactive:
+        sptls += ggtb(size_zoomin=-1)
+
+    return sptls

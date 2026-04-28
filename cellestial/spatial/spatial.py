@@ -114,6 +114,7 @@ def spatial(
     norm: bool | None = None,
     vmin: float | None = None,
     vmax: float | None = None,
+    scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
     crop: Sequence[int] | None = None,
     mapping: FeatureSpec | None = None,
@@ -125,14 +126,14 @@ def spatial(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
-    color_low: str = "#e6e6e6",
+    color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     mid_point: Literal["mean", "median", "mid"] | float = "median",
     **point_kwargs,
 ) -> PlotSpec:
     """
-    Spatial transcriptomics plot for Visium data.
+    Spatial plot.
 
     Renders tissue spots over an optional H&E image, colored by an observation
     or gene expression key. Spot coordinates are read from `data.obsm[spatial_key]`
@@ -168,6 +169,12 @@ def spatial(
         Lower bound for greyscale luminance normalization.
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
+    scale_axis : {0, 1} | None, default=None
+        Whether to standardize ``key`` values between 0 and 1 (subtracts the
+        minimum and divides by the maximum). A spatial plot has one variable
+        per plot (the colored ``key``), so 0 and 1 produce the same result —
+        the parameter is provided for signature consistency with ``heatmap``.
+        Only applied when ``key`` is numeric.
     spatial_key : str, default='spatial'
         The `obsm` key containing spot coordinates in fullres pixel space.
     crop : Sequence[int] | None, default=None
@@ -212,15 +219,58 @@ def spatial(
 
     Examples
     --------
+    An example interactive spatial plot with a categorical key.
+
     .. jupyter-execute::
 
         import scanpy as sc
+        from lets_plot import *
+
         import cellestial as cl
 
-        data = sc.datasets.visium_sge("V1_Mouse_Kidney")
-        data.var_names_make_unique()
+        data = sc.read_h5ad("data/V1_Human_Lymph_Node_pped.h5ad")
 
-        cl.spatial(data, key="in_tissue")
+        cl.spatial(data,key="clusters",interactive=True)
+
+
+
+    With a gene name as the key.
+
+    .. jupyter-execute::
+
+        cl.spatial(data, key="MS4A1",interactive=True)
+
+    Customize the plot
+
+    .. jupyter-execute::
+
+        (
+            cl.spatial(data, key="MS4A1", size=2.4, interactive=True)
+            + ggsize(600, 600)
+            + scale_color_viridis()
+        )
+
+    With another dataset.
+
+    .. jupyter-execute::
+
+        import squidpy as sq
+
+        data_hne = sq.datasets.visium_hne_adata()
+
+        cl.spatial(data_hne,key="cluster",interactive=True)
+
+    Make the background image greyscale.
+
+    .. jupyter-execute::
+
+        cl.spatial(data_hne,key="cluster",greyscale=True,interactive=True)
+
+    Select specific groups to show.
+
+    .. jupyter-execute::
+
+        cl.spatial(data_hne,key="cluster", groups=["Hippocampus", "Hypothalamus_1", "Striatum"], interactive=True)
     """
     # HANDLE: data type
     if not isinstance(data, AnnData):
@@ -291,6 +341,11 @@ def spatial(
             msg = f"key `{key}` is not categorical, `groups` filter ignored"
             warnings.warn(msg, stacklevel=1)
 
+    # HANDLE: standard scaling (numeric keys only)
+    if scale_axis is not None and key is not None and frame[key].dtype.is_numeric():
+        v = pl.col(key)
+        frame = frame.with_columns(((v - v.min()) / (v.max() - v.min())).alias(key))
+
     # BUILD: plot
     sptl = ggplot(data=frame)
 
@@ -307,6 +362,7 @@ def spatial(
             alpha=image_alpha,
             vmin=vmin,
             vmax=vmax,
+            show_legend=False,
         )
 
     if "size" in mapping.as_dict():
