@@ -725,7 +725,6 @@ def volcanos(
             nonsignificant_label=nonsignificant_label,
             rank_genes_kwargs=rank_genes_kwargs,
             tooltips=tooltips,
-            interactive=interactive,
             **point_kwargs,
         )
 
@@ -742,7 +741,7 @@ def volcanos(
 
         plots.append(plot)
 
-    return gggrid(
+    vlcns = gggrid(
         plots,
         ncol=ncol,  # ty:ignore[invalid-argument-type]
         sharex=sharex,  # ty:ignore[invalid-argument-type]
@@ -755,3 +754,8 @@ def volcanos(
         align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        vlcns += ggtb(size_zoomin=-1)
+
+    return vlcns

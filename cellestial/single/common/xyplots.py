@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import gggrid
+from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.common.xyplot import xyplot
@@ -189,7 +189,6 @@ def xyplots(
             mapping=mapping,
             axis=axis,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             variables_name=variables_name,
             include_dimensions=include_dimensions,
@@ -216,5 +215,8 @@ def xyplots(
         align=align, # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        scttrs += ggtb(size_zoomin=-1)
 
     return scttrs

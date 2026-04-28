@@ -358,7 +358,8 @@ def ridges(
                 plot += layer
 
         plots.append(plot)
-    return gggrid(
+
+    rdgs = gggrid(
         plots,
         ncol=ncol, # ty:ignore[invalid-argument-type]
         sharex=sharex, # ty:ignore[invalid-argument-type]
@@ -371,3 +372,9 @@ def ridges(
         align=align, # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        rdgs += ggtb(size_zoomin=-1)
+
+    return rdgs
+

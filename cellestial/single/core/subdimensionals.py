@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import gggrid
+from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.core.dimensional import dimensional
@@ -262,7 +262,6 @@ def dimensionals(
             size=size,
             variable_keys=variable_keys,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -297,19 +296,24 @@ def dimensionals(
 
         plots.append(plot)
 
-    return gggrid(
+    scttrs = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        scttrs += ggtb(size_zoomin=-1)
+
+    return scttrs
 
 
 def umaps(
@@ -554,7 +558,6 @@ def umaps(
             size=size,
             variable_keys=variable_keys,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -589,19 +592,24 @@ def umaps(
 
         plots.append(plot)
 
-    return gggrid(
+    scttrs = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        scttrs += ggtb(size_zoomin=-1)
+
+    return scttrs
 
 
 def tsnes(
@@ -846,7 +854,6 @@ def tsnes(
             size=size,
             variable_keys=variable_keys,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -880,19 +887,24 @@ def tsnes(
 
         plots.append(plot)
 
-    return gggrid(
+    scttrs = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        scttrs += ggtb(size_zoomin=-1)
+
+    return scttrs
 
 
 def pcas(
@@ -1136,7 +1148,6 @@ def pcas(
             size=size,
             variable_keys=variable_keys,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -1171,19 +1182,24 @@ def pcas(
 
         plots.append(plot)
 
-    return gggrid(
+    scttrs = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        scttrs += ggtb(size_zoomin=-1)
+
+    return scttrs
 
 
 def expressions(
@@ -1432,7 +1448,6 @@ def expressions(
             size=size,
             variable_keys=variable_keys,
             tooltips=tooltips,
-            interactive=interactive,
             observations_name=observations_name,
             color_low=color_low,
             color_mid=color_mid,
@@ -1467,16 +1482,21 @@ def expressions(
 
         plots.append(plot)
 
-    return gggrid(
+    scttrs = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        scttrs += ggtb(size_zoomin=-1)
+
+    return scttrs

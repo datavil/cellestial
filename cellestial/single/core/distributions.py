@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
 
-from lets_plot import gggrid
+from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.core.distribution import boxplot, violin
@@ -235,7 +235,6 @@ def violins(
             observations_name=observations_name,
             variables_name=variables_name,
             show_points=show_points,
-            interactive=interactive,
             value_column=value_column,
             variable_column=variable_column,
             point_kwargs=point_kwargs,
@@ -253,7 +252,7 @@ def violins(
             plot = _share_axis(plot, i, keys, ncol, "axis")
         plots.append(plot)
 
-    return gggrid(
+    dsts = gggrid(
         plots,
         ncol=ncol, # ty:ignore[invalid-argument-type]
         sharex=sharex, # ty:ignore[invalid-argument-type]
@@ -266,6 +265,11 @@ def violins(
         align=align, # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        dsts += ggtb(size_zoomin=-1)
+
+    return dsts
 
 
 def boxplots(
@@ -485,7 +489,6 @@ def boxplots(
             observations_name=observations_name,
             variables_name=variables_name,
             show_points=show_points,
-            interactive=interactive,
             value_column=value_column,
             variable_column=variable_column,
             point_kwargs=point_kwargs,
@@ -504,7 +507,7 @@ def boxplots(
 
         plots.append(plot)
 
-    return gggrid(
+    dsts = gggrid(
         plots,
         ncol=ncol, # ty:ignore[invalid-argument-type]
         sharex=sharex, # ty:ignore[invalid-argument-type]
@@ -517,3 +520,8 @@ def boxplots(
         align=align, # ty:ignore[invalid-argument-type]
         guides=guides,
     )
+
+    if interactive:
+        dsts += ggtb(size_zoomin=-1)
+
+    return dsts
