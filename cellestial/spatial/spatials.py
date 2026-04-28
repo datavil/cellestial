@@ -45,7 +45,7 @@ def spatials(
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    mid_point: Literal["mean", "median", "mid"] | float = "mid",
     # multi plot args
     share_labels: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
@@ -72,41 +72,63 @@ def spatials(
     keys : Sequence[str]
         The keys (cell features or gene names) to color the spots by.
     library_id : str | None, default=None
-        The library identifier under `data.uns['spatial']`.
+        The library identifier. If None and only one
+        library is present, it is auto-selected; otherwise this must be provided.
     image : bool, default=True
-        Whether to render the tissue image as a background layer in each plot.
+        Whether to render the tissue image as a background layer.
     image_key : str, default='hires'
-        Which image to render and which scalefactor to use for spot alignment.
-    greyscale, image_alpha, cmap, norm, vmin, vmax
-        Image-rendering controls. See `cl.spatial`.
+        Which image under  to render.
+        Visium ships with 'hires' and 'lowres'.
+    greyscale : bool, default=False
+        Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
+    image_alpha : float | None, default=None
+        Alpha (transparency) of the tissue image.
+        Distinct from `alpha`, which controls spot transparency.
+    cmap : str | list | None, default=None
+        Colormap name or list of colors. Greyscale images only.
+    norm : bool | None, default=None
+        Whether to linearly scale greyscale luminance values to [0, 255].
+        Greyscale images only.
+    vmin : float | None, default=None
+        Lower bound for greyscale luminance normalization.
+    vmax : float | None, default=None
+        Upper bound for greyscale luminance normalization.
     scale_axis : {0, 1} | None, default=None
-        Whether to standardize each plot's ``key`` values between 0 and 1.
+        Whether to standardize ``key`` values between 0 and 1 (subtracts the
+        minimum and divides by the maximum).
+        Only applied when ``key`` is numeric.
     spatial_key : str, default='spatial'
-        The `obsm` key containing spot coordinates in fullres pixel space.
+        The embedding key containing spot coordinates in fullres pixel space.
     crop : Sequence[int] | None, default=None
-        Crop each plot to `(left, right, top, bottom)` in image-pixel space.
+        Crop the plot to a region given as `(left, right, top, bottom)`.
     mapping : FeatureSpec | None, default=None
-        Additional aesthetic mappings.
-    size : float | None, default=1.5
+        Additional aesthetic mappings, the result of `aes()`.
+    size : float | None, default=0.8
         Spot size.
     alpha : float, default=1.0
-        Spot alpha.
+        Alpha (transparency) of the spots.
     groups : str | Sequence[str] | None, default=None
-        Restrict each plot to spots whose categorical `key` value is in `groups`.
-        See `cl.spatial`.
+        Select specific groups to show.
     variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to each DataFrame.
-    include_dimensions : bool | int, default=False
-        Whether to include `obsm` dimensions in each plot's frame.
+        Variable keys to add to the DataFrame. If None, no additional keys are added.
+    include_dimensions : bool | int
+        Whether to include dimensions from embeddings in the DataFrame, default is False.
+        Providing an integer will limit the number of dimensions to given number.
     tooltips : {'none'} | Sequence[str] | FeatureSpec | None, default=None
-        Tooltips to show when hovering over a spot.
+        Tooltips to show when hovering over a spot. None auto-generates from
+        mapped keys; 'none' disables tooltips.
     interactive : bool, default=False
-        Whether to make each plot interactive.
+        Whether to make the plot interactive.
     observations_name : str, default='Barcode'
-        Name to give the barcode column.
-    color_low, color_mid, color_high : str
-        Continuous gradient colors. `color_mid=None` falls back to a 2-color scale.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+        The name to give the barcode column in the DataFrame.
+    color_low : str, default='#f6f6f6'
+        Color for low values in the continuous gradient.
+    color_mid : str | None, default=None
+        Color for mid values in the continuous gradient. When None, the scale
+        falls back to a 2-color gradient between color_low and color_high.
+    color_high : str, default='#377eb8'
+        Color for high values in the continuous gradient.
+    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
     share_labels : bool, default=False
         If True, only show axis labels at the grid edges.

@@ -56,7 +56,7 @@ def anndata_observations_frame(
     observations_name : str, optional
         The name of the observations column, default is 'barcode'
     include_dimensions : bool | int
-        Whether to include dimensions from `obsm` in the DataFrame, default is False.
+        Whether to include dimensions from embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
 
     Returns

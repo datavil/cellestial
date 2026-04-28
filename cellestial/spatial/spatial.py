@@ -129,16 +129,11 @@ def spatial(
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    mid_point: Literal["mean", "median", "mid"] | float = "mid",
     **point_kwargs,
 ) -> PlotSpec:
     """
     Spatial plot.
-
-    Renders tissue spots over an optional H&E image, colored by an observation
-    or gene expression key. Spot coordinates are read from `data.obsm[spatial_key]`
-    and aligned with the chosen image using the scalefactors stored in
-    `data.uns['spatial'][library_id]`.
 
     Parameters
     ----------
@@ -147,19 +142,18 @@ def spatial(
     key : str, default=None
         The key (cell feature or gene name) to color the spots by.
     library_id : str | None, default=None
-        The library identifier under `data.uns['spatial']`. If None and only one
+        The library identifier. If None and only one
         library is present, it is auto-selected; otherwise this must be provided.
     image : bool, default=True
         Whether to render the tissue image as a background layer.
     image_key : str, default='hires'
-        Which image under `uns['spatial'][library_id]['images']` to render, and
-        which `tissue_<image_key>_scalef` to use for spot alignment.
+        Which image under  to render.
         Visium ships with 'hires' and 'lowres'.
     greyscale : bool, default=False
         Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
     image_alpha : float | None, default=None
-        Alpha (transparency) of the tissue image. Distinct from `alpha`, which
-        controls spot transparency.
+        Alpha (transparency) of the tissue image.
+        Distinct from `alpha`, which controls spot transparency.
     cmap : str | list | None, default=None
         Colormap name or list of colors. Greyscale images only.
     norm : bool | None, default=None
@@ -171,17 +165,12 @@ def spatial(
         Upper bound for greyscale luminance normalization.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize ``key`` values between 0 and 1 (subtracts the
-        minimum and divides by the maximum). A spatial plot has one variable
-        per plot (the colored ``key``), so 0 and 1 produce the same result —
-        the parameter is provided for signature consistency with ``heatmap``.
+        minimum and divides by the maximum).
         Only applied when ``key`` is numeric.
     spatial_key : str, default='spatial'
-        The `obsm` key containing spot coordinates in fullres pixel space.
+        The embedding key containing spot coordinates in fullres pixel space.
     crop : Sequence[int] | None, default=None
-        Crop the plot to a region given as `(left, right, top, bottom)` in the
-        chosen image's pixel space (i.e. fullres coords scaled by
-        `tissue_<image_key>_scalef`). `top` is the smaller pixel value (image
-        origin is top-left); `bottom` is the larger.
+        Crop the plot to a region given as `(left, right, top, bottom)`.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`.
     size : float | None, default=0.8
@@ -189,15 +178,12 @@ def spatial(
     alpha : float, default=1.0
         Alpha (transparency) of the spots.
     groups : str | Sequence[str] | None, default=None
-        When `key` is categorical, restrict the spots drawn to observations whose
-        `key` value matches one of the listed groups. Ignored when `key` is None
-        or numeric (a warning is emitted in the latter case).
+        Select specific groups to show.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    include_dimensions : bool | int, default=False
-        Whether to include dimensions from `obsm` (e.g. UMAP, PCA) in the
-        DataFrame. An integer caps the number of dimensions per `obsm` entry.
-        Spot coordinates are always added regardless of this flag.
+    include_dimensions : bool | int
+        Whether to include dimensions from embeddings in the DataFrame, default is False.
+        Providing an integer will limit the number of dimensions to given number.
     tooltips : {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over a spot. None auto-generates from
         mapped keys; 'none' disables tooltips.
@@ -205,9 +191,14 @@ def spatial(
         Whether to make the plot interactive.
     observations_name : str, default='Barcode'
         The name to give the barcode column in the DataFrame.
-    color_low, color_mid, color_high : str
-        Continuous gradient colors. `color_mid=None` falls back to a 2-color scale.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    color_low : str, default='#f6f6f6'
+        Color for low values in the continuous gradient.
+    color_mid : str | None, default=None
+        Color for mid values in the continuous gradient. When None, the scale
+        falls back to a 2-color gradient between color_low and color_high.
+    color_high : str, default='#377eb8'
+        Color for high values in the continuous gradient.
+    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
     **point_kwargs
         Additional parameters forwarded to `geom_point`.
