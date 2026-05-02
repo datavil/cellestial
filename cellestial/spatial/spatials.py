@@ -72,8 +72,9 @@ def spatials(
     keys : Sequence[str]
         The keys (cell features or gene names) to color the spots by.
     library_id : str | None, default=None
-        The library identifier. If None and only one
-        library is present, it is auto-selected; otherwise this must be provided.
+        The library identifier. If None and only one library is present, it is
+        auto-selected; if multiple libraries are present, this must be provided.
+        Leave as None when no library metadata is present (generic spatial data).
     image : bool, default=True
         Whether to render the tissue image as a background layer.
     image_key : str, default='hires'
@@ -158,7 +159,8 @@ def spatials(
 
     Notes
     -----
-    Currently only compatible with Visium style.
+    If no tissue image metadata is present, the plot falls back to a plain
+    spatial scatter using the raw coordinates.
 
     Examples
     --------

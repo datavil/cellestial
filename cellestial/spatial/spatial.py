@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 # AI-GENERATED: Claude 4.7
 # VERIFIED: behavior
 # UNAUDITED: not reviewed line-by-line
-def _visium_components(
+def _spatial_components(
     data: AnnData,
     *,
     library_id: str | None,
@@ -46,37 +46,41 @@ def _visium_components(
     spatial_key: str,
 ) -> tuple[NDArray | None, NDArray]:
     """
-    Extract the Visium-specific bits cellestial needs to render a spatial plot.
+    Extract image data and spot coordinates for rendering a spatial plot.
 
-    Returns
-    -------
-    tuple
-        (image_array_or_None, scaled_spot_coords)
-        - image_array_or_None: the H&E image to render under the spots, or None
-          if image rendering was disabled or the image was missing.
-        - scaled_spot_coords: an (N, 2) array of spot coordinates already scaled
-          into the chosen image's pixel space.
+    Returns (image, coords). When tissue image metadata is present, coords are
+    scaled into the chosen image's pixel space. Otherwise image is None and
+    coords are returned as-is.
     """
     if isinstance(data, AnnData):
         if spatial_key not in data.obsm:
-            msg = f"`obsm['{spatial_key}']` not found; spatial plot requires spot coordinates"
+            msg = f"spot coordinates not found under `{spatial_key}`"
             raise KeyError(msg)
 
         spatial_uns = data.uns.get("spatial", {})
+
+        # Generic mode: no tissue image / scalefactor metadata available.
+        if not spatial_uns:
+            if library_id is not None:
+                msg = (
+                    f"library_id `{library_id}` was provided but no spatial "
+                    "library metadata is present"
+                )
+                raise KeyError(msg)
+            return None, data.obsm[spatial_key]
+
+        # Visium mode.
         if library_id is None:
             if len(spatial_uns) == 1:
                 library_id = next(iter(spatial_uns))
-            elif len(spatial_uns) == 0:
-                msg = "`uns['spatial']` is empty; cannot resolve image or scalefactors"
-                raise KeyError(msg)
             else:
                 msg = (
-                    f"Multiple libraries found in `uns['spatial']`: {list(spatial_uns)}. "
+                    f"Multiple spatial libraries found: {list(spatial_uns)}. "
                     "Pass `library_id=` to select one."
                 )
                 raise ValueError(msg)
         elif library_id not in spatial_uns:
-            msg = f"library_id `{library_id}` not found in `uns['spatial']`"
+            msg = f"library_id `{library_id}` not found in spatial libraries"
             raise KeyError(msg)
 
         library = spatial_uns[library_id]
@@ -142,8 +146,9 @@ def spatial(
     key : str, default=None
         The key (cell feature or gene name) to color the spots by.
     library_id : str | None, default=None
-        The library identifier. If None and only one
-        library is present, it is auto-selected; otherwise this must be provided.
+        The library identifier. If None and only one library is present, it is
+        auto-selected; if multiple libraries are present, this must be provided.
+        Leave as None when no library metadata is present (generic spatial data).
     image : bool, default=True
         Whether to render the tissue image as a background layer.
     image_key : str, default='hires'
@@ -210,7 +215,8 @@ def spatial(
 
     Notes
     -----
-    Currently only compatible with Visium style.
+    If no tissue image metadata is present, the plot falls back to a plain
+    spatial scatter using the raw coordinates.
 
     Examples
     --------
@@ -271,9 +277,7 @@ def spatial(
         msg = "data must be an `AnnData` object"
         raise TypeError(msg)
 
-    # All AnnData-specific extraction lives in the helper, gated behind the
-    # isinstance check above.
-    image_array, spot_coordinates = _visium_components(
+    image_array, spot_coordinates = _spatial_components(
         data,
         library_id=library_id,
         image_key=image_key,
