@@ -11,7 +11,6 @@ from lets_plot import (
     gggrid,
     ggplot,
     ggtb,
-    layer_tooltips,
     scale_fill_hue,
 )
 from lets_plot.plot.core import FeatureSpec, LayerSpec
@@ -19,6 +18,7 @@ from lets_plot.plot.core import FeatureSpec, LayerSpec
 from cellestial.frames import build_frame
 from cellestial.util import (
     _determine_axis,
+    _resolve_tooltips,
     _select_variable_keys,
 )
 
@@ -165,14 +165,12 @@ def ridge(
     )
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltips_spec = layer_tooltips([group_by, key])
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips_spec = layer_tooltips(list(tooltips))
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[group_by, key],
+    )
 
     # BUILD: the plot
     rdg = ggplot(data=frame)
@@ -185,7 +183,7 @@ def ridge(
             **mapping.as_dict(),
         ),
         scale=scale,
-        tooltips=tooltips_spec,
+        tooltips=tooltips,
         **geom_kwargs,
     )
 

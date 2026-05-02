@@ -14,7 +14,6 @@ from lets_plot import (
     geom_rect,
     ggplot,
     ggtb,
-    layer_tooltips,
     scale_x_continuous,
     scale_y_continuous,
     theme,
@@ -27,6 +26,7 @@ from cellestial.util import (
     _fill_gradient,
     _get_dendrogram,
     _get_dendrogram_path_frame,
+    _resolve_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -407,15 +407,12 @@ def stacked_violin(
     )
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltips_spec = layer_tooltips([variable_column, group_by, aggregate_key])
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        tooltips_spec = layer_tooltips(tooltips)
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=[],
+        defaults=[variable_column, group_by, aggregate_key],
+    )
 
     # DEFINE: mapping with defaults
     _mapping = {"x": "x", "y": "y", "group": "polygon_id"}
@@ -432,7 +429,7 @@ def stacked_violin(
         aes(**_mapping),
         fill=geom_fill,
         color=geom_color,
-        tooltips=tooltips_spec,
+        tooltips=tooltips,
         size=size,
         **geom_kwargs,
     )

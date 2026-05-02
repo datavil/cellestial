@@ -14,7 +14,6 @@ from lets_plot import (
     geom_rect,
     ggplot,
     ggtb,
-    layer_tooltips,
     scale_size,
     scale_x_continuous,
     scale_y_continuous,
@@ -29,6 +28,7 @@ from cellestial.util import (
     _fill_gradient,
     _get_dendrogram,
     _get_dendrogram_path_frame,
+    _resolve_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -273,20 +273,17 @@ def dotplot(
     )
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltips = [group_by, variable_column]
-        tooltips_spec = layer_tooltips(tooltips)
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        tooltips_spec = layer_tooltips(tooltips)
-        if not set(tooltips).issubset(frame.columns):
-            missing = set(tooltips) - set(frame.columns)
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=[],
+        defaults=[group_by, variable_column],
+    )
+    if isinstance(tooltips, Sequence) and not isinstance(tooltips, str):
+        missing = set(tooltips) - set(frame.columns)
+        if missing:
             msg = f"Some tooltip columns are not in the data: {missing}"
             raise ValueError(msg)
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
 
     # BUILD: Dotplot
     use_fill = "fill" in mapping.as_dict()
@@ -311,7 +308,7 @@ def dotplot(
         ggplot(frame)
         + geom_point(
             aes(**_mapping),
-            tooltips=tooltips_spec,
+            tooltips=tooltips,
             **geom_kwargs,
         )
         + _gradient(

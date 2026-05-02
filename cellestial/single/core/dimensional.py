@@ -15,7 +15,6 @@ from lets_plot import (
     ggplot,
     ggtb,
     labs,
-    layer_tooltips,
     scale_color_brewer,
 )
 from lets_plot.plot.core import FeatureSpec, PlotSpec
@@ -26,7 +25,7 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _color_gradient,
     _is_variable_key,
-    _select_variable_keys,
+    _resolve_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -243,21 +242,12 @@ def dimensional(
         variable_keys.append(key)  # ty:ignore[invalid-argument-type]
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltips = [observations_name]
-        if key is not None:
-            tooltips.append(key)
-        tooltips_spec = layer_tooltips(tooltips)
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        tooltips_spec = layer_tooltips(tooltips)
-        tooltips_variables = _select_variable_keys(data, tooltips)
-        if not set(tooltips_variables).issubset(variable_keys):
-            variable_keys.extend(tooltips_variables)
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[observations_name, *([key] if key is not None else [])],
+    )
 
     # BUILD: dataframe
     frame = build_frame(
@@ -276,7 +266,7 @@ def dimensional(
         + geom_point(
             mapping=aes(x=x, y=y, color=key, **mapping.as_dict()),
             size=size,
-            tooltips=tooltips_spec,
+            tooltips=tooltips,
             **point_kwargs,
         )
         + _THEME_DIMENSION

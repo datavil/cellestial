@@ -24,6 +24,7 @@ from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
 from cellestial.util import (
     _determine_axis,
+    _resolve_tooltips,
     _select_variable_keys,
 )
 
@@ -127,16 +128,12 @@ def _distribution(
         group_by = variable_column
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltips = [variable_column, value_column]
-        tooltips_spec = layer_tooltips(tooltips)
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        tooltips_spec = layer_tooltips(tooltips)
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[variable_column, value_column],
+    )
 
     # BUILD: the plot
     dst = ggplot(data=frame) + _THEME_DIST
@@ -151,7 +148,7 @@ def _distribution(
             ),
             fill=geom_fill,
             color=geom_color,
-            tooltips=layer_tooltips(frame.columns),
+            tooltips=frame.columns,
             **geom_kwargs,
         )
     elif geom == "boxplot":
@@ -163,7 +160,7 @@ def _distribution(
             ),
             fill=geom_fill,
             color=geom_color,
-            tooltips=layer_tooltips(frame.columns),
+            tooltips=frame.columns,
             **geom_kwargs,
         )
 
@@ -193,7 +190,7 @@ def _distribution(
             dst += geom_function(
                 data=frame,
                 mapping=aes(x=group_by, y=value_column, **point_mapping.as_dict()),
-                tooltips=tooltips_spec,
+                tooltips=tooltips,
                 position=position,
                 **point_kwargs,
             )

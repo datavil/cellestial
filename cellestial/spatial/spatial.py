@@ -13,7 +13,6 @@ from lets_plot import (
     geom_point,
     ggplot,
     ggtb,
-    layer_tooltips,
     scale_color_brewer,
     scale_y_reverse,
 )
@@ -24,7 +23,7 @@ from cellestial.themes import _THEME_SPATIAL
 from cellestial.util import (
     _color_gradient,
     _is_variable_key,
-    _select_variable_keys,
+    _resolve_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -300,21 +299,12 @@ def spatial(
         variable_keys.append(key)  # ty:ignore[invalid-argument-type]
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltip_fields = [observations_name]
-        if key is not None:
-            tooltip_fields.append(key)
-        tooltips_spec = layer_tooltips(tooltip_fields)
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        tooltips_spec = layer_tooltips(tooltips)
-        tooltips_variables = _select_variable_keys(data, tooltips)
-        if not set(tooltips_variables).issubset(variable_keys):
-            variable_keys.extend(tooltips_variables)
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[observations_name, *([key] if key is not None else [])],
+    )
 
     # BUILD: dataframe
     frame = build_frame(
@@ -369,7 +359,7 @@ def spatial(
         mapping=aes(x="spatial_x", y="spatial_y", color=key, **mapping.as_dict()),
         size=size,
         alpha=alpha,
-        tooltips=tooltips_spec,
+        tooltips=tooltips,
         **point_kwargs,
     )
 

@@ -10,7 +10,6 @@ from lets_plot import (
     ggplot,
     ggtb,
     labs,
-    layer_tooltips,
 )
 from lets_plot.plot.core import FeatureSpec
 
@@ -18,6 +17,7 @@ from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
     _determine_axis,
+    _resolve_tooltips,
     _select_variable_keys,
 )
 
@@ -163,19 +163,12 @@ def xyplot(
                 _keys.remove(key)
 
     # HANDLE: tooltips
-    if tooltips is None:
-        tooltips = keys
-        tooltips_spec = layer_tooltips(tooltips)
-    elif tooltips == "none" or isinstance(tooltips, str):
-        tooltips_spec = tooltips
-    elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        tooltips_spec = layer_tooltips(tooltips)
-        tooltips_variables = _select_variable_keys(data, tooltips)
-        if not set(tooltips_variables).issubset(variable_keys):
-            variable_keys.extend(tooltips_variables)
-    elif isinstance(tooltips, FeatureSpec):
-        tooltips_spec = tooltips
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=keys,
+    )
 
     # BUILD: the dataframe
     axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
@@ -193,7 +186,7 @@ def xyplot(
         ggplot(data=frame)
         + geom_point(
             mapping=mapping,
-            tooltips=tooltips_spec,
+            tooltips=tooltips,
             **point_kwargs,
         )
         + labs(x=x, y=y)
