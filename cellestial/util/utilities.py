@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+from collections.abc import Sequence
 from math import ceil, log10
 from typing import TYPE_CHECKING, Literal
 
@@ -20,9 +22,6 @@ from lets_plot.plot.core import FeatureSpec, PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from lets_plot.plot.core import FeatureSpec
     from polars import DataFrame
 
 
@@ -51,6 +50,63 @@ def _build_tooltips(
         tooltips_object.title(title)
 
     return tooltips_object
+
+
+_TOOLTIP_LINE_RE = re.compile(r"@(?:\{([^}]+)\}|([\w.\-^]+))")
+
+
+def _tooltip_fields(spec: FeatureSpec) -> list[str]:
+    """
+    Extract data variable names referenced by a `layer_tooltips` FeatureSpec.
+
+    Aesthetic references (`^aes`) are skipped because they are not data columns.
+    """
+    spec_dict = spec.as_dict()
+    fields = list(spec_dict.get("variables") or [])
+    for line in spec_dict.get("lines") or []:
+        for braced, bare in _TOOLTIP_LINE_RE.findall(line):
+            fields.append(braced or bare)
+    for fmt in spec_dict.get("formats") or []:
+        field = fmt.get("field", "")
+        if not field or field.startswith("^"):
+            continue
+        fields.append(field.removeprefix("@"))
+    return fields
+
+
+def _resolve_tooltips(
+    tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None,
+    *,
+    data: AnnData,
+    variable_keys: list[str],
+    defaults: Sequence[str],
+) -> Sequence[str] | FeatureSpec | Literal["none"]:
+    """
+    Resolve tooltips. `defaults` apply only when tooltips is None.
+
+    Extends `variable_keys` in place with any tooltip fields that are variable
+    names, so they get pulled into the frame by `build_frame`.
+    """
+    if tooltips is None:
+        fields = list(defaults)
+        resolved: Sequence[str] | FeatureSpec | Literal["none"] = fields
+    elif isinstance(tooltips, str):
+        fields = []
+        resolved = tooltips
+    elif isinstance(tooltips, FeatureSpec):
+        fields = _tooltip_fields(tooltips)
+        resolved = tooltips
+    elif isinstance(tooltips, Sequence):
+        fields = list(tooltips)
+        resolved = fields
+    else:
+        msg = f"Invalid tooltips type: {type(tooltips)}"
+        raise TypeError(msg)
+
+    for variable in _select_variable_keys(data, fields):
+        if variable not in variable_keys:
+            variable_keys.append(variable)
+    return resolved
 
 
 def _range_inclusive(start: float, stop: float, step: int) -> list[float]:

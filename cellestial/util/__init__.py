@@ -11,10 +11,12 @@ from cellestial.util.utilities import (
     _is_observation_key,
     _is_variable_key,
     _range_inclusive,
+    _resolve_tooltips,
     _select_variable_keys,
     _share_axis,
     _share_labels,
     _share_ticks,
+    _tooltip_fields,
 )
 
 __all__ = [
@@ -26,10 +28,12 @@ __all__ = [
     "_is_observation_key",
     "_is_variable_key",
     "_range_inclusive",
+    "_resolve_tooltips",
     "_select_variable_keys",
     "_share_axis",
     "_share_labels",
     "_share_ticks",
+    "_tooltip_fields",
     "get_mapping",
     "get_slice",
     "retrieve",
