@@ -20,6 +20,7 @@ from cellestial.util import (
     _determine_axis,
     _resolve_tooltips,
     _select_variable_keys,
+    _validate_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -171,6 +172,7 @@ def ridge(
         variable_keys=variable_keys,
         defaults=[group_by, key],
     )
+    _validate_tooltips(tooltips, frame)
 
     # BUILD: the plot
     rdg = ggplot(data=frame)

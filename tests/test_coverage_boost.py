@@ -76,7 +76,7 @@ def test_violin_invalid_data():
 
 
 def test_violin_tooltips_featurespec(adata, group_key):
-    plot = cl.violin(adata, "CD14", fill=group_key, tooltips=layer_tooltips(["value"]))
+    plot = cl.violin(adata, "CD14", fill=group_key, tooltips=layer_tooltips(["variable"]))
     assert isinstance(plot, PlotSpec)
 
 

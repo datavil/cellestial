@@ -26,6 +26,7 @@ from cellestial.util import (
     _color_gradient,
     _is_variable_key,
     _resolve_tooltips,
+    _validate_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -257,6 +258,7 @@ def dimensional(
         observations_name=observations_name,
         include_dimensions=max(xy),
     )
+    _validate_tooltips(tooltips, frame)
 
     # BUILD: scatter plot
     if "size" in mapping.as_dict():

@@ -29,6 +29,7 @@ from cellestial.util import (
     _get_dendrogram,
     _get_dendrogram_path_frame,
     _resolve_tooltips,
+    _validate_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -279,11 +280,7 @@ def dotplot(
         variable_keys=[],
         defaults=[group_by, variable_column],
     )
-    if isinstance(tooltips, Sequence) and not isinstance(tooltips, str):
-        missing = set(tooltips) - set(frame.columns)
-        if missing:
-            msg = f"Some tooltip columns are not in the data: {missing}"
-            raise ValueError(msg)
+    _validate_tooltips(tooltips, frame)
 
     # BUILD: Dotplot
     use_fill = "fill" in mapping.as_dict()

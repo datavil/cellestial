@@ -74,6 +74,23 @@ def _tooltip_fields(spec: FeatureSpec) -> list[str]:
     return fields
 
 
+def _validate_tooltips(
+    tooltips: Sequence[str] | FeatureSpec | Literal["none"] | None,
+    frame: pl.DataFrame,
+) -> None:
+    """Raise ValueError if any tooltip field is not a column in `frame`."""
+    if isinstance(tooltips, FeatureSpec):
+        fields = _tooltip_fields(tooltips)
+    elif isinstance(tooltips, Sequence) and not isinstance(tooltips, str):
+        fields = list(tooltips)
+    else:
+        return
+    missing = [f for f in fields if f not in frame.columns]
+    if missing:
+        msg = f"Tooltip fields not in data: {missing}"
+        raise ValueError(msg)
+
+
 def _resolve_tooltips(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None,
     *,

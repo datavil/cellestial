@@ -24,6 +24,7 @@ from cellestial.util import (
     _color_gradient,
     _is_variable_key,
     _resolve_tooltips,
+    _validate_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -318,6 +319,7 @@ def spatial(
         pl.Series("spatial_x", spot_coordinates[:, 0]),
         pl.Series("spatial_y", spot_coordinates[:, 1]),
     )
+    _validate_tooltips(tooltips, frame)
 
     # HANDLE: groups filter (categorical-only)
     if groups is not None and key is not None:

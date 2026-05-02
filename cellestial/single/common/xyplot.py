@@ -19,6 +19,7 @@ from cellestial.util import (
     _determine_axis,
     _resolve_tooltips,
     _select_variable_keys,
+    _validate_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -180,6 +181,7 @@ def xyplot(
         variables_name=variables_name,
         include_dimensions=include_dimensions,
     )
+    _validate_tooltips(tooltips, frame)
 
     # BUILD: the scatterplot
     scttr = (

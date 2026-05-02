@@ -27,6 +27,7 @@ from cellestial.util import (
     _get_dendrogram,
     _get_dendrogram_path_frame,
     _resolve_tooltips,
+    _validate_tooltips,
 )
 
 if TYPE_CHECKING:
@@ -413,6 +414,7 @@ def stacked_violin(
         variable_keys=[],
         defaults=[variable_column, group_by, aggregate_key],
     )
+    _validate_tooltips(tooltips, poly_frame)
 
     # DEFINE: mapping with defaults
     _mapping = {"x": "x", "y": "y", "group": "polygon_id"}
