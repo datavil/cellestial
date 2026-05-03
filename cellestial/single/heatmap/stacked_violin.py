@@ -116,10 +116,11 @@ def _compute_violin_polygons(
         if scale == "width":
             normalizers = {gk: float(d.max()) for gk, (_, _, d, _, _) in kde_results.items()}
         elif scale == "count":
-            normalizers = {gk: float((d * n).max()) for gk, (_, _, d, n, _) in kde_results.items()}
+            global_max = max(float((d * n).max()) for _, _, d, n, _ in kde_results.values())
+            normalizers = dict.fromkeys(kde_results, global_max)
         elif scale == "area":
-            max_d = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
-            normalizers = dict.fromkeys(kde_results, max_d)
+            global_max = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
+            normalizers = dict.fromkeys(kde_results, global_max)
         else:
             msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
             raise ValueError(msg)
