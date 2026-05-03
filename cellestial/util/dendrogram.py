@@ -45,6 +45,10 @@ def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFra
                 path_y.append(float(dcoord[i][j]))
                 path_group.append(i)
         paths = pl.DataFrame({"x": path_x, "y": path_y, "group": path_group})
+    else:
+        msg = f"Unsupported data type: `{type(data)}`"
+        raise TypeError(msg)
+
 
     return categories_ordered, paths
 
