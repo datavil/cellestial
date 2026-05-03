@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Literal
+from warnings import warn
 
 import polars as pl
 from anndata import AnnData
@@ -14,7 +15,6 @@ from lets_plot import (
     geom_violin,
     ggplot,
     ggtb,
-    layer_tooltips,
     position_dodge,
     position_jitterdodge,
 )
@@ -127,7 +127,15 @@ def _distribution(
     frame = frame.drop_nulls(subset=[value_column])
     if threshold is not None:
         frame = frame.filter(pl.col(value_column) >= threshold)
-    if group_by is None or len(keys) > 1:
+    if group_by is None:
+        group_by = variable_column
+    elif len(keys) > 1 and group_by != variable_column:
+        warn(
+            f"Multiple keys provided; `group_by={group_by!r}` cannot share the "
+            f"x-axis with the variable column. Falling back to "
+            f"`group_by={variable_column!r}`. For a per-key panel, use the plural variant.",
+            stacklevel=3,
+        )
         group_by = variable_column
 
     # HANDLE: tooltips

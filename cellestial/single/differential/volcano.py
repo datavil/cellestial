@@ -109,8 +109,10 @@ def _build_volcano_frame(
     if isinstance(data, AnnData):
         # COMPUTE: rank_genes_groups if requested and missing/stale
         if group_by is not None:
-            existing_group_by = data.uns.get(key, {}).get("params", {}).get("groupby")
-            if key not in data.uns or existing_group_by != group_by:
+            existing_params = data.uns.get(key, {}).get("params", {})
+            desired_params = {"groupby": group_by, **(rank_genes_kwargs or {})}
+            stale = any(existing_params.get(k) != v for k, v in desired_params.items())
+            if key not in data.uns or stale:
                 import scanpy as sc
 
                 sc.tl.rank_genes_groups(
@@ -365,10 +367,22 @@ def volcano(
         nonsignificant_label=nonsignificant_label,
         rank_genes_kwargs=rank_genes_kwargs,
     )
-    # DROP: rows where -log10(pvalue) is non-finite (e.g. pvalue == 0 → +inf)
-    frame = frame.filter(
-        pl.col(neg_log_pvalue_column).is_finite() & pl.col(logfoldchange_column).is_finite()
+    # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
+    # Dropping them would silently hide the most significant features (and their labels).
+    # Push them just above the densest finite cluster instead.
+    finite_max = (
+        frame.filter(pl.col(neg_log_pvalue_column).is_finite())[neg_log_pvalue_column].max()
     )
+    cap = (finite_max or 0.0) * 1.05 + 1.0
+    frame = frame.with_columns(
+        pl.when(pl.col(neg_log_pvalue_column).is_finite())
+        .then(pl.col(neg_log_pvalue_column))
+        .otherwise(cap)
+        .alias(neg_log_pvalue_column)
+    )
+    # logFC infinities mean the gene is expressed in only one group; fold change
+    # is undefined, drop those rows.
+    frame = frame.filter(pl.col(logfoldchange_column).is_finite())
 
     # SUBSAMPLE: cap non-significant points to keep the embedded data small.
     # The non-significant cloud overplots itself heavily, so dropping most of
