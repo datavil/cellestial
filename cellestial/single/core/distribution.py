@@ -118,13 +118,15 @@ def _distribution(
         variables_name=variables_name,
     )
 
+    if group_by is not None:
+        frame = frame.filter(pl.col(group_by).is_not_null())
+
     frame = frame.unpivot(
         on=keys, index=index, value_name=value_column, variable_name=variable_column
     )
-    frame = frame.drop_nulls()
-    frame = frame.filter(
-        pl.col(value_column) >= threshold if threshold is not None else True,
-    )
+    frame = frame.drop_nulls(subset=[value_column])
+    if threshold is not None:
+        frame = frame.filter(pl.col(value_column) >= threshold)
     if group_by is None or len(keys) > 1:
         group_by = variable_column
 
