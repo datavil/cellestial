@@ -49,7 +49,6 @@ def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFra
         msg = f"Unsupported data type: `{type(data)}`"
         raise TypeError(msg)
 
-
     return categories_ordered, paths
 
 

@@ -33,8 +33,8 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
-
     from lets_plot.plot.core import PlotSpec
+
 
 # AI-MODIFIED: Gemini 2.5 and Claude 4.6
 # VERIFIED: behavior
@@ -266,7 +266,9 @@ def dotplot(
     x_position = {k: i for i, k in enumerate(x_keys)}
     y_position = {g: i for i, g in enumerate(y_order_groups)}
     frame = frame.with_columns(
-        pl.col(variable_column).replace_strict(x_position, return_dtype=pl.Float64).alias("position_x"),
+        pl.col(variable_column)
+        .replace_strict(x_position, return_dtype=pl.Float64)
+        .alias("position_x"),
         pl.col(group_by)
         .cast(pl.String)
         .replace_strict(y_position, return_dtype=pl.Float64)
@@ -278,7 +280,7 @@ def dotplot(
         tooltips,
         data=data,
         variable_keys=[],
-        defaults=[group_by, variable_column],
+        defaults=[group_by, variable_column, mean_key, percentage_key],
     )
     _validate_tooltips(tooltips, frame)
 
