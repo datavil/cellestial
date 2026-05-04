@@ -21,7 +21,12 @@ from lets_plot import (
 )
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap._key_groups import _resolve_key_groups
+from cellestial.single.heatmap._key_groups import (
+    _key_groups_bar_y,
+    _key_groups_layers,
+    _resolve_key_groups,
+    _resolve_padding,
+)
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
 
@@ -187,6 +192,7 @@ def heatmap(
     dendrogram_size: float = 0.5,
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
+    key_labels: bool = True,
     value_column: str = "value",
     variable_column: str = "variable",
     color_low: str = "#0000ff",
@@ -249,6 +255,8 @@ def heatmap(
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_segment.
+    key_labels : bool, default=True
+        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize a dimension between 0 and 1.
         Subtracts the minimum and divides by the maximum.
@@ -380,7 +388,7 @@ def heatmap(
         geom_kwargs.pop("tooltips")
 
     # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
-    keys, _ = _resolve_key_groups(keys)
+    keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: long-form dataframe
     frame = build_frame(
@@ -442,13 +450,34 @@ def heatmap(
     # X scale: variable labels
     htmp += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)
 
+    # Compute top edge of data and the y limit, extending the latter when
+    # key-group brackets are drawn so rotated labels are not clipped.
+    if aggregate:
+        data_top = n_y - 0.5
+    else:
+        # ``position_y`` ranges from 0 to ``n_x - 1``; cells extend half a row above.
+        half_step = (n_x - 1) / max(n_y - 1, 1) / 2
+        data_top = (n_x - 1) + half_step
+    y_max_limit = data_top
+    if key_labels and key_groups is not None:
+        y_max_limit = data_top + _resolve_padding(key_groups, padding=None)
+
     # Y scale: groups for aggregate, group-center labels when titling bars, else hidden
     if aggregate:
-        htmp += scale_y_continuous(breaks=list(range(n_y)), labels=y_order_groups)
+        htmp += scale_y_continuous(
+            breaks=list(range(n_y)),
+            labels=y_order_groups,
+            limits=[-0.5, y_max_limit],
+        )
     elif group_bars and group_bars_labels:
-        htmp += scale_y_continuous(breaks=group_centers, labels=y_order_groups)
+        htmp += scale_y_continuous(
+            breaks=group_centers,
+            labels=y_order_groups,
+            limits=[-0.5, y_max_limit],
+        )
         htmp += guides(color="none")
     else:
+        htmp += scale_y_continuous(limits=[-0.5, y_max_limit])
         htmp += theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
 
     # GROUP color bar on left for non-aggregate
@@ -502,6 +531,12 @@ def heatmap(
         mid_point=mid_point,
     )
 
+    # KEY-GROUP brackets above the plot when ``keys`` was a mapping.
+    if key_labels and key_groups is not None:
+        bar_y = _key_groups_bar_y(data_top)
+        for layer in _key_groups_layers(key_groups, y=bar_y):
+            htmp += layer
+
     if interactive:
         htmp += ggtb(size_zoomin=-1)
 
@@ -526,6 +561,7 @@ def matrixplot(
     dendrogram_size: float = 0.5,
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
+    key_labels: bool = True,
     value_column: str = "value",
     variable_column: str = "variable",
     color_low: str = "#0000ff",
@@ -582,6 +618,8 @@ def matrixplot(
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_segment.
+    key_labels : bool, default=True
+        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -654,6 +692,7 @@ def matrixplot(
         geom=geom,
         scale_axis=scale_axis,
         dendrogram=dendrogram,
+        key_labels=key_labels,
         aggregate=True,
         group_lines=group_lines,
         group_lines_color=group_lines_color,

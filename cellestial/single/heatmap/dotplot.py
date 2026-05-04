@@ -21,7 +21,12 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap._key_groups import _resolve_key_groups
+from cellestial.single.heatmap._key_groups import (
+    _key_groups_bar_y,
+    _key_groups_layers,
+    _resolve_key_groups,
+    _resolve_padding,
+)
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _color_gradient,
@@ -66,6 +71,7 @@ def dotplot(
     rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
+    key_labels: bool = True,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -130,6 +136,8 @@ def dotplot(
         Color of the rectangle border.
     rectangle_kwargs : dict | None, default=None
         Additional parameters to pass to the rectangle geom_rect.
+    key_labels : bool, default=True
+        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -208,7 +216,7 @@ def dotplot(
     mapping = mapping or aes()
 
     # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
-    keys, _ = _resolve_key_groups(keys)
+    keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: dataframe
     frame = build_frame(
@@ -345,7 +353,11 @@ def dotplot(
         )
 
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
-    y_max_limit = n_y - 0.5
+    data_top = n_y - 0.5
+    y_max_limit = data_top
+    if key_labels and key_groups is not None:
+        # Extend the y limit upward to fit the bracket bar plus rotated label.
+        y_max_limit = data_top + _resolve_padding(key_groups, padding=None)
     dtplt += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -359,6 +371,12 @@ def dotplot(
         expand=[0, 0],
     )
 
+    # KEY-GROUP brackets above the data area when ``keys`` was a mapping.
+    if key_labels and key_groups is not None:
+        bar_y = _key_groups_bar_y(data_top)
+        for layer in _key_groups_layers(key_groups, y=bar_y):
+            dtplt += layer
+
     # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
     if rectangle:
         dtplt += geom_rect(
@@ -366,7 +384,7 @@ def dotplot(
                 "xmin": [-0.5],
                 "xmax": [n_x - 0.5],
                 "ymin": [-0.5],
-                "ymax": [n_y - 0.5],
+                "ymax": [data_top],
             },
             mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
             color=rectangle_color,

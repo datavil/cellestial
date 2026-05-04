@@ -2,8 +2,7 @@ from lets_plot import LetsPlot
 
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
-from cellestial.layers import arrow_axis, bracket, cluster_outlines, ondata_legend, stream
-from cellestial.spatial import spatial, spatials
+from cellestial.layers import arrow_axis, borders, bracket, cluster_outlines, ondata_legend, stream
 from cellestial.single import (
     bar,
     boxplot,
@@ -34,6 +33,7 @@ from cellestial.single import (
     xyplot,
     xyplots,
 )
+from cellestial.spatial import spatial, spatials
 from cellestial.util import get_mapping, retrieve, save
 from cellestial.util import get_slice as slice
 from cellestial.util.colors import (
@@ -64,6 +64,7 @@ __all__ = [
     "__version__",
     "arrow_axis",
     "bar",
+    "borders",
     "boxplot",
     "boxplots",
     "bracket",

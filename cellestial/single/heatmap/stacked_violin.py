@@ -20,7 +20,12 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap._key_groups import _resolve_key_groups
+from cellestial.single.heatmap._key_groups import (
+    _key_groups_bar_y,
+    _key_groups_layers,
+    _resolve_key_groups,
+    _resolve_padding,
+)
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _fill_gradient,
@@ -197,6 +202,7 @@ def stacked_violin(
     rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
+    key_labels: bool = True,
     aggregate_key: str = "expression",
     value_column: str = "value",
     variable_column: str = "variable",
@@ -280,6 +286,8 @@ def stacked_violin(
         Color of the rectangle border.
     rectangle_kwargs : dict | None, default=None
         Additional parameters to pass to the rectangle geom_rect.
+    key_labels : bool, default=True
+        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
     aggregate_key : str, default='expression'
         Name of the per-(variable, group) aggregate column attached to each violin
         (median or mean, selected by ``color_by``).
@@ -360,7 +368,7 @@ def stacked_violin(
     mapping = mapping or aes()
 
     # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
-    keys_list, _ = _resolve_key_groups(keys)
+    keys_list, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: dataframe
     frame = build_frame(
@@ -472,7 +480,10 @@ def stacked_violin(
         )
 
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
-    y_max_limit = n_y - 0.5
+    data_top = n_y - 0.5
+    y_max_limit = data_top
+    if key_labels and key_groups is not None:
+        y_max_limit = data_top + _resolve_padding(key_groups, padding=None)
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -486,6 +497,12 @@ def stacked_violin(
         expand=[0, 0],
     )
 
+    # KEY-GROUP brackets above the data area when ``keys`` was a mapping.
+    if key_labels and key_groups is not None:
+        bar_y = _key_groups_bar_y(data_top)
+        for layer in _key_groups_layers(key_groups, y=bar_y):
+            plot += layer
+
     # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
     if rectangle:
         plot += geom_rect(
@@ -493,7 +510,7 @@ def stacked_violin(
                 "xmin": [-0.5],
                 "xmax": [n_x - 0.5],
                 "ymin": [-0.5],
-                "ymax": [n_y - 0.5],
+                "ymax": [data_top],
             },
             mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
             color=rectangle_color,

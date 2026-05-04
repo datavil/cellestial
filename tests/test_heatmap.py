@@ -163,7 +163,7 @@ def test_resolve_padding_explicit_overrides_auto():
     assert explicit == 0.5
 
 
-def test_dotplot_dict_keys_do_not_add_bracket_padding(adata, group_key):
+def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
     n_y = adata.obs[group_key].nunique()
@@ -173,7 +173,22 @@ def test_dotplot_dict_keys_do_not_add_bracket_padding(adata, group_key):
         for s in spec.get("scales", [])
         if s.get("aesthetic") == "y" and "limits" in s
     ]
-    assert scales, "dotplot should keep explicit y limits around the data area"
+    assert scales, "dotplot should keep explicit y limits"
+    # Brackets are drawn above the data area, so y limit must extend past it.
+    assert scales[-1]["limits"][1] > n_y - 0.5
+
+
+def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_key):
+    groups = _marker_groups()
+    plot = cl.dotplot(adata, group_by=group_key, keys=groups, key_labels=False)
+    n_y = adata.obs[group_key].nunique()
+    spec = plot.as_dict()
+    scales = [
+        s
+        for s in spec.get("scales", [])
+        if s.get("aesthetic") == "y" and "limits" in s
+    ]
+    assert scales, "dotplot should keep explicit y limits"
     assert scales[-1]["limits"][1] == n_y - 0.5
 
 
