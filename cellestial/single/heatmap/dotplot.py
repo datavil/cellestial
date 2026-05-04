@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -22,6 +21,7 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
+from cellestial.single.heatmap._key_groups import _resolve_key_groups
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _color_gradient,
@@ -33,6 +33,8 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
     from lets_plot.plot.core import PlotSpec
 
 
@@ -41,7 +43,7 @@ if TYPE_CHECKING:
 # UNAUDITED: not reviewed line-by-line, edge cases unverified
 def dotplot(
     data: AnnData,
-    keys: Sequence[str],
+    keys: Sequence[str] | Mapping[str, Sequence[str]],
     group_by: str,
     *,
     mapping: FeatureSpec | None = None,
@@ -75,8 +77,11 @@ def dotplot(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : Sequence[str]
-        The variable keys or names to include in the dotplot.
+    keys : Sequence[str] | Mapping[str, Sequence[str]]
+        The variable keys to include in the dotplot. When a mapping is
+        provided, each entry maps a group label to the keys belonging to that
+        group; the keys are placed on the x-axis in mapping order. The same
+        key cannot appear in more than one group.
     group_by : str
         The key to group the data by.
     mapping : FeatureSpec | None, default=None
@@ -201,6 +206,9 @@ def dotplot(
         raise TypeError(msg)
 
     mapping = mapping or aes()
+
+    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    keys, _ = _resolve_key_groups(keys)
 
     # BUILD: dataframe
     frame = build_frame(
@@ -337,6 +345,7 @@ def dotplot(
         )
 
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
+    y_max_limit = n_y - 0.5
     dtplt += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -346,7 +355,7 @@ def dotplot(
     dtplt += scale_y_continuous(
         breaks=list(range(n_y)),
         labels=y_order_groups,
-        limits=[-0.5, n_y - 0.5],
+        limits=[-0.5, y_max_limit],
         expand=[0, 0],
     )
 

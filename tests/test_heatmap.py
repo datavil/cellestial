@@ -55,6 +55,128 @@ def test_heatmap_invalid_gene(adata, group_key):
         cl.heatmap(adata, group_by=group_key, keys=["NOT_A_GENE_xyz"])
 
 
+# ---- key groups (dict keys) ----
+
+
+def _marker_groups():
+    return {
+        "B-cell": ["CD79A", "MS4A1"],
+        "NK": ["NKG7"],
+        "T-cell": ["CD3D"],
+    }
+
+
+def test_heatmap_dict_keys_aggregate(adata, group_key):
+    plot = cl.heatmap(adata, group_by=group_key, keys=_marker_groups(), aggregate=True)
+    assert isinstance(plot, PlotSpec)
+
+
+def test_heatmap_dict_keys_non_aggregate(adata, group_key):
+    sub = adata[:300].copy()
+    plot = cl.heatmap(sub, group_by=group_key, keys=_marker_groups(), aggregate=False)
+    assert isinstance(plot, PlotSpec)
+
+
+def test_matrixplot_dict_keys(adata, group_key):
+    plot = cl.matrixplot(adata, group_by=group_key, keys=_marker_groups())
+    assert isinstance(plot, PlotSpec)
+
+
+def test_dotplot_dict_keys(adata, group_key):
+    plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
+    assert isinstance(plot, PlotSpec)
+
+
+def test_stacked_violin_dict_keys(adata, group_key):
+    plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
+    assert isinstance(plot, PlotSpec)
+
+
+def test_heatmap_dict_keys_duplicate_raises(adata, group_key):
+    from cellestial.util.errors import DuplicateKeysError
+
+    with pytest.raises(DuplicateKeysError, match="multiple groups"):
+        cl.heatmap(
+            adata,
+            group_by=group_key,
+            keys={"A": ["CD3D"], "B": ["CD3D"]},
+        )
+
+
+# ---- key groups internals ----
+
+
+def test_resolve_key_groups_flat_passthrough():
+    from cellestial.single.heatmap._key_groups import _resolve_key_groups
+
+    flat, groups = _resolve_key_groups(["A", "B", "C"])
+    assert flat == ["A", "B", "C"]
+    assert groups is None
+
+
+def test_resolve_key_groups_dict_flatten_preserves_order():
+    from cellestial.single.heatmap._key_groups import _resolve_key_groups
+
+    flat, groups = _resolve_key_groups({"G1": ["A", "B"], "G2": ["C"]})
+    assert flat == ["A", "B", "C"]
+    assert groups == {"G1": ["A", "B"], "G2": ["C"]}
+
+
+def test_build_key_groups_frame_spans():
+    """Single key spans 0.5 around its center; N>=2 spans first..last (width N-1)."""
+    from cellestial.single.heatmap._key_groups import _build_key_groups_frame
+
+    groups = {
+        "double": ["a", "b"],  # cols 0,1 -> 0.0 .. 1.0
+        "single": ["c"],  # col 2 -> 1.75 .. 2.25
+        "triple": ["d", "e", "f"],  # cols 3,4,5 -> 3.0 .. 5.0
+    }
+    frame = _build_key_groups_frame(groups, y=10.0).to_dicts()
+
+    assert frame[0] == {"xmin": 0.0, "xmax": 1.0, "y": 10.0, "label": "double"}
+    assert frame[1] == {"xmin": 1.75, "xmax": 2.25, "y": 10.0, "label": "single"}
+    assert frame[2] == {"xmin": 3.0, "xmax": 5.0, "y": 10.0, "label": "triple"}
+
+
+def test_key_groups_bar_y_above_top_edge():
+    from cellestial.single.heatmap._key_groups import _key_groups_bar_y
+
+    top_edge = 7.5
+    bar_y = _key_groups_bar_y(top_edge)
+    assert bar_y > top_edge, "bracket bar must sit above the plot top edge"
+    assert bar_y - top_edge < 1.0, "bracket bar should be close to the top edge"
+
+
+def test_resolve_padding_scales_with_label_length():
+    from cellestial.single.heatmap._key_groups import _resolve_padding
+
+    short = _resolve_padding({"A": ["x"], "B": ["y"]}, padding=None)
+    long = _resolve_padding({"Lymphocytes": ["x"], "Monocytes": ["y"]}, padding=None)
+    assert short < long, "longer labels need more padding"
+    assert short >= 1.5, "padding has a sensible floor"
+
+
+def test_resolve_padding_explicit_overrides_auto():
+    from cellestial.single.heatmap._key_groups import _resolve_padding
+
+    explicit = _resolve_padding({"Lymphocytes": ["x"]}, padding=0.5)
+    assert explicit == 0.5
+
+
+def test_dotplot_dict_keys_do_not_add_bracket_padding(adata, group_key):
+    groups = _marker_groups()
+    plot = cl.dotplot(adata, group_by=group_key, keys=groups)
+    n_y = adata.obs[group_key].nunique()
+    spec = plot.as_dict()
+    scales = [
+        s
+        for s in spec.get("scales", [])
+        if s.get("aesthetic") == "y" and "limits" in s
+    ]
+    assert scales, "dotplot should keep explicit y limits around the data area"
+    assert scales[-1]["limits"][1] == n_y - 0.5
+
+
 # ---- dotplot ----
 
 

@@ -21,11 +21,12 @@ from lets_plot import (
 )
 
 from cellestial.frames import build_frame
+from cellestial.single.heatmap._key_groups import _resolve_key_groups
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
@@ -168,7 +169,7 @@ def _get_group_lines_frame(
 # UNAUDITED: not reviewed line-by-line, edge cases unverified
 def heatmap(
     data: AnnData,
-    keys: Sequence[str],
+    keys: Sequence[str] | Mapping[str, Sequence[str]],
     group_by: str,
     *,
     mapping: FeatureSpec | None = None,
@@ -206,8 +207,11 @@ def heatmap(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : Sequence[str] | None, default=None
-        Variable keys to include. If None, no additional keys are added.
+    keys : Sequence[str] | Mapping[str, Sequence[str]]
+        Variable keys to include. When a mapping is provided, each entry maps a
+        group label to the keys belonging to that group; the keys are placed
+        on the x-axis in mapping order. The same key cannot appear in more
+        than one group.
     group_by : str
         The key to group the data by.
     mapping : FeatureSpec | None, default=None
@@ -375,6 +379,9 @@ def heatmap(
         )
         geom_kwargs.pop("tooltips")
 
+    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    keys, _ = _resolve_key_groups(keys)
+
     # BUILD: long-form dataframe
     frame = build_frame(
         data=data,
@@ -505,7 +512,7 @@ def heatmap(
 # UNAUDITED: not reviewed line-by-line, edge cases unverified
 def matrixplot(
     data: AnnData,
-    keys: Sequence[str],
+    keys: Sequence[str] | Mapping[str, Sequence[str]],
     group_by: str,
     *,
     mapping: FeatureSpec | None = None,
@@ -541,8 +548,11 @@ def matrixplot(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : Sequence[str]
-        Variable keys to include.
+    keys : Sequence[str] | Mapping[str, Sequence[str]]
+        Variable keys to include. When a mapping is provided, each entry maps
+        a group label to the keys belonging to that group; the keys are placed
+        on the x-axis in mapping order. The same key cannot appear in more
+        than one group.
     group_by : str
         The key to group the data by.
     mapping : FeatureSpec | None, default=None

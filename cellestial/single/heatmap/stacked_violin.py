@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -21,6 +20,7 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
+from cellestial.single.heatmap._key_groups import _resolve_key_groups
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _fill_gradient,
@@ -31,6 +31,8 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
     from lets_plot.plot.core import PlotSpec
 
 
@@ -170,7 +172,7 @@ def _compute_violin_polygons(
 # UNAUDITED: not reviewed line-by-line, edge cases unverified
 def stacked_violin(
     data: AnnData,
-    keys: Sequence[str],
+    keys: Sequence[str] | Mapping[str, Sequence[str]],
     group_by: str,
     *,
     mapping: FeatureSpec | None = None,
@@ -211,8 +213,11 @@ def stacked_violin(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : Sequence[str]
-        Variable keys laid out along the x-axis. One column of violins per key.
+    keys : Sequence[str] | Mapping[str, Sequence[str]]
+        Variable keys laid out along the x-axis. One column of violins per
+        key. When a mapping is provided, each entry maps a group label to the
+        keys belonging to that group; the keys are placed on the x-axis in
+        mapping order. The same key cannot appear in more than one group.
     group_by : str
         The key used to group observations along the y-axis.
     mapping : FeatureSpec | None, default=None
@@ -354,8 +359,10 @@ def stacked_violin(
 
     mapping = mapping or aes()
 
+    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    keys_list, _ = _resolve_key_groups(keys)
+
     # BUILD: dataframe
-    keys_list = list(keys)
     frame = build_frame(
         data=data,
         axis=0,
@@ -465,6 +472,7 @@ def stacked_violin(
         )
 
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
+    y_max_limit = n_y - 0.5
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -474,7 +482,7 @@ def stacked_violin(
     plot += scale_y_continuous(
         breaks=list(range(n_y)),
         labels=y_order_groups,
-        limits=[-0.5, n_y - 0.5],
+        limits=[-0.5, y_max_limit],
         expand=[0, 0],
     )
 

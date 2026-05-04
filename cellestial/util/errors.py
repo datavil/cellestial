@@ -40,6 +40,13 @@ class VariableNotFoundError(Exception):
         super().__init__(message)
 
 
+class DuplicateKeysError(ValueError):
+    """Raised when grouped keys (e.g. heatmap key groups) contain the same key in multiple groups."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class SpatialLibraryError(Exception):
     """Raised when spatial library metadata is missing, ambiguous, or refers to an unknown `library_id`."""
 
