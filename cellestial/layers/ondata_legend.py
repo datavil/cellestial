@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import polars as pl
-from lets_plot import aes, geom_text, theme
+from lets_plot import aes, geom_text, geom_text_repel, theme
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
@@ -58,6 +58,7 @@ def ondata_legend(
     family: str = "sans",
     alpha: float = 1,
     weighted: bool = True,
+    repel: bool = False,
     **geom_kwargs,
 ) -> DeferredLayer:
     """
@@ -95,10 +96,16 @@ def ondata_legend(
         If True, each point's contribution is weighted by its inverse distance to
         the group mean, pulling the label toward the cluster's dense core.
         If False, the arithmetic mean of group coordinates is used.
+    repel : bool, default=False
+        If True, use `geom_text_repel` so labels are shifted to avoid overlapping
+        each other. Repel-specific options (e.g. `box_padding`, `point_padding`,
+        `max_iter`, `seed`) can be passed via `geom_kwargs`.
     **geom_kwargs
-        Additional parameters for the `geom_text` layer.
-        For more information on geom_text parameters, see:
+        Additional parameters for the underlying geom layer.
+        For `geom_text` parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_text.html
+        For `geom_text_repel` parameters (when `repel=True`), see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_text_repel.html
 
 
     Returns
@@ -159,7 +166,8 @@ def ondata_legend(
         grouped = _compute_label_positions(
             frame, x=x, y=y, group_by=group_by, weighted=weighted
         )
-        return geom_text(
+        geom = geom_text_repel if repel else geom_text
+        return geom(
             data=grouped,
             mapping=aes(x=x, y=y, label=group_by),
             size=size,
