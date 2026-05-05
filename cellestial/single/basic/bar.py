@@ -99,7 +99,6 @@ def bar(
     else:
         list(variable_keys).extend(_select_variable_keys(data, keys))
     axis = axis or _determine_axis(data=data, keys=keys)
-    print(axis)
     # BUILD: the bar plot
     br = baseplot(
         data=data,
