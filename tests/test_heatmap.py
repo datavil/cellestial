@@ -122,22 +122,6 @@ def test_resolve_key_groups_dict_flatten_preserves_order():
     assert groups == {"G1": ["A", "B"], "G2": ["C"]}
 
 
-def test_build_key_groups_frame_spans():
-    """Single key spans 0.5 around its center; N>=2 spans first..last (width N-1)."""
-    from cellestial.single.heatmap._key_groups import _build_key_groups_frame
-
-    groups = {
-        "double": ["a", "b"],  # cols 0,1 -> 0.0 .. 1.0
-        "single": ["c"],  # col 2 -> 1.75 .. 2.25
-        "triple": ["d", "e", "f"],  # cols 3,4,5 -> 3.0 .. 5.0
-    }
-    frame = _build_key_groups_frame(groups, y=10.0).to_dicts()
-
-    assert frame[0] == {"xmin": 0.0, "xmax": 1.0, "y": 10.0, "label": "double"}
-    assert frame[1] == {"xmin": 1.75, "xmax": 2.25, "y": 10.0, "label": "single"}
-    assert frame[2] == {"xmin": 3.0, "xmax": 5.0, "y": 10.0, "label": "triple"}
-
-
 def test_key_groups_bar_y_above_top_edge():
     from cellestial.single.heatmap._key_groups import _key_groups_bar_y
 

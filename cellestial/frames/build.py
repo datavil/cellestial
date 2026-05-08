@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 import pandas as pd
 import polars as pl
 from anndata import AnnData
+from spatialdata import SpatialData
 
 from cellestial.util.errors import KeyNotFoundError
 
@@ -245,6 +246,21 @@ def build_frame(
         frame.head()
 
     """
+    if isinstance(data, SpatialData):
+        tables = list(data.tables.keys())
+        if len(tables) == 1:
+            data = data.tables[tables[0]]
+        elif len(tables) == 0:
+            msg = "No annotation tables found in the SpatialData object."
+            raise ValueError(msg)
+        else:
+            msg = (
+                f"Multiple annotation tables found: {tables}. "
+                "Pass a SpatialData with a single table, or extract the table "
+                "yourself before calling `build_frame`."
+            )
+            raise ValueError(msg)
+
     if isinstance(data, AnnData):
         # infer the axis if not provided
         if axis is None and variable_keys is not None:

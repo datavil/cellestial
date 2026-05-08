@@ -12,13 +12,14 @@ from cellestial.util import _share_labels
 if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
+    from spatialdata import SpatialData
 
 
 # AI-GENERATED: Claude 4.7
 # VERIFIED: behavior
 # UNAUDITED: not reviewed line-by-line
 def spatials(
-    data: AnnData,
+    data: AnnData | SpatialData,
     keys: Sequence[str],
     *,
     library_id: str | None = None,
@@ -32,6 +33,11 @@ def spatials(
     vmax: float | None = None,
     scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
+    table_name: str | None = None,
+    image_name: str | None = None,
+    shapes_name: str | None = None,
+    coordinate_system: str | None = None,
+    polygon: bool = False,
     crop: Sequence[int] | None = None,
     mapping: FeatureSpec | None = None,
     size: float | None = 1.5,
@@ -67,19 +73,22 @@ def spatials(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object containing Visium spatial data.
+    data : AnnData | SpatialData
+        Spatial data to plot. AnnData inputs use Visium-style metadata stored
+        on the object. SpatialData inputs are resolved via the `table_name`,
+        `image_name`, `shapes_name`, and `coordinate_system` arguments below.
     keys : Sequence[str]
         The keys (cell features or gene names) to color the spots by.
     library_id : str | None, default=None
         The library identifier. If None and only one library is present, it is
         auto-selected; if multiple libraries are present, this must be provided.
         Leave as None when no library metadata is present (generic spatial data).
+        Ignored for SpatialData inputs.
     image : bool, default=True
         Whether to render the tissue image as a background layer.
     image_key : str, default='hires'
-        Which image under  to render.
-        Visium ships with 'hires' and 'lowres'.
+        Which image variant to render. Visium ships with 'hires' and 'lowres'.
+        Ignored for SpatialData inputs.
     greyscale : bool, default=False
         Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
     image_alpha : float | None, default=None
@@ -100,6 +109,28 @@ def spatials(
         Only applied when ``key`` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
+        Ignored for SpatialData inputs.
+    table_name : str | None, default=None
+        Selects which annotation table to use when multiple are present.
+        If None and exactly one table is present, it is auto-selected.
+        SpatialData inputs only.
+    image_name : str | None, default=None
+        Selects which background image to render when multiple are present.
+        If None and exactly one image is present, it is auto-selected.
+        SpatialData inputs only.
+    shapes_name : str | None, default=None
+        Selects which spot geometries to use when multiple are present.
+        If None and exactly one geometry is present, it is auto-selected.
+        SpatialData inputs only.
+    coordinate_system : str | None, default=None
+        Target coordinate system. Image and geometries are aligned into this
+        system before plotting. If None, the single available system is used,
+        falling back to 'global' when multiple are defined. SpatialData
+        inputs only.
+    polygon : bool, default=False
+        Render polygon-shaped geometries as filled polygons. When False
+        (default), polygon geometries are reduced to their centroids and
+        rendered as points. SpatialData inputs only.
     crop : Sequence[int] | None, default=None
         Crop the plot to a region given as `(left, right, top, bottom)`.
     mapping : FeatureSpec | None, default=None
@@ -213,6 +244,11 @@ def spatials(
             vmax=vmax,
             scale_axis=scale_axis,
             spatial_key=spatial_key,
+            table_name=table_name,
+            image_name=image_name,
+            shapes_name=shapes_name,
+            coordinate_system=coordinate_system,
+            polygon=polygon,
             crop=crop,
             mapping=mapping,
             size=size,

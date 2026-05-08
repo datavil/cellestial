@@ -11,17 +11,22 @@ from lets_plot import (
     coord_fixed,
     geom_imshow,
     geom_point,
+    geom_polygon,
     ggplot,
     ggtb,
     scale_color_brewer,
+    scale_fill_brewer,
     scale_y_reverse,
 )
 from lets_plot.plot.core import FeatureSpec, PlotSpec
+from spatialdata import SpatialData
 
 from cellestial.frames import build_frame
+from cellestial.spatial._components import spatialdata_components
 from cellestial.themes import _THEME_SPATIAL
 from cellestial.util import (
     _color_gradient,
+    _fill_gradient,
     _is_variable_key,
     _resolve_tooltips,
     _validate_tooltips,
@@ -38,20 +43,36 @@ if TYPE_CHECKING:
 # VERIFIED: behavior
 # UNAUDITED: not reviewed line-by-line
 def _spatial_components(
-    data: AnnData,
+    data,
     *,
     library_id: str | None,
     image_key: str,
     image: bool,
     spatial_key: str,
-) -> tuple[NDArray | None, NDArray]:
+    table_name: str | None = None,
+    image_name: str | None = None,
+    shapes_name: str | None = None,
+    coordinate_system: str | None = None,
+    polygon: bool = False,
+) -> tuple[NDArray | None, NDArray | None, pl.DataFrame | None, AnnData]:
     """
-    Extract image data and spot coordinates for rendering a spatial plot.
+    Extract image, geometry, and the annotation table.
 
-    Returns (image, coords). When tissue image metadata is present, coords are
-    scaled into the chosen image's pixel space. Otherwise image is None and
-    coords are returned as-is.
+    Returns ``(image, point_coords, polygon_frame, table)``. Exactly one of
+    ``point_coords`` and ``polygon_frame`` is non-None. For AnnData input
+    the table is the input itself; for SpatialData it is the resolved table.
     """
+    if isinstance(data, SpatialData):
+        return spatialdata_components(
+            data,
+            table_name=table_name,
+            image_name=image_name,
+            shapes_name=shapes_name,
+            coordinate_system=coordinate_system,
+            image=image,
+            polygon=polygon,
+        )
+
     if isinstance(data, AnnData):
         if spatial_key not in data.obsm:
             msg = f"spot coordinates not found under `{spatial_key}`"
@@ -67,7 +88,7 @@ def _spatial_components(
                     "library metadata is present"
                 )
                 raise KeyError(msg)
-            return None, data.obsm[spatial_key]
+            return None, data.obsm[spatial_key], None, data
 
         # Visium mode.
         if library_id is None:
@@ -95,18 +116,17 @@ def _spatial_components(
             if image_array is None:
                 msg = f"image `{image_key}` not found for library `{library_id}`"
                 warnings.warn(msg, stacklevel=2)
-    else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        return image_array, spot_coordinates, None, data
 
-    return image_array, spot_coordinates
+    msg = f"Unsupported data type: `{type(data)}`"
+    raise TypeError(msg)
 
 
 # AI-GENERATED: Claude 4.7
 # VERIFIED: behavior
 # UNAUDITED: not reviewed line-by-line, edge cases unverified
 def spatial(
-    data: AnnData,
+    data: AnnData | SpatialData,
     key: str | None = None,
     *,
     library_id: str | None = None,
@@ -120,6 +140,11 @@ def spatial(
     vmax: float | None = None,
     scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
+    table_name: str | None = None,
+    image_name: str | None = None,
+    shapes_name: str | None = None,
+    coordinate_system: str | None = None,
+    polygon: bool = False,
     crop: Sequence[int] | None = None,
     mapping: FeatureSpec | None = None,
     size: float | None = 1.5,
@@ -141,19 +166,22 @@ def spatial(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object containing Visium spatial data.
+    data : AnnData | SpatialData
+        Spatial data to plot. AnnData inputs use Visium-style metadata stored
+        on the object. SpatialData inputs are resolved via the `table_name`,
+        `image_name`, `shapes_name`, and `coordinate_system` arguments below.
     key : str, default=None
         The key (cell feature or gene name) to color the spots by.
     library_id : str | None, default=None
         The library identifier. If None and only one library is present, it is
         auto-selected; if multiple libraries are present, this must be provided.
         Leave as None when no library metadata is present (generic spatial data).
+        Ignored for SpatialData inputs.
     image : bool, default=True
         Whether to render the tissue image as a background layer.
     image_key : str, default='hires'
-        Which image under  to render.
-        Visium ships with 'hires' and 'lowres'.
+        Which image variant to render. Visium ships with 'hires' and 'lowres'.
+        Ignored for SpatialData inputs.
     greyscale : bool, default=False
         Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
     image_alpha : float | None, default=None
@@ -174,6 +202,29 @@ def spatial(
         Only applied when ``key`` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
+        Ignored for SpatialData inputs (coordinates come from the chosen
+        spot geometries).
+    table_name : str | None, default=None
+        Selects which annotation table to use when multiple are present.
+        If None and exactly one table is present, it is auto-selected.
+        SpatialData inputs only.
+    image_name : str | None, default=None
+        Selects which background image to render when multiple are present.
+        If None and exactly one image is present, it is auto-selected.
+        SpatialData inputs only.
+    shapes_name : str | None, default=None
+        Selects which spot geometries to use when multiple are present.
+        If None and exactly one geometry is present, it is auto-selected.
+        SpatialData inputs only.
+    coordinate_system : str | None, default=None
+        Target coordinate system. Image and geometries are aligned into this
+        system before plotting. If None, the single available system is used,
+        falling back to 'global' when multiple are defined. SpatialData
+        inputs only.
+    polygon : bool, default=False
+        Render polygon-shaped geometries as filled polygons. When False
+        (default), polygon geometries are reduced to their centroids and
+        rendered as points. SpatialData inputs only.
     crop : Sequence[int] | None, default=None
         Crop the plot to a region given as `(left, right, top, bottom)`.
     mapping : FeatureSpec | None, default=None
@@ -273,16 +324,21 @@ def spatial(
         cl.spatial(data_hne,key="cluster", groups=["Hippocampus", "Hypothalamus_1", "Striatum"], interactive=True)
     """
     # HANDLE: data type
-    if not isinstance(data, AnnData):
-        msg = "data must be an `AnnData` object"
+    if not isinstance(data, (AnnData, SpatialData)):
+        msg = "data must be an `AnnData` or `SpatialData` object"
         raise TypeError(msg)
 
-    image_array, spot_coordinates = _spatial_components(
+    image_array, spot_coordinates, polygon_frame, data = _spatial_components(
         data,
         library_id=library_id,
         image_key=image_key,
         image=image,
         spatial_key=spatial_key,
+        table_name=table_name,
+        image_name=image_name,
+        shapes_name=shapes_name,
+        coordinate_system=coordinate_system,
+        polygon=polygon,
     )
 
     # HANDLE: mapping
@@ -315,10 +371,26 @@ def spatial(
         observations_name=observations_name,
         include_dimensions=include_dimensions,
     )
-    frame = frame.with_columns(
-        pl.Series("spatial_x", spot_coordinates[:, 0]),
-        pl.Series("spatial_y", spot_coordinates[:, 1]),
-    )
+
+    is_polygon = polygon_frame is not None
+    if is_polygon:
+        # Long-format vertices joined to the table on instance_key.
+        instance_key = data.uns.get("spatialdata_attrs", {}).get("instance_key")
+        if instance_key is None or instance_key not in frame.columns:
+            msg = (
+                "Polygon shapes require the table to have an `instance_key` "
+                "column joining it to the shapes element."
+            )
+            raise ValueError(msg)
+        frame = polygon_frame.join(
+            frame, left_on="instance_id", right_on=instance_key, how="inner"
+        )
+    else:
+        frame = frame.with_columns(
+            pl.Series("spatial_x", spot_coordinates[:, 0]),
+            pl.Series("spatial_y", spot_coordinates[:, 1]),
+        )
+
     _validate_tooltips(tooltips, frame)
 
     # HANDLE: groups filter (categorical-only)
@@ -357,25 +429,47 @@ def spatial(
 
     if "size" in mapping.as_dict():
         size = None
-    sptl += geom_point(
-        mapping=aes(x="spatial_x", y="spatial_y", color=key, **mapping.as_dict()),
-        size=size,
-        alpha=alpha,
-        tooltips=tooltips,
-        **point_kwargs,
-    )
 
-    if key is not None:
-        if frame[key].dtype == pl.Categorical:
-            sptl += scale_color_brewer(palette="Set2")
-        elif frame[key].dtype.is_numeric():
-            sptl += _color_gradient(
-                frame[key],
-                color_low=color_low,
-                color_mid=color_mid,
-                color_high=color_high,
-                mid_point=mid_point,
-            )
+    if is_polygon:
+        sptl += geom_polygon(
+            mapping=aes(
+                x="polygon_x", y="polygon_y", group="instance_id", fill=key, **mapping.as_dict()
+            ),
+            size=size,
+            alpha=alpha,
+            tooltips=tooltips,
+            **point_kwargs,
+        )
+        if key is not None:
+            if frame[key].dtype == pl.Categorical:
+                sptl += scale_fill_brewer(palette="Set2")
+            elif frame[key].dtype.is_numeric():
+                sptl += _fill_gradient(
+                    frame[key],
+                    color_low=color_low,
+                    color_mid=color_mid,
+                    color_high=color_high,
+                    mid_point=mid_point,
+                )
+    else:
+        sptl += geom_point(
+            mapping=aes(x="spatial_x", y="spatial_y", color=key, **mapping.as_dict()),
+            size=size,
+            alpha=alpha,
+            tooltips=tooltips,
+            **point_kwargs,
+        )
+        if key is not None:
+            if frame[key].dtype == pl.Categorical:
+                sptl += scale_color_brewer(palette="Set2")
+            elif frame[key].dtype.is_numeric():
+                sptl += _color_gradient(
+                    frame[key],
+                    color_low=color_low,
+                    color_mid=color_mid,
+                    color_high=color_high,
+                    mid_point=mid_point,
+                )
 
     # Image rows grow downward in pixel space; reverse y so spots align with the image.
     if crop is not None:
