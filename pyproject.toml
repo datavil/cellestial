@@ -1,35 +1,40 @@
-[tool.poetry]
+[project]
 name = "cellestial"
-version = "0.33.0"
+version = "0.39.0"
 description = ""
-authors = ["Zaf4 <zafermolbio@gmail.com>"]
+authors = [
+    { name = "Zaf4", email = "zafermolbio@gmail.com" },
+]
 readme = "README.md"
 license = "Apache-2.0"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "anndata>=0.12.10,<0.13.0",
+    "lets-plot>=4.9.0,<5.0.0",
+    "polars[pyarrow]>=1.38.0,<2.0.0",
+    "scikit-image>=0.26.0,<0.27.0",
+    "spatialdata>=0.7,<1.0",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-anndata = "^0.12.10"
-lets-plot = "^4.9.0"
-polars = {extras = ["pyarrow"], version = "^1.38.0"}
-scikit-image = "^0.26.0"
-spatialdata = ">=0.7,<1.0"
-matplotlib = {version = "^3.10", optional = true}
-scanpy = {extras = ["leiden"], version = "^1.10.4", optional = true}
-scvelo = {version = "^0.3.3", optional = true}
+[project.optional-dependencies]
+extras = [
+    "matplotlib>=3.10,<4.0",
+    "scanpy[leiden]>=1.10.4,<2.0.0",
+    "scvelo>=0.3.3,<0.4.0",
+]
 
-[tool.poetry.extras]
-extras = ["matplotlib", "scanpy", "scvelo"]
+[tool.poetry]
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^7.1.0"
-ruff = "^0.15.0"
-mypy = "^1.13.0"
+ruff = "^0.15.12"
+mypy = "^2.0.0"
 pooch = "^1.8.2"
 scanpy = {extras = ["leiden"], version = "^1.10.4"}
 pycairo = "^1.27.0"
 cairosvg = "^2.7.1"
 scvelo = "^0.3.3"
-ty = "^0.0.17"
+ty = "^0.0.34"
 pandas = "2.2.2" # pinned to avoid 3.0
 tqdm = "^4.67.3"
 pytest = "^9.0.3"
@@ -39,7 +44,7 @@ pytest-cov = "^7.1.0"
 sphinx = ">=8.0.0"
 pydata-sphinx-theme = "^0.16.1"
 jupyter-sphinx = "^0.5.3"
-ipython = "^9.10.0"
+ipython = "^9.13.0"
 furo = "^2025.12.19"
 sphinx-copybutton = "^0.5.2"
 sphinx-design = "^0.7.0"
