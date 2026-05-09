@@ -147,6 +147,65 @@ def test_bracket_comparisons_wildcard_still_expands():
     ]
 
 
+def test_bracket_comparisons_left_wildcard_expands():
+    """Expand rest-vs-group wildcard comparisons."""
+    assert _expand_comparisons([("*", "c")], ["a", "b", "c"]) == [
+        ("a", "c"),
+        ("b", "c"),
+    ]
+
+
+def test_bracket_comparisons_double_wildcard_expands_all_pairs():
+    """Expand double wildcard comparisons to all pairwise groups."""
+    assert _expand_comparisons([("*", "*")], ["a", "b", "c"]) == [
+        ("a", "b"),
+        ("a", "c"),
+        ("b", "c"),
+    ]
+
+
+def test_bracket_comparisons_wildcard_deduplicates_pairs():
+    """Avoid duplicate unordered pairs when wildcards overlap."""
+    assert _expand_comparisons([("a", "*"), ("*", "a")], ["a", "b", "c"]) == [
+        ("a", "b"),
+        ("a", "c"),
+    ]
+
+
+def test_bracket_frame_accepts_group_vs_rest_comparisons():
+    """Build brackets from group-vs-rest comparison syntax."""
+    frame = pl.DataFrame(
+        {
+            "group": ["a", "a", "b", "b", "c", "c"],
+            "value": [1.0, 1.1, 2.0, 2.1, 3.0, 3.1],
+        }
+    )
+
+    brackets = _compute_bracket_frame(
+        frame,
+        x="group",
+        y="value",
+        comparisons=[("a", "*")],
+        test="mannwhitney",
+        alternative="two-sided",
+        correction="none",
+        label="stars",
+        label_format=".3g",
+        prefix="",
+        prefix_style="=",
+        separator=" ",
+        threshold=None,
+        y_position=None,
+        y_step=None,
+        y_padding=0.08,
+    )
+
+    assert list(zip(brackets["xmin"], brackets["xmax"], strict=True)) == [
+        ("a", "b"),
+        ("a", "c"),
+    ]
+
+
 def test_stream_requires_velocity(adata):
     # pbmc3k fixture has no velocity columns; stream should raise at `+` time.
     umap = cl.umap(adata)
