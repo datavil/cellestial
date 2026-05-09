@@ -62,6 +62,12 @@ def test_invalid_key(adata, fn):
         fn(adata, "NOT_A_REAL_KEY_xyz")
 
 
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
+def test_invalid_point_geom_raises_value_error(adata, fn, group_key):
+    with pytest.raises(ValueError, match="point_geom must be one of"):
+        fn(adata, "CD14", fill=group_key, point_geom="bad")
+
+
 # ---- violins / boxplots (plural) ----
 
 

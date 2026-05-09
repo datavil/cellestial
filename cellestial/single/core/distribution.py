@@ -208,7 +208,7 @@ def _distribution(
             )
         else:
             msg = "point_geom must be one of ['jitter','point','sina']."
-            raise KeyError(msg)
+            raise ValueError(msg)
 
     # handle interactive
     if interactive:
