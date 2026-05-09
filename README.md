@@ -2,7 +2,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/DataVil/Cellestial) 
 [![PyPI](https://img.shields.io/pypi/v/cellestial?color=blue)](https://pypi.org/project/cellestial/)
 
-<img align="right" src="assets/cellestial_logo.png" alt="Cellestial Logo" width="300">
+<img align="right" src="assets/cellestial.svg" alt="Cellestial Logo" width="300">
 
 The __Grammar of Graphics__ for single-cell omics.
 
