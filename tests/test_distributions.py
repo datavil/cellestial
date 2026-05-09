@@ -68,6 +68,23 @@ def test_invalid_point_geom_raises_value_error(adata, fn, group_key):
         fn(adata, "CD14", fill=group_key, point_geom="bad")
 
 
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
+def test_point_kwargs_not_mutated(adata, fn, group_key):
+    point_kwargs = {"stroke": 0, "color": "red"}
+    expected = dict(point_kwargs)
+
+    plot = fn(
+        adata,
+        "CD14",
+        fill=group_key,
+        point_mapping=aes(color=group_key),
+        point_kwargs=point_kwargs,
+    )
+
+    assert isinstance(plot, PlotSpec)
+    assert point_kwargs == expected
+
+
 # ---- violins / boxplots (plural) ----
 
 

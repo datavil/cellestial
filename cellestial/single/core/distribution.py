@@ -95,7 +95,7 @@ def _distribution(
     # determine separator (group_by)
     group_by = group_by or mapping_fill or mapping_color
     # initialize point kwargs if necessary
-    point_kwargs = point_kwargs or {}
+    point_kwargs = {} if point_kwargs is None else dict(point_kwargs)
 
     # determine index to unpivot
     index = list(dict.fromkeys(c for c in (group_by, mapping_fill, mapping_color) if c is not None))
@@ -197,8 +197,8 @@ def _distribution(
                 position = point_kwargs.pop("position")
 
             point_kwargs.update(color=point_color, alpha=point_alpha, size=point_size)
-            for k in point_mapping.as_dict():
-                point_kwargs.pop(k)
+            for key in point_mapping.as_dict():
+                point_kwargs.pop(key, None)
             dst += geom_function(
                 data=frame,
                 mapping=aes(x=group_by, y=value_column, **point_mapping.as_dict()),
