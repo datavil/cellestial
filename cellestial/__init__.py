@@ -78,7 +78,6 @@ __all__ = [
     "get_mapping",
     "heatmap",
     "highest_expressed_genes",
-    "interactive",
     "matrixplot",
     "ondata_legend",
     "pca",
