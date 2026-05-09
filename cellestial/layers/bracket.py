@@ -65,6 +65,37 @@ def _star_threshold(pvalue: float) -> float | None:
     return None
 
 
+def _expand_comparisons(
+    comparisons: Sequence[Sequence[str]],
+    groups: list[str],
+) -> list[tuple[str, str]]:
+    """Expand `"*"` wildcards in user comparisons against the available groups."""
+    expanded: list[tuple[str, str]] = []
+    seen: set[frozenset[str]] = set()
+
+    def _add(group_a: str, group_b: str) -> None:
+        key = frozenset((group_a, group_b))
+        if len(key) < 2 or key in seen:
+            return
+        seen.add(key)
+        expanded.append((group_a, group_b))
+
+    for pair in comparisons:
+        group_a, group_b = pair
+        if group_a == "*" and group_b == "*":
+            for left, right in combinations(groups, 2):
+                _add(left, right)
+        elif group_b == "*":
+            for other in groups:
+                _add(group_a, other)
+        elif group_a == "*":
+            for other in groups:
+                _add(other, group_b)
+        else:
+            _add(group_a, group_b)
+    return expanded
+
+
 def _compute_bracket_frame(
     frame: DataFrame,
     *,
@@ -88,11 +119,11 @@ def _compute_bracket_frame(
     from scipy.stats import mannwhitneyu, ttest_ind
 
     # determine which pairs to compare
+    groups = frame[x].drop_nulls().unique().to_list()
     if comparisons is None:
-        groups = frame[x].drop_nulls().unique().to_list()
         pairs = list(combinations(groups, 2))
     else:
-        pairs = [tuple(pair) for pair in comparisons]
+        pairs = _expand_comparisons(comparisons, groups)
 
     if len(pairs) == 0:
         msg = "No group pairs available to compare."
@@ -240,6 +271,8 @@ def bracket(
     comparisons : Sequence[Sequence[str]] | None, default=None
         Specific group pairs to test, e.g. ``[("A", "B"), ("A", "C")]``.
         If None, every pair of groups present in the plot is compared.
+        ``"*"`` on either side expands to all other groups, so
+        ``[("A", "*")]`` compares ``A`` against every remaining group.
     test : {'mannwhitney', 'ttest'}, default='mannwhitney'
         Statistical test used for each pairwise comparison.
         'mannwhitney' is non-parametric and recommended for expression data.
@@ -345,6 +378,17 @@ def bracket(
         )
         box + cl.bracket(
             comparisons=[("Monocytes", "Erythroid"), ("Monocytes", "B Cells")],
+            label="padj",
+            y_padding=0.2,
+        )
+
+    Use ``"*"`` to compare one group against every other.
+
+    .. jupyter-execute::
+        :emphasize-lines: 2
+
+        box + cl.bracket(
+            comparisons=[("Monocytes", "*")],
             label="padj",
             y_padding=0.2,
         )
