@@ -5,6 +5,7 @@ from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.layers import DeferredLayer
+from cellestial.layers.bracket import _compute_bracket_frame
 
 
 def test_arrow_axis_returns_deferred(adata):
@@ -87,6 +88,40 @@ def test_bracket_too_few_observations_raises():
     plot = ggplot(frame) + geom_point(aes(x="group", y="value"))
     with pytest.raises(ValueError, match="No valid group comparisons available"):
         _ = plot + cl.bracket()
+
+
+def test_bracket_preserves_group_order_for_default_comparisons():
+    frame = pl.DataFrame(
+        {
+            "group": ["b", "b", "a", "a", "c", "c"],
+            "value": [1.0, 1.1, 2.0, 2.1, 3.0, 3.1],
+        }
+    )
+
+    brackets = _compute_bracket_frame(
+        frame,
+        x="group",
+        y="value",
+        comparisons=None,
+        test="mannwhitney",
+        alternative="two-sided",
+        correction="none",
+        label="stars",
+        label_format=".3g",
+        prefix="",
+        prefix_style="=",
+        separator=" ",
+        threshold=None,
+        y_position=None,
+        y_step=None,
+        y_padding=0.08,
+    )
+
+    assert list(zip(brackets["xmin"], brackets["xmax"], strict=True)) == [
+        ("b", "a"),
+        ("b", "c"),
+        ("a", "c"),
+    ]
 
 
 def test_stream_requires_velocity(adata):

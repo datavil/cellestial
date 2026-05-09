@@ -119,7 +119,7 @@ def _compute_bracket_frame(
     from scipy.stats import mannwhitneyu, ttest_ind
 
     # determine which pairs to compare
-    groups = frame[x].drop_nulls().unique().to_list()
+    groups = frame[x].drop_nulls().unique(maintain_order=True).to_list()
     if comparisons is None:
         pairs = list(combinations(groups, 2))
     else:
