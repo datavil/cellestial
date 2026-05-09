@@ -109,6 +109,11 @@ def stream(
     -------
         DeferredLayer
 
+    Notes
+    -----
+    This function requires the `scvelo` package to be installed.
+    This function utilizes the `matplotlib`'s `streamplot` function to get stream lines.
+
     Examples
     --------
     Stream layers can be added to dimensionality reduction plots.

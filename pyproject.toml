@@ -13,7 +13,12 @@ lets-plot = "^4.9.0"
 polars = {extras = ["pyarrow"], version = "^1.38.0"}
 scikit-image = "^0.26.0"
 spatialdata = ">=0.7,<1.0"
+matplotlib = {version = "^3.10", optional = true}
+scanpy = {extras = ["leiden"], version = "^1.10.4", optional = true}
+scvelo = {version = "^0.3.3", optional = true}
 
+[tool.poetry.extras]
+extras = ["matplotlib", "scanpy", "scvelo"]
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^7.1.0"
@@ -29,7 +34,6 @@ pandas = "2.2.2" # pinned to avoid 3.0
 tqdm = "^4.67.3"
 pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
-squidpy = "^1.8.1"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"
@@ -39,6 +43,7 @@ ipython = "^9.10.0"
 furo = "^2025.12.19"
 sphinx-copybutton = "^0.5.2"
 sphinx-design = "^0.7.0"
+squidpy = "^1.8.1"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
