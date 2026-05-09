@@ -175,9 +175,6 @@ def _get_group_lines_frame(
         }
     )
 
-# AI-MODIFIED: Claude 4.6
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def heatmap(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]],
@@ -548,9 +545,6 @@ def heatmap(
 
     return htmp
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def matrixplot(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]],

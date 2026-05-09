@@ -28,9 +28,6 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 
-# AI-GENERATED: Claude 4.6
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def ridge(
     data: AnnData,
     key: str,
@@ -196,8 +193,6 @@ def ridge(
 
     return rdg + scale_fill_hue()
 
-# AI-GENERATED: Claude 4.6
-# VERIFIED: behavior
 def ridges(
     data: AnnData,
     keys: Sequence[str],
@@ -378,4 +373,3 @@ def ridges(
         rdgs += ggtb(size_zoomin=-1)
 
     return rdgs
-

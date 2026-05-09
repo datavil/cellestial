@@ -43,9 +43,6 @@ def _compute_label_positions(
         pl.col(x).mean(), pl.col(y).mean(), pl.selectors.categorical().mode().first()
     )
 
-# AI-MODIFIED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line
 def ondata_legend(
     *,
     plot: PlotSpec | None = None,

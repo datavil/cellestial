@@ -1,36 +1,22 @@
-# REQUIRED PLOTS
+# TODO
 
-## DotPlot  ✅
-https://www.cell.com/cms/10.1016/j.cell.2024.09.021/asset/b5ef7a8f-860d-46ba-9c36-4f590e7d67fe/main.assets/figs3_lrg.jpg
-panel c ✅
-## Clustered Heatmap 
-heatmap ✅
-- grouping✅
-- dendrograms✅
+## AI-Implemented Functions: Line-by-Line Checks
 
-
-# NICE TO HAVE
-
-## Stream
-Stream flow as in velocity_embedding_stream✅
-https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embedding_stream.py
-
-
-## MAKE THE FUNCTIONS MORE MODULAR
-
-- ACCEPT possibly different objets other than AnnData. ✅
-- HANDLE operations within separate functions either in utiliy or construct. ✅
-- MAKE dataframe construction more robust.✅
-
-
-## APPLY MODULAR FUNCTIONS 
-- To Violin, Violins ✅
-- To Boxplot, Boxplots ✅
-
-- Scatter ✅
-- Dotplot ✅
-
-
-
-
-# QC plots
+- `cellestial.spatial.spatial._spatial_components` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: not line-by-line.
+- `cellestial.spatial.spatial.spatial` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.spatial.spatials.spatials` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: not line-by-line.
+- `cellestial.layers._deferred.DeferredLayer` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.layers.bracket.bracket` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: not line-by-line.
+- `cellestial.layers.outline.cluster_outlines` — AI-MODIFIED: Mixed; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.layers.stream.stream` — AI-MODIFIED: Claude 4.7; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.layers.arrow.arrow_axis` — AI-MODIFIED: Claude 4.7; VERIFIED: behavior; UNAUDITED: not line-by-line.
+- `cellestial.layers.ondata_legend.ondata_legend` — AI-MODIFIED: Claude 4.7; VERIFIED: behavior; UNAUDITED: not line-by-line.
+- `cellestial.single.heatmap.dotplot.dotplot` — AI-MODIFIED: Gemini 2.5 and Claude 4.6; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.single.heatmap.heatmap.heatmap` — AI-MODIFIED: Claude 4.6; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.single.heatmap.heatmap.matrixplot` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.single.heatmap.stacked_violin.stacked_violin` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.single.quick.ridge.ridge` — AI-GENERATED: Claude 4.6; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.single.quick.ridge.ridges` — AI-GENERATED: Claude 4.6; VERIFIED: behavior.
+- `cellestial.single.differential.volcano.volcano` — AI-GENERATED: Claude 4.7; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.util.dendrogram._get_dendrogram` — AI-GENERATED: Claude 4.6; VERIFIED: behavior; UNAUDITED: edge cases unverified.
+- `cellestial.util.dendrogram._get_dendrogram_path_frame` — AI-GENERATED: Claude 4.6; VERIFIED: behavior; UNAUDITED: edge cases unverified.

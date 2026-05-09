@@ -39,9 +39,6 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line
 def _spatial_components(
     data,
     *,
@@ -122,9 +119,6 @@ def _spatial_components(
     raise TypeError(msg)
 
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def spatial(
     data: AnnData | SpatialData,
     key: str | None = None,

@@ -43,9 +43,6 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
 
-# AI-MODIFIED: Gemini 2.5 and Claude 4.6
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def dotplot(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]],

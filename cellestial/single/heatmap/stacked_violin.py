@@ -172,9 +172,6 @@ def _compute_violin_polygons(
     return pl.DataFrame(rows)
 
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def stacked_violin(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]],

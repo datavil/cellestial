@@ -199,9 +199,6 @@ def _compute_bracket_frame(
     return brackets
 
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line
 def bracket(
     *,
     plot: PlotSpec | None = None,

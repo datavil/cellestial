@@ -22,9 +22,6 @@ _THEME_DIMENSION = (
     )
 )
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line
 _THEME_SPATIAL = (
     theme_classic()
     + theme(

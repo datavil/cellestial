@@ -15,9 +15,6 @@ if TYPE_CHECKING:
     from spatialdata import SpatialData
 
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line
 def spatials(
     data: AnnData | SpatialData,
     keys: Sequence[str],

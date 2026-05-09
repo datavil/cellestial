@@ -88,9 +88,6 @@ def _get_density_boundaries(
 
     return pl.concat(boundaries)
 
-# AI-MODIFIED: Mixed
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 def cluster_outlines(
     groups: str | Sequence[str | Sequence[str]],
     *,

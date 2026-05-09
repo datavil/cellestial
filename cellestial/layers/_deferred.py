@@ -9,9 +9,6 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpecArray, LayerSpec
 
-# AI-GENERATED: Claude 4.7
-# VERIFIED: behavior
-# UNAUDITED: not reviewed line-by-line, edge cases unverified
 class DeferredLayer(PlotSpec):
     """
     A layer whose construction depends on an existing plot's data and aesthetics.
