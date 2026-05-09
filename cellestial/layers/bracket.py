@@ -9,7 +9,7 @@ from lets_plot import aes, geom_bracket
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
-from cellestial.util.errors import InvalidComparisonError
+from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -460,10 +460,10 @@ def bracket(
         y = _mapping.get("y") if explicit_y is None else explicit_y
         if x is None:
             msg = "`x` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
         if y is None:
             msg = "`y` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
 
         # compute the pairwise significance frame
         brackets = _compute_bracket_frame(

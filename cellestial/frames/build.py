@@ -7,7 +7,7 @@ import polars as pl
 from anndata import AnnData
 from spatialdata import SpatialData
 
-from cellestial.util.errors import KeyNotFoundError
+from cellestial.util.errors import VariableNotFoundError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -32,7 +32,7 @@ def anndata_variable_columns(
             column_names.append(key)
         else:
             msg = f"Key `{key}` not found in data."
-            raise KeyNotFoundError(msg)
+            raise VariableNotFoundError(msg)
 
     return columns
 

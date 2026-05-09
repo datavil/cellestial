@@ -13,6 +13,7 @@ from lets_plot import (
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping
+from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpecArray, PlotSpec
@@ -216,8 +217,14 @@ def arrow_axis(
         source = explicit_plot if explicit_plot is not None else receiving_plot
         frame = source.get_plot_shared_data()
         mapping = get_mapping(source, index=0)
-        x: str = mapping["x"]
-        y: str = mapping["y"]
+        x = mapping.get("x")
+        y = mapping.get("y")
+        if x is None:
+            msg = "`x` is present neither as argument nor in the plot aesthetics."
+            raise MissingAestheticError(msg)
+        if y is None:
+            msg = "`y` is present neither as argument nor in the plot aesthetics."
+            raise MissingAestheticError(msg)
         new_layer = theme(
             # remove axis elements
             axis_text_x=element_blank(),

@@ -7,6 +7,7 @@ from lets_plot import aes, geom_text, geom_text_repel, theme
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
+from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
@@ -151,13 +152,13 @@ def ondata_legend(
         group_by = _mapping.get("color") if explicit_group_by is None else explicit_group_by
         if x is None:
             msg = "`x` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
         if y is None:
             msg = "`y` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
         if group_by is None:
             msg = "`group_by` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
 
         frame = retrieve(source)
         grouped = _compute_label_positions(

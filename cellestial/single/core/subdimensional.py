@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal
 
 from cellestial.single.core.dimensional import dimensional
 from cellestial.util import _is_variable_key
+from cellestial.util.errors import VariableNotFoundError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -792,7 +793,7 @@ def expression(
     """
     if not _is_variable_key(data, key):
         msg = f"'{key}' is not present in `variable` names"
-        raise ValueError(msg)
+        raise VariableNotFoundError(msg)
     return dimensional(
         data=data,
         key=key,

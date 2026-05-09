@@ -13,6 +13,7 @@ from lets_plot import (
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
+from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
@@ -170,8 +171,14 @@ def stream(
         # extract data and mapping from plot
         frame = retrieve(source)
         _mapping = get_mapping(source)
-        x: str = _mapping["x"]
-        y: str = _mapping["y"]
+        x = _mapping.get("x")
+        y = _mapping.get("y")
+        if x is None:
+            msg = "`x` is present neither as argument nor in the plot aesthetics."
+            raise MissingAestheticError(msg)
+        if y is None:
+            msg = "`y` is present neither as argument nor in the plot aesthetics."
+            raise MissingAestheticError(msg)
 
         # determine velocity column names
         if velocity_key is not None:  # if the velocity name is provided

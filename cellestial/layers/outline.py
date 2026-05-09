@@ -8,6 +8,7 @@ from lets_plot import aes, geom_path
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping
+from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -222,18 +223,18 @@ def cluster_outlines(
         source = explicit_plot if explicit_plot is not None else receiving_plot
         # get mapping
         _mapping = get_mapping(source, index=0)
-        x = _mapping["x"] if explicit_x is None else explicit_x
-        y = _mapping["y"] if explicit_y is None else explicit_y
-        group_by = _mapping["color"] if explicit_group_by is None else explicit_group_by
+        x = _mapping.get("x") if explicit_x is None else explicit_x
+        y = _mapping.get("y") if explicit_y is None else explicit_y
+        group_by = _mapping.get("color") if explicit_group_by is None else explicit_group_by
         if x is None:
             msg = "`x` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
         if y is None:
             msg = "`y` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
         if group_by is None:
             msg = "`group_by` is present neither as argument nor in the plot aesthetics."
-            raise ValueError(msg)
+            raise MissingAestheticError(msg)
         # get data
         frame = source.get_plot_shared_data()
         # get boundaries
