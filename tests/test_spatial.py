@@ -12,7 +12,6 @@ from spatialdata.transformations import Identity, set_transformation
 
 import cellestial as cl
 
-
 # ---- fixtures ----
 
 
@@ -264,6 +263,23 @@ def test_spatial_anndata_generic_no_uns():
     assert isinstance(plot, PlotSpec)
 
 
+def test_spatial_scale_axis_constant_key_returns_zero():
+    """Constant numeric spatial keys should not scale to NaN."""
+    n = 5
+    rng = np.random.default_rng(12)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame(
+            {"score": [3.0] * n},
+            index=[f"c{i}" for i in range(n)],
+        ),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+    plot = cl.spatial(data, key="score", scale_axis=0)
+    assert plot.as_dict()["data"]["score"].to_list() == [0.0] * n
+
+
 # ---- build_frame() with SpatialData ----
 
 
@@ -282,9 +298,11 @@ def test_build_frame_data_multi_table_raises(data_multi):
 
 @pytest.fixture
 def data_visium_hd_like():
-    """Mimics the Visium HD layout: 2 images (hires/lowres), shared shapes,
+    """
+    Mimics the Visium HD layout: 2 images (hires/lowres), shared shapes,
     one global CS holding all elements plus per-resolution CSes that hold
-    only the matching image. Forces the CS tiebreaker to fire."""
+    only the matching image. Forces the CS tiebreaker to fire.
+    """
     n = 4
     rng = np.random.default_rng(7)
 
@@ -327,9 +345,11 @@ def data_visium_hd_like():
 
 
 def test_smart_cs_tiebreaker_prefers_image_only_cs(data_visium_hd_like):
-    """When multiple CSes contain the chosen image+shapes, prefer the one
+    """
+    When multiple CSes contain the chosen image+shapes, prefer the one
     where the image is the only image. Mirrors Visium HD's _downscaled_lowres
-    pattern."""
+    pattern.
+    """
     plot = cl.spatial(
         data_visium_hd_like,
         key="score",
@@ -349,8 +369,10 @@ def test_smart_image_auto_resolves_from_coordinate_system(data_visium_hd_like):
 
 
 def test_smart_no_image_pin_still_ambiguous(data_visium_hd_like):
-    """No image_name + no coordinate_system + multiple CSes each with one
-    image → genuine ambiguity, must raise."""
+    """
+    No image_name + no coordinate_system + multiple CSes each with one
+    image → genuine ambiguity, must raise.
+    """
     with pytest.raises(ValueError, match="coordinate system"):
         cl.spatial(data_visium_hd_like, key="score")
 

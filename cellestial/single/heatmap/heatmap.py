@@ -41,10 +41,16 @@ _GROUP_BAR_GAP = 0.5
 
 def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str) -> pl.DataFrame:
     """Min-max scale ``value_column`` within partitions defined by ``partition_key``."""
-    v = pl.col(value_column)
-    vmin = v.min().over(partition_key)
-    vmax = v.max().over(partition_key)
-    return frame.with_columns(((v - vmin) / (vmax - vmin)).alias(value_column))
+    value = pl.col(value_column)
+    value_min = value.min().over(partition_key)
+    value_max = value.max().over(partition_key)
+    value_range = value_max - value_min
+    return frame.with_columns(
+        pl.when(value_range == 0)
+        .then(0.0)
+        .otherwise((value - value_min) / value_range)
+        .alias(value_column)
+    )
 
 
 def _assign_positions(
@@ -259,7 +265,7 @@ def heatmap(
         Whether to draw bracket labels above the plot when ``keys`` is a mapping.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize a dimension between 0 and 1.
-        Subtracts the minimum and divides by the maximum.
+        Uses min-max scaling; constant partitions are set to 0.
         If 0, standardize each variable (column).
         If 1, standardize each row (group when ``aggregate`` is True, observation otherwise).
     value_column : str, default='value'
@@ -598,7 +604,7 @@ def matrixplot(
         Use 'tile' to enable tooltips.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize a dimension between 0 and 1.
-        Subtracts the minimum and divides by the maximum.
+        Uses min-max scaling; constant partitions are set to 0.
         If 0, standardize each variable (column).
         If 1, standardize each group (row).
     dendrogram : bool, default=False

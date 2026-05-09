@@ -1,7 +1,9 @@
+import polars as pl
 import pytest
 from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
+from cellestial.single.heatmap.heatmap import _scale_values
 
 
 def test_heatmap_default_aggregate(adata, markers, group_key):
@@ -23,6 +25,12 @@ def test_heatmap_dendrogram(adata, markers, group_key):
 def test_heatmap_scale_axis(adata, markers, group_key, scale_axis):
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, scale_axis=scale_axis)
     assert isinstance(plot, PlotSpec)
+
+
+def test_heatmap_scale_values_constant_partition_returns_zero():
+    frame = pl.DataFrame({"group": ["a", "a", "b"], "value": [2.0, 2.0, 5.0]})
+    scaled = _scale_values(frame, value_column="value", partition_key="group")
+    assert scaled["value"].to_list() == [0.0, 0.0, 0.0]
 
 
 def test_heatmap_aggregate_false(adata, markers, group_key):

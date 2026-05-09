@@ -197,8 +197,8 @@ def spatial(
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
     scale_axis : {0, 1} | None, default=None
-        Whether to standardize ``key`` values between 0 and 1 (subtracts the
-        minimum and divides by the maximum).
+        Whether to standardize ``key`` values between 0 and 1 with min-max
+        scaling. Constant values are set to 0.
         Only applied when ``key`` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
@@ -405,8 +405,16 @@ def spatial(
 
     # HANDLE: standard scaling (numeric keys only)
     if scale_axis is not None and key is not None and frame[key].dtype.is_numeric():
-        v = pl.col(key)
-        frame = frame.with_columns(((v - v.min()) / (v.max() - v.min())).alias(key))
+        value = pl.col(key)
+        value_min = value.min()
+        value_max = value.max()
+        value_range = value_max - value_min
+        frame = frame.with_columns(
+            pl.when(value_range == 0)
+            .then(0.0)
+            .otherwise((value - value_min) / value_range)
+            .alias(key)
+        )
 
     # BUILD: plot
     sptl = ggplot(data=frame)

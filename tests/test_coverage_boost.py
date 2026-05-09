@@ -7,7 +7,7 @@ arrow, legends, operations, xyplot, xyplots, ridge, highest, heatmap.
 
 import pytest
 from lets_plot import aes, layer_tooltips
-from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
