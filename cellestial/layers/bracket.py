@@ -124,6 +124,13 @@ def _compute_bracket_frame(
             }
         )
 
+    if not records:
+        msg = (
+            "No valid group comparisons available. "
+            "Each comparison needs at least 2 observations per group."
+        )
+        raise ValueError(msg)
+
     brackets = pl.DataFrame(records)
 
     # adjust for multiple testing

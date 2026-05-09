@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
@@ -23,6 +22,8 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from lets_plot.plot.core import PlotSpec
 
 

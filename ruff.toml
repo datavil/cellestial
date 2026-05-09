@@ -41,7 +41,7 @@ ignore = [
   "TRY003",
   "D206",
   "W191",
-  "TCH002"
+  "TC002"
 ]
 
 [lint.pycodestyle]

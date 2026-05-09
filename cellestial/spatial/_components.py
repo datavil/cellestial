@@ -169,7 +169,8 @@ def resolve_table(data: SpatialData, table_name: str | None) -> AnnData:
 
 
 def _image_to_yxc(elem) -> NDArray:
-    """Convert a SpatialData image element to a (y, x[, c]) NumPy array.
+    """
+    Convert a SpatialData image element to a (y, x[, c]) NumPy array.
 
     Accepts either an `xarray.DataArray` or a multiscale `DataTree`.
     """
@@ -192,7 +193,8 @@ def _image_to_yxc(elem) -> NDArray:
 
 
 def _polygon_vertex_frame(shapes_geo) -> pl.DataFrame:
-    """Long-format vertex frame for `geom_polygon`.
+    """
+    Long-format vertex frame for `geom_polygon`.
 
     Columns: `instance_id`, `polygon_x`, `polygon_y`.
     """
@@ -223,7 +225,8 @@ def spatialdata_components(
     image: bool,
     polygon: bool = False,
 ) -> tuple[NDArray | None, NDArray | None, pl.DataFrame | None, AnnData]:
-    """Resolve image, geometry, and the annotation table.
+    """
+    Resolve image, geometry, and the annotation table.
 
     When the chosen shapes element holds Polygons, ``polygon=True`` returns
     a long-format vertex frame for ``geom_polygon``. ``polygon=False``

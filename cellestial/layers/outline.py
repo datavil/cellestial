@@ -79,6 +79,13 @@ def _get_density_boundaries(
                 )
             )
 
+    if not boundaries:
+        msg = (
+            "No cluster outline could be computed. "
+            "Check that `groups` exist in `group_by` and have at least 5 points."
+        )
+        raise ValueError(msg)
+
     return pl.concat(boundaries)
 
 # AI-MODIFIED: Mixed

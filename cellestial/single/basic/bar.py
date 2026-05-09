@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import aes, geom_bar, ggtb
+from lets_plot import geom_bar, ggtb
 
 from cellestial.single.base import plot as baseplot
 from cellestial.util import _determine_axis, _select_variable_keys

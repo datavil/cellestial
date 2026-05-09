@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Literal
 
 # Data retrieval
 from lets_plot import (
-    aes,
     geom_point,
     ggtb,
 )

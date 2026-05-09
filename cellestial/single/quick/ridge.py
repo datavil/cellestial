@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -24,6 +23,8 @@ from cellestial.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from lets_plot.plot.core import PlotSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 

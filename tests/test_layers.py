@@ -1,5 +1,6 @@
+import polars as pl
 import pytest
-from lets_plot import ggplot
+from lets_plot import aes, geom_point, ggplot
 from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
@@ -59,6 +60,33 @@ def test_cluster_outlines_invalid_group_raises(adata, group_key):
     umap = cl.umap(adata, key=group_key)
     with pytest.raises(Exception):
         _ = umap + cl.cluster_outlines(groups="NOT_A_GROUP_xyz")
+
+
+def test_cluster_outlines_too_few_points_raises():
+    """Raise clearly when no outline can be computed for small groups."""
+    frame = pl.DataFrame(
+        {
+            "x": [0.0, 1.0, 0.0, 1.0],
+            "y": [0.0, 0.0, 1.0, 1.0],
+            "group": ["a", "a", "a", "a"],
+        }
+    )
+    plot = ggplot(frame) + geom_point(aes(x="x", y="y", color="group"))
+    with pytest.raises(ValueError, match="No cluster outline could be computed"):
+        _ = plot + cl.cluster_outlines(groups="a")
+
+
+def test_bracket_too_few_observations_raises():
+    """Raise clearly when every comparison has too few observations."""
+    frame = pl.DataFrame(
+        {
+            "group": ["a", "b"],
+            "value": [1.0, 2.0],
+        }
+    )
+    plot = ggplot(frame) + geom_point(aes(x="group", y="value"))
+    with pytest.raises(ValueError, match="No valid group comparisons available"):
+        _ = plot + cl.bracket()
 
 
 def test_stream_requires_velocity(adata):
