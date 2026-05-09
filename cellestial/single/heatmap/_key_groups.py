@@ -121,12 +121,9 @@ def _build_key_groups_frame(
     for label, values in groups.items():
         first = cursor
         last = cursor + len(values) - 1
-        if len(values) == 1:
-            xmins.append(float(first) - 0.4)
-            xmaxs.append(float(last) + 0.4)
-        else:
-            xmins.append(float(first) - 0.4)
-            xmaxs.append(float(last) + 0.4)
+        # expand the bracket
+        xmins.append(float(first) - 0.4)
+        xmaxs.append(float(last) + 0.4)
         labels.append(label)
         cursor += len(values)
     return pl.DataFrame(
