@@ -4,6 +4,7 @@ import polars as pl
 import pytest
 from lets_plot.plot.core import FeatureSpec
 
+from cellestial.util.operations import retrieve
 from cellestial.util.utilities import (
     _are_observation_features,
     _are_observations,
@@ -23,7 +24,6 @@ from cellestial.util.utilities import (
     _share_labels,
     _share_ticks,
     _wrap_legend,
-    retrieve,
 )
 
 # ---- _build_tooltips ----

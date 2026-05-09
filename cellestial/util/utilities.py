@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from math import ceil, log10
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import polars as pl
 from anndata import AnnData
@@ -18,11 +18,8 @@ from lets_plot import (
     scale_fill_gradient2,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from lets_plot.plot.core import FeatureSpec
 from lets_plot.plot.subplots import SupPlotsSpec
-
-if TYPE_CHECKING:
-    from polars import DataFrame
 
 
 def _build_tooltips(
@@ -247,65 +244,6 @@ def _fill_gradient(
             midpoint=mid_value,
         )
 
-
-
-def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
-    """
-    Returns the mapping of the plot as a `dict`.
-
-    Parameters
-    ----------
-    plot : PlotSpec
-        The plot to get mapping from.
-    index : int, defalut=0.
-        index of the layer to get the local mapping from.
-
-    Returns
-    -------
-    dict
-        The combined mapping of the plot.
-
-    """
-    return {
-        **plot.as_dict().get("mapping"),  # from the global mapping,
-        **plot.as_dict().get("layers")[index].get("mapping"),  # from a layer.
-    }
-
-
-def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
-    """
-    Retrieves the dataframe from a PlotSpec or SupPlotsSpec using the index.
-
-    Parameters
-    ----------
-    plot : PlotSpec | SupPlotsSpec
-        The plot to retrieve the dataframe from.
-    index : int, optional
-        The index of the figure to retrieve the dataframe from, by default 0
-
-    Returns
-    -------
-    DataFrame
-        The dataframe utilized in the plot.
-
-    Raises
-    ------
-    TypeError
-        If the plot is not a PlotSpec or SupPlotsSpec object.
-    """
-    if isinstance(plot, PlotSpec):
-        frame = plot.as_dict().get("data")
-    elif isinstance(plot, SupPlotsSpec):
-        frame = plot.as_dict().get("figures")[index].get("data")
-    else:
-        msg = f"Plot MUST be a `PlotSpec` or `SupPlotsSpec` object, type={type(plot)}"
-        raise TypeError(msg)
-
-    if frame is None:
-        msg = "Could not retrieve the dataframe from the plot."
-        raise ValueError(msg)
-
-    return frame
 
 
 def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
