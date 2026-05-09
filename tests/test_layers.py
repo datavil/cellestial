@@ -92,5 +92,5 @@ def test_bracket_too_few_observations_raises():
 def test_stream_requires_velocity(adata):
     # pbmc3k fixture has no velocity columns; stream should raise at `+` time.
     umap = cl.umap(adata)
-    with pytest.raises(Exception):
+    with pytest.raises(KeyError, match="Velocity columns not found"):
         _ = umap + cl.stream()

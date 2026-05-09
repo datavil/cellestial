@@ -163,14 +163,6 @@ def stream(
         gggrid([plot, ggplot() + cl.stream(plot=plot)])
 
     """
-    # contained imports
-    try:
-        from matplotlib.figure import Figure
-        from scvelo.plotting.velocity_embedding_grid import compute_velocity_on_grid
-    except ImportError as err:
-        msg = "`scvelo` must be installed to use the stream layer."
-        raise ImportError(msg) from err
-
     explicit_plot = plot
 
     def _build(receiving_plot: PlotSpec) -> FeatureSpecArray:
@@ -196,6 +188,25 @@ def stream(
             prefix = velocity_prefix.upper()  # cellestial converts embedding names to uppercase
             x_velocity = x.replace("X_", prefix)
             y_velocity = y.replace("X_", prefix)
+
+        missing_velocity_columns = [
+            column for column in (x_velocity, y_velocity) if column not in frame.columns
+        ]
+        if missing_velocity_columns:
+            msg = (
+                f"Velocity columns not found: {missing_velocity_columns}. "
+                "Pass `velocity_prefix=` or `velocity_key=` if your velocity columns "
+                "use different names."
+            )
+            raise KeyError(msg)
+
+        # contained imports
+        try:
+            from matplotlib.figure import Figure
+            from scvelo.plotting.velocity_embedding_grid import compute_velocity_on_grid
+        except ImportError as err:
+            msg = "`scvelo` must be installed to use the stream layer."
+            raise ImportError(msg) from err
 
         # extract coordinates and velocities as numpy arrays
         dimensions = frame.select(pl.col(x), pl.col(y)).to_numpy()
