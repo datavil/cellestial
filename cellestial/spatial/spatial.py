@@ -320,7 +320,7 @@ def spatial(
     """
     # HANDLE: data type
     if not isinstance(data, (AnnData, SpatialData)):
-        msg = "data must be an `AnnData` or `SpatialData` object"
+        msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
 
     image_array, spot_coordinates, polygon_frame, data = _spatial_components(

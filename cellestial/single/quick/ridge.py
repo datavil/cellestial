@@ -129,7 +129,7 @@ def ridge(
     """
     # Handling Data types
     if not isinstance(data, AnnData):
-        msg = "data must be an `AnnData` object"
+        msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
 
     # HANDLE: mapping

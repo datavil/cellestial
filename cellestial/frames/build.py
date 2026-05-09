@@ -67,7 +67,7 @@ def anndata_observations_frame(
     """
     # Check if data is an AnnData object
     if not isinstance(data, AnnData):
-        msg = "data must be an `AnnData` object"
+        msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
     if not isinstance(data.obs, pd.DataFrame):  # in case of Dataset2D
         part = data.obs.to_memory()
@@ -143,7 +143,7 @@ def anndata_variables_frame(
     """
     # PART 1: INITIALIZE
     if not isinstance(data, AnnData):
-        msg = "data must be an `AnnData` object"
+        msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
     if not isinstance(data.var, pd.DataFrame):  # in case of Dataset2D
         part = data.var.to_memory()
