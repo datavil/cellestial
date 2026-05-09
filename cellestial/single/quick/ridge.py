@@ -31,8 +31,8 @@ if TYPE_CHECKING:
 def ridge(
     data: AnnData,
     key: str,
+    group_by: str,
     *,
-    group_by: str | None = None,
     scale: float = 2.0,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
@@ -196,8 +196,8 @@ def ridge(
 def ridges(
     data: AnnData,
     keys: Sequence[str],
+    group_by: str,
     *,
-    group_by: str | None = None,
     scale: float = 2.0,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,

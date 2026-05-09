@@ -130,6 +130,13 @@ def test_resolve_key_groups_dict_flatten_preserves_order():
     assert groups == {"G1": ["A", "B"], "G2": ["C"]}
 
 
+def test_resolve_key_groups_dict_rejects_single_string_value():
+    from cellestial.single.heatmap._key_groups import _resolve_key_groups
+
+    with pytest.raises(TypeError, match="not a single string"):
+        _resolve_key_groups({"G1": "A"})
+
+
 def test_key_groups_bar_y_above_top_edge():
     from cellestial.single.heatmap._key_groups import _key_groups_bar_y
 

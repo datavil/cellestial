@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from warnings import warn
 
 import polars as pl
@@ -45,7 +45,16 @@ def _resolve_key_groups(
             "Consider setting `key_labels=False`.",
             stacklevel=2,
         )
-    groups = {label: list(values) for label, values in keys.items()}
+    grouped_keys = cast("Mapping[str, Sequence[str]]", keys)
+    groups: dict[str, list[str]] = {}
+    for label, values in grouped_keys.items():
+        if isinstance(values, str):
+            msg = (
+                f"Keys for group {label!r} must be a sequence of strings, "
+                "not a single string."
+            )
+            raise TypeError(msg)
+        groups[label] = list(values)
     flat: list[str] = []
     location: dict[str, str] = {}
     for label, values in groups.items():
