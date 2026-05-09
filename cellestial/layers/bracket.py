@@ -199,7 +199,9 @@ def _compute_bracket_frame(
             symbol, value = (">", 0.05) if threshold is None else ("<", threshold)
             return f"{prefix} {symbol} {value:{label_format}}".lstrip()
         if prefix_style == "=":
-            return f"{prefix} = {pvalue:{label_format}}".lstrip()
+            if not prefix:
+                return f"{pvalue:{label_format}}"
+            return f"{prefix} = {pvalue:{label_format}}"
         if prefix_style is None:
             return f"{prefix}{pvalue:{label_format}}"
         msg = f"`prefix_style` must be '=', '<', or None. Received: {prefix_style!r}"
@@ -388,8 +390,7 @@ def bracket(
         :emphasize-lines: 2
 
         box + cl.bracket(
-            comparisons=[("Monocytes", "*")],
-            label="padj",
+            comparisons=[("Lymphocytes", "*")],
             y_padding=0.2,
         )
 
