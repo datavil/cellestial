@@ -59,10 +59,3 @@ class SpatialLibraryError(Exception):
 
     def __init__(self, message: str):
         super().__init__(message)
-
-
-class OptionalDependencyError(ImportError):
-    """Raised when an optional third-party package required by a feature is not installed."""
-
-    def __init__(self, message: str):
-        super().__init__(message)

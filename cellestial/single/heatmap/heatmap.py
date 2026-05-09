@@ -29,6 +29,7 @@ from cellestial.single.heatmap._key_groups import (
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -378,7 +379,7 @@ def heatmap(
     """
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     mapping = mapping or aes()
 

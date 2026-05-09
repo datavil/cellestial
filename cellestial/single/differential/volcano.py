@@ -23,6 +23,7 @@ from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util import _share_axis, _share_labels
+from cellestial.util.errors import UnsupportedDataTypeError
 
 # Default volcano palette (matches the conventional EnhancedVolcano-style look):
 # brick-red for up, soft cornflower-blue for down, medium-gray for non-significant.
@@ -148,7 +149,7 @@ def _build_volcano_frame(
         )
     else:
         msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     # CRITICAL PARTS: Dataframe Operations
     # 1. -log10(pvalue) transform
@@ -343,7 +344,7 @@ def volcano(
     # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     # BUILD: dataframe via the helper
     frame = _build_volcano_frame(

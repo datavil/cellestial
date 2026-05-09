@@ -31,6 +31,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _validate_tooltips,
 )
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from typing import Literal
@@ -116,7 +117,7 @@ def _spatial_components(
         return image_array, spot_coordinates, None, data
 
     msg = f"Unsupported data type: `{type(data)}`"
-    raise TypeError(msg)
+    raise UnsupportedDataTypeError(msg)
 
 
 def spatial(
@@ -320,7 +321,7 @@ def spatial(
     # HANDLE: data type
     if not isinstance(data, (AnnData, SpatialData)):
         msg = "data must be an `AnnData` or `SpatialData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     image_array, spot_coordinates, polygon_frame, data = _spatial_components(
         data,

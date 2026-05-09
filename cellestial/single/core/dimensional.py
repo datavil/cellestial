@@ -28,6 +28,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _validate_tooltips,
 )
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -214,7 +215,7 @@ def dimensional(
     # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     # HANDLE: mapping
     mapping = mapping or aes()

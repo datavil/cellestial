@@ -20,6 +20,7 @@ from cellestial.util import (
     _select_variable_keys,
     _validate_tooltips,
 )
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -143,7 +144,7 @@ def xyplot(
     # Handling Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     # HANDLE: mapping
     _mapping = aes(x=x, y=y)

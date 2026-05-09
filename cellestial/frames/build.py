@@ -7,7 +7,7 @@ import polars as pl
 from anndata import AnnData
 from spatialdata import SpatialData
 
-from cellestial.util.errors import VariableNotFoundError
+from cellestial.util.errors import UnsupportedDataTypeError, VariableNotFoundError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -68,7 +68,7 @@ def anndata_observations_frame(
     # Check if data is an AnnData object
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
     if not isinstance(data.obs, pd.DataFrame):  # in case of Dataset2D
         part = data.obs.to_memory()
     else:
@@ -144,7 +144,7 @@ def anndata_variables_frame(
     # PART 1: INITIALIZE
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
     if not isinstance(data.var, pd.DataFrame):  # in case of Dataset2D
         part = data.var.to_memory()
     else:
@@ -284,6 +284,6 @@ def build_frame(
             raise ValueError(msg)
     else:
         msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     return frame

@@ -34,6 +34,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _validate_tooltips,
 )
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -360,7 +361,7 @@ def stacked_violin(
     # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = "data must be an `AnnData` object"
-        raise TypeError(msg)
+        raise UnsupportedDataTypeError(msg)
 
     mapping = mapping or aes()
 
