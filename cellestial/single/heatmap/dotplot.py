@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -245,24 +244,28 @@ def dotplot(
     )
     # LazyFrame to DataFrame
     frame = frame.collect()
-    # HANDLE: Sorting
-    # In case of pseudo-categorical integer group_by temporarily cast to int for proper sorting
-    with contextlib.suppress(Exception):  # supress errors if sorting fails
+    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
+    numeric_group_by = "__cellestial_group_by_numeric"
+    frame = frame.with_columns(
+        pl.col(group_by)
+        .cast(pl.String)
+        .cast(pl.Int64, strict=False)
+        .alias(numeric_group_by)
+    )
+    if frame[numeric_group_by].null_count() == 0:
         frame = (
-            frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Int64)).sort(
-                group_by, descending=True
-            )
-            # .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
+            frame.sort(numeric_group_by, descending=True)
+            .drop(numeric_group_by)
+            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
         )
+    else:
+        frame = frame.drop(numeric_group_by)
     # perform sorting
     if sort_by is not None:
         frame = frame.sort(
             by=sort_by,
             descending=(sort_order == "descending"),
         )
-    # Cast back to categorical
-    if frame[group_by].dtype == pl.Int64:
-        frame = frame.with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
 
     # DETERMINE: y order of groups
     if dendrogram:
