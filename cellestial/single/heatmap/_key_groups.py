@@ -111,7 +111,7 @@ def _build_key_groups_frame(
 
     For a group of ``N >= 2`` keys at column indices ``first..last``, the bracket
     spans ``first..last`` (width ``N - 1``, ends at key centers). For a singleton
-    group at index ``p``, the bracket spans ``p - 0.25..p + 0.25`` (width ``0.5``)
+    group at index ``p``, the bracket spans ``p - 0.4..p + 0.4`` (width ``0.8``)
     so the bar remains visible.
     """
     xmins: list[float] = []
