@@ -9,6 +9,7 @@ from lets_plot import aes, geom_bracket
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
+from cellestial.util.errors import InvalidComparisonError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -72,6 +73,17 @@ def _expand_comparisons(
     """Expand `"*"` wildcards in user comparisons against the available groups."""
     expanded: list[tuple[str, str]] = []
     seen: set[frozenset[str]] = set()
+    available_groups = set(groups)
+
+    def _validate_group(group: str) -> None:
+        if group == "*":
+            return
+        if group not in available_groups:
+            msg = (
+                f"Group {group!r} in `comparisons` was not found. "
+                f"Available groups: {groups}"
+            )
+            raise InvalidComparisonError(msg)
 
     def _add(group_a: str, group_b: str) -> None:
         key = frozenset((group_a, group_b))
@@ -81,7 +93,16 @@ def _expand_comparisons(
         expanded.append((group_a, group_b))
 
     for pair in comparisons:
+        try:
+            pair_length = len(pair)
+        except TypeError:
+            pair_length = 0
+        if isinstance(pair, str) or pair_length != 2:
+            msg = "Each comparison must contain exactly two groups, e.g. ('A', 'B')."
+            raise InvalidComparisonError(msg)
         group_a, group_b = pair
+        _validate_group(group_a)
+        _validate_group(group_b)
         if group_a == "*" and group_b == "*":
             for left, right in combinations(groups, 2):
                 _add(left, right)

@@ -33,6 +33,13 @@ class MissingAestheticError(ValueError):
         super().__init__(message)
 
 
+class InvalidComparisonError(ValueError):
+    """Raised when pairwise comparison input is malformed or references unknown groups."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class VariableNotFoundError(Exception):
     """Raised when a requested variable (gene / feature) name is not present in the data."""
 

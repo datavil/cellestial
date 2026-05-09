@@ -5,7 +5,8 @@ from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.layers import DeferredLayer
-from cellestial.layers.bracket import _compute_bracket_frame
+from cellestial.layers.bracket import _compute_bracket_frame, _expand_comparisons
+from cellestial.util.errors import InvalidComparisonError
 
 
 def test_arrow_axis_returns_deferred(adata):
@@ -91,6 +92,7 @@ def test_bracket_too_few_observations_raises():
 
 
 def test_bracket_preserves_group_order_for_default_comparisons():
+    """Preserve first-seen group order when generating default comparisons."""
     frame = pl.DataFrame(
         {
             "group": ["b", "b", "a", "a", "c", "c"],
@@ -120,6 +122,27 @@ def test_bracket_preserves_group_order_for_default_comparisons():
     assert list(zip(brackets["xmin"], brackets["xmax"], strict=True)) == [
         ("b", "a"),
         ("b", "c"),
+        ("a", "c"),
+    ]
+
+
+@pytest.mark.parametrize("comparisons", [[("a",)], ["ab"]])
+def test_bracket_comparisons_must_be_pairs(comparisons):
+    """Raise clearly when a comparison is not a pair of groups."""
+    with pytest.raises(InvalidComparisonError, match="exactly two groups"):
+        _expand_comparisons(comparisons, ["a", "b"])
+
+
+def test_bracket_comparisons_unknown_group_raises():
+    """Raise clearly when comparisons reference a missing group."""
+    with pytest.raises(InvalidComparisonError, match="was not found"):
+        _expand_comparisons([("a", "z")], ["a", "b"])
+
+
+def test_bracket_comparisons_wildcard_still_expands():
+    """Keep group-vs-rest wildcard expansion behavior."""
+    assert _expand_comparisons([("a", "*")], ["a", "b", "c"]) == [
+        ("a", "b"),
         ("a", "c"),
     ]
 
