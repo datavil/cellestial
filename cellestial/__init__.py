@@ -1,5 +1,6 @@
 from lets_plot import LetsPlot
 
+from cellestial import datasets
 from cellestial._version import __version__, versions
 from cellestial.frames import build_frame
 from cellestial.layers import arrow_axis, borders, bracket, cluster_outlines, ondata_legend, stream
@@ -70,6 +71,7 @@ __all__ = [
     "bracket",
     "build_frame",
     "cluster_outlines",
+    "datasets",
     "dimensional",
     "dimensionals",
     "dotplot",
