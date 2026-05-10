@@ -49,7 +49,7 @@ def get_slice(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         grid = cl.expressions(
             data,
@@ -70,7 +70,7 @@ def get_slice(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         grid = cl.expressions(
             data,
@@ -128,7 +128,7 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
         umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
         cl.get_mapping(umap)
@@ -170,7 +170,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
         umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
         cl.retrieve(umap).head()

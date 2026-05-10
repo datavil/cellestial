@@ -347,7 +347,7 @@ def violin(
 
         from lets_plot import *
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         violin = (
             cl.violin(
@@ -376,7 +376,7 @@ def violin(
 
         from lets_plot import *
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         violin = (
             cl.violin(
@@ -406,7 +406,7 @@ def violin(
 
         from lets_plot import *
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         violin = (
             cl.violin(
@@ -582,7 +582,7 @@ def boxplot(
 
         from lets_plot import *
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         boxplot = (
             cl.boxplot(
@@ -609,7 +609,7 @@ def boxplot(
 
         from lets_plot import *
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         boxplot = (
             cl.boxplot(
@@ -637,7 +637,7 @@ def boxplot(
 
         from lets_plot import *
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         boxplot = (
             cl.boxplot(

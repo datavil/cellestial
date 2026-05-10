@@ -333,7 +333,7 @@ def volcano(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.volcano(
             data,
@@ -687,7 +687,7 @@ def volcanos(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.volcanos(
             data,

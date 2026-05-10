@@ -1,2 +1,2 @@
-poetry run sphinx-build sphinx/ docs/ -a -E -j auto 
+poetry run sphinx-build sphinx/ docs/ -a -j auto 
 echo "cellestial.datavil.org" > docs/CNAME

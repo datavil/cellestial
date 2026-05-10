@@ -208,7 +208,7 @@ def test():
     import scanpy as sc
 
     LetsPlot.setup_html()
-    data = sc.read("data/pbmc3k_pped.h5ad")
+    data = cl.datasets.pbmc3k(cache_directory="data")
     keys = data.var_names[-10:].tolist()
     group_by = "leiden"
     gene_indexes = data.var_names.get_indexer(keys)

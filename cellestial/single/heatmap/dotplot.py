@@ -162,7 +162,7 @@ def dotplot(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         markers = ["C1QA", "PSAP", "CD79A", "CD79B", "CST3", "LYZ"]
 

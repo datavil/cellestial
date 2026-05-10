@@ -4,7 +4,7 @@ from lets_plot import *
 
 import cellestial as cl
 
-data = sc.read("data/pbmc3k_pped.h5ad")
+data = cl.datasets.pbmc3k(cache_directory="data")
 
 
 plot = cl.umap(data, axis_type=None, size=0.12, key="leiden")

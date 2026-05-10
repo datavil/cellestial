@@ -229,7 +229,7 @@ def build_frame(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
         frame = cl.build_frame(data, axis=0, include_dimensions=2)
         frame.head()
 
@@ -241,7 +241,7 @@ def build_frame(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
         frame = cl.build_frame(data, variable_keys=["CD14", "HBA1"], include_dimensions=2)
         frame.head()
 

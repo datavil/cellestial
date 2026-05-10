@@ -236,7 +236,7 @@ def dimensionals(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.dimensionals(
             data,
@@ -533,7 +533,7 @@ def umaps(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.umaps(
             data,
@@ -829,7 +829,7 @@ def tsnes(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.tsnes(
             data,
@@ -1123,7 +1123,7 @@ def pcas(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.pcas(
             data,
@@ -1422,7 +1422,7 @@ def expressions(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/pbmc3k_pped.h5ad")
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         cl.expressions(
             data,

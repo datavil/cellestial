@@ -60,7 +60,7 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         p1 = (
             cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))
@@ -75,7 +75,7 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = sc.read_h5ad('data/pbmc3k_pped.h5ad')
+        data = cl.datasets.pbmc3k(cache_directory="data")
 
         p2 = (
             cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))

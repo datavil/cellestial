@@ -275,7 +275,7 @@ def spatial(
 
         import cellestial as cl
 
-        data = sc.read_h5ad("data/V1_Human_Lymph_Node_pped.h5ad")
+        data = cl.datasets.human_lymph_node(cache_directory="data")
 
         cl.spatial(data,key="clusters",interactive=True)
 

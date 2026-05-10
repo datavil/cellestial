@@ -126,7 +126,7 @@ def stream(
 
         import cellestial as cl
 
-        data = sc.read("data/endocrinogenesis_day15_pped.h5ad")
+        data = cl.datasets.pancreas(cache_directory="data")
 
         plot = cl.umap(
             data,
@@ -150,7 +150,7 @@ def stream(
 
         import cellestial as cl
 
-        data = sc.read("data/endocrinogenesis_day15_pped.h5ad")
+        data = cl.datasets.pancreas(cache_directory="data")
 
         plot = cl.umap(
             data,
