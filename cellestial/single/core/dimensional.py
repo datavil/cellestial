@@ -182,6 +182,12 @@ def dimensional(
     PlotSpec
         Dimensionality reduction plot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    KeyError
+        If `xy` does not contain exactly two dimensions.
 
     Examples
     --------

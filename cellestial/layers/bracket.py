@@ -368,6 +368,18 @@ def bracket(
     LayerSpec
         Pairwise significance brackets.
 
+    Raises
+    ------
+    MissingAestheticError
+        If `x` or `y` cannot be provided explicitly or inferred from the
+        receiving plot.
+    InvalidComparisonError
+        If `comparisons` contains malformed pairs or groups not present in
+        the plot data.
+    ValueError
+        If a statistical option or label option is invalid, or there are too
+        few observations to compute brackets.
+
     Examples
     --------
     Annotate a violin plot (or boxplot) with pairwise significance stars.

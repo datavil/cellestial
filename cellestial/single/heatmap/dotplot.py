@@ -182,6 +182,19 @@ def dotplot(
     PlotSpec
         Dotplot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    KeyNotFoundError
+        If `rank_genes_groups` is enabled and the requested ranking result or
+        group is missing.
+    DuplicateKeysError
+        If a mapping passed to `keys` assigns the same key to multiple groups.
+    ValueError
+        If `keys` and `group_by` are missing while `rank_genes_groups` is
+        disabled.
+
     Examples
     --------
     A simple dotplot.

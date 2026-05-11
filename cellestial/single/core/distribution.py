@@ -337,6 +337,13 @@ def violin(
     PlotSpec
         Violin plot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    ValueError
+        If `point_geom` is not one of the supported point geoms.
+
     Examples
     --------
 
@@ -571,6 +578,13 @@ def boxplot(
     -------
     PlotSpec
         Boxplot.
+
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    ValueError
+        If `point_geom` is not one of the supported point geoms.
 
     Examples
     --------

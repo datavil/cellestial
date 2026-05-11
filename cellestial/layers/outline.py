@@ -161,6 +161,14 @@ def cluster_outlines(
     LayerSpec
         Cluster Outlines.
 
+    Raises
+    ------
+    MissingAestheticError
+        If `x`, `y`, or `group_by` cannot be provided explicitly or inferred
+        from the receiving plot.
+    ValueError
+        If no outline can be computed for the requested groups.
+
     Examples
     --------
     Outline a specific group or cluster.

@@ -80,6 +80,11 @@ def xyplot(
     PlotSpec
         Scatter plot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+
     Examples
     --------
     xyplot requires x and y values to be provided directly.

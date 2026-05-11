@@ -323,6 +323,15 @@ def volcano(
     PlotSpec
         Volcano plot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    KeyError
+        If the requested differential-expression result or group is missing.
+    ValueError
+        If requested tooltip columns are not present in the volcano frame.
+
     Examples
     --------
     A simple volcano plot.

@@ -119,6 +119,12 @@ def xyplots(
     PlotSpec
         Scatter plot.
 
+    Raises
+    ------
+    ConfilictingLengthError
+        If `x` and `y` have incompatible lengths for pairwise plotting or
+        broadcasting.
+
     Examples
     --------
     xyplots allows providing sequences of x and y values.

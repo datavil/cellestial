@@ -159,6 +159,8 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     ------
     TypeError
         If the plot is not a PlotSpec or SupPlotsSpec object.
+    ValueError
+        If no DataFrame can be retrieved from the plot.
 
     Examples
     --------

@@ -110,6 +110,17 @@ def stream(
     -------
         DeferredLayer
 
+    Raises
+    ------
+    MissingAestheticError
+        If `x` or `y` cannot be inferred from the receiving plot.
+    ValueError
+        If dimension numbers cannot be parsed when `velocity_key` is provided.
+    KeyError
+        If the required velocity columns are not present in the plot data.
+    ImportError
+        If `scvelo` is not installed.
+
     Notes
     -----
     This function requires the `scvelo` package to be installed.

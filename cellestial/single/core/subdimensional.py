@@ -775,6 +775,11 @@ def expression(
     PlotSpec
         Dimensionality reduction plot.
 
+    Raises
+    ------
+    VariableNotFoundError
+        If `key` is not present in variable names.
+
     Examples
     --------
     Dimensionality reduction plot with continuous data.

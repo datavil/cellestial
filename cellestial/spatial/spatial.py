@@ -259,6 +259,18 @@ def spatial(
     PlotSpec
         Spatial plot of tissue spots over the H&E image.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported spatial data object.
+    KeyError
+        If a requested table, image, shape, or coordinate system is missing.
+    ValueError
+        If spatial components are ambiguous, `crop` is invalid, or polygon
+        rendering cannot join shapes back to the table.
+    NotImplementedError
+        If polygon rendering encounters unsupported MultiPolygon geometry.
+
     Notes
     -----
     If no tissue image metadata is present, the plot falls back to a plain

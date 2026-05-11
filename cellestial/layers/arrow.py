@@ -166,6 +166,11 @@ def arrow_axis(
     -------
     DeferredLayer
 
+    Raises
+    ------
+    MissingAestheticError
+        If `x` or `y` cannot be inferred from the receiving plot.
+
     Examples
     --------
     Without arrow.

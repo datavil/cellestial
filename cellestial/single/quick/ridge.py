@@ -88,6 +88,11 @@ def ridge(
     PlotSpec
         Ridge plot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+
     Examples
     --------
 

@@ -260,6 +260,11 @@ def breast_cancer_atlas(
     -------
     AnnData
         The breast cancer atlas dataset.
+
+    Raises
+    ------
+    OSError
+        If the downloaded file size does not match the expected size.
     """
     import requests
     from tqdm import tqdm

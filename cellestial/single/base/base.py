@@ -51,6 +51,11 @@ def plot(
     PlotSpec
         Base ggplot object.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+
     Examples
     --------
     .. jupyter-execute::

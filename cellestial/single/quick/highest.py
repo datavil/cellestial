@@ -73,6 +73,11 @@ def highest_expressed_genes(
     PlotSpec
         Highest expressed genes boxplot.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+
     Examples
     --------
     A simple Highest expressed genes boxplot.

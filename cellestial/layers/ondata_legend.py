@@ -111,6 +111,12 @@ def ondata_legend(
     DeferredLayer
         On-data legend layer.
 
+    Raises
+    ------
+    MissingAestheticError
+        If `x`, `y`, or `group_by` cannot be provided explicitly or inferred
+        from the receiving plot.
+
     Examples
     --------
     A UMAP plot without on-data legends.

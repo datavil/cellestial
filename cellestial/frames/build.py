@@ -18,7 +18,14 @@ if TYPE_CHECKING:
 def anndata_variable_columns(
     data: AnnData, column_names: list[str], keys: str | Sequence[str]
 ) -> list[pl.Series]:
-    """Return a list of variable columns as Polars `Series`."""
+    """
+    Return a list of variable columns as Polars `Series`.
+
+    Raises
+    ------
+    VariableNotFoundError
+        If any key is not present in `data.var_names`.
+    """
     columns = []
     if isinstance(keys, str):
         keys = [keys]
@@ -64,6 +71,15 @@ def anndata_observations_frame(
     -------
     DataFrame
         A DataFrame containing the observations, with optional variable keys and dimensions.
+
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not an AnnData object.
+    VariableNotFoundError
+        If any `variable_keys` entry is not present in `data.var_names`.
+    ValueError
+        If `include_dimensions` is a negative integer.
     """
     # Check if data is an AnnData object
     if not isinstance(data, AnnData):
@@ -140,6 +156,13 @@ def anndata_variables_frame(
     -------
     DataFrame
         A DataFrame containing the variables.
+
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not an AnnData object.
+    ValueError
+        If `include_dimensions` is a negative integer.
     """
     # PART 1: INITIALIZE
     if not isinstance(data, AnnData):
@@ -219,6 +242,16 @@ def build_frame(
     -------
     DataFrame
         A polars DataFrame containing the variables.
+
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported data object.
+    VariableNotFoundError
+        If any `variable_keys` entry is not present in variable names.
+    ValueError
+        If `axis` cannot be inferred, or the data object does not resolve to
+        exactly one annotation table.
 
     Examples
     --------
