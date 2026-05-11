@@ -504,8 +504,17 @@ def heatmap(
         half_step = (n_x - 1) / max(n_y - 1, 1) / 2
         data_top = (n_x - 1) + half_step
     y_max_limit = data_top
+    key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
-        y_max_limit = data_top + _resolve_padding(key_groups, padding=None)
+        data_range = data_top + 0.5
+        key_groups_padding = _resolve_padding(
+            key_groups,
+            padding=None,
+            data_range=data_range,
+            scale=1.0,
+        )
+        key_groups_total_span = data_range + key_groups_padding
+        y_max_limit = data_top + key_groups_padding
 
     # Y scale: groups for aggregate, group-center labels when titling bars, else hidden
     if aggregate:
@@ -513,16 +522,18 @@ def heatmap(
             breaks=list(range(n_y)),
             labels=y_order_groups,
             limits=[-0.5, y_max_limit],
+            expand=[0, 0],
         )
     elif group_bars and group_bars_labels:
         htmp += scale_y_continuous(
             breaks=group_centers,
             labels=y_order_groups,
             limits=[-0.5, y_max_limit],
+            expand=[0, 0],
         )
         htmp += guides(color="none")
     else:
-        htmp += scale_y_continuous(limits=[-0.5, y_max_limit])
+        htmp += scale_y_continuous(limits=[-0.5, y_max_limit], expand=[0, 0])
         htmp += theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
 
     # GROUP color bar on left for non-aggregate
@@ -578,8 +589,11 @@ def heatmap(
 
     # KEY-GROUP brackets above the plot when ``keys`` was a mapping.
     if key_labels and key_groups is not None:
-        bar_y = _key_groups_bar_y(data_top)
-        for layer in _key_groups_layers(key_groups, y=bar_y):
+        assert key_groups_total_span is not None
+        bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
+        for layer in _key_groups_layers(
+            key_groups, y=bar_y, total_span=key_groups_total_span
+        ):
             htmp += layer
 
     if interactive:

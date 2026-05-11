@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, cast
-from warnings import warn
 
 import polars as pl
 from lets_plot import aes, geom_path, geom_text
@@ -38,13 +37,6 @@ def _resolve_key_groups(
     if not isinstance(keys, Mapping):
         return list(keys), None
 
-    if key_labels:
-        warn(
-            "key labels on top of the plot are not stable yet "
-            "and may behave abruptly. "
-            "Consider setting `key_labels=False`.",
-            stacklevel=2,
-        )
     grouped_keys = cast("Mapping[str, Sequence[str]]", keys)
     groups: dict[str, list[str]] = {}
     for label, values in grouped_keys.items():
@@ -71,34 +63,64 @@ def _resolve_key_groups(
     return flat, groups
 
 
-_BAR_OFFSET = 0.4
-_TIP_LENGTH = 0.25
-_LABEL_GAP = 0.2
-_LABEL_SIZE = 10.0
-# ``size_unit='x'`` is used so text size is in x-axis (column-width) units.
-# At ``size = 1.0`` (col-width) one rotated character takes ~``_CHAR_HEIGHT_FACTOR``
-# y-units of vertical height when y-axis range matches x-axis range.
-_CHAR_HEIGHT_FACTOR = 0.6
-_LABEL_SIZE_SCALE = 10.0
+# Bracket geometry is scaled in data coordinates, but label text stays in
+# fixed visual units so it remains readable across tall heatmaps and short
+# matrix/dot/violin variants.
+_BAR_OFFSET_FRACTION = 0.030
+_TIP_LENGTH_FRACTION = 0.018
+_LABEL_GAP_FRACTION = 0.012
+_LABEL_PADDING_BASE_FRACTION = 0.060
+_LABEL_PADDING_PER_CHAR_SIZE_FRACTION = 0.0051
+_LABEL_PADDING_MIN_DENSITY_SCALE = 0.45
+_LABEL_PADDING_FULL_DENSITY_KEYS = 30
+_LABEL_PADDING_MAX_TARGET_FRACTION = 0.650
+_LABEL_TEXT_SIZE_MAX = 6.0
+_LABEL_TEXT_SIZE_MIN = 3.75
+_LABEL_TEXT_SIZE_PER_KEY = 0.06
+_LABEL_TEXT_SIZE_PER_EXTRA_CHAR = 0.08
+_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
 
 
 def _resolve_padding(
     groups: dict[str, list[str]],
     *,
     padding: float | None,
+    data_range: float | None = None,
+    scale: float = 1.0,
 ) -> float:
     """
     Compute y-axis padding for key labels.
 
-    The auto value fits the bracket bar plus the rotated label of the longest
-    group. ``padding`` overrides the auto value when given.
+    The auto value sizes the bracket+label area as a fraction of the total y
+    axis span. The longest group label drives the rotated-text room.
+    ``padding`` overrides the auto value when given; ``data_range`` is the data
+    axis span before padding is added.
     """
     if padding is not None:
         return padding
-    internal_size = _LABEL_SIZE / _LABEL_SIZE_SCALE
     max_chars = max((len(label) for label in groups), default=0)
-    char_height = internal_size * _CHAR_HEIGHT_FACTOR
-    return max(1.5, _BAR_OFFSET + _LABEL_GAP + max_chars * char_height + 0.3)
+    n_keys = sum(len(values) for values in groups.values())
+    label_size = _key_groups_label_size(groups)
+    density_scale = max(
+        _LABEL_PADDING_MIN_DENSITY_SCALE,
+        min(1.0, n_keys / _LABEL_PADDING_FULL_DENSITY_KEYS),
+    )
+    has_data_range = data_range is not None and data_range > 0
+    span = data_range if has_data_range else 5.0
+    target_fraction = min(
+        _BAR_OFFSET_FRACTION
+        + _LABEL_GAP_FRACTION
+        + _LABEL_PADDING_BASE_FRACTION
+        + _LABEL_PADDING_PER_CHAR_SIZE_FRACTION
+        * max_chars
+        * label_size
+        * density_scale,
+        _LABEL_PADDING_MAX_TARGET_FRACTION,
+    )
+    resolved = target_fraction * span / (1.0 - target_fraction) * scale
+    if not has_data_range:
+        return max(1.5, resolved)
+    return resolved
 
 
 def _build_key_groups_frame(
@@ -136,15 +158,32 @@ def _build_key_groups_frame(
     )
 
 
-def _key_groups_bar_y(top_edge: float) -> float:
+def _key_groups_bar_y(top_edge: float, *, total_span: float = 5.0) -> float:
     """Y position of the bracket bar above the plot top edge."""
-    return top_edge + _BAR_OFFSET
+    return top_edge + _BAR_OFFSET_FRACTION * total_span
+
+
+def _key_groups_label_size(groups: dict[str, list[str]]) -> float:
+    """Text size for group labels, reduced slightly for dense key layouts."""
+    n_keys = sum(len(values) for values in groups.values())
+    max_chars = max((len(label) for label in groups), default=0)
+    extra_chars = max(0, max_chars - _LABEL_TEXT_SIZE_CHAR_THRESHOLD)
+    return max(
+        _LABEL_TEXT_SIZE_MIN,
+        min(
+            _LABEL_TEXT_SIZE_MAX,
+            _LABEL_TEXT_SIZE_MAX
+            - _LABEL_TEXT_SIZE_PER_KEY * n_keys
+            - _LABEL_TEXT_SIZE_PER_EXTRA_CHAR * extra_chars,
+        ),
+    )
 
 
 def _key_groups_layers(
     groups: dict[str, list[str]],
     *,
     y: float,
+    total_span: float,
     color: str = "black",
     size: float = 1.0,
     extra_kwargs: dict | None = None,
@@ -155,24 +194,28 @@ def _key_groups_layers(
     Each bracket is one connected ``geom_path`` (left tip down, top bar across,
     right tip down) so the corners join cleanly with no sub-pixel gap. A
     vertical label is centered on each bracket as a separate ``geom_text``.
+    ``total_span`` is the full y axis range (data + padding) used to scale tip
+    length and label offset proportionally.
     """
     frame = _build_key_groups_frame(groups, y=y)
+    tip_length = _TIP_LENGTH_FRACTION * total_span
+    label_gap = _LABEL_GAP_FRACTION * total_span
 
     path_records: list[dict] = []
     label_records: list[dict] = []
     for group_index, row in enumerate(frame.iter_rows(named=True)):
         path_records.extend(
             [
-                {"x": row["xmin"], "y": y - _TIP_LENGTH, "g": group_index},
+                {"x": row["xmin"], "y": y - tip_length, "g": group_index},
                 {"x": row["xmin"], "y": y, "g": group_index},
                 {"x": row["xmax"], "y": y, "g": group_index},
-                {"x": row["xmax"], "y": y - _TIP_LENGTH, "g": group_index},
+                {"x": row["xmax"], "y": y - tip_length, "g": group_index},
             ]
         )
         label_records.append(
             {
                 "x": (row["xmin"] + row["xmax"]) / 2,
-                "y": y + _LABEL_GAP,
+                "y": y + label_gap,
                 "label": row["label"],
             }
         )
@@ -198,9 +241,7 @@ def _key_groups_layers(
             data=label_frame,
             mapping=aes(x="x", y="y", label="label"),
             color=color,
-            size=1,
-            size_unit="max",
-            family="mono",
+            size=_key_groups_label_size(groups),
             **text_kwargs,
         ),
     ]
