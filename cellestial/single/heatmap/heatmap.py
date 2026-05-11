@@ -27,6 +27,7 @@ from cellestial.single.heatmap._key_groups import (
     _resolve_key_groups,
     _resolve_padding,
 )
+from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_args
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
 from cellestial.util.errors import UnsupportedDataTypeError
@@ -178,9 +179,12 @@ def _get_group_lines_frame(
 
 def heatmap(
     data: AnnData,
-    keys: Sequence[str] | Mapping[str, Sequence[str]],
-    group_by: str,
+    keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
+    group_by: str | None = None,
     *,
+    rank_genes_groups: bool | str = False,
+    n_genes: int = 5,
+    groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
     geom: Literal["raster", "tile"] = "raster",
     scale_axis: Literal[0, 1] | None = None,
@@ -217,13 +221,23 @@ def heatmap(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : Sequence[str] | Mapping[str, Sequence[str]]
+    keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include. When a mapping is provided, each entry maps a
         group label to the keys belonging to that group; the keys are placed
         on the x-axis in mapping order. The same key cannot appear in more
-        than one group.
-    group_by : str
-        The key to group the data by.
+        than one group. Must be ``None`` when ``rank_genes_groups`` is set.
+    group_by : str | None, default=None
+        The key to group the data by. Inferred from a precomputed ranking
+        when ``rank_genes_groups`` is set.
+    rank_genes_groups : bool | str, default=False
+        Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
+        default ranking key, or a string to read a custom key (e.g.
+        ``"rank_genes_groups_wilcoxon"``).
+    n_genes : int, default=5
+        Number of top genes to take per group when ``rank_genes_groups`` is set.
+    groups : Sequence[str] | None, default=None
+        Subset of groups to include when ``rank_genes_groups`` is set;
+        ``None`` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'
@@ -376,10 +390,37 @@ def heatmap(
             dendrogram=True,
         )
 
+    To plot the top genes from a precomputed ranking, set
+    ``rank_genes_groups`` and ``n_genes`` (``keys`` and ``group_by`` are
+    inferred):
+
+    .. jupyter-execute::
+
+        import scanpy as sc
+
+        sc.tl.rank_genes_groups(data, groupby="cell_type_lvl1")
+        cl.heatmap(data, rank_genes_groups=True, n_genes=5, aggregate=True)
+
     """
     if not isinstance(data, AnnData):
         msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
+
+    if rank_genes_groups:
+        keys, group_by = _resolve_rank_genes_groups_args(
+            data,
+            rank_genes_groups=rank_genes_groups,
+            n_genes=n_genes,
+            groups=groups,
+            keys=keys,
+            group_by=group_by,
+        )
+    elif keys is None or group_by is None:
+        msg = (
+            "`keys` and `group_by` are required "
+            "(or enable `rank_genes_groups` to derive them)."
+        )
+        raise ValueError(msg)
 
     mapping = mapping or aes()
 
@@ -548,9 +589,12 @@ def heatmap(
 
 def matrixplot(
     data: AnnData,
-    keys: Sequence[str] | Mapping[str, Sequence[str]],
-    group_by: str,
+    keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
+    group_by: str | None = None,
     *,
+    rank_genes_groups: bool | str = False,
+    n_genes: int = 5,
+    groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
     geom: Literal["raster", "tile"] = "raster",
     scale_axis: Literal[0, 1] | None = None,
@@ -585,13 +629,23 @@ def matrixplot(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    keys : Sequence[str] | Mapping[str, Sequence[str]]
+    keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include. When a mapping is provided, each entry maps
         a group label to the keys belonging to that group; the keys are placed
         on the x-axis in mapping order. The same key cannot appear in more
-        than one group.
-    group_by : str
-        The key to group the data by.
+        than one group. Must be ``None`` when ``rank_genes_groups`` is set.
+    group_by : str | None, default=None
+        The key to group the data by. Inferred from a precomputed ranking
+        when ``rank_genes_groups`` is set.
+    rank_genes_groups : bool | str, default=False
+        Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
+        default ranking key, or a string to read a custom key (e.g.
+        ``"rank_genes_groups_wilcoxon"``).
+    n_genes : int, default=5
+        Number of top genes to take per group when ``rank_genes_groups`` is set.
+    groups : Sequence[str] | None, default=None
+        Subset of groups to include when ``rank_genes_groups`` is set;
+        ``None`` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'
@@ -684,11 +738,21 @@ def matrixplot(
             keys=markers,
             scale_axis=0,
         )
+
+    Plot the top genes from a precomputed ranking:
+
+    .. jupyter-execute::
+
+        sc.tl.rank_genes_groups(data, groupby="cell_type_lvl1")
+        cl.matrixplot(data, rank_genes_groups=True, n_genes=5)
     """
     return heatmap(
         data,
         keys=keys,
         group_by=group_by,
+        rank_genes_groups=rank_genes_groups,
+        n_genes=n_genes,
+        groups=groups,
         mapping=mapping,
         geom=geom,
         scale_axis=scale_axis,
