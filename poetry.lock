@@ -7175,4 +7175,4 @@ extras = ["matplotlib", "scanpy", "scvelo"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "be57d7978646cbb5ca85d1ab4a10f4b6f435e2d49a8c86f8758726cbc67dc19d"
+content-hash = "37c25092bfb6ce5b9b4020db2b0a1c43662d7b4a8aa47b43ca53bcbaa0af1ba6"
