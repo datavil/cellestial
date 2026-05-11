@@ -201,6 +201,11 @@ def heatmap(
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
+    key_labels_text_size: float = 1.0,
+    key_labels_bracket_size: float = 0.6,
+    key_labels_text_color: str = "black",
+    key_labels_bracket_color: str = "black",
+    key_labels_width: float = 0.6,
     value_column: str = "value",
     variable_column: str = "variable",
     color_low: str = "#0000ff",
@@ -275,6 +280,17 @@ def heatmap(
         Additional parameters to pass to the dendrogram geom_segment.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when ``keys`` is a mapping.
+    key_labels_text_size : float, default=1.0
+        Scale multiplier on the auto-computed bracket label text size.
+    key_labels_bracket_size : float, default=0.6
+        Size (thickness) of the bracket lines.
+    key_labels_text_color : str, default='black'
+        Color of the bracket label text.
+    key_labels_bracket_color : str, default='black'
+        Color of the bracket lines.
+    key_labels_width : float, default=0.6
+        Bracket width (in column units) for a singleton group. Multi-key groups
+        extend ``key_labels_width / 2`` past the first and last key on each side.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize a dimension between 0 and 1.
         Uses min-max scaling; constant partitions are set to 0.
@@ -512,6 +528,7 @@ def heatmap(
             padding=None,
             data_range=data_range,
             scale=1.0,
+            label_size_scale=key_labels_text_size,
         )
         key_groups_total_span = data_range + key_groups_padding
         y_max_limit = data_top + key_groups_padding
@@ -592,7 +609,14 @@ def heatmap(
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
         for layer in _key_groups_layers(
-            key_groups, y=bar_y, total_span=key_groups_total_span
+            key_groups,
+            y=bar_y,
+            total_span=key_groups_total_span,
+            text_color=key_labels_text_color,
+            bracket_color=key_labels_bracket_color,
+            bracket_size=key_labels_bracket_size,
+            width=key_labels_width,
+            label_size_scale=key_labels_text_size,
         ):
             htmp += layer
 
@@ -621,6 +645,11 @@ def matrixplot(
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
+    key_labels_text_size: float = 1.0,
+    key_labels_bracket_size: float = 0.6,
+    key_labels_text_color: str = "black",
+    key_labels_bracket_color: str = "black",
+    key_labels_width: float = 0.6,
     value_column: str = "value",
     variable_column: str = "variable",
     color_low: str = "#0000ff",
@@ -689,6 +718,17 @@ def matrixplot(
         Additional parameters to pass to the dendrogram geom_segment.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when ``keys`` is a mapping.
+    key_labels_text_size : float, default=1.0
+        Scale multiplier on the auto-computed bracket label text size.
+    key_labels_bracket_size : float, default=0.6
+        Size (thickness) of the bracket lines.
+    key_labels_text_color : str, default='black'
+        Color of the bracket label text.
+    key_labels_bracket_color : str, default='black'
+        Color of the bracket lines.
+    key_labels_width : float, default=0.6
+        Bracket width (in column units) for a singleton group. Multi-key groups
+        extend ``key_labels_width / 2`` past the first and last key on each side.
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -772,6 +812,11 @@ def matrixplot(
         scale_axis=scale_axis,
         dendrogram=dendrogram,
         key_labels=key_labels,
+        key_labels_text_size=key_labels_text_size,
+        key_labels_bracket_size=key_labels_bracket_size,
+        key_labels_text_color=key_labels_text_color,
+        key_labels_bracket_color=key_labels_bracket_color,
+        key_labels_width=key_labels_width,
         aggregate=True,
         group_lines=group_lines,
         group_lines_color=group_lines_color,

@@ -132,7 +132,8 @@ def _label_size_absolute(
 def _label_size_y_units(
     groups: dict[str, list[str]], *, span: float, scale: float = 1.0
 ) -> float:
-    """Label size in y-axis units (used with ``geom_text(size_unit='y')``).
+    """
+    Label size in y-axis units (used with ``geom_text(size_unit='y')``).
 
     Scales with ``span`` so the rendered visual size stays roughly constant
     across plots with different y-axis spans. Long labels are shrunk slightly
@@ -207,15 +208,16 @@ def _build_key_groups_frame(
     groups: dict[str, list[str]],
     *,
     y: float,
+    width: float = 0.6,
 ) -> pl.DataFrame:
     """
     Build the ``geom_bracket`` data frame spanning column groups on the variable axis.
 
-    For a group of ``N >= 2`` keys at column indices ``first..last``, the bracket
-    spans ``first..last`` (width ``N - 1``, ends at key centers). For a singleton
-    group at index ``p``, the bracket spans ``p - 0.4..p + 0.4`` (width ``0.8``)
-    so the bar remains visible.
+    ``width`` is the bracket width for a singleton group in column units. For a
+    group of ``N >= 2`` keys at column indices ``first..last``, the bracket
+    extends ``width / 2`` past the first and last key center on each side.
     """
+    extension = width / 2
     xmins: list[float] = []
     xmaxs: list[float] = []
     labels: list[str] = []
@@ -223,8 +225,8 @@ def _build_key_groups_frame(
     for label, values in groups.items():
         first = cursor
         last = cursor + len(values) - 1
-        xmins.append(float(first) - 0.4)
-        xmaxs.append(float(last) + 0.4)
+        xmins.append(float(first) - extension)
+        xmaxs.append(float(last) + extension)
         labels.append(label)
         cursor += len(values)
     return pl.DataFrame(
@@ -247,8 +249,10 @@ def _key_groups_layers(
     *,
     y: float,
     total_span: float,
-    color: str = "black",
-    size: float = 1.0,
+    text_color: str = "black",
+    bracket_color: str = "black",
+    bracket_size: float = 0.6,
+    width: float = 0.6,
     label_size_scale: float = 1.0,
     size_unit: str | None = None,
     extra_kwargs: dict | None = None,
@@ -265,7 +269,7 @@ def _key_groups_layers(
     dotplot and stacked_violin to bypass ``scale_size`` interference; the
     absolute mode is used by heatmap.
     """
-    frame = _build_key_groups_frame(groups, y=y)
+    frame = _build_key_groups_frame(groups, y=y, width=width)
     tip_length = _TIP_LENGTH_FRACTION * total_span
     label_gap = _LABEL_GAP_FRACTION * total_span
 
@@ -311,13 +315,13 @@ def _key_groups_layers(
         geom_path(
             data=path_frame,
             mapping=aes(x="x", y="y", group="g"),
-            color=color,
-            size=size,
+            color=bracket_color,
+            size=bracket_size,
         ),
         geom_text(
             data=label_frame,
             mapping=aes(x="x", y="y", label="label"),
-            color=color,
+            color=text_color,
             size=label_size,
             **text_kwargs,
         ),
