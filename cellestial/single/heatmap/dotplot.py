@@ -399,7 +399,10 @@ def dotplot(
         # Extend the y limit upward to fit the bracket bar plus rotated label.
         data_range = data_top + 0.5
         key_groups_padding = _resolve_padding(
-            key_groups, padding=None, data_range=data_range, scale=0.45
+            key_groups,
+            padding=None,
+            data_range=data_range,
+            size_unit="y",
         )
         key_groups_total_span = data_range + key_groups_padding
         y_max_limit = data_top + key_groups_padding
@@ -421,7 +424,10 @@ def dotplot(
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
         for layer in _key_groups_layers(
-            key_groups, y=bar_y, total_span=key_groups_total_span
+            key_groups,
+            y=bar_y,
+            total_span=key_groups_total_span,
+            size_unit="y",
         ):
             dtplt += layer
 
