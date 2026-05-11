@@ -62,7 +62,8 @@ def dimensional(
     ondata_fontface: str = "bold",
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
-    ondata_weighted: bool = True,
+    ondata_label: bool = False,
+    ondata_dense: bool = True,
     **point_kwargs,
 ) -> PlotSpec:
     """
@@ -168,10 +169,11 @@ def dimensional(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     ondata_alpha: float, default=1
         alpha (transparency) of the legend on data.
-    ondata_weighted: bool, default=True
-        whether to use weighted mean for the legend on data.
-        If True, the weighted mean of the group means is used.
-        If False, the arithmetic mean of the group means is used.
+    ondata_label: bool, default=False
+        Whether to draw on-data legends with a filled label background.
+    ondata_dense: bool, default=True
+        Whether to place the label at the cluster's density peak (KDE-based).
+        If False, the arithmetic mean of the group's coordinates is used.
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -333,7 +335,8 @@ def dimensional(
                 fontface=ondata_fontface,
                 family=ondata_family,
                 alpha=ondata_alpha,
-                weighted=ondata_weighted,
+                label=ondata_label,
+                dense=ondata_dense,
             )
         elif frame[key].dtype != pl.Categorical:
             msg = f"key `{key}` is not categorical, legend on data will not be added"

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 import polars as pl
-from lets_plot import aes, geom_text, geom_text_repel, theme
+from lets_plot import aes, geom_label, geom_label_repel, geom_text, geom_text_repel, theme
+from scipy.stats import gaussian_kde
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
@@ -14,35 +16,65 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
+def _label_center(
+    points: np.ndarray,
+    *,
+    max_sample: int = 500,
+    top_fraction: float = 0.2,
+    density_factor: float = 2.0,
+) -> np.ndarray:
+    """
+    Return the cluster's dense-core centroid if it dominates the centroid, else the centroid.
+
+    For unimodal clusters the centroid is already in the dense region, so it wins. For
+    multimodal or strongly skewed clusters the dense core is much denser than the centroid
+    (which sits in a gap), and the label is placed on that core instead.
+    """
+    centroid = points.mean(axis=0)
+    n_points = len(points)
+    if n_points < 3:
+        return centroid
+    sample = points
+    if n_points > max_sample:
+        rng = np.random.default_rng(0)
+        sample = points[rng.choice(n_points, max_sample, replace=False)]
+    try:
+        kde = gaussian_kde(sample.T)
+        density = kde(sample.T)
+    except (np.linalg.LinAlgError, ValueError):
+        return centroid
+    top_k = max(3, int(len(sample) * top_fraction))
+    top_indices = np.argpartition(density, -top_k)[-top_k:]
+    core = sample[top_indices].mean(axis=0)
+    if kde(core[:, None])[0] > density_factor * kde(centroid[:, None])[0]:
+        return core
+    return centroid
+
+
 def _compute_label_positions(
     frame: DataFrame,
     *,
     x: str,
     y: str,
     group_by: str,
-    weighted: bool,
+    dense: bool,
 ) -> DataFrame:
     """Aggregate per-group label coordinates for `geom_text` placement."""
-    if weighted:
-        group_means = frame.group_by(group_by).agg(
-            pl.col(x).mean().alias("mean_x"),
-            pl.col(y).mean().alias("mean_y"),
-        )
-        frame = frame.join(group_means, on=group_by, how="left")
-        frame = frame.with_columns(
-            ((pl.col(x) - pl.col("mean_x")) ** 2 + (pl.col(y) - pl.col("mean_y")) ** 2)
-            .sqrt()
-            .alias("distance")
-        )
-        frame = frame.with_columns((1 / pl.col("distance").sqrt()).alias("weight"))
-        return frame.group_by(group_by).agg(
-            (pl.col(x) * pl.col("weight")).sum() / pl.col("weight").sum(),
-            (pl.col(y) * pl.col("weight")).sum() / pl.col("weight").sum(),
-            pl.selectors.categorical().mode().first(),
+    frame = frame.filter(pl.col(group_by).is_not_null())
+    if dense:
+        rows = []
+        for (group_value,), group_frame in frame.group_by(group_by):
+            points = group_frame.select(x, y).to_numpy()
+            center = _label_center(points)
+            rows.append({group_by: group_value, x: float(center[0]), y: float(center[1])})
+        return pl.DataFrame(
+            rows,
+            schema={group_by: frame.schema[group_by], x: pl.Float64, y: pl.Float64},
         )
     return frame.group_by(group_by).agg(
         pl.col(x).mean(), pl.col(y).mean(), pl.selectors.categorical().mode().first()
     )
+
 
 def ondata_legend(
     *,
@@ -55,7 +87,8 @@ def ondata_legend(
     fontface: str = "bold",
     family: str = "sans",
     alpha: float = 1,
-    weighted: bool = True,
+    label: bool = False,
+    dense: bool = True,
     repel: bool = False,
     **geom_kwargs,
 ) -> DeferredLayer:
@@ -89,11 +122,11 @@ def ondata_legend(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     alpha : float, default=1
         Alpha (transparency) of the legend text.
-    weighted : bool, default=True
-        Whether to use a weighted mean of group coordinates for label placement.
-        If True, each point's contribution is weighted by its inverse distance to
-        the group mean, pulling the label toward the cluster's dense core.
-        If False, the arithmetic mean of group coordinates is used.
+    label : bool, default=False
+        If True, draw labels with a filled background using `geom_label`.
+    dense : bool, default=True
+        Whether to place the label at the cluster's density peak (KDE-based).
+        If False, the arithmetic mean of the group's coordinates is used.
     repel : bool, default=False
         If True, use `geom_text_repel` so labels are shifted to avoid overlapping
         each other. Repel-specific options (e.g. `box_padding`, `point_padding`,
@@ -102,8 +135,12 @@ def ondata_legend(
         Additional parameters for the underlying geom layer.
         For `geom_text` parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_text.html
+        For `geom_label` parameters (when `label=True`), see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_label.html
         For `geom_text_repel` parameters (when `repel=True`), see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_text_repel.html
+        For `geom_label_repel` parameters (when `label=True` and `repel=True`), see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_label_repel.html
 
 
     Returns
@@ -168,9 +205,18 @@ def ondata_legend(
 
         frame = retrieve(source)
         grouped = _compute_label_positions(
-            frame, x=x, y=y, group_by=group_by, weighted=weighted
+            frame, x=x, y=y, group_by=group_by, dense=dense
         )
-        geom = geom_text_repel if repel else geom_text
+        layer_kwargs = dict(geom_kwargs)
+        if label:
+            geom = geom_label_repel if repel else geom_label
+            layer_kwargs = {
+                "fill": "white",
+                "label_size": 0,
+                **layer_kwargs,
+            }
+        else:
+            geom = geom_text_repel if repel else geom_text
         return geom(
             data=grouped,
             mapping=aes(x=x, y=y, label=group_by),
@@ -179,7 +225,7 @@ def ondata_legend(
             fontface=fontface,
             family=family,
             alpha=alpha,
-            **geom_kwargs,
+            **layer_kwargs,
         ) + theme(legend_position="none")
 
     return DeferredLayer(_build)

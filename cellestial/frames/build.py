@@ -219,7 +219,7 @@ def build_frame(
     include_dimensions: bool | int = False,
 ) -> DataFrame:
     """
-    Build a DataFrame from an AnnData object.
+    Build a DataFrame from a single-cell object.
 
     Parameters
     ----------
