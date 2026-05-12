@@ -38,7 +38,8 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 _GROUP_BAR_RATIO = 0.02
-_GROUP_BAR_GAP = 0.5
+_GROUP_BAR_GAP_RATIO = 0.025
+_GROUP_BAR_GAP_MIN = 0.15
 
 
 def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str) -> pl.DataFrame:
@@ -53,6 +54,11 @@ def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str)
         .otherwise((value - value_min) / value_range)
         .alias(value_column)
     )
+
+
+def _group_bar_gap(n_x: int) -> float:
+    """Return a stable visual gap between the heatmap and group bars."""
+    return max(_GROUP_BAR_GAP_MIN, n_x * _GROUP_BAR_GAP_RATIO)
 
 
 def _assign_positions(
@@ -126,7 +132,7 @@ def _assign_positions(
 def _get_group_bar_frame(cell_frame: pl.DataFrame, *, group_by: str, n_x: int) -> pl.DataFrame:
     """Build the per-group colored bar frame drawn to the left of the heatmap."""
     bar_width = max(1.0, n_x * _GROUP_BAR_RATIO)
-    bar_xend = -_GROUP_BAR_GAP
+    bar_xend = -_group_bar_gap(n_x)
     bar_x = bar_xend - bar_width
     bar_x_mid = (bar_x + bar_xend) / 2
     bar_frame = (
@@ -194,8 +200,8 @@ def heatmap(
     group_bars_size: float = 6,
     group_bars_labels: bool = True,
     group_lines: bool = True,
-    group_lines_color: str = "black",
-    group_lines_size: float = 1.0,
+    group_lines_color: str = "white",
+    group_lines_size: float = 0.6,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     group_lines_kwargs: dict | None = None,
@@ -266,9 +272,9 @@ def heatmap(
         Only applies when ``group_bars=True`` and ``aggregate=False``.
     group_lines : bool, default=True
         Whether to draw horizontal lines within the heatmap separating groups.
-    group_lines_color : str, default='black'
+    group_lines_color : str, default='white'
         Color of the group separator lines.
-    group_lines_size : float, default=1.0
+    group_lines_size : float, default=0.6
         Size (thickness) of the group separator lines.
     dendrogram_color : str, default='black'
         Color of the dendrogram segments.
@@ -651,8 +657,8 @@ def matrixplot(
     scale_axis: Literal[0, 1] | None = None,
     dendrogram: bool = False,
     group_lines: bool = True,
-    group_lines_color: str = "black",
-    group_lines_size: float = 1.0,
+    group_lines_color: str = "white",
+    group_lines_size: float = 0.6,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     group_lines_kwargs: dict | None = None,
@@ -717,9 +723,9 @@ def matrixplot(
         Uses ``scanpy.tl.dendrogram`` if not already computed.
     group_lines : bool, default=True
         Whether to draw horizontal lines within the plot separating groups.
-    group_lines_color : str, default='black'
+    group_lines_color : str, default='white'
         Color of the group separator lines.
-    group_lines_size : float, default=1.0
+    group_lines_size : float, default=0.6
         Size (thickness) of the group separator lines.
     dendrogram_color : str, default='black'
         Color of the dendrogram segments.

@@ -254,6 +254,7 @@ def _key_groups_layers(
     bracket_size: float = 0.6,
     width: float = 0.6,
     label_size_scale: float = 1.0,
+    label_size_span: float | None = None,
     size_unit: str | None = None,
     extra_kwargs: dict | None = None,
 ) -> list[FeatureSpec]:
@@ -265,9 +266,9 @@ def _key_groups_layers(
     vertical label is centered on each bracket as a separate ``geom_text``.
 
     ``size_unit`` selects the label sizing mode (``None`` for absolute units,
-    ``"y"`` to express the size in y-axis units). The y-unit mode is used by
-    dotplot and stacked_violin to bypass ``scale_size`` interference; the
-    absolute mode is used by heatmap.
+    otherwise express the size in that axis' data units). ``label_size_span``
+    lets callers size text from a different axis span than the y span used for
+    bracket geometry.
     """
     frame = _build_key_groups_frame(groups, y=y, width=width)
     tip_length = _TIP_LENGTH_FRACTION * total_span
@@ -308,7 +309,9 @@ def _key_groups_layers(
         label_size = _label_size_absolute(groups, scale=label_size_scale)
     else:
         label_size = _label_size_y_units(
-            groups, span=total_span, scale=label_size_scale
+            groups,
+            span=total_span if label_size_span is None else label_size_span,
+            scale=label_size_scale,
         )
 
     return [

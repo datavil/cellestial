@@ -462,7 +462,8 @@ def dotplot(
             bracket_size=key_labels_bracket_size,
             width=key_labels_width,
             label_size_scale=key_labels_text_size,
-            size_unit="y",
+            label_size_span=n_x,
+            size_unit="x",
         ):
             dtplt += layer
 
