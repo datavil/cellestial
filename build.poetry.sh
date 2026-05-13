@@ -11,8 +11,6 @@ echo "cellestial.datavil.org" > docs/CNAME
 # Copy the SVGs used by README.md from their sphinx source locations into assets/.
 # Run after re-rendering the website to refresh the README figures.
 
-set -euo pipefail
-
 repo_root="."
 src_index="$repo_root/sphinx/_static/index-mobile"
 src_quickstart="$repo_root/sphinx/_static/mobile/quickstart"
