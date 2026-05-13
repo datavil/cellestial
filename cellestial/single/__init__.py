@@ -19,7 +19,7 @@ from cellestial.single.core import (
 )
 from cellestial.single.differential import volcano, volcanos
 from cellestial.single.heatmap import dotplot, heatmap, matrixplot, stacked_violin
-from cellestial.single.quick import highest_expressed_genes, ridge, ridges
+from cellestial.single.quick import elbow, highest_expressed_genes, ridge, ridges
 
 __all__ = [
     "bar",
@@ -28,6 +28,7 @@ __all__ = [
     "dimensional",
     "dimensionals",
     "dotplot",
+    "elbow",
     "expression",
     "expressions",
     "heatmap",

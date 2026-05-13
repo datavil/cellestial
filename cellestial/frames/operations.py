@@ -43,3 +43,41 @@ def _highest_expressed_genes_frame(
         raise UnsupportedDataTypeError(msg)
 
     return frame
+
+
+def _pca_variance_frame(
+    data: AnnData,
+    n_pcs: int | None = None,
+    component_column: str = "Principal Component",
+    variance_column: str = "Variance Ratio",
+) -> DataFrame:
+    """Get PCA variance ratio per principal component as a polars DataFrame."""
+    if isinstance(data, AnnData):
+        pca_uns = data.uns.get("pca")
+        if pca_uns is None or "variance_ratio" not in pca_uns:
+            msg = (
+                "PCA variance ratio is not available on this data. "
+                "Run PCA first (e.g., `sc.tl.pca(data)`)."
+            )
+            raise ValueError(msg)
+        variance_ratio = np.asarray(pca_uns["variance_ratio"]).ravel()
+        n_available = variance_ratio.size
+        if n_pcs is not None:
+            if n_pcs > n_available:
+                msg = (
+                    f"Requested n_pcs={n_pcs} components, "
+                    f"but only {n_available} components available."
+                )
+                raise ValueError(msg)
+            variance_ratio = variance_ratio[:n_pcs]
+        frame = pl.DataFrame(
+            {
+                component_column: np.arange(1, variance_ratio.size + 1, dtype=np.int64),
+                variance_column: variance_ratio,
+            }
+        )
+    else:
+        msg = f"Unsupported data type: `{type(data)}`"
+        raise UnsupportedDataTypeError(msg)
+
+    return frame
