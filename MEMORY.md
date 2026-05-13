@@ -9,11 +9,55 @@
 - [Project: Cellestial tooling](project_cellestial_tooling.md) — Uses Poetry (not uv/pip) for deps and running commands
 - [Project: Cellestial code patterns](project_cellestial_patterns.md) — Naming conventions, parameter patterns, singular/plural pairs, type annotations, data transformation patterns
 - [Feedback: Test code changes](feedback_test_code.md) — Run actual test code against data/pbmc3k_pped.h5ad before reporting success
+- [Feedback: Sandbox Numba test runs](feedback_sandbox_numba.md) - Use NUMBA_DISABLE_JIT=1 when running commands in a sandboxed local workspace
+- [Feedback: Sync repo MEMORY.md](feedback_sync_repo_memory.md) — Mirror every auto-memory change in repo's `MEMORY.md` (index line + inlined source block)
 - [Feedback: Avoid shortened variable names](feedback_naming.md) — No abbreviations like `grp_idx`/`obs`/`cfg`; use full words (only `n`-style counts OK)
 - [Feedback: Docs avoid AnnData internals](feedback_docs_no_anndata_internals.md) — Don't reference `uns['spatial']`/`obsm[...]`/`obs[...]` in user-facing docstrings; use abstracted terms
 - [Feedback: Never use em dashes](feedback_no_em_dashes.md) — User hates em dashes; never write them in code, docs, comments, or chat
 - [Feedback: `if isinstance(data, AnnData)` block stays](feedback_isinstance_anndata_block.md) — Never flatten to `if not isinstance: raise`; positive branch hosts AnnData-specific ops for future multi-backend support
+- [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
 - [Feedback: No hidden aesthetic promotion](feedback_no_hidden_aesthetic_promotion.md) — Don't auto-promote `group_by` to `fill`/`color`; user wires aesthetics explicitly, prefer warn+facet over hidden magic
+- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
+
+
+---
+
+## Source: feedback_sandbox_numba.md
+
+---
+name: Use NUMBA_DISABLE_JIT in sandboxed local workspaces
+description: Use NUMBA_DISABLE_JIT=1 when running commands in a sandboxed local workspace
+type: feedback
+---
+When running tests or other commands in a sandboxed local workspace, set `NUMBA_DISABLE_JIT=1`.
+
+**Why:** Numba JIT compilation can be slow or environment-sensitive under sandbox constraints. Disabling JIT makes command runs more reliable in that environment.
+
+**How to apply:** Prefix sandboxed test or script commands with `NUMBA_DISABLE_JIT=1`, for example `NUMBA_DISABLE_JIT=1 poetry run pytest ...`.
+
+
+---
+
+## Source: feedback_sync_repo_memory.md
+
+---
+name: Keep repo's MEMORY.md in sync with auto-memory
+description: Whenever auto-memory is added/updated/removed, mirror the change in the repo's MEMORY.md at the project root (both the index line and the inlined source block)
+type: feedback
+---
+Whenever you write, update, or delete a memory in the auto-memory directory (`~/.claude/projects/<project-slug>/memory/`), mirror the same change in the repo's `MEMORY.md` at the project root.
+
+**Why:** The user maintains a checked-in `MEMORY.md` in the project root that aggregates the same memories alongside their inlined contents. The two should not drift; the repo file is the shareable / reviewable copy and goes to a public repo, so do not write absolute paths or usernames into it.
+
+**How to apply:** The repo's `MEMORY.md` has two sections that both need updating in lockstep:
+1. **Index lines** at the top — same format as auto-memory's `MEMORY.md`: `- [Title](file.md) — one-line hook`.
+2. **Inlined source blocks** below, each under `## Source: <filename>.md` with the full frontmatter + body.
+
+On every memory write/update/delete:
+- Add/edit/remove the corresponding index line.
+- Add/edit/remove the corresponding `## Source:` block (full content, not just a link).
+Keep ordering consistent between the index and the source blocks.
+Never include absolute home paths (e.g. `/Users/<name>/...`) in repo content; use `~` or relative descriptions.
 
 
 ---
@@ -130,6 +174,64 @@ Test code changes by running them against the actual dataset before reporting su
 **Why:** User called out that I should have tested the code myself instead of just checking syntax. The project has test data at `data/pbmc3k_pped.h5ad`.
 
 **How to apply:** After implementing changes to plot functions, run the user's example code (or a minimal equivalent) via Bash to confirm it executes without error. Don't rely on syntax checks or linting alone.
+
+
+---
+
+## Source: feedback_no_adata_language_in_plots.md
+
+---
+name: No AnnData-specific language in main plotting functions
+description: Plotting function bodies and error messages must stay backend-agnostic; AnnData-specific language (adata.uns, obs, obsm, etc.) belongs in helpers under `if isinstance(data, AnnData):`
+type: feedback
+originSessionId: 4a073345-7f3f-4538-b5fe-681d8d0358a1
+---
+Main plotting functions (heatmap, dotplot, etc.) must not reference AnnData internals (`adata.uns`, `adata.obs`, `adata.obsm`, `adata.X`, etc.) in code paths, error messages, or warnings.
+
+**Why:** The library is designed to support multiple backends. Plotting functions describe what the user sees; AnnData-specific extraction belongs in helpers that get dispatched from inside `if isinstance(data, AnnData):` blocks. Leaking AnnData language into the plotting layer entangles the public API with one backend.
+
+**How to apply:**
+- Put AnnData reads (and the error messages that mention them) inside helpers (e.g. `_rank_genes_groups.py`).
+- In the plotting function, wrap calls to those helpers in `if isinstance(data, AnnData):` so future backends can dispatch differently.
+- Error messages in the plotting function should reference user-facing parameter names (`keys`, `group_by`, `rank_genes_groups`), not backend internals.
+
+
+---
+
+## Source: project_letsplot_scale_size_text_quirk.md
+
+---
+name: Lets-plot scale_size silently shrinks geom_text constants
+description: When a plot has scale_size with an explicit range, geom_text(size=...) constants get re-routed through the size scale and render tiny (~5x smaller). Use size_unit="x" or "y" to bypass.
+type: project
+originSessionId: f7c1e22b-92de-4d63-a280-da2817eac2f7
+---
+When a lets-plot plot includes `scale_size(range=[a, b])` (range explicitly set),
+ANY `geom_text(size=N)` constant in that plot gets re-mapped through the size
+scale and renders much smaller than expected (empirically ~5-6x shrinkage with
+typical dotplot ranges). `scale_size` with only `trans=` or `breaks=` does NOT
+have this effect; `scale_size_continuous`, `scale_size_area`, `scale_size_identity`
+are untested but suspected to behave similarly when `range` is set.
+
+**Why:** lets-plot treats the size aesthetic as plot-global, even when `geom_text`
+passes `size` as a constant rather than via `aes(size=...)`. The size scale's
+output range applies to all size values, including text constants.
+
+**How to apply:** Whenever a layer adds rotated/scaled text on top of a dotplot
+(or any plot with `scale_size(range=...)`), pass `size_unit="x"` or `size_unit="y"`
+to `geom_text`. That makes the text size be in axis units and bypasses the
+scale_size routing. Calibrate the size value differently:
+- Without size_unit: size is in lets-plot text units (~pt-like, e.g. 4-6 typical).
+- With size_unit="y": size is in y-axis units (e.g. 0.2 means cap height = 0.2 y).
+
+This is exactly why `cellestial/single/heatmap/_key_groups.py` has dual-mode
+sizing: heatmap uses absolute units (no scale_size in plot), dotplot and
+stacked_violin pass `size_unit="y"` because dotplot adds
+`scale_size(range=[size_max*0.1, size_max])` for the dot sizing.
+
+**To reproduce / verify:** Build a plot with `geom_point(aes(size="value"))` +
+`scale_size(range=[3, 30])` + `geom_text(size=8.6)`. The text renders at ~1px.
+Add `size_unit="y"` to geom_text and the text renders at proper visual size.
 
 
 ---
@@ -425,4 +527,3 @@ Cellestial uses **Poetry** for dependency management and running commands.
 **Why:** User explicitly confirmed on 2026-04-13 after I suggested `uv` commands.
 
 **How to apply:** Use `poetry add`, `poetry add --group dev`, `poetry run <cmd>`, `poetry install` — not `uv`, `pip install`, or `pip install -e .`. When suggesting dev tool installation or test commands, default to Poetry syntax.
-
