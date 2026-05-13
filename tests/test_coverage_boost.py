@@ -34,11 +34,6 @@ def test_dimensional_legend_ondata(adata, group_key):
     assert isinstance(plot, PlotSpec)
 
 
-def test_dimensional_legend_ondata_unweighted(adata, group_key):
-    plot = cl.umap(adata, group_key, legend_ondata=True, ondata_weighted=False)
-    assert isinstance(plot, PlotSpec)
-
-
 def test_dimensional_color_mid(adata):
     plot = cl.umap(adata, "CD14", color_mid="yellow", mid_point="mean")
     assert isinstance(plot, PlotSpec)

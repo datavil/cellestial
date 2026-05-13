@@ -6,6 +6,7 @@ from lets_plot.plot.core import PlotSpec
 import cellestial as cl
 from cellestial.layers import DeferredLayer
 from cellestial.layers.bracket import _compute_bracket_frame, _expand_comparisons
+from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util.errors import InvalidComparisonError
 
 
@@ -34,6 +35,23 @@ def test_arrow_axis_explicit_plot_kwarg(adata):
     # Even when added to an empty ggplot, the data source stays `umap`.
     combined = ggplot() + arrow
     assert isinstance(combined, PlotSpec)
+
+
+def test_ondata_legend_uses_group_median_positions():
+    frame = pl.DataFrame(
+        {
+            "x": [0.0, 0.0, 0.0, 100.0, 10.0, 20.0, 30.0],
+            "y": [1.0, 1.0, 1.0, 101.0, 2.0, 4.0, 6.0],
+            "group": ["a", "a", "a", "a", "b", "b", "b"],
+        }
+    )
+
+    positions = _compute_label_positions(frame, x="x", y="y", group_by="group").sort(
+        "group"
+    )
+
+    assert positions["x"].to_list() == [0.0, 20.0]
+    assert positions["y"].to_list() == [1.0, 4.0]
 
 
 def test_cluster_outlines_single_group(adata, group_key):

@@ -44,7 +44,6 @@ def dimensionals(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
-    ondata_dense: bool = True,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -169,9 +168,6 @@ def dimensionals(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
-    ondata_dense: bool, default=True
-        Whether to place the label at the cluster's density peak (KDE-based).
-        If False, the arithmetic mean of the group's coordinates is used.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -281,7 +277,6 @@ def dimensionals(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
-            ondata_dense=ondata_dense,
             **point_kwargs,
         )
 
@@ -347,7 +342,6 @@ def umaps(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
-    ondata_dense: bool = True,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -469,9 +463,6 @@ def umaps(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
-    ondata_dense: bool, default=True
-        Whether to place the label at the cluster's density peak (KDE-based).
-        If False, the arithmetic mean of the group's coordinates is used.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -580,7 +571,6 @@ def umaps(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
-            ondata_dense=ondata_dense,
             **point_kwargs,
         )
 
@@ -646,7 +636,6 @@ def tsnes(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
-    ondata_dense: bool = True,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -768,9 +757,6 @@ def tsnes(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
-    ondata_dense: bool, default=True
-        Whether to place the label at the cluster's density peak (KDE-based).
-        If False, the arithmetic mean of the group's coordinates is used.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -878,7 +864,6 @@ def tsnes(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
-            ondata_dense=ondata_dense,
             **point_kwargs,
         )
 
@@ -944,7 +929,6 @@ def pcas(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
-    ondata_dense: bool = True,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1065,9 +1049,6 @@ def pcas(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
-    ondata_dense: bool, default=True
-        Whether to place the label at the cluster's density peak (KDE-based).
-        If False, the arithmetic mean of the group's coordinates is used.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1176,7 +1157,6 @@ def pcas(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
-            ondata_dense=ondata_dense,
             **point_kwargs,
         )
 
@@ -1243,7 +1223,6 @@ def expressions(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
-    ondata_dense: bool = True,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1367,9 +1346,6 @@ def expressions(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
-    ondata_dense: bool, default=True
-        Whether to place the label at the cluster's density peak (KDE-based).
-        If False, the arithmetic mean of the group's coordinates is used.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1479,7 +1455,6 @@ def expressions(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
-            ondata_dense=ondata_dense,
             **point_kwargs,
         )
 
