@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
@@ -27,6 +26,7 @@ from cellestial.util import (
     _is_variable_key,
     _resolve_tooltips,
     _validate_tooltips,
+    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError
 
@@ -335,6 +335,6 @@ def dimensional(
             )
         elif frame[key].dtype != pl.Categorical:
             msg = f"key `{key}` is not categorical, legend on data will not be added"
-            warnings.warn(msg, stacklevel=1)
+            _warn(msg)
 
     return scttr

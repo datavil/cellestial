@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import inspect
 import re
+import warnings
 from collections.abc import Sequence
 from math import ceil, log10
+from pathlib import Path
 from typing import Literal
 
 import polars as pl
@@ -20,6 +23,44 @@ from lets_plot import (
 )
 from lets_plot.plot.core import FeatureSpec
 from lets_plot.plot.subplots import SupPlotsSpec
+
+from cellestial.util.errors import CellestialWarning
+
+_PACKAGE_ROOT = str(Path(__file__).parents[1])
+
+
+def _format_warning(
+    message: Warning | str, category: type[Warning], *_args: object
+) -> str:
+    """Render a cellestial warning as one line, dropping the source location."""
+    return f"{category.__name__}: {message}\n"
+
+
+def _warn(message: str) -> None:
+    """
+    Emit a ``CellestialWarning`` rendered without the source location.
+
+    The warning is still attributed to the first caller outside cellestial so
+    ``warnings`` filters and per-location de-duplication behave sensibly, but
+    it is displayed as a single clean line.
+
+    Parameters
+    ----------
+    message : str
+        The warning message.
+    """
+    caller = inspect.currentframe()
+    caller = caller.f_back if caller is not None else None
+    stacklevel = 2
+    while caller is not None and caller.f_code.co_filename.startswith(_PACKAGE_ROOT):
+        stacklevel += 1
+        caller = caller.f_back
+    original_format = warnings.formatwarning
+    warnings.formatwarning = _format_warning
+    try:
+        warnings.warn(message, CellestialWarning, stacklevel=stacklevel)
+    finally:
+        warnings.formatwarning = original_format
 
 
 def _build_tooltips(

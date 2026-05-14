@@ -35,6 +35,7 @@ from cellestial.util import (
     _get_dendrogram_path_frame,
     _resolve_tooltips,
     _validate_tooltips,
+    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError
 
@@ -286,6 +287,15 @@ def dotplot(
         axis=0,
         variable_keys=keys,
     )
+    # WARN: negative expression makes the percent-expressed (dot size) misleading
+    overall_min = frame.select(pl.min_horizontal(pl.col(keys).min())).item()
+    if overall_min is not None and overall_min < 0:
+        _warn(
+            "Expression matrix contains negative values, which suggests scaled data. "
+            "Dot size (percentage of cells above `threshold`, default 0) assumes "
+            "non-negative expression and may be misleading here; pass raw or "
+            "log-normalized expression, or set `threshold` explicitly."
+        )
     # DROP: rows with null group_by to avoid null labels downstream
     frame = frame.filter(pl.col(group_by).is_not_null())
     index_columns = [x for x in frame.columns if x not in keys]

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
-from warnings import warn
 
 import polars as pl
 from anndata import AnnData
@@ -29,7 +28,12 @@ from cellestial.single.heatmap._key_groups import (
 )
 from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_args
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
+from cellestial.util import (
+    _fill_gradient,
+    _get_dendrogram,
+    _get_dendrogram_path_frame,
+    _warn,
+)
 from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
@@ -459,10 +463,9 @@ def heatmap(
     mapping = mapping or aes()
 
     if "tooltips" in geom_kwargs and geom == "raster":
-        warn(
+        _warn(
             "\nWarning: tooltips are not supported for 'raster' geom and will be ignored."
-            "\nUse 'tile' geom to enable tooltips.",
-            stacklevel=1,
+            "\nUse 'tile' geom to enable tooltips."
         )
         geom_kwargs.pop("tooltips")
 
