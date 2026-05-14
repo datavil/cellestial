@@ -193,7 +193,7 @@ Main plotting functions (heatmap, dotplot, etc.) must not reference AnnData inte
 **How to apply:**
 - Put AnnData reads (and the error messages that mention them) inside helpers (e.g. `_rank_genes_groups.py`).
 - In the plotting function, wrap calls to those helpers in `if isinstance(data, AnnData):` so future backends can dispatch differently.
-- Error messages in the plotting function should reference user-facing parameter names (`keys`, `group_by`, `rank_genes_groups`), not backend internals.
+- Error messages in the plotting function should reference user-facing parameter names (`keys`, `group_by`, `markers`), not backend internals.
 
 
 ---

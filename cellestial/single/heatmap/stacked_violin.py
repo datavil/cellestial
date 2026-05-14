@@ -179,7 +179,7 @@ def stacked_violin(
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
     group_by: str | None = None,
     *,
-    rank_genes_groups: bool | str = False,
+    markers: bool | str = False,
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -227,22 +227,20 @@ def stacked_violin(
     data : AnnData
         The AnnData object of the single cell data.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
-        Variable keys laid out along the x-axis. One column of violins per
-        key. When a mapping is provided, each entry maps a group label to the
-        keys belonging to that group; the keys are placed on the x-axis in
-        mapping order. The same key cannot appear in more than one group.
-        Must be ``None`` when ``rank_genes_groups`` is set.
+        Variable keys laid out along the x-axis, one column of violins per
+        key. A mapping assigns keys to group labels (no key in more than one
+        group). Must be ``None`` when ``markers`` is set.
     group_by : str | None, default=None
         The key used to group observations along the y-axis. Inferred from a
-        precomputed ranking when ``rank_genes_groups`` is set.
-    rank_genes_groups : bool | str, default=False
+        precomputed ranking when ``markers`` is set.
+    markers : bool | str, default=False
         Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
         default ranking key, or a string to read a custom key (e.g.
         ``"rank_genes_groups_wilcoxon"``).
     n_genes : int, default=5
-        Number of top genes to take per group when ``rank_genes_groups`` is set.
+        Number of top genes to take per group when ``markers`` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``rank_genes_groups`` is set;
+        Subset of groups to include when ``markers`` is set;
         ``None`` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
@@ -349,12 +347,12 @@ def stacked_violin(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
-        If `rank_genes_groups` is enabled and the requested ranking result or
+        If `markers` is enabled and the requested ranking result or
         group is missing.
     DuplicateKeysError
         If a mapping passed to `keys` assigns the same key to multiple groups.
     ValueError
-        If `keys` and `group_by` are missing while `rank_genes_groups` is
+        If `keys` and `group_by` are missing while `markers` is
         disabled.
 
     Examples
@@ -407,17 +405,17 @@ def stacked_violin(
     .. jupyter-execute::
 
         sc.tl.rank_genes_groups(data, groupby="cell_type_lvl1")
-        cl.stacked_violin(data, rank_genes_groups=True, n_genes=5)
+        cl.stacked_violin(data, markers=True, n_genes=5)
     """
     # HANDLE: Data types
     if not isinstance(data, AnnData):
         msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
 
-    if rank_genes_groups:
+    if markers:
         keys, group_by = _resolve_rank_genes_groups_args(
             data,
-            rank_genes_groups=rank_genes_groups,
+            rank_genes_groups=markers,
             n_genes=n_genes,
             groups=groups,
             keys=keys,
@@ -426,7 +424,7 @@ def stacked_violin(
     elif keys is None or group_by is None:
         msg = (
             "`keys` and `group_by` are required "
-            "(or enable `rank_genes_groups` to derive them)."
+            "(or enable `markers` to derive them)."
         )
         raise ValueError(msg)
 
