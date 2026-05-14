@@ -4,6 +4,7 @@ from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.single.heatmap.heatmap import _scale_values
+from cellestial.util.errors import UnsupportedDataTypeError
 
 
 def test_heatmap_default_aggregate(adata, markers, group_key):
@@ -313,7 +314,7 @@ def test_dotplot_no_dendrogram_no_rectangle(adata, markers, group_key):
 
 
 def test_dotplot_invalid_data_type(markers, group_key):
-    with pytest.raises(TypeError, match="AnnData"):
+    with pytest.raises(UnsupportedDataTypeError, match="Unsupported data type"):
         cl.dotplot({"not": "anndata"}, keys=markers, group_by=group_key)
 
 

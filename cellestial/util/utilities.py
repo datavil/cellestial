@@ -253,9 +253,13 @@ def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlo
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
     bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    if len(bottom_places) < ncol:
-        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
-        bottom_places.extend(penultimate_row)
+    # the last grid row may be incomplete; for the columns it does not cover,
+    # the bottom-most plot lives in the penultimate row.
+    last_row_count = total - ncol * (nrow - 1)
+    if nrow >= 2 and last_row_count < ncol:
+        bottom_places.extend(
+            ncol * (nrow - 2) + col for col in range(last_row_count, ncol)
+        )
     if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_title_x=element_blank())
     if i not in left_places:  # remove y axis title except for left column
@@ -273,9 +277,13 @@ def _share_axis(
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
     bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    if len(bottom_places) < ncol:
-        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
-        bottom_places.extend(penultimate_row)
+    # the last grid row may be incomplete; for the columns it does not cover,
+    # the bottom-most plot lives in the penultimate row.
+    last_row_count = total - ncol * (nrow - 1)
+    if nrow >= 2 and last_row_count < ncol:
+        bottom_places.extend(
+            ncol * (nrow - 2) + col for col in range(last_row_count, ncol)
+        )
 
     if axis_type == "axis":
         if i not in bottom_places:  # remove x axis title except for bottom row
@@ -308,9 +316,13 @@ def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlot
     nrow = ceil(total / ncol)
     left_places = [i for i in range(total) if i % ncol == 0]
     bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    if len(bottom_places) < ncol:
-        penultimate_row = list(range((nrow - 2) * ncol, (nrow - 1) * ncol))
-        bottom_places.extend(penultimate_row)
+    # the last grid row may be incomplete; for the columns it does not cover,
+    # the bottom-most plot lives in the penultimate row.
+    last_row_count = total - ncol * (nrow - 1)
+    if nrow >= 2 and last_row_count < ncol:
+        bottom_places.extend(
+            ncol * (nrow - 2) + col for col in range(last_row_count, ncol)
+        )
     if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_text_x=element_blank())
     if i not in left_places:  # remove y axis title except for left column

@@ -1,6 +1,6 @@
 [project]
 name = "cellestial"
-version = "0.44.0"
+version = "0.45.0"
 description = ""
 authors = [
     { name = "Zaf4", email = "zafermolbio@gmail.com" },

@@ -17,7 +17,7 @@ from cellestial.single.core import (
     violin,
     violins,
 )
-from cellestial.single.differential import volcano, volcanos
+from cellestial.single.differential import markers, volcano, volcanos
 from cellestial.single.heatmap import dotplot, heatmap, matrixplot, stacked_violin
 from cellestial.single.quick import elbow, highest_expressed_genes, ridge, ridges
 
@@ -33,6 +33,7 @@ __all__ = [
     "expressions",
     "heatmap",
     "highest_expressed_genes",
+    "markers",
     "matrixplot",
     "pca",
     "pcas",
