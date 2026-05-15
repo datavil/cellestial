@@ -270,10 +270,7 @@ def dotplot(
             group_by=group_by,
         )
     elif keys is None or group_by is None:
-        msg = (
-            "`keys` and `group_by` are required "
-            "(or enable `markers` to derive them)."
-        )
+        msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
         raise ValueError(msg)
 
     mapping = mapping or aes()
@@ -323,10 +320,7 @@ def dotplot(
     # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
     numeric_group_by = "__cellestial_group_by_numeric"
     frame = frame.with_columns(
-        pl.col(group_by)
-        .cast(pl.String)
-        .cast(pl.Int64, strict=False)
-        .alias(numeric_group_by)
+        pl.col(group_by).cast(pl.String).cast(pl.Int64, strict=False).alias(numeric_group_by)
     )
     if frame[numeric_group_by].null_count() == 0:
         frame = (

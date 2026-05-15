@@ -79,10 +79,7 @@ def _expand_comparisons(
         if group == "*":
             return
         if group not in available_groups:
-            msg = (
-                f"Group {group!r} in `comparisons` was not found. "
-                f"Available groups: {groups}"
-            )
+            msg = f"Group {group!r} in `comparisons` was not found. Available groups: {groups}"
             raise InvalidComparisonError(msg)
 
     def _add(group_a: str, group_b: str) -> None:

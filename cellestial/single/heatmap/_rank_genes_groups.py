@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 _DEFAULT_RANK_GENES_KEY = "rank_genes_groups"
 
 
-def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:
+def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:  # noqa: FBT001
     """Translate the user-facing flag into the ``adata.uns`` key to read."""
     if rank_genes_groups is True:
         return _DEFAULT_RANK_GENES_KEY
@@ -133,7 +133,7 @@ def _extract_rank_genes_groups(
             )
 
         params = record["params"]
-        stored_group_by = params["groupby"] if "groupby" in params else None
+        stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
                 f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "

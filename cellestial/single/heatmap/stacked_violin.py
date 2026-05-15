@@ -422,10 +422,7 @@ def stacked_violin(
             group_by=group_by,
         )
     elif keys is None or group_by is None:
-        msg = (
-            "`keys` and `group_by` are required "
-            "(or enable `markers` to derive them)."
-        )
+        msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
         raise ValueError(msg)
 
     mapping = mapping or aes()

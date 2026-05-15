@@ -99,7 +99,9 @@ def _distribution(
     point_kwargs = {} if point_kwargs is None else dict(point_kwargs)
 
     # determine index to unpivot
-    index = list(dict.fromkeys(c for c in (group_by, mapping_fill, mapping_color) if c is not None))
+    index = list(
+        dict.fromkeys(c for c in (group_by, mapping_fill, mapping_color) if c is not None)
+    )
     if add_keys is not None:
         if isinstance(add_keys, str):
             add_keys = [add_keys]

@@ -50,12 +50,7 @@ def _resolve_cache_file(
 
     cache_file = cache_directory / filename
 
-    if (
-        use_cache
-        and bring
-        and cache_directory != _GLOBAL_CACHE
-        and not cache_file.exists()
-    ):
+    if use_cache and bring and cache_directory != _GLOBAL_CACHE and not cache_file.exists():
         global_cache_file = _GLOBAL_CACHE / filename
         if global_cache_file.exists():
             print(f"Bringing cached file from {global_cache_file} to {cache_file}")
@@ -102,10 +97,7 @@ def _run_steps(
     # The static prefix is baked into bar_format (escaping any literal braces)
     # so that {desc} is free to carry the per-step info after the bar.
     prefix = desc.replace("{", "{{").replace("}", "}}")
-    bar_format = (
-        f"{prefix} | "
-        "{percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} {desc}"
-    )
+    bar_format = f"{prefix} | {{percentage:3.0f}}%|{{bar}}| {{n_fmt}}/{{total_fmt}} {{desc}}"
 
     # Keep a handle on the real stdout/stderr from before the redirects so our
     # own bar can stay visible. Route the bar to *stdout* (same stream as the
@@ -131,6 +123,7 @@ def _run_steps(
     def silence_nested_tqdm():
         originals = [(cls, cls.__init__) for cls in tqdm_classes]
         for cls, original in originals:
+
             def patched(self, *args, _original=original, **kwargs):  # type: ignore[no-untyped-def]
                 kwargs["disable"] = True
                 _original(self, *args, **kwargs)
@@ -302,9 +295,7 @@ def pbmc3k(
         (
             "highly variable genes",
             "sc.pp.highly_variable_genes(adata, n_top_genes=2000, batch_key='sample')",
-            lambda: sc.pp.highly_variable_genes(
-                adata, n_top_genes=2000, batch_key="sample"
-            ),
+            lambda: sc.pp.highly_variable_genes(adata, n_top_genes=2000, batch_key="sample"),
         ),
         ("PCA", "sc.tl.pca(adata)", lambda: sc.tl.pca(adata)),
         ("neighbors graph", "sc.pp.neighbors(adata)", lambda: sc.pp.neighbors(adata)),
@@ -479,15 +470,10 @@ def from_url(
     else:
         filename = Path(urlparse(url).path).name
         if not filename:
-            message = (
-                "Could not derive a filename from the URL; "
-                "pass `name=...` explicitly."
-            )
+            message = "Could not derive a filename from the URL; pass `name=...` explicitly."
             raise ValueError(message)
 
-    cache_file = _resolve_cache_file(
-        cache_directory, filename, use_cache=use_cache, bring=bring
-    )
+    cache_file = _resolve_cache_file(cache_directory, filename, use_cache=use_cache, bring=bring)
 
     if cache_file.exists():
         return read_h5ad(cache_file)
@@ -514,10 +500,9 @@ def from_url(
 
             if total_size != 0 and progress_bar.n != total_size:
                 message = (
-                    f"Download incomplete: expected {total_size} bytes, "
-                    f"got {progress_bar.n}."
+                    f"Download incomplete: expected {total_size} bytes, got {progress_bar.n}."
                 )
-                raise OSError(message)
+                raise OSError(message)  # noqa: TRY301
 
             partial_file.replace(cache_file)
         except BaseException:
@@ -580,8 +565,7 @@ def from_cellxgene(
     match = _UUID_PATTERN.search(source)
     if match is None:
         message = (
-            "source must be a CELLxGENE dataset UUID or a URL containing one, "
-            f"got {source!r}"
+            f"source must be a CELLxGENE dataset UUID or a URL containing one, got {source!r}"
         )
         raise ValueError(message)
 

@@ -85,4 +85,3 @@ def show_colors():
         nrow += 1
 
     return gggrid(plots, ncol=3, hspace=0, vspace=0) + ggsize(ncol * 200, nrow * 200)
-

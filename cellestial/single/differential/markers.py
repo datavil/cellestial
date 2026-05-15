@@ -153,7 +153,7 @@ def _build_markers_frame(
         frame = pl.concat(group_frames)
 
         params = record["params"]
-        stored_group_by = params["groupby"] if "groupby" in params else None
+        stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
                 f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "
@@ -426,19 +426,22 @@ def markers(
 
         plots.append(plot)
 
-    grid = gggrid(
-        plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
-        guides=guides,
-    ) + theme_bw()
+    grid = (
+        gggrid(
+            plots,
+            ncol=ncol,  # ty:ignore[invalid-argument-type]
+            sharex=sharex,  # ty:ignore[invalid-argument-type]
+            sharey=sharey,  # ty:ignore[invalid-argument-type]
+            widths=widths,  # ty:ignore[invalid-argument-type]
+            heights=heights,  # ty:ignore[invalid-argument-type]
+            hspace=hspace,  # ty:ignore[invalid-argument-type]
+            vspace=vspace,  # ty:ignore[invalid-argument-type]
+            fit=fit,  # ty:ignore[invalid-argument-type]
+            align=align,  # ty:ignore[invalid-argument-type]
+            guides=guides,
+        )
+        + theme_bw()
+    )
 
     if interactive:
         grid += ggtb(size_zoomin=-1)

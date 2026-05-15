@@ -29,9 +29,7 @@ from cellestial.util.errors import CellestialWarning
 _PACKAGE_ROOT = str(Path(__file__).parents[1])
 
 
-def _format_warning(
-    message: Warning | str, category: type[Warning], *_args: object
-) -> str:
+def _format_warning(message: Warning | str, category: type[Warning], *_args: object) -> str:
     """Render a cellestial warning as one line, dropping the source location."""
     return f"{category.__name__}: {message}\n"
 
@@ -234,6 +232,7 @@ def _color_gradient(
             midpoint=mid_value,
         )
 
+
 def _fill_gradient(
     series,
     color_low=None,
@@ -286,7 +285,6 @@ def _fill_gradient(
         )
 
 
-
 def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
     if ncol is None:
         ncol = len(keys)
@@ -298,9 +296,7 @@ def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlo
     # the bottom-most plot lives in the penultimate row.
     last_row_count = total - ncol * (nrow - 1)
     if nrow >= 2 and last_row_count < ncol:
-        bottom_places.extend(
-            ncol * (nrow - 2) + col for col in range(last_row_count, ncol)
-        )
+        bottom_places.extend(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
     if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_title_x=element_blank())
     if i not in left_places:  # remove y axis title except for left column
@@ -322,9 +318,7 @@ def _share_axis(
     # the bottom-most plot lives in the penultimate row.
     last_row_count = total - ncol * (nrow - 1)
     if nrow >= 2 and last_row_count < ncol:
-        bottom_places.extend(
-            ncol * (nrow - 2) + col for col in range(last_row_count, ncol)
-        )
+        bottom_places.extend(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
 
     if axis_type == "axis":
         if i not in bottom_places:  # remove x axis title except for bottom row
@@ -361,9 +355,7 @@ def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlot
     # the bottom-most plot lives in the penultimate row.
     last_row_count = total - ncol * (nrow - 1)
     if nrow >= 2 and last_row_count < ncol:
-        bottom_places.extend(
-            ncol * (nrow - 2) + col for col in range(last_row_count, ncol)
-        )
+        bottom_places.extend(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
     if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_text_x=element_blank())
     if i not in left_places:  # remove y axis title except for left column

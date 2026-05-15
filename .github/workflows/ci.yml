@@ -40,6 +40,10 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      - name: Install system cairo (Linux only — macOS uses prebuilt wheels)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcairo2-dev pkg-config
+
       - name: Cache Poetry virtualenv
         uses: actions/cache@v4
         with:

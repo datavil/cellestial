@@ -41,5 +41,5 @@ __all__ = [
     "get_mapping",
     "get_slice",
     "retrieve",
-    "save"
+    "save",
 ]

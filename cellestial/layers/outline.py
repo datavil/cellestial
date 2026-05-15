@@ -89,6 +89,7 @@ def _get_density_boundaries(
 
     return pl.concat(boundaries)
 
+
 def cluster_outlines(
     groups: str | Sequence[str | Sequence[str]],
     *,

@@ -187,6 +187,7 @@ def _get_group_lines_frame(
         }
     )
 
+
 def heatmap(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
@@ -454,10 +455,7 @@ def heatmap(
             group_by=group_by,
         )
     elif keys is None or group_by is None:
-        msg = (
-            "`keys` and `group_by` are required "
-            "(or enable `markers` to derive them)."
-        )
+        msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
         raise ValueError(msg)
 
     mapping = mapping or aes()
@@ -645,6 +643,7 @@ def heatmap(
         htmp += ggtb(size_zoomin=-1)
 
     return htmp
+
 
 def matrixplot(
     data: AnnData,

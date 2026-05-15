@@ -46,9 +46,7 @@ def _element_in_coordinate_system(elem, coordinate_system: str) -> bool:
     return coordinate_system in get_transformation(elem, get_all=True)
 
 
-def _resolve_shapes_name(
-    data: SpatialData, shapes_name: str | None, table: AnnData
-) -> str:
+def _resolve_shapes_name(data: SpatialData, shapes_name: str | None, table: AnnData) -> str:
     """Pick a shapes element, falling back to the table's annotated region."""
     if shapes_name is not None:
         if shapes_name not in data.shapes:
@@ -78,10 +76,7 @@ def _resolve_coordinate_system(
 
     if coordinate_system is not None:
         if coordinate_system not in systems:
-            msg = (
-                f"coordinate_system `{coordinate_system}` not found. "
-                f"Available: {systems}"
-            )
+            msg = f"coordinate_system `{coordinate_system}` not found. Available: {systems}"
             raise KeyError(msg)
         return coordinate_system
 
@@ -97,14 +92,10 @@ def _resolve_coordinate_system(
             return True
         if image_name is not None:
             return _element_in_coordinate_system(data.images[image_name], cs)
-        return any(
-            _element_in_coordinate_system(img, cs) for img in data.images.values()
-        )
+        return any(_element_in_coordinate_system(img, cs) for img in data.images.values())
 
     candidates = [
-        cs
-        for cs in systems
-        if _element_in_coordinate_system(shapes_elem, cs) and _has_image(cs)
+        cs for cs in systems if _element_in_coordinate_system(shapes_elem, cs) and _has_image(cs)
     ]
     if len(candidates) == 1:
         return candidates[0]
@@ -117,9 +108,7 @@ def _resolve_coordinate_system(
             cs
             for cs in candidates
             if [
-                name
-                for name, img in data.images.items()
-                if _element_in_coordinate_system(img, cs)
+                name for name, img in data.images.items() if _element_in_coordinate_system(img, cs)
             ]
             == [image_name]
         ]
@@ -127,8 +116,7 @@ def _resolve_coordinate_system(
             return specialised[0]
 
     msg = (
-        f"Multiple coordinate systems present: {systems}. "
-        "Pass `coordinate_system=` to select one."
+        f"Multiple coordinate systems present: {systems}. Pass `coordinate_system=` to select one."
     )
     raise ValueError(msg)
 
@@ -262,9 +250,7 @@ def spatialdata_components(
         want_image=image,
     )
     chosen_image_name = (
-        _resolve_image_name(data, image_name, coordinate_system=target_cs)
-        if image
-        else None
+        _resolve_image_name(data, image_name, coordinate_system=target_cs) if image else None
     )
 
     # spatialdata's transform mutates the underlying GeoDataFrame via chained
@@ -276,9 +262,7 @@ def spatialdata_components(
             category=FutureWarning,
             module=r"geopandas\..*",
         )
-        shapes_geo = data.transform_element_to_coordinate_system(
-            chosen_shapes_name, target_cs
-        )
+        shapes_geo = data.transform_element_to_coordinate_system(chosen_shapes_name, target_cs)
 
     geom_types = set(shapes_geo.geometry.geom_type.unique())
     spot_coordinates: NDArray | None = None
@@ -292,9 +276,7 @@ def spatialdata_components(
             polygon_frame = _polygon_vertex_frame(shapes_geo)
         else:
             centroids = shapes_geo.geometry.centroid
-            spot_coordinates = np.column_stack(
-                [centroids.x.to_numpy(), centroids.y.to_numpy()]
-            )
+            spot_coordinates = np.column_stack([centroids.x.to_numpy(), centroids.y.to_numpy()])
     else:
         msg = (
             f"Shapes element `{chosen_shapes_name}` contains "
@@ -304,9 +286,7 @@ def spatialdata_components(
 
     image_array = None
     if image and chosen_image_name is not None:
-        image_elem = data.transform_element_to_coordinate_system(
-            chosen_image_name, target_cs
-        )
+        image_elem = data.transform_element_to_coordinate_system(chosen_image_name, target_cs)
         image_array = _image_to_yxc(image_elem)
 
     return image_array, spot_coordinates, polygon_frame, table

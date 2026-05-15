@@ -254,15 +254,15 @@ def violins(
 
     dsts = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
 
@@ -509,15 +509,15 @@ def boxplots(
 
     dsts = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
 
