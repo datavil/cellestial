@@ -21,7 +21,7 @@ def _require_extras(function_name: str, *modules: str) -> None:
     missing = [m for m in modules if importlib.util.find_spec(m) is None]
     if missing:
         message = (
-            f"{function_name} requires optional dependencies: {', '.join(missing)}. "
+            f"datasets.{function_name} requires optional dependencies: {', '.join(missing)}. "
             "Install them with: pip install 'cellestial[extras]'"
         )
         raise ImportError(message)
