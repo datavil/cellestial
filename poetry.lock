@@ -7185,9 +7185,9 @@ files = [
 cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and python_version < \"3.14\"", "cffi (>=2.0.0b0) ; platform_python_implementation != \"PyPy\" and python_version >= \"3.14\""]
 
 [extras]
-extras = ["matplotlib", "scanpy", "scvelo"]
+extras = ["matplotlib", "pooch", "scanpy", "scvelo"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "04d342c6c48c548db4149ea179f54dbb357a0af133417e4511da32e92e751e05"
+content-hash = "390fac61c404182110f1f0198ad4ec80cd9c056cfcf3fd7097ee00285241f460"
