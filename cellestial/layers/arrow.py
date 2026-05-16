@@ -131,6 +131,7 @@ def _modify_axis(
 
     return new_layer
 
+
 def arrow_axis(
     *,
     plot: PlotSpec | None = None,

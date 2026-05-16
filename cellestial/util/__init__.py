@@ -18,6 +18,7 @@ from cellestial.util.utilities import (
     _share_ticks,
     _tooltip_fields,
     _validate_tooltips,
+    _warn,
 )
 
 __all__ = [
@@ -36,8 +37,9 @@ __all__ = [
     "_share_ticks",
     "_tooltip_fields",
     "_validate_tooltips",
+    "_warn",
     "get_mapping",
     "get_slice",
     "retrieve",
-    "save"
+    "save",
 ]

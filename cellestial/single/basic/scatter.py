@@ -121,9 +121,9 @@ def scatter(
     """
     keys = [v for v in mapping.as_dict().values() if v is not None]
     if variable_keys is None:
-        variable_keys = _select_variable_keys(data,keys)
+        variable_keys = _select_variable_keys(data, keys)
     else:
-        list(variable_keys).extend(_select_variable_keys(data,keys))
+        list(variable_keys).extend(_select_variable_keys(data, keys))
 
     axis = axis or _determine_axis(data=data, keys=keys)
     # BUILD: the scatter plot

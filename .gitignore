@@ -45,3 +45,16 @@ figures/
 
 # claude
 claude/
+# Build artifacts
+docs/
+sphinx/
+_build/
+generated/
+.doctrees/
+jupyter_execute/
+.ipynb_checkpoints/
+
+# Bundled data
+data/
+*.h5
+*.h5ad

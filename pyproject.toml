@@ -1,6 +1,6 @@
 [project]
 name = "cellestial"
-version = "0.44.0"
+version = "0.47.1"
 description = ""
 authors = [
     { name = "Zaf4", email = "zafermolbio@gmail.com" },
@@ -14,12 +14,13 @@ dependencies = [
     "polars[pyarrow]>=1.30.0,<2.0.0",
     "scikit-image>=0.23.1,<1.0",
     "spatialdata>=0.7,<1.0",
-    "tqdm>=4",
+    "tqdm>=4,<5",
 ]
 
 [project.optional-dependencies]
 extras = [
     "matplotlib>=3.9,<4.0",
+    "pooch>=1.8.2,<2.0.0",
     "scanpy[leiden]>=1.10.4,<2.0.0",
     "scvelo>=0.3.3,<0.4.0",
 ]
@@ -36,10 +37,11 @@ pycairo = "^1.27.0"
 cairosvg = "^2.7.1"
 scvelo = "^0.3.3"
 ty = "^0.0.34"
-pandas = "2.2.2" # pinned to avoid 3.0
+pandas = ">=2.2.3,<3" # >=2.2.3 for cp313 wheels; <3 to avoid 3.0
 tqdm = "^4.67.3"
 pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
+nbstripout = "^0.9.1"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"

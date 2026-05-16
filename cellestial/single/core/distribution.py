@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Literal
-from warnings import warn
 
 import polars as pl
 from anndata import AnnData
@@ -27,6 +26,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _select_variable_keys,
     _validate_tooltips,
+    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError
 
@@ -99,7 +99,9 @@ def _distribution(
     point_kwargs = {} if point_kwargs is None else dict(point_kwargs)
 
     # determine index to unpivot
-    index = list(dict.fromkeys(c for c in (group_by, mapping_fill, mapping_color) if c is not None))
+    index = list(
+        dict.fromkeys(c for c in (group_by, mapping_fill, mapping_color) if c is not None)
+    )
     if add_keys is not None:
         if isinstance(add_keys, str):
             add_keys = [add_keys]
@@ -131,11 +133,10 @@ def _distribution(
     if group_by is None:
         group_by = variable_column
     elif len(keys) > 1 and group_by != variable_column:
-        warn(
+        _warn(
             f"Multiple keys provided; `group_by={group_by!r}` cannot share the "
             f"x-axis with the variable column. Falling back to "
-            f"`group_by={variable_column!r}`. For a per-key panel, use the plural variant.",
-            stacklevel=3,
+            f"`group_by={variable_column!r}`. For a per-key panel, use the plural variant."
         )
         group_by = variable_column
 

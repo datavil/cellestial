@@ -41,10 +41,7 @@ def _resolve_key_groups(
     groups: dict[str, list[str]] = {}
     for label, values in grouped_keys.items():
         if isinstance(values, str):
-            msg = (
-                f"Keys for group {label!r} must be a sequence of strings, "
-                "not a single string."
-            )
+            msg = f"Keys for group {label!r} must be a sequence of strings, not a single string."
             raise TypeError(msg)
         groups[label] = list(values)
     flat: list[str] = []
@@ -110,9 +107,7 @@ _Y_CHAR_WIDTH_PER_SIZE = 0.40
 _Y_PADDING_SAFETY_FRACTION = 0.030
 
 
-def _label_size_absolute(
-    groups: dict[str, list[str]], *, scale: float = 1.0
-) -> float:
+def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) -> float:
     """Label size in absolute lets-plot text units (used without ``size_unit``)."""
     n_keys = sum(len(values) for values in groups.values())
     max_chars = max((len(label) for label in groups), default=0)
@@ -129,9 +124,7 @@ def _label_size_absolute(
     return max(_ABS_LABEL_TEXT_SIZE_MIN, size * scale)
 
 
-def _label_size_y_units(
-    groups: dict[str, list[str]], *, span: float, scale: float = 1.0
-) -> float:
+def _label_size_y_units(groups: dict[str, list[str]], *, span: float, scale: float = 1.0) -> float:
     """
     Label size in y-axis units (used with ``geom_text(size_unit='y')``).
 
@@ -142,9 +135,7 @@ def _label_size_y_units(
     max_chars = max((len(label) for label in groups), default=0)
     visual_fraction = _Y_LABEL_VISUAL_CAP_FRACTION
     if max_chars > _Y_LABEL_LONG_THRESHOLD:
-        visual_fraction *= max(
-            _Y_LABEL_LONG_MIN_FRACTION, _Y_LABEL_LONG_THRESHOLD / max_chars
-        )
+        visual_fraction *= max(_Y_LABEL_LONG_MIN_FRACTION, _Y_LABEL_LONG_THRESHOLD / max_chars)
     return max(_Y_LABEL_SIZE_FLOOR, visual_fraction * span * scale)
 
 
@@ -181,10 +172,7 @@ def _resolve_padding(
             _BAR_OFFSET_FRACTION
             + _LABEL_GAP_FRACTION
             + _ABS_LABEL_PADDING_BASE_FRACTION
-            + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION
-            * max_chars
-            * label_size
-            * density_scale,
+            + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
             _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
         )
         resolved = target_fraction * data / (1.0 - target_fraction) * scale
@@ -194,9 +182,7 @@ def _resolve_padding(
 
     # y-unit mode: padding fits the rotated text extent directly in y units.
     approx_total_span = data * 1.3
-    label_size = _label_size_y_units(
-        groups, span=approx_total_span, scale=label_size_scale
-    )
+    label_size = _label_size_y_units(groups, span=approx_total_span, scale=label_size_scale)
     text_extent = max_chars * _Y_CHAR_WIDTH_PER_SIZE * label_size
     bar_offset = _BAR_OFFSET_FRACTION * data
     label_gap = _LABEL_GAP_FRACTION * data

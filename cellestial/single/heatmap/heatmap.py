@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
-from warnings import warn
 
 import polars as pl
 from anndata import AnnData
@@ -29,7 +28,12 @@ from cellestial.single.heatmap._key_groups import (
 )
 from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_args
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _fill_gradient, _get_dendrogram, _get_dendrogram_path_frame
+from cellestial.util import (
+    _fill_gradient,
+    _get_dendrogram,
+    _get_dendrogram_path_frame,
+    _warn,
+)
 from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
@@ -183,12 +187,13 @@ def _get_group_lines_frame(
         }
     )
 
+
 def heatmap(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
     group_by: str | None = None,
     *,
-    rank_genes_groups: bool | str = False,
+    markers: bool | str = False,
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -233,21 +238,20 @@ def heatmap(
     data : AnnData
         The AnnData object of the single cell data.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
-        Variable keys to include. When a mapping is provided, each entry maps a
-        group label to the keys belonging to that group; the keys are placed
-        on the x-axis in mapping order. The same key cannot appear in more
-        than one group. Must be ``None`` when ``rank_genes_groups`` is set.
+        Variable keys to include, placed on the x-axis. A mapping assigns
+        keys to group labels (no key in more than one group). Must be
+        ``None`` when ``markers`` is set.
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
-        when ``rank_genes_groups`` is set.
-    rank_genes_groups : bool | str, default=False
+        when ``markers`` is set.
+    markers : bool | str, default=False
         Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
         default ranking key, or a string to read a custom key (e.g.
         ``"rank_genes_groups_wilcoxon"``).
     n_genes : int, default=5
-        Number of top genes to take per group when ``rank_genes_groups`` is set.
+        Number of top genes to take per group when ``markers`` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``rank_genes_groups`` is set;
+        Subset of groups to include when ``markers`` is set;
         ``None`` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
@@ -338,12 +342,12 @@ def heatmap(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
-        If `rank_genes_groups` is enabled and the requested ranking result or
+        If `markers` is enabled and the requested ranking result or
         group is missing.
     DuplicateKeysError
         If a mapping passed to `keys` assigns the same key to multiple groups.
     ValueError
-        If `keys` and `group_by` are missing while `rank_genes_groups` is
+        If `keys` and `group_by` are missing while `markers` is
         disabled.
 
     Examples
@@ -426,7 +430,7 @@ def heatmap(
         )
 
     To plot the top genes from a precomputed ranking, set
-    ``rank_genes_groups`` and ``n_genes`` (``keys`` and ``group_by`` are
+    ``markers`` and ``n_genes`` (``keys`` and ``group_by`` are
     inferred):
 
     .. jupyter-execute::
@@ -434,36 +438,32 @@ def heatmap(
         import scanpy as sc
 
         sc.tl.rank_genes_groups(data, groupby="cell_type_lvl1")
-        cl.heatmap(data, rank_genes_groups=True, n_genes=5, aggregate=True)
+        cl.heatmap(data, markers=True, n_genes=5, aggregate=True)
 
     """
     if not isinstance(data, AnnData):
         msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
 
-    if rank_genes_groups:
+    if markers:
         keys, group_by = _resolve_rank_genes_groups_args(
             data,
-            rank_genes_groups=rank_genes_groups,
+            rank_genes_groups=markers,
             n_genes=n_genes,
             groups=groups,
             keys=keys,
             group_by=group_by,
         )
     elif keys is None or group_by is None:
-        msg = (
-            "`keys` and `group_by` are required "
-            "(or enable `rank_genes_groups` to derive them)."
-        )
+        msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
         raise ValueError(msg)
 
     mapping = mapping or aes()
 
     if "tooltips" in geom_kwargs and geom == "raster":
-        warn(
+        _warn(
             "\nWarning: tooltips are not supported for 'raster' geom and will be ignored."
-            "\nUse 'tile' geom to enable tooltips.",
-            stacklevel=1,
+            "\nUse 'tile' geom to enable tooltips."
         )
         geom_kwargs.pop("tooltips")
 
@@ -644,12 +644,13 @@ def heatmap(
 
     return htmp
 
+
 def matrixplot(
     data: AnnData,
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
     group_by: str | None = None,
     *,
-    rank_genes_groups: bool | str = False,
+    markers: bool | str = False,
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -692,21 +693,20 @@ def matrixplot(
     data : AnnData
         The AnnData object of the single cell data.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
-        Variable keys to include. When a mapping is provided, each entry maps
-        a group label to the keys belonging to that group; the keys are placed
-        on the x-axis in mapping order. The same key cannot appear in more
-        than one group. Must be ``None`` when ``rank_genes_groups`` is set.
+        Variable keys to include, placed on the x-axis. A mapping assigns
+        keys to group labels (no key in more than one group). Must be
+        ``None`` when ``markers`` is set.
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
-        when ``rank_genes_groups`` is set.
-    rank_genes_groups : bool | str, default=False
+        when ``markers`` is set.
+    markers : bool | str, default=False
         Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
         default ranking key, or a string to read a custom key (e.g.
         ``"rank_genes_groups_wilcoxon"``).
     n_genes : int, default=5
-        Number of top genes to take per group when ``rank_genes_groups`` is set.
+        Number of top genes to take per group when ``markers`` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``rank_genes_groups`` is set;
+        Subset of groups to include when ``markers`` is set;
         ``None`` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
@@ -817,13 +817,13 @@ def matrixplot(
     .. jupyter-execute::
 
         sc.tl.rank_genes_groups(data, groupby="cell_type_lvl1")
-        cl.matrixplot(data, rank_genes_groups=True, n_genes=5)
+        cl.matrixplot(data, markers=True, n_genes=5)
     """
     return heatmap(
         data,
         keys=keys,
         group_by=group_by,
-        rank_genes_groups=rank_genes_groups,
+        markers=markers,
         n_genes=n_genes,
         groups=groups,
         mapping=mapping,

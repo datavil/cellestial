@@ -59,3 +59,7 @@ class SpatialLibraryError(Exception):
 
     def __init__(self, message: str):
         super().__init__(message)
+
+
+class CellestialWarning(UserWarning):
+    """Base category for warnings raised by cellestial."""

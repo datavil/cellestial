@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from warnings import warn
 
 from anndata import AnnData
 
+from cellestial.util import _warn
 from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 _DEFAULT_RANK_GENES_KEY = "rank_genes_groups"
 
 
-def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:
+def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:  # noqa: FBT001
     """Translate the user-facing flag into the ``adata.uns`` key to read."""
     if rank_genes_groups is True:
         return _DEFAULT_RANK_GENES_KEY
@@ -124,17 +124,16 @@ def _extract_rank_genes_groups(
                 for gene, first, later in dropped[:3]
             )
             suffix = f" and {len(dropped) - 3} more" if len(dropped) > 3 else ""
-            warn(
+            _warn(
                 "Some genes ranked highly in multiple groups; "
                 "keeping the first occurrence and dropping the rest "
                 f"({examples}{suffix}). "
                 "Increase `n_genes`, restrict `groups`, "
-                "or pass an explicit `keys` mapping to control this.",
-                stacklevel=2,
+                "or pass an explicit `keys` mapping to control this."
             )
 
         params = record["params"]
-        stored_group_by = params["groupby"] if "groupby" in params else None
+        stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
                 f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "

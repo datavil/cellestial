@@ -18,6 +18,7 @@ from cellestial.util.errors import MissingAestheticError
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
+
 def stream(
     *,
     plot: PlotSpec | None = None,

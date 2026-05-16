@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import FeatureSpecArray, LayerSpec
 
+
 class DeferredLayer(PlotSpec):
     """
     A layer whose construction depends on an existing plot's data and aesthetics.

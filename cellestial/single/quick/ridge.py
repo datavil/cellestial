@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
     from lets_plot.plot.subplots import SupPlotsSpec
 
+
 def ridge(
     data: AnnData,
     key: str,
@@ -199,6 +200,7 @@ def ridge(
 
     return rdg + scale_fill_hue()
 
+
 def ridges(
     data: AnnData,
     keys: Sequence[str],
@@ -363,15 +365,15 @@ def ridges(
 
     rdgs = gggrid(
         plots,
-        ncol=ncol, # ty:ignore[invalid-argument-type]
-        sharex=sharex, # ty:ignore[invalid-argument-type]
-        sharey=sharey, # ty:ignore[invalid-argument-type]
-        widths=widths, # ty:ignore[invalid-argument-type]
-        heights=heights, # ty:ignore[invalid-argument-type]
-        hspace=hspace, # ty:ignore[invalid-argument-type]
-        vspace=vspace, # ty:ignore[invalid-argument-type]
-        fit=fit, # ty:ignore[invalid-argument-type]
-        align=align, # ty:ignore[invalid-argument-type]
+        ncol=ncol,  # ty:ignore[invalid-argument-type]
+        sharex=sharex,  # ty:ignore[invalid-argument-type]
+        sharey=sharey,  # ty:ignore[invalid-argument-type]
+        widths=widths,  # ty:ignore[invalid-argument-type]
+        heights=heights,  # ty:ignore[invalid-argument-type]
+        hspace=hspace,  # ty:ignore[invalid-argument-type]
+        vspace=vspace,  # ty:ignore[invalid-argument-type]
+        fit=fit,  # ty:ignore[invalid-argument-type]
+        align=align,  # ty:ignore[invalid-argument-type]
         guides=guides,
     )
 

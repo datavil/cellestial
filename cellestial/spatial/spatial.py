@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -30,6 +29,7 @@ from cellestial.util import (
     _is_variable_key,
     _resolve_tooltips,
     _validate_tooltips,
+    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError
 
@@ -113,7 +113,7 @@ def _spatial_components(
             image_array = images.get(image_key)
             if image_array is None:
                 msg = f"image `{image_key}` not found for library `{library_id}`"
-                warnings.warn(msg, stacklevel=2)
+                _warn(msg)
         return image_array, spot_coordinates, None, data
 
     msg = f"Unsupported data type: `{type(data)}`"
@@ -408,7 +408,7 @@ def spatial(
             frame = frame.filter(pl.col(key).is_in(list(groups)))
         else:
             msg = f"key `{key}` is not categorical, `groups` filter ignored"
-            warnings.warn(msg, stacklevel=1)
+            _warn(msg)
 
     # HANDLE: standard scaling (numeric keys only)
     if scale_axis is not None and key is not None and frame[key].dtype.is_numeric():

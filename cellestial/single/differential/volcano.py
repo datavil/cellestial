@@ -181,6 +181,7 @@ def _build_volcano_frame(
 
     return frame
 
+
 def volcano(
     data: AnnData,
     group: str,
@@ -377,9 +378,9 @@ def volcano(
     # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
     # Dropping them would silently hide the most significant features (and their labels).
     # Push them just above the densest finite cluster instead.
-    finite_max = (
-        frame.filter(pl.col(neg_log_pvalue_column).is_finite())[neg_log_pvalue_column].max()
-    )
+    finite_max = frame.filter(pl.col(neg_log_pvalue_column).is_finite())[
+        neg_log_pvalue_column
+    ].max()
     cap = (finite_max or 0.0) * 1.05 + 1.0
     frame = frame.with_columns(
         pl.when(pl.col(neg_log_pvalue_column).is_finite())
