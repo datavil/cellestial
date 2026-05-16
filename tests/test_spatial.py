@@ -9,8 +9,17 @@ from shapely.geometry import MultiPolygon, Point
 from spatialdata import SpatialData
 from spatialdata.models import Image2DModel, ShapesModel, TableModel
 from spatialdata.transformations import Identity, set_transformation
+from xarray import DataArray
 
 import cellestial as cl
+from cellestial.spatial._components import (
+    _image_to_yxc,
+    _resolve_coordinate_system,
+    _resolve_image_name,
+    _select_one,
+    resolve_table,
+)
+from cellestial.spatial.spatial import _spatial_components
 
 # ---- fixtures ----
 
@@ -243,6 +252,27 @@ def test_spatials_sdata_with_selection_kwargs(data_multi):
     assert isinstance(plot, SupPlotsSpec)
 
 
+def test_spatials_with_layers_share_labels_and_interactive(data_minimal):
+    from lets_plot import geom_point
+
+    plot = cl.spatials(
+        data_minimal,
+        ["cluster", "GENE_A"],
+        image=False,
+        layers=geom_point(size=0.1),
+        share_labels=True,
+        interactive=True,
+        ncol=1,
+    )
+
+    assert isinstance(plot, SupPlotsSpec)
+
+
+def test_spatials_invalid_keys_type(data_minimal):
+    with pytest.raises(TypeError, match="keys"):
+        cl.spatials(data_minimal, "cluster")
+
+
 # ---- AnnData regression: existing path still works ----
 
 
@@ -280,6 +310,99 @@ def test_spatial_scale_axis_constant_key_returns_zero():
     assert plot.as_dict()["data"]["score"].to_list() == [0.0] * n
 
 
+def test_spatial_anndata_visium_metadata_paths():
+    n = 4
+    rng = np.random.default_rng(13)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame(
+            {
+                "cluster": pd.Categorical(["a", "b", "a", "b"]),
+                "score": [1.0, 2.0, 3.0, 4.0],
+            },
+            index=[f"c{i}" for i in range(n)],
+        ),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+    data.uns["spatial"] = {
+        "lib": {
+            "images": {"hires": rng.random((8, 8, 4)).astype("float32")},
+            "scalefactors": {"tissue_hires_scalef": 2.0},
+        }
+    }
+
+    plot = cl.spatial(
+        data,
+        key="score",
+        greyscale=True,
+        image_alpha=0.5,
+        groups=["a"],
+        crop=[0, 10, 0, 10],
+        scale_axis=0,
+        interactive=True,
+    )
+
+    assert isinstance(plot, PlotSpec)
+
+
+def test_spatial_anndata_visium_errors_and_warnings():
+    n = 3
+    rng = np.random.default_rng(14)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame({"score": [1.0, 2.0, 3.0]}, index=[f"c{i}" for i in range(n)]),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+    data.uns["spatial"] = {
+        "a": {"images": {}, "scalefactors": {}},
+        "b": {"images": {}, "scalefactors": {}},
+    }
+
+    with pytest.raises(ValueError, match="Multiple spatial libraries"):
+        cl.spatial(data)
+    with pytest.raises(KeyError, match="library_id"):
+        cl.spatial(data, library_id="missing")
+    with pytest.warns(cl.util.errors.CellestialWarning, match="image"):
+        cl.spatial(data, library_id="a", image=True)
+    with pytest.warns(cl.util.errors.CellestialWarning, match="not categorical"):
+        cl.spatial(data, key="score", library_id="a", image=False, groups=["a"])
+    with pytest.raises(ValueError, match="crop"):
+        cl.spatial(data, library_id="a", image=False, crop=[1, 2, 3])
+
+
+def test_spatial_components_anndata_errors():
+    data = AnnData(X=np.ones((2, 2)), var=pd.DataFrame(index=["G1", "G2"]))
+
+    with pytest.raises(KeyError, match="spot coordinates"):
+        _spatial_components(
+            data,
+            library_id=None,
+            image_key="hires",
+            image=False,
+            spatial_key="spatial",
+        )
+
+    data.obsm["spatial"] = np.ones((2, 2))
+    with pytest.raises(KeyError, match="no spatial"):
+        _spatial_components(
+            data,
+            library_id="lib",
+            image_key="hires",
+            image=False,
+            spatial_key="spatial",
+        )
+    with pytest.raises(Exception, match="Unsupported data type"):
+        _spatial_components(
+            "not data",
+            library_id=None,
+            image_key="hires",
+            image=False,
+            spatial_key="spatial",
+        )
+
+
 # ---- build_frame() with SpatialData ----
 
 
@@ -291,6 +414,44 @@ def test_build_frame_sdata_single_table(data_minimal):
 def test_build_frame_data_multi_table_raises(data_multi):
     with pytest.raises(ValueError, match="Multiple annotation tables"):
         cl.build_frame(data_multi, axis=0)
+
+
+def test_spatial_component_selection_helpers(data_minimal, data_multi):
+    assert _select_one("img", ["img"], "image") == "img"
+    assert _select_one(None, ["img"], "image") == "img"
+
+    with pytest.raises(KeyError, match="image"):
+        _select_one("missing", ["img"], "image")
+    with pytest.raises(ValueError, match="No image"):
+        _select_one(None, [], "image")
+    with pytest.raises(ValueError, match="Multiple image"):
+        _select_one(None, ["a", "b"], "image")
+    with pytest.raises(TypeError, match="SpatialData"):
+        resolve_table("not sdata", None)
+    with pytest.raises(KeyError, match="image"):
+        _resolve_image_name(data_minimal, "missing", coordinate_system="global")
+    with pytest.raises(ValueError, match="Multiple image"):
+        _resolve_image_name(data_multi, None, coordinate_system="global")
+    assert (
+        _resolve_coordinate_system(
+            data_multi,
+            None,
+            shapes_name="spots1",
+            image_name=None,
+            want_image=True,
+        )
+        == "global"
+    )
+
+
+def test_image_to_yxc_dataarray_channel_handling():
+    rgb = DataArray(np.ones((3, 4, 5)), dims=("c", "y", "x"))
+    single_channel = DataArray(np.ones((1, 4, 5)), dims=("c", "y", "x"))
+    already_yx = DataArray(np.ones((4, 5)), dims=("y", "x"))
+
+    assert _image_to_yxc(rgb).shape == (4, 5, 3)
+    assert _image_to_yxc(single_channel).shape == (4, 5)
+    assert _image_to_yxc(already_yx).shape == (4, 5)
 
 
 # ---- Visium HD-style multi-coordinate-system layout ----

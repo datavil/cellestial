@@ -120,6 +120,32 @@ def test_boxplots_share_axis(adata, group_key):
     assert isinstance(plot, SupPlotsSpec)
 
 
+def test_violins_interactive_with_layers(adata, group_key):
+    from lets_plot import geom_point
+
+    plot = cl.violins(
+        adata,
+        ["CD14", "MS4A1"],
+        fill=group_key,
+        layers=geom_point(size=0.1),
+        interactive=True,
+    )
+    assert isinstance(plot, SupPlotsSpec)
+
+
+def test_boxplots_interactive_with_layers(adata, group_key):
+    from lets_plot import geom_point
+
+    plot = cl.boxplots(
+        adata,
+        ["CD14", "MS4A1"],
+        fill=group_key,
+        layers=geom_point(size=0.1),
+        interactive=True,
+    )
+    assert isinstance(plot, SupPlotsSpec)
+
+
 # ===========================================================================
 # subdimensionals.py, uncovered: share_labels, share_axis, layers, TypeError
 # ===========================================================================
@@ -178,6 +204,51 @@ def test_pcas_invalid_keys_type(adata):
 def test_expressions_invalid_keys_type(adata):
     with pytest.raises(TypeError):
         cl.expressions(adata, "single_string")
+
+
+def test_tsnes_interactive_share_axis_with_layers(adata, group_key):
+    from lets_plot import geom_point
+
+    plot = cl.tsnes(
+        adata,
+        [group_key, "CD14"],
+        axis_type="axis",
+        share_labels=True,
+        share_axis=True,
+        layers=geom_point(size=0.1),
+        interactive=True,
+    )
+    assert isinstance(plot, SupPlotsSpec)
+
+
+def test_pcas_interactive_share_axis_with_layers(adata, group_key):
+    from lets_plot import geom_point
+
+    plot = cl.pcas(
+        adata,
+        [group_key, "CD14"],
+        axis_type="axis",
+        share_labels=True,
+        share_axis=True,
+        layers=geom_point(size=0.1),
+        interactive=True,
+    )
+    assert isinstance(plot, SupPlotsSpec)
+
+
+def test_expressions_interactive_share_axis_with_layers(adata, group_key):
+    from lets_plot import geom_point
+
+    plot = cl.expressions(
+        adata,
+        ["CD14", "MS4A1"],
+        axis_type="axis",
+        share_labels=True,
+        share_axis=True,
+        layers=geom_point(size=0.1),
+        interactive=True,
+    )
+    assert isinstance(plot, SupPlotsSpec)
 
 
 def test_umaps_with_layers(adata, group_key):

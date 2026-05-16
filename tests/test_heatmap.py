@@ -1,9 +1,11 @@
 import polars as pl
 import pytest
+from lets_plot import aes
 from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.single.heatmap.heatmap import _scale_values
+from cellestial.single.heatmap.stacked_violin import _compute_violin_polygons
 from cellestial.util.errors import UnsupportedDataTypeError
 
 
@@ -99,6 +101,103 @@ def test_dotplot_dict_keys(adata, group_key):
 def test_stacked_violin_dict_keys(adata, group_key):
     plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
     assert isinstance(plot, PlotSpec)
+
+
+def test_stacked_violin_options(adata, group_key):
+    sub = adata[:300].copy()
+    plot = cl.stacked_violin(
+        sub,
+        group_by=group_key,
+        keys=_marker_groups(),
+        mapping=aes(alpha="expression"),
+        threshold=0.0,
+        scale="count",
+        color_by="group",
+        geom_fill=None,
+        rectangle=False,
+        key_labels=False,
+        interactive=True,
+        n_points=16,
+    )
+    assert isinstance(plot, PlotSpec)
+
+
+def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
+    sub = adata[:300].copy()
+    plot = cl.stacked_violin(
+        sub,
+        group_by=group_key,
+        keys=(markers := ["CD79A", "MS4A1"]),
+        color_by="variable",
+        rectangle_kwargs={"alpha": 0.5},
+        n_points=16,
+    )
+    assert isinstance(plot, PlotSpec)
+    assert markers == ["CD79A", "MS4A1"]
+
+
+def test_stacked_violin_required_inputs_and_data_type(adata):
+    with pytest.raises(ValueError, match="keys"):
+        cl.stacked_violin(adata)
+    with pytest.raises(UnsupportedDataTypeError):
+        cl.stacked_violin("not adata", keys=["A"], group_by="group")
+
+
+def test_compute_violin_polygons_edge_paths():
+    frame = pl.DataFrame(
+        {
+            "variable": ["a", "a", "a", "b"],
+            "group": ["g1", "g1", "g1", "g1"],
+            "value": [1.0, 2.0, 3.0, 5.0],
+        }
+    )
+
+    polygons = _compute_violin_polygons(
+        frame,
+        variable_column="variable",
+        value_column="value",
+        group_by="group",
+        x_keys=["a", "missing", "b"],
+        y_order_groups=["g1"],
+        n_points=8,
+        scale="area",
+        width_scale=0.8,
+        height_scale=0.8,
+        aggregate="mean",
+        aggregate_key="expression",
+    )
+    empty = _compute_violin_polygons(
+        frame,
+        variable_column="variable",
+        value_column="value",
+        group_by="group",
+        x_keys=["b"],
+        y_order_groups=["g1"],
+        n_points=8,
+        scale="width",
+        width_scale=0.8,
+        height_scale=0.8,
+        aggregate="median",
+        aggregate_key="expression",
+    )
+
+    assert polygons.height > 0
+    assert empty.is_empty()
+    with pytest.raises(ValueError, match="scale"):
+        _compute_violin_polygons(
+            frame,
+            variable_column="variable",
+            value_column="value",
+            group_by="group",
+            x_keys=["a"],
+            y_order_groups=["g1"],
+            n_points=8,
+            scale="bad",
+            width_scale=0.8,
+            height_scale=0.8,
+            aggregate="median",
+            aggregate_key="expression",
+        )
 
 
 def test_heatmap_dict_keys_duplicate_raises(adata, group_key):

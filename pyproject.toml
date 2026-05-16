@@ -55,7 +55,7 @@ squidpy = "^1.8.1"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=cellestial --cov-report=term-missing"
+addopts = "--cov=cellestial --cov-report=xml:tests/coverage.xml --cov-report=term-missing"
 
 [tool.coverage.run]
 data_file = "tests/.coverage"

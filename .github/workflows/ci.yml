@@ -69,8 +69,14 @@ jobs:
           mkdir -p data
           poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: poetry run pytest
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./tests/coverage.xml
 
   build:
     name: Build wheel
