@@ -25,22 +25,28 @@ def test_retrieve_from_grid(adata):
     assert isinstance(frame, pl.DataFrame)
 
 
-def test_slice_single_index(adata):
+def test_get_figure_single_index(adata):
     grid = cl.expressions(adata, keys=["CD14", "MS4A1", "NKG7", "CST3"], ncol=2)
-    single = cl.slice(grid, index=0)
+    single = cl.get_figure(grid, index=0)
     assert isinstance(single, PlotSpec)
 
 
-def test_slice_sequence_index(adata):
+def test_get_figures_sequence_index(adata):
     grid = cl.expressions(adata, keys=["CD14", "MS4A1", "NKG7", "CST3"], ncol=2)
-    subset = cl.slice(grid, index=[0, 2])
+    subset = cl.get_figures(grid, indices=[0, 2])
     assert isinstance(subset, SupPlotsSpec)
 
 
-def test_slice_out_of_range(adata):
+def test_get_figure_out_of_range(adata):
     grid = cl.expressions(adata, keys=["CD14", "MS4A1"])
-    with pytest.raises(Exception):
-        cl.slice(grid, index=99)
+    with pytest.raises(IndexError):
+        cl.get_figure(grid, index=99)
+
+
+def test_get_figures_out_of_range(adata):
+    grid = cl.expressions(adata, keys=["CD14", "MS4A1"])
+    with pytest.raises(IndexError):
+        cl.get_figures(grid, indices=[0, 99])
 
 
 # ---- colors ----

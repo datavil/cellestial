@@ -296,13 +296,18 @@ def test_arrow_axis_default(adata):
 
 
 # ===========================================================================
-# operations.py, uncovered: error paths in get_slice, retrieve
+# operations.py, uncovered: error paths in get_figure/get_figures, retrieve
 # ===========================================================================
 
 
-def test_slice_invalid_grid_type():
+def test_get_figure_invalid_grid_type():
     with pytest.raises(TypeError):
-        cl.slice("not a grid", index=0)
+        cl.get_figure("not a grid", index=0)
+
+
+def test_get_figures_invalid_grid_type():
+    with pytest.raises(TypeError):
+        cl.get_figures("not a grid", indices=[0])
 
 
 def test_retrieve_invalid_type():

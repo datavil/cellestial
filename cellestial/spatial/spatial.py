@@ -126,7 +126,7 @@ def spatial(
     *,
     library_id: str | None = None,
     image: bool = True,
-    image_key: Literal["hires", "lowres"] | str = "hires",
+    image_key: Literal["hires", "lowres"] | str = "lowres",
     greyscale: bool = False,
     image_alpha: float | None = None,
     cmap: str | list | None = None,
@@ -174,7 +174,7 @@ def spatial(
         Ignored for SpatialData inputs.
     image : bool, default=True
         Whether to render the tissue image as a background layer.
-    image_key : str, default='hires'
+    image_key : str, default='lowres'
         Which image variant to render. Visium ships with 'hires' and 'lowres'.
         Ignored for SpatialData inputs.
     greyscale : bool, default=False

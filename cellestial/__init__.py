@@ -37,8 +37,7 @@ from cellestial.single import (
     xyplots,
 )
 from cellestial.spatial import spatial, spatials
-from cellestial.util import get_mapping, retrieve, save
-from cellestial.util import get_slice as slice
+from cellestial.util import get_figure, get_figures, get_mapping, retrieve, save
 from cellestial.util.colors import (
     BLUE,
     CHERRY,
@@ -80,6 +79,8 @@ __all__ = [
     "elbow",
     "expression",
     "expressions",
+    "get_figure",
+    "get_figures",
     "get_mapping",
     "heatmap",
     "highest_expressed_genes",
@@ -96,7 +97,6 @@ __all__ = [
     "scatter",
     "setup_html",
     "show_colors",
-    "slice",
     "spatial",
     "spatials",
     "stacked_violin",

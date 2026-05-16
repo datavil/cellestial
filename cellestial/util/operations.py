@@ -11,32 +11,35 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
-def get_slice(
-    grid: SupPlotsSpec, index: int | Sequence[int], **kwargs
-) -> PlotSpec | SupPlotsSpec | None:
+def _grid_figures(grid: SupPlotsSpec) -> list[PlotSpec]:
+    # Lets-Plot does not expose the underlying PlotSpec list on SupPlotsSpec;
+    # `.as_dict()["figures"]` returns serialized dicts that `gggrid` cannot consume.
+    # Name-mangled access is the only path to the live PlotSpec objects.
+    return vars(grid)["_SupPlotsSpec__figures"]
+
+
+def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
     """
-    Slice a grid object (SupPlotsSpec) with the given index.
+    Get a single figure from a grid (SupPlotsSpec) by index.
 
     Parameters
     ----------
     grid : SupPlotsSpec
-        The grid to slice.
-    index : int | Sequence[int]
-        The index or indices of the plots to slice.
-    **kwargs : dict[str, Any]
-        Additional arguments for the `gggrid` function.
-        see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        The grid to pull a figure from.
+    index : int
+        The index of the figure to return. Negative indices are supported.
 
     Returns
     -------
-    PlotSpec | SupPlotsSpec
-        The sliced grid.
+    PlotSpec
+        The selected figure.
 
     Raises
     ------
     TypeError
-        If the grid is not a SupPlotsSpec object.
-        If the index is not an int or Sequence[int].
+        If `grid` is not a SupPlotsSpec or `index` is not an int.
+    IndexError
+        If `index` is out of range for the grid.
 
     Examples
     --------
@@ -59,9 +62,52 @@ def get_slice(
             ncol=2,
         )
 
-        cl.slice(grid, index=3)
+        cl.get_figure(grid, index=3)
 
-    Get a multiple plots from a grid.
+    """
+    if not isinstance(grid, SupPlotsSpec):
+        msg = f"Expected `SupPlotsSpec`, but received {type(grid)}"
+        raise TypeError(msg)
+    if not isinstance(index, int) or isinstance(index, bool):
+        msg = f"Expected int for index, but received {type(index)}"
+        raise TypeError(msg)
+
+    figures = _grid_figures(grid)
+    if not -len(figures) <= index < len(figures):
+        msg = f"index {index} is out of range for a grid with {len(figures)} figures."
+        raise IndexError(msg)
+    return figures[index]
+
+
+def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlotsSpec:
+    """
+    Get multiple figures from a grid (SupPlotsSpec) as a new grid.
+
+    Parameters
+    ----------
+    grid : SupPlotsSpec
+        The grid to pull figures from.
+    indices : Sequence[int]
+        The indices of the figures to include. Negative indices are supported.
+    **kwargs : dict[str, Any]
+        Additional arguments forwarded to `gggrid`.
+        see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+
+    Returns
+    -------
+    SupPlotsSpec
+        A new grid containing the selected figures.
+
+    Raises
+    ------
+    TypeError
+        If `grid` is not a SupPlotsSpec or `indices` is not a Sequence of ints.
+    IndexError
+        If any value in `indices` is out of range for the grid.
+
+    Examples
+    --------
+    Get multiple plots from a grid.
 
     .. jupyter-execute ::
 
@@ -80,25 +126,22 @@ def get_slice(
             ncol=2,
         )
 
-        cl.slice(grid, index=[1,3])
+        cl.get_figures(grid, indices=[1, 3])
 
     """
-    if isinstance(grid, SupPlotsSpec):
-        figures = vars(grid).get("_SupPlotsSpec__figures")
-
-        if figures is not None:
-            if isinstance(index, int):
-                plot = figures[index]
-                return plot
-            elif isinstance(index, Sequence):
-                list_plots = [figures[i] for i in index]
-                return gggrid(list_plots, **kwargs)
-            else:
-                msg = f"Expected int or Sequence for index, but received {type(index)}"
-                raise TypeError(msg)
-    else:
+    if not isinstance(grid, SupPlotsSpec):
         msg = f"Expected `SupPlotsSpec`, but received {type(grid)}"
         raise TypeError(msg)
+    if not isinstance(indices, Sequence) or isinstance(indices, str):
+        msg = f"Expected Sequence[int] for indices, but received {type(indices)}"
+        raise TypeError(msg)
+
+    figures = _grid_figures(grid)
+    out_of_range = [i for i in indices if not -len(figures) <= i < len(figures)]
+    if out_of_range:
+        msg = f"indices {out_of_range} are out of range for a grid with {len(figures)} figures"
+        raise IndexError(msg)
+    return gggrid([figures[i] for i in indices], **kwargs)
 
 
 def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:

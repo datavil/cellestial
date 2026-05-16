@@ -2,7 +2,7 @@ from cellestial.util.dendrogram import (
     _get_dendrogram,
     _get_dendrogram_path_frame,
 )
-from cellestial.util.operations import get_mapping, get_slice, retrieve
+from cellestial.util.operations import get_figure, get_figures, get_mapping, retrieve
 from cellestial.util.save import save
 from cellestial.util.utilities import (
     _color_gradient,
@@ -38,8 +38,9 @@ __all__ = [
     "_tooltip_fields",
     "_validate_tooltips",
     "_warn",
+    "get_figure",
+    "get_figures",
     "get_mapping",
-    "get_slice",
     "retrieve",
     "save",
 ]
