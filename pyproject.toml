@@ -37,7 +37,7 @@ pycairo = "^1.27.0"
 cairosvg = "^2.7.1"
 scvelo = "^0.3.3"
 ty = "^0.0.34"
-pandas = "2.2.2" # pinned to avoid 3.0
+pandas = ">=2.2.3,<3" # >=2.2.3 for cp313 wheels; <3 to avoid 3.0
 tqdm = "^4.67.3"
 pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
