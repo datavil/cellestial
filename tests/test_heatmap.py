@@ -290,11 +290,7 @@ def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
     n_y = adata.obs[group_key].nunique()
     spec = plot.as_dict()
-    scales = [
-        s
-        for s in spec.get("scales", [])
-        if s.get("aesthetic") == "y" and "limits" in s
-    ]
+    scales = [s for s in spec.get("scales", []) if s.get("aesthetic") == "y" and "limits" in s]
     assert scales, "dotplot should keep explicit y limits"
     # Brackets are drawn above the data area, so y limit must extend past it.
     assert scales[-1]["limits"][1] > n_y - 0.5
@@ -305,28 +301,20 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
     plot = cl.dotplot(adata, group_by=group_key, keys=groups, key_labels=False)
     n_y = adata.obs[group_key].nunique()
     spec = plot.as_dict()
-    scales = [
-        s
-        for s in spec.get("scales", [])
-        if s.get("aesthetic") == "y" and "limits" in s
-    ]
+    scales = [s for s in spec.get("scales", []) if s.get("aesthetic") == "y" and "limits" in s]
     assert scales, "dotplot should keep explicit y limits"
     assert scales[-1]["limits"][1] == n_y - 0.5
 
 
 def test_dotplot_key_labels_use_x_unit_text_size(adata, group_key):
     plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
-    text_layers = [
-        layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"
-    ]
+    text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
     assert text_layers[-1]["size_unit"] == "x"
 
 
 def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
     plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
-    text_layers = [
-        layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"
-    ]
+    text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
     assert "size_unit" not in text_layers[-1]
     assert text_layers[-1]["size"] >= 3.75
 

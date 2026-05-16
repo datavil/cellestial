@@ -50,9 +50,7 @@ def test_ondata_legend_uses_group_median_positions():
         }
     )
 
-    positions = _compute_label_positions(frame, x="x", y="y", group_by="group").sort(
-        "group"
-    )
+    positions = _compute_label_positions(frame, x="x", y="y", group_by="group").sort("group")
 
     assert positions["x"].to_list() == [0.0, 20.0]
     assert positions["y"].to_list() == [1.0, 4.0]

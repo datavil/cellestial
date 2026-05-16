@@ -51,9 +51,7 @@ def data_minimal():
     shapes = gpd.GeoDataFrame({"radius": [1.0] * n}, geometry=geometry, index=np.arange(n))
     shapes = ShapesModel.parse(shapes)
 
-    image = Image2DModel.parse(
-        rng.random((3, 32, 32)).astype("float32"), dims=("c", "y", "x")
-    )
+    image = Image2DModel.parse(rng.random((3, 32, 32)).astype("float32"), dims=("c", "y", "x"))
 
     return SpatialData(
         images={"img": image},
@@ -90,12 +88,8 @@ def data_multi():
         index=np.arange(n),
     )
     shapes_gdf = ShapesModel.parse(shapes_gdf)
-    image = Image2DModel.parse(
-        rng.random((3, 8, 8)).astype("float32"), dims=("c", "y", "x")
-    )
-    image2 = Image2DModel.parse(
-        rng.random((3, 8, 8)).astype("float32"), dims=("c", "y", "x")
-    )
+    image = Image2DModel.parse(rng.random((3, 8, 8)).astype("float32"), dims=("c", "y", "x"))
+    image2 = Image2DModel.parse(rng.random((3, 8, 8)).astype("float32"), dims=("c", "y", "x"))
     return SpatialData(
         images={"img1": image, "img2": image2},
         shapes={"spots1": shapes_gdf, "spots2": shapes_gdf.copy()},
@@ -479,9 +473,7 @@ def data_visium_hd_like():
         ),
         var=pd.DataFrame(index=["G1", "G2"]),
     )
-    table = TableModel.parse(
-        table, region="cells", region_key="region", instance_key="cell_id"
-    )
+    table = TableModel.parse(table, region="cells", region_key="region", instance_key="cell_id")
 
     cells = gpd.GeoDataFrame(
         {"radius": [1.0] * n},
@@ -573,8 +565,7 @@ def test_multipolygon_raises():
     )
     table = TableModel.parse(table, region="mp", region_key="region", instance_key="instance_id")
     geoms = [
-        MultiPolygon([Point(i, i).buffer(1.0), Point(i + 5, i + 5).buffer(1.0)])
-        for i in range(n)
+        MultiPolygon([Point(i, i).buffer(1.0), Point(i + 5, i + 5).buffer(1.0)]) for i in range(n)
     ]
     multi = ShapesModel.parse(gpd.GeoDataFrame(geometry=geoms, index=np.arange(n)))
     data = SpatialData(shapes={"mp": multi}, tables={"table": table})

@@ -71,9 +71,7 @@ def main(argv: list[str] | None = None) -> int:
 
     rows: list[Row] = []
     datasets: list[DatasetSpec] = [
-        LOCAL_LOADERS[name](subsample=size)
-        for name in args.datasets
-        for size in args.sizes
+        LOCAL_LOADERS[name](subsample=size) for name in args.datasets for size in args.sizes
     ]
     for dataset in datasets:
         print(f"[dataset] {dataset.name}  n_cells={dataset.n_cells} n_vars={dataset.n_vars}")
@@ -91,9 +89,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     rows.extend(case_rows)
                     total = next(r for r in case_rows if r.phase == "total")
-                    total_html = next(
-                        (r for r in case_rows if r.phase == "total_html"), None
-                    )
+                    total_html = next((r for r in case_rows if r.phase == "total_html"), None)
                     extra = (
                         f"  total_html={total_html.time_median_s * 1000:7.1f}ms"
                         if total_html
@@ -103,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
                         f"total={total.time_median_s * 1000:7.1f}ms  "
                         f"peak={total.peak_mem_mb:6.1f}MB{extra}"
                     )
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     print(f"FAILED: {exc!r}")
 
     with args.output.open("w", newline="") as f:

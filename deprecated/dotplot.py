@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
 
 import polars as pl
 from anndata import AnnData
@@ -171,7 +170,7 @@ def dotplot(
         show_tooltips=show_tooltips,
     )
 
-    if use_raw: # TO BE CHANGED (to layer)
+    if use_raw:  # TO BE CHANGED (to layer)
         matrix = data.raw.X.toarray()
         if threshold is None:
             threshold = 0
@@ -205,7 +204,6 @@ def dotplot(
 
 
 def test():
-    import scanpy as sc
 
     LetsPlot.setup_html()
     data = cl.datasets.pbmc3k(cache_directory="data")

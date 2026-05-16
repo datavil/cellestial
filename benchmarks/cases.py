@@ -1,4 +1,5 @@
-"""Benchmark cases: paired cellestial vs scanpy plot operations.
+"""
+Benchmark cases: paired cellestial vs scanpy plot operations.
 
 Each case exposes two phases:
 - ``construct``: build the plot object (cellestial PlotSpec / matplotlib Figure).
@@ -18,8 +19,6 @@ from typing import Any
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import scanpy as sc
 from anndata import AnnData
 
@@ -53,6 +52,7 @@ def _render_matplotlib(fig) -> None:
 # sampling='none' disables lets-plot's default point sampling (~100k cap) so
 # large datasets are fully rendered, matching scanpy's no-sampling behavior.
 
+
 def _cl_umap_gene(adata: AnnData, ctx: dict):
     return cl.expression(adata, key=ctx["gene"], sampling="none")
 
@@ -73,8 +73,8 @@ def _cl_violin(adata: AnnData, ctx: dict):
     return cl.violins(adata, keys=ctx["genes"][:4])
 
 
-
 # ---------- scanpy constructors ----------
+
 
 def _sc_umap_gene(adata: AnnData, ctx: dict):
     return sc.pl.umap(adata, color=ctx["gene"], show=False, return_fig=True)
@@ -110,7 +110,6 @@ def _sc_heatmap(adata: AnnData, ctx: dict):
 def _sc_violin(adata: AnnData, ctx: dict):
     sc.pl.violin(adata, keys=ctx["genes"][:4], show=False)
     return plt.gcf()
-
 
 
 CASES: dict[str, Case] = {

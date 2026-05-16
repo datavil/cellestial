@@ -1,6 +1,7 @@
-"""Plot benchmark results with lets-plot: scaling curves (log-log) and bars.
+"""
+Plot benchmark results with lets-plot: scaling curves (log-log) and bars.
 
-    poetry run python -m benchmarks.plot_results
+poetry run python -m benchmarks.plot_results
 """
 
 from __future__ import annotations
@@ -34,9 +35,7 @@ FRAMEWORK_COLORS = {"cellestial": "#377eb8", "scanpy": "#e41a1c"}
 
 
 def _scaling_plot(df: pl.DataFrame, phase: str, out_path: Path) -> None:
-    blobs = df.filter(
-        pl.col("dataset").str.starts_with("blobs_") & (pl.col("phase") == phase)
-    )
+    blobs = df.filter(pl.col("dataset").str.starts_with("blobs_") & (pl.col("phase") == phase))
     if blobs.is_empty():
         print(f"no blobs rows for phase={phase}; skipping")
         return
@@ -62,9 +61,7 @@ def _scaling_plot(df: pl.DataFrame, phase: str, out_path: Path) -> None:
 
 
 def _bar_plot(df: pl.DataFrame, dataset: str, out_path: Path) -> None:
-    sub = df.filter(
-        (pl.col("dataset") == dataset) & (pl.col("phase") == "total")
-    )
+    sub = df.filter((pl.col("dataset") == dataset) & (pl.col("phase") == "total"))
     if sub.is_empty():
         return
 

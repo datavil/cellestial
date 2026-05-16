@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
@@ -42,7 +42,7 @@ def _decide_dimensions_key(data: AnnData, dimensions: str) -> str:
 
 def _expand_frame(data: AnnData, frame: pl.DataFrame, to_add: list[str]) -> pl.DataFrame:
     """
-    frame already has dimensions.
+    Frame already has dimensions.
 
     expand the frame with:
     - given tooltips
@@ -229,5 +229,3 @@ def _axis_data(data: AnnData, key: str) -> int:
             raise KeyNotFoundError(msg)
 
     return axis
-
-

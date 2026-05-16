@@ -102,7 +102,8 @@ def load_paul15() -> DatasetSpec:
 def load_ebi_expression_atlas(
     accession: str = "E-MTAB-4888",
 ) -> DatasetSpec:
-    """EBI Expression Atlas dataset (downloads on first run).
+    """
+    EBI Expression Atlas dataset (downloads on first run).
 
     No UMAP/clusters in the raw download, we patch synthetic embeddings so
     we're still benchmarking plotting, not preprocessing.
@@ -123,7 +124,8 @@ def _patch_synthetic_embeddings(
     n_centers: int,
     seed: int,
 ) -> None:
-    """Attach random UMAP/PCA coords and integer cluster labels in-place.
+    """
+    Attach random UMAP/PCA coords and integer cluster labels in-place.
 
     Cells are grouped into `n_centers` clusters; UMAP/PCA coords are drawn
     around per-cluster centers so the plots don't degenerate to a single blob.
@@ -209,7 +211,8 @@ def load_local_h5ad(
     subsample: int | None = None,
     seed: int = 0,
 ) -> DatasetSpec:
-    """Load a local .h5ad file and wrap it as a DatasetSpec.
+    """
+    Load a local .h5ad file and wrap it as a DatasetSpec.
 
     Missing UMAP/PCA embeddings are patched with synthetic ones so we remain
     focused on benchmarking the plotting pipeline. ``subsample`` caps the

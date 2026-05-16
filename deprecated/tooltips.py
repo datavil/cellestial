@@ -4,8 +4,6 @@ from collections.abc import Sequence
 
 from lets_plot import layer_tooltips
 
-from cellestial.util.utilities import _select_variable_keys
-
 
 def _decide_tooltips(
     base_tooltips: Sequence[str] | str | None,
@@ -55,6 +53,7 @@ def _decide_tooltips(
 
     return tooltips
 
-def _build_tooltips(tooltips:layer_tooltips|list[str]) ->layer_tooltips:
+
+def _build_tooltips(tooltips: layer_tooltips | list[str]) -> layer_tooltips:
     pass
-    #TODO
+    # TODO

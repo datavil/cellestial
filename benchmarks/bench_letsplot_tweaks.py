@@ -1,4 +1,5 @@
-"""Ad-hoc benchmark: Lets-Plot render-time speedup experiments for cellestial.
+"""
+Ad-hoc benchmark: Lets-Plot render-time speedup experiments for cellestial.
 
 Tests a handful of strategies to close the render-time gap vs scanpy on
 50k+ cell UMAPs, all on the same local dataset.
@@ -23,7 +24,7 @@ from __future__ import annotations
 import argparse
 import io
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from statistics import median
 
@@ -37,9 +38,9 @@ from benchmarks.datasets import load_breast_cancer_atlas
 @dataclass
 class Variant:
     name: str
-    prepare: "callable"
-    construct: "callable"
-    render: "callable"
+    prepare: callable
+    construct: callable
+    render: callable
 
 
 @dataclass
@@ -125,7 +126,7 @@ def time_once(variant: Variant, adata: AnnData, ctx: dict) -> Result:
         construct_s=t1 - t0,
         render_s=t2 - t1,
         total_s=t2 - t0,
-        notes=f"payload~{payload_size/1e6:.1f}MB" if payload_size else "",
+        notes=f"payload~{payload_size / 1e6:.1f}MB" if payload_size else "",
     )
 
 
@@ -171,10 +172,10 @@ def main() -> int:
                 variant, spec.adata, ctx, repeats=args.repeats, warmup=args.warmup
             )
             print(
-                f"{result.variant:<20s}  {result.construct_s*1000:>8.1f}ms  "
-                f"{result.render_s*1000:>8.1f}ms  {result.total_s*1000:>8.1f}ms  {result.notes}"
+                f"{result.variant:<20s}  {result.construct_s * 1000:>8.1f}ms  "
+                f"{result.render_s * 1000:>8.1f}ms  {result.total_s * 1000:>8.1f}ms  {result.notes}"
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"{variant.name:<20s}  FAILED: {exc!r}")
     return 0
 
