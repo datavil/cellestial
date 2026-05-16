@@ -58,3 +58,7 @@ jupyter_execute/
 data/
 *.h5
 *.h5ad
+
+
+# small scripts
+merge.sh

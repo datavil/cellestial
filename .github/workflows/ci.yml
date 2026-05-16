@@ -76,7 +76,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
-          files: ./tests/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build wheel
