@@ -591,12 +591,16 @@ def _resolve_embedding_key(
 
     target = f"X_{dimensions.upper()}"
     needed = max(xy)
+    search_targets = (target, dimensions.upper())  # accept bare `UMAP` too, not only `X_UMAP`
 
     for key in candidates:
-        if key.upper() == target:
-            return target
+        if key.upper() in search_targets:
+            return key.upper()
 
-    prefix_matches = [key for key in candidates if key.upper().startswith(target)]
+    prefix_matches = [
+        key for key in candidates
+        if any(key.upper().startswith(t) for t in search_targets)
+    ]
     if not prefix_matches:
         msg = (
             f"No embedding found for `dimensions='{dimensions}'`\n"
