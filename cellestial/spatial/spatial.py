@@ -104,7 +104,15 @@ def _spatial_components(
 
         library = spatial_uns[library_id]
         scale_factors = library.get("scalefactors", {})
-        scale_factor = scale_factors.get(f"tissue_{image_key}_scalef", 1.0)
+        scalef_key = f"tissue_{image_key}_scalef"
+        scale_factor = scale_factors.get(scalef_key)
+        if scale_factor is None:
+            if image:
+                _warn(
+                    f"Scale factor `{scalef_key}` missing; "
+                    "spots may not align with the image."
+                )
+            scale_factor = 1.0
         spot_coordinates = data.obsm[spatial_key] * scale_factor
 
         image_array = None
