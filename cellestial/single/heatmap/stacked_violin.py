@@ -278,11 +278,7 @@ def stacked_violin(
     geom_fill : str | None, default=None
         Static fill color for all violins. Overrides any fill aesthetic.
 
-            **Accepts:**
 
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
     geom_color : str | None, default=None
         Border color for all violins.
     dendrogram : bool, default=False

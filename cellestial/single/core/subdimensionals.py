@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
 
-
 def dimensionals(
     data: AnnData,
     keys: Sequence[str],
@@ -99,34 +98,10 @@ def dimensionals(
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_mid : str, default=None
         The color to use for the middle part of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -142,13 +117,6 @@ def dimensionals(
         Size of the arrow.
     arrow_color : str, default='#3f3f3f'
         Color of the arrows.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
@@ -313,7 +281,6 @@ def dimensionals(
 
     return scttrs
 
-
 def umaps(
     data: AnnData,
     keys: Sequence[str],
@@ -394,34 +361,10 @@ def umaps(
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_mid : str, default=None
         The color to use for the middle part of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -437,13 +380,6 @@ def umaps(
         Size of the arrow.
     arrow_color : str, default='#3f3f3f'
         Color of the arrows.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-
 
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
@@ -607,7 +543,6 @@ def umaps(
 
     return scttrs
 
-
 def tsnes(
     data: AnnData,
     keys: Sequence[str],
@@ -688,34 +623,10 @@ def tsnes(
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_mid : str, default=None
         The color to use for the middle part of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -731,14 +642,6 @@ def tsnes(
         Size of the arrow.
     arrow_color : str, default='#3f3f3f'
         Color of the arrows.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-
-
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
     legend_ondata: bool, default=False
@@ -900,7 +803,6 @@ def tsnes(
 
     return scttrs
 
-
 def pcas(
     data: AnnData,
     keys: Sequence[str],
@@ -981,34 +883,10 @@ def pcas(
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_mid : str, default=None
         The color to use for the middle part of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -1024,13 +902,6 @@ def pcas(
         Size of the arrow.
     arrow_color : str, default='#3f3f3f'
         Color of the arrows.
-
-            **Accepts**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
     legend_ondata: bool, default=False
@@ -1193,7 +1064,6 @@ def pcas(
 
     return scttrs
 
-
 def expressions(
     data: AnnData,
     keys: Sequence[str],
@@ -1277,34 +1147,10 @@ def expressions(
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_mid : str, default=None
         The color to use for the middle part of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-        - Applies to continuous (non-categorical) data.
-
     mid_point : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
@@ -1320,14 +1166,6 @@ def expressions(
         Size of the arrow.
     arrow_color : str, default='#3f3f3f'
         Color of the arrows.
-
-            **Accepts:**
-
-            - hex code e.g. '#f1f1f1'
-            - color name (https://lets-plot.org/python/pages/named_colors.html).
-            - RGB/RGBA e.g. 'rgb(0, 0, 255)', 'rgba(0, 0, 255, 0.5)'.
-
-
     arrow_angle : float, default=10
         Angle of the arrow head in degrees.
     legend_ondata: bool, default=False
