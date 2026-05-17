@@ -422,6 +422,42 @@ def test_resolve_embedding_unsupported_type():
         _resolve_embedding_key("not anndata", "umap", None, xy=(1, 2))
 
 
+def test_resolve_embedding_bare_form_exact_silent(adata):
+    """Only `umap` in obsm (no scanpy `X_` prefix) -> silent, returns `UMAP`."""
+    local = adata.copy()
+    local.obsm["umap"] = local.obsm.pop("X_umap")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = _resolve_embedding_key(local, "umap", None, xy=(1, 2))
+    assert result == "UMAP"
+    cellestial_warnings = [w for w in caught if issubclass(w.category, CellestialWarning)]
+    assert cellestial_warnings == []
+
+
+def test_resolve_embedding_bare_form_prefix_warns(adata):
+    """Only `UMAP_2D` in obsm -> matches bare prefix, warns and picks it."""
+    local = adata.copy()
+    n_obs = local.n_obs
+    local.obsm.pop("X_umap")
+    local.obsm["UMAP_2D"] = np.zeros((n_obs, 2))
+    with pytest.warns(CellestialWarning, match="UMAP_2D"):
+        result = _resolve_embedding_key(local, "umap", None, xy=(1, 2))
+    assert result == "UMAP_2D"
+
+
+def test_resolve_embedding_canonical_wins_over_bare(adata):
+    """When both `X_UMAP` and `UMAP` exist, canonical `X_UMAP` is preferred."""
+    local = adata.copy()
+    n_obs = local.n_obs
+    local.obsm["UMAP"] = np.zeros((n_obs, 2))
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = _resolve_embedding_key(local, "umap", None, xy=(1, 2))
+    assert result == "X_UMAP"
+    cellestial_warnings = [w for w in caught if issubclass(w.category, CellestialWarning)]
+    assert cellestial_warnings == []
+
+
 # ---- get_mapping / retrieve error paths ----
 
 

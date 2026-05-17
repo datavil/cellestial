@@ -15,6 +15,7 @@
 - [Feedback: Docs avoid AnnData internals](feedback_docs_no_anndata_internals.md) — Don't reference AnnData slots OR scanpy APIs (`scanpy.tl.dendrogram`, `key_added`) in user-facing docstrings; abstract them
 - [Feedback: Docstring backtick discipline](feedback_docstring_backticks.md) — Don't sprinkle double backticks; match neighboring params (single backticks for identifiers, plain text otherwise)
 - [Feedback: Don't overengineer key resolvers](feedback_dont_overengineer_resolvers.md) — `use_key | None -> default` is a one-liner; no scanning, no candidate ranking, no shape helpers unless there's real ambiguity
+- [Feedback: Report only findings](feedback_report_only_findings.md) — When asked for weaknesses/problems, list those only; no "Not weaknesses (for completeness)" filler
 - [Feedback: Never use em dashes](feedback_no_em_dashes.md) — User hates em dashes; never write them in code, docs, comments, or chat
 - [Feedback: `if isinstance(data, AnnData)` block stays](feedback_isinstance_anndata_block.md) — Never flatten to `if not isinstance: raise`; positive branch hosts AnnData-specific ops for future multi-backend support
 - [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
@@ -114,6 +115,26 @@ When adding a "specify a key, default to something" parameter, the body should b
 **Why:** The user explicitly called this out: *"if dendrogram_key is None just use the default else use what is given. do not overcomplicate it."* The fancy resolver I built (`_resolve_dendrogram_key` with prefix/groupby matching, tiebreak rules, multi-candidate warnings, helper functions for shape detection and field unwrapping) was ~70 lines plus 9 tests for what should be 1 line plus 0 extra tests. The earlier `_resolve_embedding_key` (the user's own commit) IS more elaborate, but only because embedding lookups have a real ambiguity (multiple obsm keys with shared prefix, dimensionality varies). Dendrogram lookup has no such ambiguity — there's exactly one key the user named, or the canonical default. Don't generalize from one resolver's complexity to all resolvers.
 
 **How to apply:** When introducing a `foo_key: str | None = None` parameter, first ask "is there genuine ambiguity to resolve, or just a default?" If it's just a default, write the one-liner. Only build a resolver when the search space actually has multiple plausibly-correct candidates and the user benefits from automatic disambiguation. See `feedback_docstring_backticks.md` and `feedback_docs_no_anndata_internals.md` for adjacent docstring lessons from the same review pass.
+
+
+---
+
+## Source: feedback_report_only_findings.md
+
+---
+name: Report only findings, no "for completeness" filler
+description: When asked for weaknesses/problems/issues, list those only — don't pad with "things I checked but were fine"
+type: feedback
+---
+When the user asks to scan for weaknesses, bugs, or problems, the report contains only what was found. Do not add a "Not weaknesses (worth noting for completeness)" / "Things I checked that look OK" / "Out of scope" section. Do not list code paths you inspected and cleared.
+
+**Why:** The user called this out directly: *"why did you tell me this, what is the problem??"* — pointing at a section I'd labeled "Not weaknesses (worth noting for completeness)" in a weakness scan. Padding a findings report with non-findings:
+- Inflates the report with content the user didn't ask for.
+- Forces them to re-read and dismiss each item to confirm it's not a problem.
+- Reads as self-congratulatory ("look at everything I checked"), not service.
+- Dilutes the signal of the real findings.
+
+**How to apply:** If asked "find X", return only the X you found. If something looked suspicious but turned out fine, drop it from the report. The exception is when *not finding* something is the answer itself ("no issues found in <area>") — that's a finding, not filler.
 
 
 ---

@@ -142,3 +142,23 @@ def test_pca_variance_frame_errors():
         _pca_variance_frame(data, n_pcs=2)
     with pytest.raises(Exception, match="Unsupported data type"):
         _pca_variance_frame("not adata")
+
+
+def test_pca_variance_frame_custom_use_key():
+    data = AnnData(X=np.ones((2, 3)))
+    data.uns["pca_harmony"] = {"variance_ratio": np.array([0.6, 0.3, 0.1])}
+    frame = _pca_variance_frame(data, n_pcs=2, use_key="pca_harmony")
+    assert frame["Variance Ratio"].to_list() == [0.6, pytest.approx(0.3)]
+
+
+def test_pca_variance_frame_missing_custom_key_names_it():
+    data = AnnData(X=np.ones((2, 3)))
+    with pytest.raises(ValueError, match="`pca_harmony`"):
+        _pca_variance_frame(data, use_key="pca_harmony")
+
+
+def test_elbow_pca_key_threads_through():
+    data = AnnData(X=np.ones((2, 3)))
+    data.uns["pca_harmony"] = {"variance_ratio": np.array([0.5, 0.3, 0.2])}
+    plot = cl.elbow(data, pca_key="pca_harmony")
+    assert plot is not None

@@ -366,6 +366,58 @@ def test_spatial_anndata_visium_errors_and_warnings():
         cl.spatial(data, library_id="a", image=False, crop=[1, 2, 3])
 
 
+def _visium_like(scalefactors: dict) -> AnnData:
+    n = 3
+    rng = np.random.default_rng(15)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame({"score": [1.0, 2.0, 3.0]}, index=[f"c{i}" for i in range(n)]),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+    data.uns["spatial"] = {
+        "lib": {
+            "images": {"lowres": rng.random((4, 4, 4)).astype("float32")},
+            "scalefactors": scalefactors,
+        }
+    }
+    return data
+
+
+import warnings as _warnings_module
+
+
+def _scalef_warnings(caught) -> list:
+    return [
+        w
+        for w in caught
+        if issubclass(w.category, cl.util.errors.CellestialWarning)
+        and "Scale factor" in str(w.message)
+    ]
+
+
+def test_spatial_scalefactor_present_silent():
+    data = _visium_like({"tissue_lowres_scalef": 0.5})
+    with _warnings_module.catch_warnings(record=True) as caught:
+        _warnings_module.simplefilter("always")
+        cl.spatial(data, image=True)
+    assert _scalef_warnings(caught) == []
+
+
+def test_spatial_scalefactor_missing_with_image_warns():
+    data = _visium_like({})  # scalefactor absent
+    with pytest.warns(cl.util.errors.CellestialWarning, match="tissue_lowres_scalef"):
+        cl.spatial(data, image=True)
+
+
+def test_spatial_scalefactor_missing_without_image_silent():
+    data = _visium_like({})
+    with _warnings_module.catch_warnings(record=True) as caught:
+        _warnings_module.simplefilter("always")
+        cl.spatial(data, image=False)
+    assert _scalef_warnings(caught) == []
+
+
 def test_spatial_components_anndata_errors():
     data = AnnData(X=np.ones((2, 2)), var=pd.DataFrame(index=["G1", "G2"]))
 
