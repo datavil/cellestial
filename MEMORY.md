@@ -22,6 +22,7 @@
 - [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
 - [Feedback: No hidden aesthetic promotion](feedback_no_hidden_aesthetic_promotion.md) — Don't auto-promote `group_by` to `fill`/`color`; user wires aesthetics explicitly, prefer warn+facet over hidden magic
 - [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
+- [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
 
 
 ---
@@ -609,3 +610,27 @@ Cellestial uses **Poetry** for dependency management and running commands.
 **Why:** User explicitly confirmed on 2026-04-13 after I suggested `uv` commands.
 
 **How to apply:** Use `poetry add`, `poetry add --group dev`, `poetry run <cmd>`, `poetry install` — not `uv`, `pip install`, or `pip install -e .`. When suggesting dev tool installation or test commands, default to Poetry syntax.
+
+
+---
+
+## Source: feedback_explicit_list_extend.md
+
+---
+name: feedback-explicit-list-extend
+description: Prefer explicit `list(x); x.extend(...)` over unpacking `[*a, *b]` when combining a user-supplied sequence with extra items
+type: feedback
+---
+
+When combining a user-supplied sequence (possibly None) with additional items, prefer the explicit two-line form:
+
+```python
+variable_keys = list(variable_keys)
+variable_keys.extend(_select_variable_keys(data, keys))
+```
+
+Do NOT collapse into `variable_keys = [*(variable_keys or []), *_select_variable_keys(data, keys)]`.
+
+**Why:** User finds the splat-unpacking form ugly. The explicit form reads top-to-bottom, mirrors patterns already used elsewhere in the codebase (see `cellestial/spatial/spatial.py` around the `variable_keys` handling), and the variable's role is clearer.
+
+**How to apply:** Whenever you reach for `[*a, *b]` to merge a sequence parameter with computed items in this codebase, write `x = list(x); x.extend(...)` instead.

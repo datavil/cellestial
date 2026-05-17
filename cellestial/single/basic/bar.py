@@ -97,7 +97,8 @@ def bar(
     if variable_keys is None:
         variable_keys = _select_variable_keys(data, keys)
     else:
-        list(variable_keys).extend(_select_variable_keys(data, keys))
+        variable_keys = list(variable_keys)
+        variable_keys.extend(_select_variable_keys(data, keys))
     axis = axis or _determine_axis(data=data, keys=keys)
     # BUILD: the bar plot
     br = baseplot(
