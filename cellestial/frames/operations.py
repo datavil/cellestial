@@ -50,15 +50,13 @@ def _pca_variance_frame(
     n_pcs: int | None = None,
     component_column: str = "Principal Component",
     variance_column: str = "Variance Ratio",
+    use_key: str = "pca",
 ) -> DataFrame:
     """Get PCA variance ratio per principal component as a polars DataFrame."""
     if isinstance(data, AnnData):
-        pca_uns = data.uns.get("pca")
+        pca_uns = data.uns.get(use_key)
         if pca_uns is None or "variance_ratio" not in pca_uns:
-            msg = (
-                "PCA variance ratio is not available on this data. "
-                "Run PCA first (e.g., `sc.tl.pca(data)`)."
-            )
+            msg = f"PCA variance ratio not found under `{use_key}`. Run PCA first."
             raise ValueError(msg)
         variance_ratio = np.asarray(pca_uns["variance_ratio"]).ravel()
         n_available = variance_ratio.size

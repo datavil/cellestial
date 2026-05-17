@@ -36,6 +36,7 @@ def elbow(
     label: bool = False,
     label_size: float = 4.0,
     label_every: int = 5,
+    pca_key: str = "pca",
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -73,6 +74,8 @@ def elbow(
     label_every : int, default=5
         Only components whose number is a multiple of this value are labeled
         (used when `label=True`). For example, `5` labels PC5, PC10, PC15, ...
+    pca_key : str, default='pca'
+        Specific key holding the PCA results.
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -124,6 +127,7 @@ def elbow(
         n_pcs=n_pcs,
         component_column=component_column,
         variance_column=variance_column,
+        use_key=pca_key,
     )
 
     # HANDLE: mapping
