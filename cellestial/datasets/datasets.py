@@ -165,7 +165,7 @@ def pbmc3k(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download and preprocess the pbmc3k dataset.
+    Download, preprocess, and load the pbmc3k dataset.
 
     Parameters
     ----------
@@ -338,7 +338,7 @@ def pancreas(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download and preprocess the endocrinogenesis day-15 pancreas dataset.
+    Download, preprocess, and load the endocrinogenesis day-15 pancreas dataset.
 
     Parameters
     ----------
@@ -430,7 +430,7 @@ def from_url(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download an `.h5ad` dataset from a direct HTTP(S) URL.
+    Download and load an `.h5ad` dataset from a direct HTTP(S) URL.
 
     Parameters
     ----------
@@ -532,7 +532,7 @@ def from_cellxgene(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download a dataset from CELLxGENE by URL or UUID.
+    Download and load a dataset from CELLxGENE by URL or UUID.
 
     Parameters
     ----------
@@ -600,7 +600,7 @@ def breast_cancer_atlas(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download the breast cancer cell atlas from CELLxGENE.
+    Download and load the breast cancer cell atlas from CELLxGENE.
 
     Parameters
     ----------
@@ -644,7 +644,7 @@ def human_lymph_node(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download and preprocess the V1 Human Lymph Node Visium spatial dataset.
+    Download, preprocess, and load the V1 Human Lymph Node Visium spatial dataset.
 
     Parameters
     ----------
