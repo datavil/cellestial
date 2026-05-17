@@ -56,8 +56,8 @@ def _spatial_components(
     """
     Extract image, geometry, and the annotation table.
 
-    Returns ``(image, point_coords, polygon_frame, table)``. Exactly one of
-    ``point_coords`` and ``polygon_frame`` is non-None. For AnnData input
+    Returns `(image, point_coords, polygon_frame, table)`. Exactly one of
+    `point_coords` and `polygon_frame` is non-None. For AnnData input
     the table is the input itself; for SpatialData it is the resolved table.
     """
     if isinstance(data, SpatialData):
@@ -200,9 +200,9 @@ def spatial(
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
     scale_axis : {0, 1} | None, default=None
-        Whether to standardize ``key`` values between 0 and 1 with min-max
+        Whether to standardize `key` values between 0 and 1 with min-max
         scaling. Constant values are set to 0.
-        Only applied when ``key`` is numeric.
+        Only applied when `key` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs (coordinates come from the chosen

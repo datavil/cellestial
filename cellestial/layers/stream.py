@@ -50,8 +50,8 @@ def stream(
     ----------
     plot : PlotSpec | None, default=None
         If provided, streams are computed from this plot's data and aesthetics
-        regardless of which plot the resulting layer is added to. When ``None``,
-        the layer is deferred and introspects the plot it is added to via ``+``.
+        regardless of which plot the resulting layer is added to. When `None`,
+        the layer is deferred and introspects the plot it is added to via `+`.
     color : str, default="#1f1f1f"
         Color of the stream lines.
     alpha : float, default=0.7
@@ -153,7 +153,7 @@ def stream(
 
     Stream as a separate layer to showcase the modularity of layers in Cellestial.
     Here the data source is passed explicitly because the receiving plot
-    (``ggplot()``) has no embedding to introspect.
+    (`ggplot()`) has no embedding to introspect.
 
     .. jupyter-execute::
 

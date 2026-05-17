@@ -14,6 +14,7 @@
 - [Feedback: Avoid shortened variable names](feedback_naming.md) — No abbreviations like `grp_idx`/`obs`/`cfg`; use full words (only `n`-style counts OK)
 - [Feedback: Docs avoid AnnData internals](feedback_docs_no_anndata_internals.md) — Don't reference AnnData slots OR scanpy APIs (`scanpy.tl.dendrogram`, `key_added`) in user-facing docstrings; abstract them
 - [Feedback: Docstring backtick discipline](feedback_docstring_backticks.md) — Don't sprinkle double backticks; match neighboring params (single backticks for identifiers, plain text otherwise)
+- [Feedback: Docstring single-line summary](feedback_docstring_single_line_summary.md) — One-line summary then Parameters; extra context goes into a Notes section, never floating prose
 - [Feedback: Don't overengineer key resolvers](feedback_dont_overengineer_resolvers.md) — `use_key | None -> default` is a one-liner; no scanning, no candidate ranking, no shape helpers unless there's real ambiguity
 - [Feedback: Report only findings](feedback_report_only_findings.md) — When asked for weaknesses/problems, list those only; no "Not weaknesses (for completeness)" filler
 - [Feedback: Never use em dashes](feedback_no_em_dashes.md) — User hates em dashes; never write them in code, docs, comments, or chat
@@ -99,6 +100,27 @@ Keep docstring formatting plain. Match the style of neighboring parameters in th
 **Why:** Reflexively reaching for RST-style double backticks (a habit borrowed from sphinx-heavy projects) clutters the rendered docstring with backtick noise and breaks tonal consistency with the rest of the file. The user flagged this directly: "you are using double backticks so freely." See `feedback_docs_no_anndata_internals.md` — the same review pass.
 
 **How to apply:** Before submitting a docstring change, glance at the surrounding params. If they use plain prose with occasional single-backtick identifiers, match that. Reserve double backticks for true code-block-like literals where single backticks would be ambiguous, and even then prefer the shorter form when the rest of the docstring uses it.
+
+
+---
+
+## Source: feedback_docstring_single_line_summary.md
+
+---
+name: docstring-single-line-summary
+description: Cellestial docstrings must have a single-line summary then go directly to Parameters; any extra context goes into a Notes section
+type: feedback
+---
+
+Cellestial function docstrings should consist of exactly one summary line followed directly by the Parameters section. Do not add a paragraph below the summary line. If the function needs additional explanation that provides important context, place it under a `Notes` section (NumPy docstring style), not floating between the summary and Parameters.
+
+**Why:** The user wants consistent, scannable docstrings. Free-floating prose between the summary and Parameters block clutters the rendered API docs and breaks the NumPy convention used in cellestial. Important context is fine, but it belongs in `Notes` where it's properly labeled.
+
+**How to apply:** When writing or editing any cellestial docstring:
+- Keep the first line a single concise summary sentence.
+- Go straight to `Parameters` after a blank line.
+- If there is meaningful context (caveats, behavior notes, references to related plots/keys), put it in a `Notes` section after `Returns`/`Examples`.
+- Pair with `feedback_docstring_backticks.md` (reserve double backticks for true literals) and `feedback_docs_no_anndata_internals.md` (don't leak AnnData/scanpy internals).
 
 
 ---

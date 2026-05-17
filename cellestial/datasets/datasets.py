@@ -70,19 +70,21 @@ def _run_steps(
     """
     Drive a sequence of preprocessing steps with a tqdm progress bar.
 
-    Each step is a ``(label, code, action)`` triple. The bar description is set
-    to ``"{desc} | {label}: {code}"`` before ``action`` runs, so the user sees
-    both a human label and the underlying call. ``FutureWarning`` and
-    ``UserWarning`` are silenced for the duration so they don't clutter the bar;
-    the suppression is scoped to this call only.
-
     Parameters
     ----------
     steps : Sequence[tuple[str, str, Callable[[], object]]]
-        Steps to execute in order. ``label`` is human-readable, ``code`` is a
-        short representation of the call, ``action`` performs the work.
+        Steps to execute in order. `label` is human-readable, `code` is a
+        short representation of the call, `action` performs the work.
     desc : str
-        Prefix shown on every step's description, e.g. ``"Preprocessing pbmc3k"``.
+        Prefix shown on every step's description, e.g. `"Preprocessing pbmc3k"`.
+
+    Notes
+    -----
+    Each step is a `(label, code, action)` triple. The bar description is set
+    to `"{desc} | {label}: {code}"` before `action` runs, so the user sees
+    both a human label and the underlying call. `FutureWarning` and
+    `UserWarning` are silenced for the duration so they don't clutter the bar;
+    the suppression is scoped to this call only.
     """
     import contextlib
     import os
@@ -165,9 +167,6 @@ def pbmc3k(
     """
     Download and preprocess the pbmc3k dataset.
 
-    Adopted from
-    https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html.
-
     Parameters
     ----------
     cache_directory : str | Path | PathLike
@@ -184,6 +183,11 @@ def pbmc3k(
     -------
     AnnData
         The preprocessed pbmc3k dataset.
+
+    Notes
+    -----
+    Adopted from
+    https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html.
     """
     _require_extras("pbmc3k", "scanpy", "pooch")
 
@@ -426,15 +430,12 @@ def from_url(
     bring: bool = True,
 ) -> AnnData:
     """
-    Download an ``.h5ad`` dataset from a direct HTTP(S) URL.
-
-    Generic loader for any host that serves an AnnData ``.h5ad`` file at a
-    stable URL (CELLxGENE, Zenodo, Figshare, S3 buckets, etc.).
+    Download an `.h5ad` dataset from a direct HTTP(S) URL.
 
     Parameters
     ----------
     url : str
-        Direct URL to a downloadable ``.h5ad`` file.
+        Direct URL to a downloadable `.h5ad` file.
     name : str, optional
         Name for the cached file (without extension). If omitted, the cache
         filename is derived from the URL's last path segment.
@@ -459,6 +460,11 @@ def from_url(
         If `name` is not given and no filename can be derived from `url`.
     OSError
         If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    Generic loader for any host that serves an AnnData `.h5ad` file at a
+    stable URL (CELLxGENE, Zenodo, Figshare, S3 buckets, etc.).
     """
     from urllib.parse import urlparse
     from urllib.request import urlopen
@@ -528,15 +534,12 @@ def from_cellxgene(
     """
     Download a dataset from CELLxGENE by URL or UUID.
 
-    Thin wrapper around `from_url` that accepts a CELLxGENE dataset UUID
-    directly and constructs the canonical download URL.
-
     Parameters
     ----------
     source : str
         A CELLxGENE dataset UUID (e.g.
-        ``7cdea341-ca7a-40fd-8192-b8ecb2d7b91e``) or a full ``.h5ad`` URL (e.g.
-        ``https://datasets.cellxgene.cziscience.com/<uuid>.h5ad``).
+        `7cdea341-ca7a-40fd-8192-b8ecb2d7b91e`) or a full `.h5ad` URL (e.g.
+        `https://datasets.cellxgene.cziscience.com/<uuid>.h5ad`).
     name : str, optional
         Name for the cached file (without extension). Defaults to the dataset
         UUID parsed from `source`.
@@ -561,6 +564,11 @@ def from_cellxgene(
         If `source` is neither a CELLxGENE dataset UUID nor a URL containing one.
     OSError
         If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    Thin wrapper around `from_url` that accepts a CELLxGENE dataset UUID
+    directly and constructs the canonical download URL.
     """
     match = _UUID_PATTERN.search(source)
     if match is None:
@@ -594,8 +602,6 @@ def breast_cancer_atlas(
     """
     Download the breast cancer cell atlas from CELLxGENE.
 
-    Thin wrapper around `from_cellxgene` with the atlas UUID baked in.
-
     Parameters
     ----------
     cache_directory : str | Path | PathLike
@@ -617,6 +623,10 @@ def breast_cancer_atlas(
     ------
     OSError
         If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    Thin wrapper around `from_cellxgene` with the atlas UUID baked in.
     """
     return from_cellxgene(
         "7cdea341-ca7a-40fd-8192-b8ecb2d7b91e",

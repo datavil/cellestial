@@ -52,8 +52,8 @@ def ondata_legend(
     ----------
     plot : PlotSpec | None, default=None
         If provided, labels are computed from this plot's data and aesthetics
-        regardless of which plot the resulting layer is added to. When ``None``,
-        the layer is deferred and introspects the plot it is added to via ``+``.
+        regardless of which plot the resulting layer is added to. When `None`,
+        the layer is deferred and introspects the plot it is added to via `+`.
     x : str | None, default=None
         The column name in the data used for x-axis coordinates. e.g 'X_UMAP1'.
         If None, it will be inferred from the plot aesthetics.

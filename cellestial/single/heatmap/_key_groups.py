@@ -20,14 +20,14 @@ def _resolve_key_groups(
     key_labels: bool = True,
 ) -> tuple[list[str], dict[str, list[str]] | None]:
     """
-    Flatten ``keys`` if it is a mapping of group label to keys.
+    Flatten `keys` if it is a mapping of group label to keys.
 
     Returns
     -------
     flat_keys : list[str]
         Concatenated list of keys preserving group order.
     groups : dict[str, list[str]] | None
-        Group label to keys, or ``None`` when ``keys`` was already a flat sequence.
+        Group label to keys, or `None` when `keys` was already a flat sequence.
 
     Raises
     ------
@@ -108,7 +108,7 @@ _Y_PADDING_SAFETY_FRACTION = 0.030
 
 
 def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) -> float:
-    """Label size in absolute lets-plot text units (used without ``size_unit``)."""
+    """Label size in absolute lets-plot text units (used without `size_unit`)."""
     n_keys = sum(len(values) for values in groups.values())
     max_chars = max((len(label) for label in groups), default=0)
     extra_chars = max(0, max_chars - _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD)
@@ -126,9 +126,9 @@ def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) ->
 
 def _label_size_y_units(groups: dict[str, list[str]], *, span: float, scale: float = 1.0) -> float:
     """
-    Label size in y-axis units (used with ``geom_text(size_unit='y')``).
+    Label size in y-axis units (used with `geom_text(size_unit='y')`).
 
-    Scales with ``span`` so the rendered visual size stays roughly constant
+    Scales with `span` so the rendered visual size stays roughly constant
     across plots with different y-axis spans. Long labels are shrunk slightly
     to keep the bracket area from dominating the plot.
     """
@@ -151,10 +151,10 @@ def _resolve_padding(
     """
     Compute y-axis padding (in data units) for the bracket area.
 
-    ``padding`` overrides the auto value when given. ``scale`` is a per-plot
-    multiplier applied to the auto padding (use ``<1`` for a more compact
-    bracket area). ``size_unit`` selects the sizing mode (``None`` for the
-    absolute heatmap mode, ``"y"`` for the y-unit dotplot/stacked_violin mode).
+    `padding` overrides the auto value when given. `scale` is a per-plot
+    multiplier applied to the auto padding (use `<1` for a more compact
+    bracket area). `size_unit` selects the sizing mode (`None` for the
+    absolute heatmap mode, `"y"` for the y-unit dotplot/stacked_violin mode).
     """
     if padding is not None:
         return padding
@@ -197,11 +197,11 @@ def _build_key_groups_frame(
     width: float = 0.6,
 ) -> pl.DataFrame:
     """
-    Build the ``geom_bracket`` data frame spanning column groups on the variable axis.
+    Build the `geom_bracket` data frame spanning column groups on the variable axis.
 
-    ``width`` is the bracket width for a singleton group in column units. For a
-    group of ``N >= 2`` keys at column indices ``first..last``, the bracket
-    extends ``width / 2`` past the first and last key center on each side.
+    `width` is the bracket width for a singleton group in column units. For a
+    group of `N >= 2` keys at column indices `first..last`, the bracket
+    extends `width / 2` past the first and last key center on each side.
     """
     extension = width / 2
     xmins: list[float] = []
@@ -247,12 +247,12 @@ def _key_groups_layers(
     """
     Build the layers that annotate column groups above the plot.
 
-    Each bracket is one connected ``geom_path`` (left tip down, top bar across,
+    Each bracket is one connected `geom_path` (left tip down, top bar across,
     right tip down) so the corners join cleanly with no sub-pixel gap. A
-    vertical label is centered on each bracket as a separate ``geom_text``.
+    vertical label is centered on each bracket as a separate `geom_text`.
 
-    ``size_unit`` selects the label sizing mode (``None`` for absolute units,
-    otherwise express the size in that axis' data units). ``label_size_span``
+    `size_unit` selects the label sizing mode (`None` for absolute units,
+    otherwise express the size in that axis' data units). `label_size_span`
     lets callers size text from a different axis span than the y span used for
     bracket geometry.
     """

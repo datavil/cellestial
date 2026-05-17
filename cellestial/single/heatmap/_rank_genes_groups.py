@@ -15,7 +15,7 @@ _DEFAULT_RANK_GENES_KEY = "rank_genes_groups"
 
 
 def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:  # noqa: FBT001
-    """Translate the user-facing flag into the ``adata.uns`` key to read."""
+    """Translate the user-facing flag into the `adata.uns` key to read."""
     if rank_genes_groups is True:
         return _DEFAULT_RANK_GENES_KEY
     if isinstance(rank_genes_groups, str):
@@ -40,23 +40,23 @@ def _extract_rank_genes_groups(
     Parameters
     ----------
     data : AnnData
-        Source object that already contains a ``rank_genes_groups`` result.
+        Source object that already contains a `rank_genes_groups` result.
     rank_genes_groups : bool | str
-        ``True`` reads from the default ``rank_genes_groups`` key; a string
-        reads from the matching custom key (e.g. ``rank_genes_groups_wilcoxon``).
+        `True` reads from the default `rank_genes_groups` key; a string
+        reads from the matching custom key (e.g. `rank_genes_groups_wilcoxon`).
     n_genes : int
         Number of top genes to pull per group.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include in mapping order. ``None`` keeps all
+        Subset of groups to include in mapping order. `None` keeps all
         groups in their stored order.
 
     Returns
     -------
     keys : dict[str, list[str]]
         Mapping from group label to top-N gene names, ready to feed into
-        ``_resolve_key_groups``.
+        `_resolve_key_groups`.
     group_by : str
-        The categorical key used when ``rank_genes_groups`` was computed.
+        The categorical key used when `rank_genes_groups` was computed.
     """
     if n_genes < 1:
         msg = f"`n_genes` must be >= 1, got {n_genes}."
@@ -157,10 +157,10 @@ def _resolve_rank_genes_groups_args(
     group_by: str | None,
 ) -> tuple[dict[str, list[str]], str]:
     """
-    Validate caller inputs and return the resolved ``keys`` and ``group_by``.
+    Validate caller inputs and return the resolved `keys` and `group_by`.
 
-    Raises if ``keys`` is also supplied, or if a caller-provided ``group_by``
-    disagrees with the value stored in ``adata.uns[...]['params']['groupby']``.
+    Raises if `keys` is also supplied, or if a caller-provided `group_by`
+    disagrees with the value stored in `adata.uns[...]['params']['groupby']`.
     """
     if keys is not None:
         msg = (

@@ -61,7 +61,7 @@ def _compute_violin_polygons(
     """
     Build a polygon-vertex frame for one violin per (variable, group) cell.
 
-    Each violin is centered at ``(x=variable_index, y=group_index)`` with value
+    Each violin is centered at `(x=variable_index, y=group_index)` with value
     mapped to local y inside the row band and density mapped to local x around
     the column position.
     """
@@ -230,28 +230,28 @@ def stacked_violin(
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys laid out along the x-axis, one column of violins per
         key. A mapping assigns keys to group labels (no key in more than one
-        group). Must be ``None`` when ``markers`` is set.
+        group). Must be `None` when `markers` is set.
     group_by : str | None, default=None
         The key used to group observations along the y-axis. Inferred from a
-        precomputed ranking when ``markers`` is set.
+        precomputed ranking when `markers` is set.
     markers : bool | str, default=False
-        Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
+        Derive `keys` from a precomputed ranking. Pass `True` to use the
         default ranking key, or a string to read a custom key (e.g.
-        ``"rank_genes_groups_wilcoxon"``).
+        `"rank_genes_groups_wilcoxon"`).
     n_genes : int, default=5
-        Number of top genes to take per group when ``markers`` is set.
+        Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``markers`` is set;
-        ``None`` keeps all groups in their stored order.
+        Subset of groups to include when `markers` is set;
+        `None` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
     scale : {'area', 'count', 'width'}, default='width'
         Method for scaling violin widths.
-        ``'width'``, every violin has the same maximum width.
-        ``'count'``, width is proportional to the number of observations.
-        ``'area'``, widths preserve density area across groups within a variable.
+        `'width'`, every violin has the same maximum width.
+        `'count'`, width is proportional to the number of observations.
+        `'area'`, widths preserve density area across groups within a variable.
     width_scale : float, default=0.85
         Maximum total width of a violin in x units (1 unit = one variable column).
     height_scale : float, default=0.85
@@ -260,15 +260,15 @@ def stacked_violin(
         Number of grid points for the kernel density estimate.
     color_by : {'median', 'mean', 'group', 'variable'} | None, default='median'
         Which value drives the fill aesthetic of each violin.
-        ``'median'`` colors by median expression per (variable, group).
-        ``'mean'`` colors by mean expression per (variable, group).
-        ``'group'`` colors by ``group_by`` (categorical palette).
-        ``'variable'`` colors by ``variable_column`` (categorical palette).
-        ``None`` disables fill mapping (use ``geom_fill`` for a static fill).
+        `'median'` colors by median expression per (variable, group).
+        `'mean'` colors by mean expression per (variable, group).
+        `'group'` colors by `group_by` (categorical palette).
+        `'variable'` colors by `variable_column` (categorical palette).
+        `None` disables fill mapping (use `geom_fill` for a static fill).
     size : float, default=0.2
         Stroke size (edge width) of the violins.
     color_low : str, default='#F5F5F5'
-        Color for low values in the gradient (used when ``color_by='mean'``).
+        Color for low values in the gradient (used when `color_by='mean'`).
     color_mid : str | None, default=None
         Color for mid values in the gradient.
     color_high : str, default='#00008B'
@@ -282,8 +282,8 @@ def stacked_violin(
     geom_color : str | None, default=None
         Border color for all violins.
     dendrogram : bool, default=False
-        Whether to add a dendrogram for the ``group_by`` axis.
-        Uses ``scanpy.tl.dendrogram`` if not already computed.
+        Whether to add a dendrogram for the `group_by` axis.
+        Uses `scanpy.tl.dendrogram` if not already computed.
         When True, group order is determined by the dendrogram.
     dendrogram_color : str, default='black'
         Color of the dendrogram segments.
@@ -303,7 +303,7 @@ def stacked_violin(
     rectangle_kwargs : dict | None, default=None
         Additional parameters to pass to the rectangle geom_rect.
     key_labels : bool, default=True
-        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
+        Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
         Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
@@ -314,10 +314,10 @@ def stacked_violin(
         Color of the bracket lines.
     key_labels_width : float, default=0.6
         Bracket width (in column units) for a singleton group. Multi-key groups
-        extend ``key_labels_width / 2`` past the first and last key on each side.
+        extend `key_labels_width / 2` past the first and last key on each side.
     aggregate_key : str, default='expression'
         Name of the per-(variable, group) aggregate column attached to each violin
-        (median or mean, selected by ``color_by``).
+        (median or mean, selected by `color_by`).
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -388,7 +388,7 @@ def stacked_violin(
             dendrogram=True,
         )
 
-    Color violins by ``group_by`` instead of the per-cell aggregate.
+    Color violins by `group_by` instead of the per-cell aggregate.
 
     .. jupyter-execute::
         :emphasize-lines: 5

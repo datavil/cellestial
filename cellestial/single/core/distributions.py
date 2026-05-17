@@ -69,7 +69,7 @@ def violins(
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
     group_by : str | None, default=None
         Column to group observations on the x-axis.
-        If not provided, falls back to ``fill``, ``color``, or the variable column.
+        If not provided, falls back to `fill`, `color`, or the variable column.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
@@ -308,7 +308,7 @@ def boxplots(
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
     group_by : str | None, default=None
         Column to group observations on the x-axis.
-        If not provided, falls back to ``fill``, ``color``, or the variable column.
+        If not provided, falls back to `fill`, `color`, or the variable column.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None

@@ -278,21 +278,18 @@ def bracket(
     """
     Layer of `geom_bracket` annotating pairwise significance between groups.
 
-    Pairwise tests are computed from the plot's retrieved DataFrame using the `x`
-    aesthetic as the grouping column and the `y` aesthetic as the value column.
-
     Parameters
     ----------
     plot : PlotSpec | None, default=None
         If provided, brackets are computed from this plot's data and aesthetics
-        regardless of which plot the resulting layer is added to. When ``None``,
-        the layer is deferred and introspects the plot it is added to via ``+``.
+        regardless of which plot the resulting layer is added to. When `None`,
+        the layer is deferred and introspects the plot it is added to via `+`.
         Expected to be a distribution plot (e.g. `violin`, `boxplot`).
     comparisons : Sequence[Sequence[str]] | None, default=None
-        Specific group pairs to test, e.g. ``[("A", "B"), ("A", "C")]``.
+        Specific group pairs to test, e.g. `[("A", "B"), ("A", "C")]`.
         If None, every pair of groups present in the plot is compared.
-        ``"*"`` on either side expands to all other groups, so
-        ``[("A", "*")]`` compares ``A`` against every remaining group.
+        `"*"` on either side expands to all other groups, so
+        `[("A", "*")]` compares `A` against every remaining group.
     test : {'mannwhitney', 'ttest'}, default='mannwhitney'
         Statistical test used for each pairwise comparison.
         'mannwhitney' is non-parametric and recommended for expression data.
@@ -303,41 +300,41 @@ def bracket(
         Multiple-testing correction applied across the pairwise p-values.
     label : {'stars', 'pvalue', 'padj'} or sequence of those, default='stars'
         The bracket label to draw.
-        'stars' maps p-values to asterisks (``****`` < 0.0001, ``***`` < 0.001,
-        ``**`` < 0.01, ``*`` < 0.05, ``ns`` otherwise).
+        'stars' maps p-values to asterisks (`****` < 0.0001, `***` < 0.001,
+        `**` < 0.01, `*` < 0.05, `ns` otherwise).
         'pvalue' prints the raw p-value and 'padj' prints the adjusted p-value.
         A sequence merges each component with a newline, e.g.
-        ``label=("stars", "padj")`` stacks the stars on top of the adjusted p-value.
+        `label=("stars", "padj")` stacks the stars on top of the adjusted p-value.
     label_format : str, default='.3g'
         Format string used when `label` contains 'pvalue' or 'padj'.
     prefix : str, default=''
         Text prepended to the numeric p-value/padj labels. Ignored for the
         'stars' component. When `prefix_style` is '=' or '<', the symbol is
         inserted between `prefix` and the value with whitespace around it,
-        so ``prefix='p'`` with ``prefix_style='='`` renders ``'p = 0.001'``.
+        so `prefix='p'` with `prefix_style='='` renders `'p = 0.001'`.
         When `prefix_style` is None, `prefix` is used as-is, so the caller
         is responsible for including any symbol and spacing.
     prefix_style : {'=', '<'} or None, default='='
         How the numeric portion of the label is rendered.
-        '=' shows the actual p-value with ``' = '`` inserted after `prefix`.
+        '=' shows the actual p-value with `' = '` inserted after `prefix`.
         '<' replaces the p-value with the star-bracket threshold it falls
-        below, with ``' < '`` inserted after `prefix`, giving
-        ``'p < 0.0001'``, ``'p < 0.001'``, ``'p < 0.01'``, or ``'p < 0.05'``.
-        Non-significant comparisons render as ``'p > 0.05'``.
+        below, with `' < '` inserted after `prefix`, giving
+        `'p < 0.0001'`, `'p < 0.001'`, `'p < 0.01'`, or `'p < 0.05'`.
+        Non-significant comparisons render as `'p > 0.05'`.
         None disables symbol insertion; the caller supplies any symbol via
         `prefix`.
     separator : str, default=' '
         Separator used to join components when `label` is a sequence with
-        more than one entry (e.g. ``('stars', 'padj')``).
+        more than one entry (e.g. `('stars', 'padj')`).
     threshold : float | None, default=None
         If provided, only comparisons whose p-value (adjusted if `correction` is not
         'none') is below this threshold are drawn.
     y_position : float | None, default=None
         Vertical position of the lowest bracket. If None, it is placed above
-        the maximum `y` value with a gap of ``y_padding * y_range``.
+        the maximum `y` value with a gap of `y_padding * y_range`.
     y_step : float | None, default=None
         Vertical spacing between stacked brackets. If None, defaults to
-        ``y_padding * y_range``.
+        `y_padding * y_range`.
     y_padding : float, default=0.08
         Fraction of the `y` range used as vertical padding above the data
         and as the default spacing between stacked brackets.
@@ -377,6 +374,11 @@ def bracket(
         If a statistical option or label option is invalid, or there are too
         few observations to compute brackets.
 
+    Notes
+    -----
+    Pairwise tests are computed from the plot's retrieved DataFrame using the `x`
+    aesthetic as the grouping column and the `y` aesthetic as the value column.
+
     Examples
     --------
     Annotate a violin plot (or boxplot) with pairwise significance stars.
@@ -414,7 +416,7 @@ def bracket(
             y_padding=0.2,
         )
 
-    Use ``"*"`` to compare one group against every other.
+    Use `"*"` to compare one group against every other.
 
     .. jupyter-execute::
         :emphasize-lines: 2

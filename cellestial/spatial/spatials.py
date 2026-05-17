@@ -101,9 +101,9 @@ def spatials(
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
     scale_axis : {0, 1} | None, default=None
-        Whether to standardize ``key`` values between 0 and 1 (subtracts the
+        Whether to standardize `key` values between 0 and 1 (subtracts the
         minimum and divides by the maximum).
-        Only applied when ``key`` is numeric.
+        Only applied when `key` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs.

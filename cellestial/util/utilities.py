@@ -36,16 +36,18 @@ def _format_warning(message: Warning | str, category: type[Warning], *_args: obj
 
 def _warn(message: str) -> None:
     """
-    Emit a ``CellestialWarning`` rendered without the source location.
-
-    The warning is still attributed to the first caller outside cellestial so
-    ``warnings`` filters and per-location de-duplication behave sensibly, but
-    it is displayed as a single clean line.
+    Emit a `CellestialWarning` rendered without the source location.
 
     Parameters
     ----------
     message : str
         The warning message.
+
+    Notes
+    -----
+    The warning is still attributed to the first caller outside cellestial so
+    `warnings` filters and per-location de-duplication behave sensibly, but
+    it is displayed as a single clean line.
     """
     caller = inspect.currentframe()
     caller = caller.f_back if caller is not None else None
@@ -541,26 +543,12 @@ def _resolve_embedding_key(
     """
     Resolve the column-name prefix used to index an embedding in the built frame.
 
-    `build_frame` emits embedding columns as ``f"{KEY.upper()}{n}"``, so callers
-    compose axis names like ``X_UMAP1`` / ``X_UMAP2`` by appending the axis
-    index to the prefix returned here.
-
-    Resolution rules
-    ----------------
-    1. If ``use_key`` is given, return it uppercased.
-    2. Otherwise, against ``f"X_{dimensions.upper()}"``:
-       - exact (case-insensitive) match -> return it silently.
-       - no exact, but prefix matches exist -> pick the candidate whose
-         dimensionality is sufficient for ``max(xy)`` (shortest name on ties),
-         warn the user, and suggest ``use_key`` to silence.
-       - no candidate -> raise ``KeyNotFoundError``.
-
     Parameters
     ----------
     data : AnnData
         Single-cell data object providing the embedding store.
     dimensions : str
-        Embedding family, e.g. ``"umap"``, ``"pca"``, ``"tsne"``.
+        Embedding family, e.g. `"umap"`, `"pca"`, `"tsne"`.
     use_key : str | None
         Explicit embedding key. When provided, no search is performed.
     xy : Sequence[int]
@@ -578,6 +566,22 @@ def _resolve_embedding_key(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If no embedding matches the requested family.
+
+    Notes
+    -----
+    `build_frame` emits embedding columns as `f"{KEY.upper()}{n}"`, so callers
+    compose axis names like `X_UMAP1` / `X_UMAP2` by appending the axis
+    index to the prefix returned here.
+
+    Resolution rules:
+
+    1. If `use_key` is given, return it uppercased.
+    2. Otherwise, against `f"X_{dimensions.upper()}"`:
+       - exact (case-insensitive) match -> return it silently.
+       - no exact, but prefix matches exist -> pick the candidate whose
+         dimensionality is sufficient for `max(xy)` (shortest name on ties),
+         warn the user, and suggest `use_key` to silence.
+       - no candidate -> raise `KeyNotFoundError`.
     """
     if use_key is not None:
         return use_key.upper()

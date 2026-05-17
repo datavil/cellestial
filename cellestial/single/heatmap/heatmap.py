@@ -47,7 +47,7 @@ _GROUP_BAR_GAP_MIN = 0.15
 
 
 def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str) -> pl.DataFrame:
-    """Min-max scale ``value_column`` within partitions defined by ``partition_key``."""
+    """Min-max scale `value_column` within partitions defined by `partition_key`."""
     value = pl.col(value_column)
     value_min = value.min().over(partition_key)
     value_max = value.max().over(partition_key)
@@ -76,18 +76,18 @@ def _assign_positions(
     y_order_groups: list[str],
 ) -> tuple[pl.DataFrame, pl.DataFrame | None, int, int, list[float]]:
     """
-    Attach ``_x``/``_y`` to ``frame`` and compute layout metadata.
+    Attach `_x`/`_y` to `frame` and compute layout metadata.
 
     Returns
     -------
     frame : pl.DataFrame
-        Frame with ``_x`` and ``_y`` columns.
+        Frame with `_x` and `_y` columns.
     cell_frame : pl.DataFrame | None
         Per-cell layout frame (None when aggregating).
     n_x : int
     n_y : int
     group_centers : list[float]
-        Y center of each group, in ``y_order_groups`` order.
+        Y center of each group, in `y_order_groups` order.
     """
     n_x = len(x_keys)
     x_pos = {k: i for i, k in enumerate(x_keys)}
@@ -241,40 +241,40 @@ def heatmap(
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be
-        ``None`` when ``markers`` is set.
+        `None` when `markers` is set.
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
-        when ``markers`` is set.
+        when `markers` is set.
     markers : bool | str, default=False
-        Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
+        Derive `keys` from a precomputed ranking. Pass `True` to use the
         default ranking key, or a string to read a custom key (e.g.
-        ``"rank_genes_groups_wilcoxon"``).
+        `"rank_genes_groups_wilcoxon"`).
     n_genes : int, default=5
-        Number of top genes to take per group when ``markers`` is set.
+        Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``markers`` is set;
-        ``None`` keeps all groups in their stored order.
+        Subset of groups to include when `markers` is set;
+        `None` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'
         The geom to use,. Use 'raster' for performance.
         Use 'tile' to enable tooltips.
     dendrogram : bool, default=False
-        Whether to add a dendrogram for the ``group_by`` axis.
-        Uses ``scanpy.tl.dendrogram`` if not already computed.
+        Whether to add a dendrogram for the `group_by` axis.
+        Uses `scanpy.tl.dendrogram` if not already computed.
     aggregate : bool, default=False
         If False, plot one row per observation (i.e., cell).
         If True, aggregate values per group by mean so each row is a group.
         For the aggregated view, prefer :func:`matrixplot`.
     group_bars : bool, default=True
         Whether to draw colored vertical bars on the left marking group membership.
-        Only used when ``aggregate=False``.
+        Only used when `aggregate=False`.
     group_bars_size : float, default=6
         Size (thickness) of the group color bars.
     group_bars_labels : bool, default=True
         Whether to show group names as labels along the y-axis.
         Removes the related legend.
-        Only applies when ``group_bars=True`` and ``aggregate=False``.
+        Only applies when `group_bars=True` and `aggregate=False`.
     group_lines : bool, default=True
         Whether to draw horizontal lines within the heatmap separating groups.
     group_lines_color : str, default='white'
@@ -293,7 +293,7 @@ def heatmap(
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_segment.
     key_labels : bool, default=True
-        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
+        Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
         Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
@@ -304,12 +304,12 @@ def heatmap(
         Color of the bracket lines.
     key_labels_width : float, default=0.6
         Bracket width (in column units) for a singleton group. Multi-key groups
-        extend ``key_labels_width / 2`` past the first and last key on each side.
+        extend `key_labels_width / 2` past the first and last key on each side.
     scale_axis : {0, 1} | None, default=None
         Whether to standardize a dimension between 0 and 1.
         Uses min-max scaling; constant partitions are set to 0.
         If 0, standardize each variable (column).
-        If 1, standardize each row (group when ``aggregate`` is True, observation otherwise).
+        If 1, standardize each row (group when `aggregate` is True, observation otherwise).
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -356,7 +356,7 @@ def heatmap(
 
     Examples
     --------
-    Heatmap plots one row per observation (cell), grouped by ``group_by``.
+    Heatmap plots one row per observation (cell), grouped by `group_by`.
 
     .. jupyter-execute::
 
@@ -376,7 +376,7 @@ def heatmap(
             dendrogram=True,
         ) + scale_fill_viridis()
 
-    To enable tooltips, use ``geom='tile'``.
+    To enable tooltips, use `geom='tile'`.
 
     .. jupyter-execute::
 
@@ -389,7 +389,7 @@ def heatmap(
             tooltips=["value"],
         ) + scale_fill_viridis()
 
-    Values can be standardized per-row or per-column with ``scale_axis``.
+    Values can be standardized per-row or per-column with `scale_axis`.
 
     .. jupyter-execute::
 
@@ -420,7 +420,7 @@ def heatmap(
         ) + scale_fill_viridis()
 
     For the aggregated view (one row per group), use :func:`matrixplot`
-    or pass ``aggregate=True``.
+    or pass `aggregate=True`.
 
     .. jupyter-execute::
         :emphasize-lines: 5
@@ -434,7 +434,7 @@ def heatmap(
         )
 
     To plot the top genes from a precomputed ranking, set
-    ``markers`` and ``n_genes`` (``keys`` and ``group_by`` are
+    `markers` and `n_genes` (`keys` and `group_by` are
     inferred):
 
     .. jupyter-execute::
@@ -691,28 +691,26 @@ def matrixplot(
     """
     Matrix plot.
 
-    Basically a heatmap with fixed ``aggregate=True`` argument.
-
     Parameters
     ----------
     data : AnnData
-        The AnnData object of the single cell data.
+        The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be
-        ``None`` when ``markers`` is set.
+        `None` when `markers` is set.
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
-        when ``markers`` is set.
+        when `markers` is set.
     markers : bool | str, default=False
-        Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
+        Derive `keys` from a precomputed ranking. Pass `True` to use the
         default ranking key, or a string to read a custom key (e.g.
-        ``"rank_genes_groups_wilcoxon"``).
+        `"rank_genes_groups_wilcoxon"`).
     n_genes : int, default=5
-        Number of top genes to take per group when ``markers`` is set.
+        Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``markers`` is set;
-        ``None`` keeps all groups in their stored order.
+        Subset of groups to include when `markers` is set;
+        `None` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'
@@ -724,8 +722,8 @@ def matrixplot(
         If 0, standardize each variable (column).
         If 1, standardize each group (row).
     dendrogram : bool, default=False
-        Whether to add a dendrogram for the ``group_by`` axis.
-        Uses ``scanpy.tl.dendrogram`` if not already computed.
+        Whether to add a dendrogram for the `group_by` axis.
+        Uses the precomputed dendrogram, computing one if not already present.
     group_lines : bool, default=True
         Whether to draw horizontal lines within the plot separating groups.
     group_lines_color : str, default='white'
@@ -744,7 +742,7 @@ def matrixplot(
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_segment.
     key_labels : bool, default=True
-        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
+        Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
         Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
@@ -755,7 +753,7 @@ def matrixplot(
         Color of the bracket lines.
     key_labels_width : float, default=0.6
         Bracket width (in column units) for a singleton group. Multi-key groups
-        extend ``key_labels_width / 2`` past the first and last key on each side.
+        extend `key_labels_width / 2` past the first and last key on each side.
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -786,6 +784,10 @@ def matrixplot(
     -------
     PlotSpec
         Matrix plot.
+
+    Notes
+    -----
+    Equivalent to `heatmap` with `aggregate=True`.
 
     Examples
     --------

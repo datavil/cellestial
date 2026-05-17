@@ -94,19 +94,19 @@ def dotplot(
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be
-        ``None`` when ``markers`` is set.
+        `None` when `markers` is set.
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
-        when ``markers`` is set.
+        when `markers` is set.
     markers : bool | str, default=False
-        Derive ``keys`` from a precomputed ranking. Pass ``True`` to use the
+        Derive `keys` from a precomputed ranking. Pass `True` to use the
         default ranking key, or a string to read a custom key (e.g.
-        ``"rank_genes_groups_wilcoxon"``).
+        `"rank_genes_groups_wilcoxon"`).
     n_genes : int, default=5
-        Number of top genes to take per group when ``markers`` is set.
+        Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
-        Subset of groups to include when ``markers`` is set;
-        ``None`` keeps all groups in their stored order.
+        Subset of groups to include when `markers` is set;
+        `None` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     threshold : float, default=0
@@ -138,8 +138,8 @@ def dotplot(
     rectangle : bool, default=True
         Whether to add a rectangle border around the data area
     dendrogram : bool, default=False
-        Whether to add a dendrogram for the ``group_by`` axis.
-        Uses ``scanpy.tl.dendrogram`` if not already computed.
+        Whether to add a dendrogram for the `group_by` axis.
+        Uses `scanpy.tl.dendrogram` if not already computed.
         When True, group order is determined by the dendrogram.
     dendrogram_color : str, default='black'
         Color of the dendrogram segments.
@@ -157,7 +157,7 @@ def dotplot(
     rectangle_kwargs : dict | None, default=None
         Additional parameters to pass to the rectangle geom_rect.
     key_labels : bool, default=True
-        Whether to draw bracket labels above the plot when ``keys`` is a mapping.
+        Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
         Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
@@ -168,7 +168,7 @@ def dotplot(
         Color of the bracket lines.
     key_labels_width : float, default=0.6
         Bracket width (in column units) for a singleton group. Multi-key groups
-        extend ``key_labels_width / 2`` past the first and last key on each side.
+        extend `key_labels_width / 2` past the first and last key on each side.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.

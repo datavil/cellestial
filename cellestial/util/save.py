@@ -24,11 +24,9 @@ def save(
     """
     Convenience function for exporting plots.
 
-    Supported formats: PNG, SVG, PDF, HTML.
-
     Parameters
     ----------
-    plot : ``PlotSpec`` | ``SupPlotsSpec`` | ``GGBunch``
+    plot : `PlotSpec` | `SupPlotsSpec` | `GGBunch`
         Plot to export.
     filename : str
         Name of the file.
@@ -58,7 +56,7 @@ def save(
         Only applicable when exporting to PNG or PDF.
         The default value depends on the unit:
 
-        - for 'px' it is 96 (output image will have the same pixel size as ``w``, and ``h`` values)
+        - for 'px' it is 96 (output image will have the same pixel size as `w`, and `h` values)
         - for physical units ('in', 'cm', 'mm') it is 300.
 
     Returns
@@ -68,12 +66,9 @@ def save(
 
     Notes
     -----
-    This function is a``ggsave`` wrapper.
-    The docstrings for this function are copied from lets_plot ggsave function.
-
-
-    The original ggsave function:
-    https://lets-plot.org/python/pages/api/lets_plot.ggsave.html
+    Supported formats: PNG, SVG, PDF, HTML.
+    Wraps `ggsave`; docstrings adapted from the lets_plot ggsave function.
+    See https://lets-plot.org/python/pages/api/lets_plot.ggsave.html.
     """
     return ggsave(
         plot=plot,

@@ -120,8 +120,8 @@ def cluster_outlines(
         E.g `groups=[['A', 'B']]` will outline groups A and B as if they were one cluster.
     plot : PlotSpec | None, default=None
         If provided, outlines are computed from this plot's data and aesthetics
-        regardless of which plot the resulting layer is added to. When ``None``,
-        the layer is deferred and introspects the plot it is added to via ``+``.
+        regardless of which plot the resulting layer is added to. When `None`,
+        the layer is deferred and introspects the plot it is added to via `+`.
     padding : float, default=1.5
         The spatial buffer added to the cluster's bounding box before calculating density.
         Increasing this value allows the density 'cloud' to expand further from the outermost

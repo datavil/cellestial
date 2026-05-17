@@ -148,8 +148,8 @@ def arrow_axis(
     ----------
     plot : PlotSpec | None, default=None
         If provided, the arrow axis is built from this plot's data and aesthetics
-        regardless of which plot the resulting layer is added to. When ``None``,
-        the layer is deferred and introspects the plot it is added to via ``+``.
+        regardless of which plot the resulting layer is added to. When `None`,
+        the layer is deferred and introspects the plot it is added to via `+`.
     size : float
         Size of the arrow.
     color : str

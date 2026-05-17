@@ -46,22 +46,17 @@ def _build_markers_frame(
     """
     Build a long-form frame of the top-N ranked genes and scores per group.
 
-    Reads ``data.uns[key]`` (scanpy's ``rank_genes_groups`` convention) and
-    pulls the top ``n_genes`` gene names and their scores for each selected
-    group. Unlike the heatmap extractor, genes are kept per group with no
-    cross-group de-duplication, since each group is drawn in its own panel.
-
     Parameters
     ----------
     data : AnnData
-        Source object that already holds a ``rank_genes_groups`` result.
+        Source object that already holds a precomputed ranking result.
     key : bool | str
-        ``True`` reads the default ``rank_genes_groups`` key; a string reads
-        the matching custom key (e.g. ``"rank_genes_groups_wilcoxon"``).
+        `True` reads the default ranking key; a string reads
+        the matching custom key (e.g. `"rank_genes_groups_wilcoxon"`).
     n_genes : int
         Number of top genes to pull per group.
     groups : Sequence[str] | None
-        Subset of groups to include, in order. ``None`` keeps all groups in
+        Subset of groups to include, in order. `None` keeps all groups in
         their stored order.
     variable_column : str
         Output column name for the gene/feature names.
@@ -79,17 +74,24 @@ def _build_markers_frame(
     selected : list[str]
         The selected group labels, in plotting order.
     group_by : str
-        The categorical key used when ``rank_genes_groups`` was computed.
+        The categorical key used when the ranking was computed.
 
     Raises
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
-        If the ranking result, a requested group, or the stored ``groupby``
+        If the ranking result, a requested group, or the stored grouping
         is missing.
     ValueError
         If `n_genes` is out of range.
+
+    Notes
+    -----
+    Pulls the top `n_genes` gene names and their scores for each selected
+    group from a precomputed ranking. Unlike the heatmap extractor, genes
+    are kept per group with no cross-group de-duplication, since each group
+    is drawn in its own panel.
     """
     if n_genes < 1:
         msg = f"`n_genes` must be >= 1, got {n_genes}."
@@ -213,25 +215,21 @@ def markers(
     """
     Grid of ranked genes per group.
 
-    Builds one panel per group from a precomputed ranking, placing the top
-    ``n_genes`` gene names as text at their ``(rank, score)`` position. Each
-    panel is titled ``"{group} vs. rest"``.
-
     Parameters
     ----------
     data : AnnData
-        The AnnData object holding the differential expression results
-        in ``data.uns[key]`` (scanpy's ``rank_genes_groups`` convention).
+        The single-cell data object holding the precomputed differential
+        expression ranking.
     groups : Sequence[str] | None, default=None
-        Subset of groups to plot, one panel per group. ``None`` keeps all
+        Subset of groups to plot, one panel per group. `None` keeps all
         groups in their stored order.
     key : str, default='rank_genes_groups'
-        The key under ``data.uns`` storing the differential expression results.
+        The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=20
         Number of top genes to show per panel.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`. Merged on top of
-        the default ``aes(x=rank, y=score, label=variable)``.
+        the default `aes(x=rank, y=score, label=variable)`.
     text_color : str, default='#1f1f1f'
         Color of the gene-name text.
     text_size : float, default=4.0
@@ -244,7 +242,7 @@ def markers(
         Whether to color the gene-name text by rank. When True, the best-ranked
         gene is pure red, fading toward light gray for the lowest-ranked.
     line : bool, default=False
-        Whether to draw a dashed path connecting the genes' ``(rank, score)``
+        Whether to draw a dashed path connecting the genes' `(rank, score)`
         points, showing the score decay across the ranking.
     line_color : str, default='#3f3f3f'
         Color of the dashed score-curve line.
@@ -253,7 +251,7 @@ def markers(
     line_alpha : float, default=0.6
         Alpha (opacity) of the dashed score-curve line.
     line_kwargs : dict | None, default=None
-        Additional parameters passed to the score-curve ``geom_path`` layer.
+        Additional parameters passed to the score-curve `geom_path` layer.
     variable_column : str, default='variable'
         Output column name for the gene/feature names.
     score_column : str, default='score'
@@ -291,7 +289,7 @@ def markers(
         How guides (legends/colorbars) should be treated in the layout.
         See :func:`lets_plot.gggrid`.
     **text_kwargs
-        Additional parameters for the ``geom_text`` layer of each panel.
+        Additional parameters for the `geom_text` layer of each panel.
 
     Returns
     -------
@@ -308,6 +306,12 @@ def markers(
         If `n_genes` is out of range.
     TypeError
         If `groups` is neither a Sequence of strings nor None.
+
+    Notes
+    -----
+    Builds one panel per group from a precomputed ranking, placing the top
+    `n_genes` gene names as text at their `(rank, score)` position. Each
+    panel is titled `"{group} vs. rest"`.
 
     Examples
     --------

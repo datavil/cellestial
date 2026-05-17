@@ -55,26 +55,22 @@ def _build_volcano_frame(
     """
     Build a volcano-plot-ready frame.
 
-    Extracts differential expression results for ``group`` and adds derived
-    columns ``-log10(pvalue)`` and a categorical significance label
-    (up / down / ns) based on the supplied thresholds.
-
     Parameters
     ----------
     data : AnnData
-        The AnnData object holding the differential expression results
-        in ``data.uns[key]`` (scanpy's ``rank_genes_groups`` convention).
+        The single-cell data object holding a precomputed differential
+        expression ranking.
     group : str
         The group name to extract results for.
     group_by : str | None, default=None
-        Observation column to group by. When provided, ``data.uns[key]`` is
-        (re)computed via ``scanpy.tl.rank_genes_groups`` if it is missing or
-        was computed with a different ``groupby``.
+        Observation column to group by. When provided, the ranking is
+        (re)computed if it is missing or was computed with a different
+        grouping.
     key : str, default='rank_genes_groups'
-        The key under ``data.uns`` storing the differential expression results.
+        The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
-        Whether to use adjusted p-values (``pvals_adj``) instead of raw
-        p-values (``pvals``) for the significance call and transform.
+        Whether to use adjusted p-values instead of raw p-values for the
+        significance call and transform.
     logfoldchange_threshold : float, default=1.0
         Absolute log fold change threshold used to label up/down regulated.
     pvalue_threshold : float, default=0.05
@@ -86,7 +82,7 @@ def _build_volcano_frame(
     pvalue_column : str, default='pvalue'
         Output column name for the p-values.
     neg_log_pvalue_column : str, default='neg_log_pvalue'
-        Output column name for the ``-log10(pvalue)`` transform.
+        Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
     up_label : str, default='up'
@@ -96,15 +92,21 @@ def _build_volcano_frame(
     nonsignificant_label : str, default='ns'
         Label for non-significant features.
     rank_genes_kwargs : dict | None, default=None
-        Additional keyword arguments forwarded to ``scanpy.tl.rank_genes_groups``
-        when ``group_by`` triggers a (re)compute (e.g. ``method='t-test'``,
-        ``use_raw=False``, ``layer=...``, ``corr_method='bonferroni'``).
+        Additional keyword arguments forwarded to the ranking call when
+        `group_by` triggers a (re)compute (e.g. `method='t-test'`,
+        `use_raw=False`, `layer=...`, `corr_method='bonferroni'`).
 
     Returns
     -------
     DataFrame
         A polars DataFrame with one row per feature and the columns named
-        according to the ``*_column`` parameters above.
+        according to the `*_column` parameters above.
+
+    Notes
+    -----
+    Extracts the ranking for `group` and adds derived columns
+    `-log10(pvalue)` and a categorical significance label (up / down / ns)
+    based on the supplied thresholds.
     """
     # HANDLE: Data types
     if isinstance(data, AnnData):
@@ -224,33 +226,29 @@ def volcano(
     """
     Volcano plot.
 
-    Plots ``-log10(pvalue)`` against log fold change for the differential
-    expression results of ``group`` (vs the rest), colored by significance and
-    optionally annotated with the top up- and down-regulated genes.
-
     Parameters
     ----------
     data : AnnData
-        The AnnData object holding the differential expression results
-        in ``data.uns[key]`` (scanpy's ``rank_genes_groups`` convention).
+        The single-cell data object holding a precomputed differential
+        expression ranking.
     group : str
         The group name to plot results for.
     group_by : str | None, default=None
-        Observation column to group by. When provided, ``data.uns[key]`` is
-        (re)computed via ``scanpy.tl.rank_genes_groups`` if it is missing or
-        was computed with a different ``groupby``.
+        Observation column to group by. When provided, the ranking is
+        (re)computed if it is missing or was computed with a different
+        grouping.
     key : str, default='rank_genes_groups'
-        The key under ``data.uns`` storing the differential expression results.
+        The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
-        Whether to use adjusted p-values (``pvals_adj``) instead of raw
-        p-values (``pvals``) for the significance call and transform.
+        Whether to use adjusted p-values instead of raw p-values for the
+        significance call and transform.
     logfoldchange_threshold : float, default=1.0
         Absolute log fold change threshold used to label up/down regulated.
     pvalue_threshold : float, default=0.05
         P-value threshold used to label significance.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`. Merged on top of
-        the default ``aes(x=logfoldchange, y=neg_log_pvalue, color=significance)``.
+        the default `aes(x=logfoldchange, y=neg_log_pvalue, color=significance)`.
     color_up : str, default='#A83737'
         Color for significantly up-regulated points (brick red).
     color_down : str, default='#6FA8DC'
@@ -258,9 +256,9 @@ def volcano(
     color_nonsignificant : str, default='#A6A6A6'
         Color for non-significant points (medium gray).
     size : float, default=2.0
-        Default point size; can be overridden via ``point_kwargs``.
+        Default point size; can be overridden via `point_kwargs`.
     alpha : float, default=0.8
-        Default point alpha; can be overridden via ``point_kwargs``.
+        Default point alpha; can be overridden via `point_kwargs`.
     show_threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
@@ -270,11 +268,11 @@ def volcano(
     threshold_linetype : str, default='dashed'
         Line type of the threshold lines.
     threshold_kwargs : dict | None, default=None
-        Additional parameters passed to the threshold ``geom_hline`` and
-        ``geom_vline`` layers.
+        Additional parameters passed to the threshold `geom_hline` and
+        `geom_vline` layers.
     top_n : int | None, default=10
-        Number of top up- and top down-regulated genes (by ``-log10(pvalue)``)
-        to label. Set to ``None`` or ``0`` to disable labels.
+        Number of top up- and top down-regulated genes (by `-log10(pvalue)`)
+        to label. Set to `None` or `0` to disable labels.
     label_color : str, default='#1f1f1f'
         Color of the gene labels.
     label_size : float, default=4.0
@@ -282,14 +280,14 @@ def volcano(
     segment_size : float, default=0.4
         Width of the line segment connecting the label to the point.
     label_kwargs : dict | None, default=None
-        Additional parameters passed to the ``geom_text`` label layer.
+        Additional parameters passed to the `geom_text` label layer.
     nonsignificant_subsample : int | None, default=2000
         Maximum number of non-significant points to keep. Significant points
         (up/down) are always kept in full. Reducing this shrinks the embedded
         data in the rendered plot (smaller HTML/notebook output) at no visible
         cost since the non-significant cloud is heavily overplotted. Set to
-        ``None`` to keep every non-significant point. Sampling is deterministic
-        (``seed=42``).
+        `None` to keep every non-significant point. Sampling is deterministic
+        (`seed=42`).
     variable_column : str, default='variable'
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
@@ -297,7 +295,7 @@ def volcano(
     pvalue_column : str, default='pvalue'
         Output column name for the p-values.
     neg_log_pvalue_column : str, default='neg_log_pvalue'
-        Output column name for the ``-log10(pvalue)`` transform.
+        Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
     up_label : str, default='up'
@@ -307,9 +305,9 @@ def volcano(
     nonsignificant_label : str, default='ns'
         Label for non-significant features.
     rank_genes_kwargs : dict | None, default=None
-        Additional keyword arguments forwarded to ``scanpy.tl.rank_genes_groups``
-        when ``group_by`` triggers a (re)compute (e.g. ``method='t-test'``,
-        ``use_raw=False``, ``layer=...``, ``corr_method='bonferroni'``).
+        Additional keyword arguments forwarded to the ranking call when
+        `group_by` triggers a (re)compute (e.g. `method='t-test'`,
+        `use_raw=False`, `layer=...`, `corr_method='bonferroni'`).
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -317,7 +315,7 @@ def volcano(
     interactive : bool, default=False
         Whether to make the plot interactive.
     **point_kwargs
-        Additional parameters for the ``geom_point`` layer.
+        Additional parameters for the `geom_point` layer.
 
     Returns
     -------
@@ -332,6 +330,12 @@ def volcano(
         If the requested differential-expression result or group is missing.
     ValueError
         If requested tooltip columns are not present in the volcano frame.
+
+    Notes
+    -----
+    Plots `-log10(pvalue)` against log fold change for the differential
+    expression results of `group` (vs the rest), colored by significance and
+    optionally annotated with the top up- and down-regulated genes.
 
     Examples
     --------
@@ -568,26 +572,21 @@ def volcanos(
     """
     Grid of volcano plots, one per group.
 
-    Builds a volcano plot for each entry in ``groups`` (vs the rest) and
-    arranges them in a grid via ``gggrid``. All single-plot styling and
-    threshold options behave the same as in :func:`volcano`.
-
     Parameters
     ----------
     data : AnnData
-        The AnnData object holding the differential expression results
-        in ``data.uns[key]`` (scanpy's ``rank_genes_groups`` convention).
+        The single-cell data object holding a precomputed differential
+        expression ranking.
     groups : Sequence[str]
         The group names to plot results for. One subplot per group.
     group_by : str | None, default=None
-        Observation column to group by. When provided, ``data.uns[key]`` is
-        (re)computed via ``scanpy.tl.rank_genes_groups`` if it is missing or
-        was computed with a different ``groupby``. Computed once on the first
-        subplot and reused thereafter.
+        Observation column to group by. When provided, the ranking is
+        (re)computed if it is missing or was computed with a different
+        grouping. Computed once on the first subplot and reused thereafter.
     key : str, default='rank_genes_groups'
-        The key under ``data.uns`` storing the differential expression results.
+        The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
-        Whether to use adjusted p-values (``pvals_adj``) instead of raw p-values.
+        Whether to use adjusted p-values instead of raw p-values.
     logfoldchange_threshold : float, default=1.0
         Absolute log fold change threshold used to label up/down regulated.
     pvalue_threshold : float, default=0.05
@@ -601,9 +600,9 @@ def volcanos(
     color_nonsignificant : str, default='#bebebe'
         Color for non-significant points.
     size : float, default=2.0
-        Default point size; can be overridden via ``point_kwargs``.
+        Default point size; can be overridden via `point_kwargs`.
     alpha : float, default=0.8
-        Default point alpha; can be overridden via ``point_kwargs``.
+        Default point alpha; can be overridden via `point_kwargs`.
     show_threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
@@ -613,10 +612,10 @@ def volcanos(
     threshold_linetype : str, default='dashed'
         Line type of the threshold lines.
     threshold_kwargs : dict | None, default=None
-        Additional parameters passed to the threshold ``geom_hline`` and ``geom_vline`` layers.
+        Additional parameters passed to the threshold `geom_hline` and `geom_vline` layers.
     top_n : int | None, default=10
-        Number of top up- and top down-regulated genes (by ``-log10(pvalue)``)
-        to label per subplot. Set to ``None`` or ``0`` to disable labels.
+        Number of top up- and top down-regulated genes (by `-log10(pvalue)`)
+        to label per subplot. Set to `None` or `0` to disable labels.
     label_color : str, default='#1f1f1f'
         Color of the gene labels.
     label_size : float, default=4.0
@@ -624,14 +623,14 @@ def volcanos(
     segment_size : float, default=0.4
         Width of the line segment connecting the label to the point.
     label_kwargs : dict | None, default=None
-        Additional parameters passed to the ``geom_text_repel`` label layer.
+        Additional parameters passed to the `geom_text_repel` label layer.
     nonsignificant_subsample : int | None, default=2000
         Maximum number of non-significant points to keep per subplot. Significant
         points (up/down) are always kept in full. Reducing this shrinks the
         embedded data in the rendered grid (smaller HTML/notebook output) at no
         visible cost since the non-significant cloud is heavily overplotted. Set
-        to ``None`` to keep every non-significant point. Sampling is deterministic
-        (``seed=42``).
+        to `None` to keep every non-significant point. Sampling is deterministic
+        (`seed=42`).
     variable_column : str, default='variable'
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
@@ -639,7 +638,7 @@ def volcanos(
     pvalue_column : str, default='pvalue'
         Output column name for the p-values.
     neg_log_pvalue_column : str, default='neg_log_pvalue'
-        Output column name for the ``-log10(pvalue)`` transform.
+        Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
     up_label : str, default='up'
@@ -649,8 +648,8 @@ def volcanos(
     nonsignificant_label : str, default='ns'
         Label for non-significant features.
     rank_genes_kwargs : dict | None, default=None
-        Additional keyword arguments forwarded to ``scanpy.tl.rank_genes_groups``
-        when ``group_by`` triggers a (re)compute.
+        Additional keyword arguments forwarded to the ranking call when
+        `group_by` triggers a (re)compute.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
     interactive : bool, default=False
@@ -682,12 +681,18 @@ def volcanos(
         How guides (legends/colorbars) should be treated in the layout.
         See :func:`lets_plot.gggrid`.
     **point_kwargs
-        Additional parameters for the ``geom_point`` layer of each subplot.
+        Additional parameters for the `geom_point` layer of each subplot.
 
     Returns
     -------
     SupPlotsSpec
         Grid of volcano plots.
+
+    Notes
+    -----
+    Builds a volcano plot for each entry in `groups` (vs the rest) and
+    arranges them in a grid via `gggrid`. All single-plot styling and
+    threshold options behave the same as in :func:`volcano`.
 
     Examples
     --------

@@ -42,14 +42,11 @@ def elbow(
     """
     Elbow Plot.
 
-    Plots the variance ratio explained by each principal component, helping
-    identify how many components to retain.
-
     Parameters
     ----------
     data : AnnData
-        The AnnData object of the single cell data.
-        Must have PCA results computed beforehand (e.g., via `sc.tl.pca`).
+        The single-cell data object.
+        Must have PCA results computed beforehand.
     n_pcs : int | None, default=None
         Number of principal components to display.
         If None, shows all available components.
@@ -93,6 +90,11 @@ def elbow(
     ValueError
         If PCA results are not available on `data`,
         or if `n_pcs` exceeds the number of available components.
+
+    Notes
+    -----
+    Plots the variance ratio explained by each principal component, helping
+    identify how many components to retain.
 
     Examples
     --------

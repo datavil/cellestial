@@ -216,25 +216,27 @@ def spatialdata_components(
     """
     Resolve image, geometry, and the annotation table.
 
-    When the chosen shapes element holds Polygons, ``polygon=True`` returns
-    a long-format vertex frame for ``geom_polygon``. ``polygon=False``
-    (the default) reduces them to centroids and returns point coordinates
-    instead.
-
     Returns
     -------
     image_array : NDArray | None
         The chosen image transformed into the target coordinate system,
-        in `(y, x[, c])` order, or None when ``image=False`` or no image
+        in `(y, x[, c])` order, or None when `image=False` or no image
         element exists.
     spot_coordinates : NDArray | None
-        Shape ``(n, 2)`` array of ``(x, y)`` per spot. None when polygon
+        Shape `(n, 2)` array of `(x, y)` per spot. None when polygon
         rendering is requested.
     polygon_frame : polars.DataFrame | None
-        Long-format vertex frame, populated only when ``polygon=True`` and
+        Long-format vertex frame, populated only when `polygon=True` and
         the chosen shapes element holds Polygons.
     table : AnnData
         The chosen annotation table.
+
+    Notes
+    -----
+    When the chosen shapes element holds Polygons, `polygon=True` returns
+    a long-format vertex frame for `geom_polygon`. `polygon=False`
+    (the default) reduces them to centroids and returns point coordinates
+    instead.
     """
     if not isinstance(data, SpatialData):
         msg = f"Expected a SpatialData object, got {type(data)}."
