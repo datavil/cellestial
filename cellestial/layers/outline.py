@@ -37,6 +37,16 @@ def _get_density_boundaries(
     else:
         groups = [[g] if isinstance(g, str) else list(g) for g in groups]
 
+    requested = {g for group in groups for g in group}
+    available = set(frame.get_column(group_by).unique().to_list())
+    missing = requested - available
+    if missing:
+        msg = (
+            f"Groups {sorted(missing)} not found in column '{group_by}'. "
+            f"Available groups: {sorted(available)}."
+        )
+        raise ValueError(msg)
+
     boundaries = []
     for group in groups:
         group_label = "+".join(group) if len(group) > 1 else group[0]
@@ -83,7 +93,7 @@ def _get_density_boundaries(
     if not boundaries:
         msg = (
             "No cluster outline could be computed. "
-            "Check that `groups` exist in `group_by` and have at least 5 points."
+            "Requested groups exist but have fewer than 5 points each."
         )
         raise ValueError(msg)
 
