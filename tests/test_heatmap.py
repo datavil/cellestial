@@ -24,6 +24,53 @@ def test_heatmap_dendrogram(adata, markers, group_key):
     assert isinstance(plot, PlotSpec)
 
 
+def _stage_custom_dendrogram(adata, group_key, custom_key="dendrogram_custom_v2"):
+    """Move the canonical dendrogram aside so only a custom-keyed one is present."""
+    import scanpy as sc
+
+    local = adata.copy()
+    sc.tl.dendrogram(local, groupby=group_key, key_added=custom_key)
+    local.uns.pop(f"dendrogram_{group_key}", None)
+    return local, custom_key
+
+
+def test_heatmap_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    local, custom = _stage_custom_dendrogram(adata, group_key)
+    plot = cl.heatmap(
+        local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
+    )
+    assert isinstance(plot, PlotSpec)
+    # canonical key should NOT have been (re)written by a silent recompute
+    assert f"dendrogram_{group_key}" not in local.uns
+
+
+def test_matrixplot_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    local, custom = _stage_custom_dendrogram(adata, group_key)
+    plot = cl.matrixplot(
+        local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
+    )
+    assert isinstance(plot, PlotSpec)
+    assert f"dendrogram_{group_key}" not in local.uns
+
+
+def test_dotplot_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    local, custom = _stage_custom_dendrogram(adata, group_key)
+    plot = cl.dotplot(
+        local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
+    )
+    assert isinstance(plot, PlotSpec)
+    assert f"dendrogram_{group_key}" not in local.uns
+
+
+def test_stacked_violin_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    local, custom = _stage_custom_dendrogram(adata, group_key)
+    plot = cl.stacked_violin(
+        local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
+    )
+    assert isinstance(plot, PlotSpec)
+    assert f"dendrogram_{group_key}" not in local.uns
+
+
 @pytest.mark.parametrize("scale_axis", [0, 1])
 def test_heatmap_scale_axis(adata, markers, group_key, scale_axis):
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, scale_axis=scale_axis)

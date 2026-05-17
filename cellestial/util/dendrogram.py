@@ -4,22 +4,21 @@ import polars as pl
 from anndata import AnnData
 
 
-def _get_dendrogram(data: AnnData, group_by: str) -> tuple[list[str], pl.DataFrame]:
-    """
-    Get or compute the dendrogram for a group_by key and extract paths.
-
-    Checks ``data.uns[f'dendrogram_{group_by}']``.
-    For AnnData, if not present, runs ``scanpy.tl.dendrogram`` to compute it.
-    Extracts the icoord/dcoord arrays into a Polars DataFrame of paths with normalized positions.
-    """
+def _get_dendrogram(
+    data: AnnData,
+    group_by: str,
+    *,
+    use_key: str | None = None,
+) -> tuple[list[str], pl.DataFrame]:
+    """Get or compute the dendrogram for `group_by` and extract paths."""
     import numpy as np
 
     if isinstance(data, AnnData):
-        key = f"dendrogram_{group_by}"
+        key = use_key if use_key is not None else f"dendrogram_{group_by}"
         if key not in data.uns:
             import scanpy as sc
 
-            sc.tl.dendrogram(data, groupby=group_by)
+            sc.tl.dendrogram(data, groupby=group_by, key_added=key)
 
         dendro = data.uns[key]
         categories_ordered = list(dendro["categories_ordered"])

@@ -209,6 +209,7 @@ def heatmap(
     group_lines_size: float = 0.6,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
+    dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
@@ -284,6 +285,9 @@ def heatmap(
         Color of the dendrogram segments.
     dendrogram_size : float, default=0.5
         Size (thickness) of the dendrogram segments.
+    dendrogram_key : str | None, default=None
+        Specific key holding the precomputed dendrogram.
+        By default, `dendrogram_{group_by}` is used.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
@@ -499,7 +503,7 @@ def heatmap(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(data, group_by)
+        y_order_groups, paths = _get_dendrogram(data, group_by, use_key=dendrogram_key)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
@@ -662,6 +666,7 @@ def matrixplot(
     group_lines_size: float = 0.6,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
+    dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
     dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
@@ -731,6 +736,9 @@ def matrixplot(
         Color of the dendrogram segments.
     dendrogram_size : float, default=0.5
         Size (thickness) of the dendrogram segments.
+    dendrogram_key : str | None, default=None
+        Specific key holding the precomputed dendrogram.
+        By default, `dendrogram_{group_by}` is used.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
@@ -842,6 +850,7 @@ def matrixplot(
         group_lines_size=group_lines_size,
         dendrogram_color=dendrogram_color,
         dendrogram_size=dendrogram_size,
+        dendrogram_key=dendrogram_key,
         group_lines_kwargs=group_lines_kwargs,
         dendrogram_kwargs=dendrogram_kwargs,
         value_column=value_column,

@@ -199,6 +199,7 @@ def stacked_violin(
     dendrogram: bool = False,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
+    dendrogram_key: str | None = None,
     dendrogram_kwargs: dict | None = None,
     rectangle: bool = True,
     rectangle_size: float = 0.8,
@@ -292,6 +293,9 @@ def stacked_violin(
         Color of the dendrogram segments.
     dendrogram_size : float, default=0.5
         Size (thickness) of the dendrogram segments.
+    dendrogram_key : str | None, default=None
+        Specific key holding the precomputed dendrogram.
+        By default, `dendrogram_{group_by}` is used.
     dendrogram_kwargs : dict | None, default=None
         Additional parameters to pass to the dendrogram geom_path.
     rectangle : bool, default=True
@@ -456,7 +460,7 @@ def stacked_violin(
 
     # DETERMINE: y order of groups (dendrogram or first-seen order)
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(data, group_by)
+        y_order_groups, paths = _get_dendrogram(data, group_by, use_key=dendrogram_key)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()

@@ -12,7 +12,9 @@
 - [Feedback: Sandbox Numba test runs](feedback_sandbox_numba.md) - Use NUMBA_DISABLE_JIT=1 when running commands in a sandboxed local workspace
 - [Feedback: Sync repo MEMORY.md](feedback_sync_repo_memory.md) — Mirror every auto-memory change in repo's `MEMORY.md` (index line + inlined source block)
 - [Feedback: Avoid shortened variable names](feedback_naming.md) — No abbreviations like `grp_idx`/`obs`/`cfg`; use full words (only `n`-style counts OK)
-- [Feedback: Docs avoid AnnData internals](feedback_docs_no_anndata_internals.md) — Don't reference `uns['spatial']`/`obsm[...]`/`obs[...]` in user-facing docstrings; use abstracted terms
+- [Feedback: Docs avoid AnnData internals](feedback_docs_no_anndata_internals.md) — Don't reference AnnData slots OR scanpy APIs (`scanpy.tl.dendrogram`, `key_added`) in user-facing docstrings; abstract them
+- [Feedback: Docstring backtick discipline](feedback_docstring_backticks.md) — Don't sprinkle double backticks; match neighboring params (single backticks for identifiers, plain text otherwise)
+- [Feedback: Don't overengineer key resolvers](feedback_dont_overengineer_resolvers.md) — `use_key | None -> default` is a one-liner; no scanning, no candidate ranking, no shape helpers unless there's real ambiguity
 - [Feedback: Never use em dashes](feedback_no_em_dashes.md) — User hates em dashes; never write them in code, docs, comments, or chat
 - [Feedback: `if isinstance(data, AnnData)` block stays](feedback_isinstance_anndata_block.md) — Never flatten to `if not isinstance: raise`; positive branch hosts AnnData-specific ops for future multi-backend support
 - [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
@@ -66,15 +68,52 @@ Never include absolute home paths (e.g. `/Users/<name>/...`) in repo content; us
 
 ---
 name: Docs avoid AnnData-internal references
-description: Don't reference AnnData container slots like uns['spatial'] / obsm['X'] in user-facing docs and docstrings
+description: Don't reference AnnData/scanpy internals (uns['spatial'], obsm['X'], scanpy.tl.dendrogram, key_added) in user-facing docs and docstrings
 type: feedback
 originSessionId: 38fa3aa3-d285-4124-9b4f-be3c011e598b
 ---
-Never name AnnData-internal structure (e.g. `uns['spatial']`, `obsm['spatial']`, `obs['cluster']`, `var_names`, `layers['counts']`) in user-facing docstrings, Notes blocks, or error messages aimed at end users. Use abstracted language: "image data", "spot coordinates", "spatial coordinates", "the dataset", etc.
+Never name backend-specific structure or APIs in user-facing docstrings, Notes blocks, or error messages aimed at end users. This covers two categories:
 
-**Why:** Cellestial aims to abstract over the data container (AnnData today, possibly others later — the architecture already accepts non-AnnData per `plans/TODO.md`). Surfacing AnnData internals in docs leaks the implementation, dates the docs, and confuses users on alternative backends.
+1. **AnnData container slots:** `uns['spatial']`, `obsm['spatial']`, `obs['cluster']`, `var_names`, `layers['counts']`.
+2. **Scanpy / other backend function names and parameter names:** `scanpy.tl.dendrogram`, `sc.tl.rank_genes_groups`, `key_added`, etc.
 
-**How to apply:** When documenting parameters, behavior, or notes, describe what the input *represents* (image, coordinates, gene expression) rather than where it lives in the AnnData object. Internal code comments referencing `uns/obsm/etc.` are fine — this rule is for docstrings and user-visible text only.
+Use abstracted language instead: "image data", "spot coordinates", "the precomputed dendrogram", "the ranking", "the dataset".
+
+**Why:** Cellestial aims to abstract over the data container (AnnData today, possibly others later — the architecture already accepts non-AnnData per `plans/TODO.md`). Surfacing AnnData or scanpy internals in docs leaks the implementation, dates the docs, and confuses users on alternative backends. Telling users "useful when `scanpy.tl.dendrogram` was run with custom `key_added`" assumes both the backend and the workflow.
+
+**How to apply:** When documenting parameters, behavior, or notes, describe what the input *represents* (image, coordinates, gene expression, precomputed dendrogram) rather than where it lives or which library produced it. Internal code comments and private helpers referencing `uns/obsm/scanpy/etc.` are fine — this rule is for public docstrings and user-visible text only.
+
+
+---
+
+## Source: feedback_docstring_backticks.md
+
+---
+name: Docstring backtick discipline
+description: Don't sprinkle RST-style double backticks in user-facing docstrings; use single backticks for python identifiers, plain text otherwise
+type: feedback
+---
+Keep docstring formatting plain. Match the style of neighboring parameters in the same function — most existing cellestial docstrings use single backticks for python identifiers (`group_by`, `keys`, `aes()`) and plain text for everything else. Avoid wrapping prose phrases or default-value descriptions in double backticks reflexively.
+
+**Why:** Reflexively reaching for RST-style double backticks (a habit borrowed from sphinx-heavy projects) clutters the rendered docstring with backtick noise and breaks tonal consistency with the rest of the file. The user flagged this directly: "you are using double backticks so freely." See `feedback_docs_no_anndata_internals.md` — the same review pass.
+
+**How to apply:** Before submitting a docstring change, glance at the surrounding params. If they use plain prose with occasional single-backtick identifiers, match that. Reserve double backticks for true code-block-like literals where single backticks would be ambiguous, and even then prefer the shorter form when the rest of the docstring uses it.
+
+
+---
+
+## Source: feedback_dont_overengineer_resolvers.md
+
+---
+name: Don't overengineer key resolvers
+description: For "use_key | None -> default" parameters, just do `key if key is not None else default` — no fuzzy matching, scanning, candidate ranking, or shape-detection helpers
+type: feedback
+---
+When adding a "specify a key, default to something" parameter, the body should be one line: `key = use_key if use_key is not None else default_key`. Don't build resolvers that scan the container for similarly-named candidates, validate the value's stored shape, rank candidates by length, or warn about alternatives. Don't add structural-check helpers (`_looks_like_X`) or field-extractors (`_stored_Y`) as scaffolding. If the named key doesn't exist, fall through to whatever fallback the existing code had (recompute, raise, etc.).
+
+**Why:** The user explicitly called this out: *"if dendrogram_key is None just use the default else use what is given. do not overcomplicate it."* The fancy resolver I built (`_resolve_dendrogram_key` with prefix/groupby matching, tiebreak rules, multi-candidate warnings, helper functions for shape detection and field unwrapping) was ~70 lines plus 9 tests for what should be 1 line plus 0 extra tests. The earlier `_resolve_embedding_key` (the user's own commit) IS more elaborate, but only because embedding lookups have a real ambiguity (multiple obsm keys with shared prefix, dimensionality varies). Dendrogram lookup has no such ambiguity — there's exactly one key the user named, or the canonical default. Don't generalize from one resolver's complexity to all resolvers.
+
+**How to apply:** When introducing a `foo_key: str | None = None` parameter, first ask "is there genuine ambiguity to resolve, or just a default?" If it's just a default, write the one-liner. Only build a resolver when the search space actually has multiple plausibly-correct candidates and the user benefits from automatic disambiguation. See `feedback_docstring_backticks.md` and `feedback_docs_no_anndata_internals.md` for adjacent docstring lessons from the same review pass.
 
 
 ---
