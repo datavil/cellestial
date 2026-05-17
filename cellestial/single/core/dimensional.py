@@ -24,6 +24,7 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _color_gradient,
     _is_variable_key,
+    _resolve_embedding_key,
     _resolve_tooltips,
     _validate_tooltips,
     _warn,
@@ -228,12 +229,9 @@ def dimensional(
     if len(xy) != 2:
         msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
         raise KeyError(msg)
-    if use_key is None:
-        x = f"X_{dimensions.upper()}{xy[0]}"  # e.g. X_UMAP1
-        y = f"X_{dimensions.upper()}{xy[1]}"  # e.g. X_UMAP2
-    else:
-        x = f"{use_key}{xy[0]}"  # e.g. X_UMAP1
-        y = f"{use_key}{xy[1]}"  # e.g. X_UMAP2
+    prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
+    x = f"{prefix}{xy[0]}"  # e.g. X_UMAP1
+    y = f"{prefix}{xy[1]}"  # e.g. X_UMAP2
 
     # HANDLE: variable_keys
     if variable_keys is None:

@@ -24,7 +24,7 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
-from cellestial.util.errors import CellestialWarning
+from cellestial.util.errors import CellestialWarning, KeyNotFoundError, UnsupportedDataTypeError
 
 _PACKAGE_ROOT = str(Path(__file__).parents[1])
 
@@ -530,6 +530,93 @@ def _are_variable_features(data: AnnData, keys: Sequence[str] | None) -> bool:
         raise TypeError(msg)
 
     return result
+
+
+def _resolve_embedding_key(
+    data: AnnData,
+    dimensions: str,
+    use_key: str | None,
+    xy: Sequence[int],
+) -> str:
+    """
+    Resolve the column-name prefix used to index an embedding in the built frame.
+
+    `build_frame` emits embedding columns as ``f"{KEY.upper()}{n}"``, so callers
+    compose axis names like ``X_UMAP1`` / ``X_UMAP2`` by appending the axis
+    index to the prefix returned here.
+
+    Resolution rules
+    ----------------
+    1. If ``use_key`` is given, return it uppercased.
+    2. Otherwise, against ``f"X_{dimensions.upper()}"``:
+       - exact (case-insensitive) match -> return it silently.
+       - no exact, but prefix matches exist -> pick the candidate whose
+         dimensionality is sufficient for ``max(xy)`` (shortest name on ties),
+         warn the user, and suggest ``use_key`` to silence.
+       - no candidate -> raise ``KeyNotFoundError``.
+
+    Parameters
+    ----------
+    data : AnnData
+        Single-cell data object providing the embedding store.
+    dimensions : str
+        Embedding family, e.g. ``"umap"``, ``"pca"``, ``"tsne"``.
+    use_key : str | None
+        Explicit embedding key. When provided, no search is performed.
+    xy : Sequence[int]
+        Axis indices requested (1-based); used to filter shape-eligible
+        candidates during fallback.
+
+    Returns
+    -------
+    str
+        Uppercase column-name prefix.
+
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    KeyNotFoundError
+        If no embedding matches the requested family.
+    """
+    if use_key is not None:
+        return use_key.upper()
+
+    if isinstance(data, AnnData):
+        candidates = list(data.obsm.keys())
+        shapes = {key: data.obsm[key].shape[1] for key in candidates}
+    else:
+        msg = f"Unsupported data type: `{type(data)}`"
+        raise UnsupportedDataTypeError(msg)
+
+    target = f"X_{dimensions.upper()}"
+    needed = max(xy)
+
+    for key in candidates:
+        if key.upper() == target:
+            return target
+
+    prefix_matches = [key for key in candidates if key.upper().startswith(target)]
+    if not prefix_matches:
+        msg = (
+            f"No embedding found for `dimensions='{dimensions}'`\n"
+            f"(looked for `{target}` or any key starting with it).\n"
+            f"Available embeddings: {candidates}."
+        )
+        raise KeyNotFoundError(msg)
+
+    eligible = [key for key in prefix_matches if shapes[key] >= needed]
+    pool = eligible or prefix_matches
+    chosen = sorted(pool, key=lambda key: (len(key), key))[0]
+
+    alternatives = sorted(prefix_matches)
+    _warn(
+        f"No embedding named `{target}` found; "
+        f"using `{chosen}` with (shape={shapes[chosen]})\n"
+        f"Alternatives: {alternatives}, Rest: {list(set(candidates) - set(alternatives))}.\n"
+        "Pass `use_key='...'` to use a specific key."
+    )
+    return chosen.upper()
 
 
 def _determine_axis(

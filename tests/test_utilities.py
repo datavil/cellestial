@@ -1,9 +1,17 @@
 """Tests for cellestial.util.utilities, internal helpers."""
 
+import warnings
+
+import numpy as np
 import polars as pl
 import pytest
 from lets_plot.plot.core import FeatureSpec
 
+from cellestial.util.errors import (
+    CellestialWarning,
+    KeyNotFoundError,
+    UnsupportedDataTypeError,
+)
 from cellestial.util.operations import retrieve
 from cellestial.util.utilities import (
     _are_observation_features,
@@ -19,6 +27,7 @@ from cellestial.util.utilities import (
     _is_variable_feature,
     _is_variable_key,
     _range_inclusive,
+    _resolve_embedding_key,
     _select_variable_keys,
     _share_axis,
     _share_labels,
@@ -332,6 +341,85 @@ def test_determine_axis_string_key(adata):
 def test_determine_axis_invalid(adata):
     with pytest.raises(ValueError):
         _determine_axis(adata, ["NOT_REAL_KEY_xyz"])
+
+
+# ---- _resolve_embedding_key ----
+
+
+def test_resolve_embedding_use_key_uppercases(adata):
+    assert _resolve_embedding_key(adata, "umap", "X_umap2d", xy=(1, 2)) == "X_UMAP2D"
+
+
+def test_resolve_embedding_use_key_already_upper(adata):
+    assert _resolve_embedding_key(adata, "umap", "X_UMAP", xy=(1, 2)) == "X_UMAP"
+
+
+def test_resolve_embedding_use_key_no_warning(adata):
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _resolve_embedding_key(adata, "umap", "anything", xy=(1, 2))
+    cellestial_warnings = [w for w in caught if issubclass(w.category, CellestialWarning)]
+    assert cellestial_warnings == []
+
+
+def test_resolve_embedding_exact_match_silent(adata):
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = _resolve_embedding_key(adata, "umap", None, xy=(1, 2))
+    assert result == "X_UMAP"
+    cellestial_warnings = [w for w in caught if issubclass(w.category, CellestialWarning)]
+    assert cellestial_warnings == []
+
+
+@pytest.mark.parametrize("dimensions", ["umap", "pca", "tsne"])
+def test_resolve_embedding_exact_match_all_families(adata, dimensions):
+    result = _resolve_embedding_key(adata, dimensions, None, xy=(1, 2))
+    assert result == f"X_{dimensions.upper()}"
+
+
+def test_resolve_embedding_fallback_single_candidate_warns(adata):
+    local = adata.copy()
+    local.obsm["X_umap2d"] = local.obsm.pop("X_umap")
+    with pytest.warns(CellestialWarning, match=r"X_umap2d"):
+        result = _resolve_embedding_key(local, "umap", None, xy=(1, 2))
+    assert result == "X_UMAP2D"
+
+
+def test_resolve_embedding_fallback_shape_aware(adata):
+    local = adata.copy()
+    n_obs = local.n_obs
+    local.obsm.pop("X_umap")
+    local.obsm["X_umap2d"] = np.zeros((n_obs, 2))
+    local.obsm["X_umap3d"] = np.zeros((n_obs, 3))
+    # 3rd axis requested -> 2D candidate is insufficient, pick 3D
+    with pytest.warns(CellestialWarning):
+        result = _resolve_embedding_key(local, "umap", None, xy=(1, 3))
+    assert result == "X_UMAP3D"
+
+
+def test_resolve_embedding_fallback_tie_break_shortest(adata):
+    local = adata.copy()
+    n_obs = local.n_obs
+    local.obsm.pop("X_umap")
+    local.obsm["X_umap_long_name"] = np.zeros((n_obs, 2))
+    local.obsm["X_umap_a"] = np.zeros((n_obs, 2))
+    with pytest.warns(CellestialWarning):
+        result = _resolve_embedding_key(local, "umap", None, xy=(1, 2))
+    assert result == "X_UMAP_A"
+
+
+def test_resolve_embedding_no_candidate_raises(adata):
+    local = adata.copy()
+    for key in list(local.obsm.keys()):
+        if key.upper().startswith("X_UMAP"):
+            local.obsm.pop(key)
+    with pytest.raises(KeyNotFoundError, match="X_UMAP"):
+        _resolve_embedding_key(local, "umap", None, xy=(1, 2))
+
+
+def test_resolve_embedding_unsupported_type():
+    with pytest.raises(UnsupportedDataTypeError):
+        _resolve_embedding_key("not anndata", "umap", None, xy=(1, 2))
 
 
 # ---- get_mapping / retrieve error paths ----
