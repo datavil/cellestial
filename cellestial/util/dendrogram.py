@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import polars as pl
 from anndata import AnnData
 
@@ -11,8 +12,6 @@ def _get_dendrogram(
     use_key: str | None = None,
 ) -> tuple[list[str], pl.DataFrame]:
     """Get or compute the dendrogram for `group_by` and extract paths."""
-    import numpy as np
-
     if isinstance(data, AnnData):
         key = use_key if use_key is not None else f"dendrogram_{group_by}"
         if key not in data.uns:
@@ -57,8 +56,6 @@ def _get_dendrogram_path_frame(
     dendrogram_ratio: float = 0.15,
 ) -> pl.DataFrame:
     """Map normalized dendrogram paths into plot coordinates (right side along y-axis)."""
-    import numpy as np
-
     y_dendrogram_size = n_x * dendrogram_ratio
     leaf_xp = np.arange(n_groups, dtype=float)
     plot_y = np.interp(paths["x"].to_numpy(), leaf_xp, group_centers)

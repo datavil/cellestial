@@ -8,8 +8,7 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 
 - [x] **1b.** `_share_labels` / `_share_axis` / `_share_ticks` each recompute the same `(nrow, ncol, left_places, bottom_places)`. [cellestial/util/utilities.py:290-366](../cellestial/util/utilities.py#L290-L366)
 
-- [ ] **1d.** Same column extracted via `.to_list()` three times for star / pvalue / padj labels. [cellestial/layers/bracket.py:210-237](../cellestial/layers/bracket.py#L210-L237)
-- [ ] **1e.** `_resolve_embedding_key()` re-runs per panel in multi-plot grids; `@functools.cache` candidate. [cellestial/single/core/dimensional.py:200](../cellestial/single/core/dimensional.py#L200)
+
 
 ## 2. Polars laziness / fewer passes
 
@@ -19,40 +18,23 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 
 ## 3. Memory
 
-- [ ] **3a.** Vectorized numpy result then materialized back into Python floats in a loop. [cellestial/util/dendrogram.py:27-35](../cellestial/util/dendrogram.py#L27-L35)
-- [ ] **3b.** `.to_numpy()` on selected columns when downstream may accept Polars directly. [cellestial/layers/stream.py:81-82](../cellestial/layers/stream.py#L81-L82)
 - [x] **3c.** `frame[y].to_numpy()` just to call `.min()` / `.max()`; call on the Series. [cellestial/layers/bracket.py:241-247](../cellestial/layers/bracket.py#L241-L247)
 - [ ] **3d.** Full sparse `X.multiply(...)` for top-N gene normalization; slice `X[:, top_idx]` first. [cellestial/frames/operations.py:22-39](../cellestial/frames/operations.py#L22-L39)
-- [ ] **3e.** `keys.copy()` then mutating the copy while iterating the original. [cellestial/single/common/xyplot.py:167](../cellestial/single/common/xyplot.py#L167)
+
 
 ## 4. Algorithmic
 
-- [ ] **4a.** `key in column_names` (list) inside loop; convert to set once. [cellestial/frames/build.py:32-39](../cellestial/frames/build.py#L32-L39)
+- [x] **4a.** `key in column_names` (list) inside loop; convert to set once. [cellestial/frames/build.py:32-39](../cellestial/frames/build.py#L32-L39)
 - [ ] **4b.** `isinstance(include_dimensions, int) and not isinstance(..., bool)` re-checked every iteration. [cellestial/frames/build.py:110-121](../cellestial/frames/build.py#L110-L121)
-- [ ] **4c.** Grid-layout list comprehensions rebuilt three times across helper trio. [cellestial/util/utilities.py:290-366](../cellestial/util/utilities.py#L290-L366)
-- [ ] **4d.** `obsm.keys()` looped twice with repeated `.upper()` calls. [cellestial/util/utilities.py:600-627](../cellestial/util/utilities.py#L600-L627)
 
-## 5. Parallelism
 
-- [ ] **5a.** Sequential `violin()` per key in grid builder. [cellestial/single/core/distributions.py:199-235](../cellestial/single/core/distributions.py#L199-L235)
-- [ ] **5b.** Sequential `dimensional()` per key; frame build + plot independent. [cellestial/single/core/subdimensionals.py:223-250](../cellestial/single/core/subdimensionals.py#L223-L250)
-- [ ] **5c.** Blocking `urlopen` download in `from_url` / `from_cellxgene`; async / threaded variant possible. [cellestial/datasets/datasets.py:424-523](../cellestial/datasets/datasets.py#L424-L523)
-
-## 6. Rendering / lets-plot
-
-- [ ] **6a.** Confirm `_THEME_DIST` is not deep-copied per `+` in the multi-plot loop. [cellestial/single/core/distributions.py:153](../cellestial/single/core/distributions.py#L153)
-- [ ] **6b.** Categorical color scale recomputed per call; could cache by `(key, n_unique)`. [cellestial/single/core/dimensional.py:248-250](../cellestial/single/core/dimensional.py#L248-L250)
-- [ ] **6c.** `scale_size(trans="sqrt", breaks=[25,50,75,100])` hardcoded; no override path. [cellestial/themes/_scatters.py:71](../cellestial/themes/_scatters.py#L71)
 
 ## 7. AnnData
 
 - [x] **7a.** `data.obs_vector(key)` per-key fetch, no caching across calls. [cellestial/frames/build.py:36](../cellestial/frames/build.py#L36) **(subsumed by 2c)**
 - [ ] **7b.** Extra `.tocsr()` after sparse multiply — wasted copy. [cellestial/frames/operations.py:37-38](../cellestial/frames/operations.py#L37-L38)
 
-## 8. Utility redundancy
 
-- [ ] **8a.** Identical `isinstance(data, AnnData)` + error block duplicated across `_is_*_key` helpers. [cellestial/util/utilities.py:401-504](../cellestial/util/utilities.py#L401-L504)
-- [ ] **8b.** Categorical-integer handling duplicated between observations / variables frames. [cellestial/frames/build.py:98-104](../cellestial/frames/build.py#L98-L104), [cellestial/frames/build.py:180-187](../cellestial/frames/build.py#L180-L187)
 
 ## 9. Imports / startup
 
