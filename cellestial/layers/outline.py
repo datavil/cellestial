@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import polars as pl
 from lets_plot import aes, geom_path
+from scipy.stats import gaussian_kde
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping
@@ -28,7 +29,6 @@ def _get_density_boundaries(
     grid_size: int = 200,
 ) -> DataFrame:
     """Creates and Returns a DataFrame to encircle the cluster via `geom_path`."""
-    from scipy.stats import gaussian_kde
     from skimage import measure
 
     # 1. Normalize input to a Sequence of Sequences: List[List[str]]

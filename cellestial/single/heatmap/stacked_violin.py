@@ -18,6 +18,7 @@ from lets_plot import (
     theme,
 )
 from lets_plot.plot.core import FeatureSpec
+from scipy.stats import gaussian_kde
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap._key_groups import (
@@ -65,8 +66,6 @@ def _compute_violin_polygons(
     mapped to local y inside the row band and density mapped to local x around
     the column position.
     """
-    from scipy.stats import gaussian_kde
-
     var_stats = frame.group_by(variable_column).agg(
         pl.col(value_column).min().alias("_vmin"),
         pl.col(value_column).max().alias("_vmax"),

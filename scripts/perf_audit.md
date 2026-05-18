@@ -12,8 +12,7 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 
 ## 2. Polars laziness / fewer passes
 
-- [ ] **2a.** `unpivot` then `drop_nulls` then `filter` is three eager passes; chain into one. [cellestial/single/core/distribution.py:116-134](../cellestial/single/core/distribution.py#L116-L134)
-- [ ] **2b.** Eager `pl.DataFrame(columns)` build forfeits lazy optimization across multi-column construction. [cellestial/frames/build.py:94-133](../cellestial/frames/build.py#L94-L133)
+
 - [x] **2c.** Per-key `data.obs_vector(key)` instead of a single batched AnnData slice. [cellestial/frames/build.py:18-44](../cellestial/frames/build.py#L18-L44) **(implemented in [build_nextgen.py](../cellestial/frames/build_nextgen.py); see [perf_report.md](perf_report.md))**
 
 ## 3. Memory
@@ -25,21 +24,17 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 ## 4. Algorithmic
 
 - [x] **4a.** `key in column_names` (list) inside loop; convert to set once. [cellestial/frames/build.py:32-39](../cellestial/frames/build.py#L32-L39)
-- [ ] **4b.** `isinstance(include_dimensions, int) and not isinstance(..., bool)` re-checked every iteration. [cellestial/frames/build.py:110-121](../cellestial/frames/build.py#L110-L121)
 
 
 
 ## 7. AnnData
 
 - [x] **7a.** `data.obs_vector(key)` per-key fetch, no caching across calls. [cellestial/frames/build.py:36](../cellestial/frames/build.py#L36) **(subsumed by 2c)**
-- [ ] **7b.** Extra `.tocsr()` after sparse multiply — wasted copy. [cellestial/frames/operations.py:37-38](../cellestial/frames/operations.py#L37-L38)
-
-
 
 ## 9. Imports / startup
 
-- [ ] **9a.** Top-level `from anndata import read_h5ad`; defer into loader bodies. [cellestial/datasets/datasets.py:1-9](../cellestial/datasets/datasets.py#L1-L9)
-- [ ] **9b.** Inconsistent in-function vs top-level imports across the codebase. [cellestial/util/dendrogram.py:14-19](../cellestial/util/dendrogram.py#L14-L19)
+
+- [x] **9b.** Inconsistent in-function vs top-level imports across the codebase. [cellestial/util/dendrogram.py:14-19](../cellestial/util/dendrogram.py#L14-L19)
 
 ## Top 10 leverage ranking
 

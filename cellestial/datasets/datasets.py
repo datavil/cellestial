@@ -487,7 +487,7 @@ def from_url(
     print(f"No cache at {cache_file} !")
     print(f"Downloading from {url} ...")
 
-    block_size = 1024
+    block_size = 1024 * 1024
     # Stream to a .part file and atomically rename on success, so an interrupted
     # download cannot poison the cache.
     partial_file = cache_file.with_name(cache_file.name + ".part")

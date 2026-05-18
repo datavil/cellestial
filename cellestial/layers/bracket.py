@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import polars as pl
 from lets_plot import aes, geom_bracket
+from scipy.stats import mannwhitneyu, ttest_ind
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
@@ -134,8 +135,6 @@ def _compute_bracket_frame(
     y_padding: float,
 ) -> DataFrame:
     """Build a `geom_bracket` DataFrame from pairwise significance tests."""
-    from scipy.stats import mannwhitneyu, ttest_ind
-
     # determine which pairs to compare
     groups = frame[x].drop_nulls().unique(maintain_order=True).to_list()
     if comparisons is None:
