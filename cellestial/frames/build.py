@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+import numpy as np
 import pandas as pd
 import polars as pl
 from anndata import AnnData
+from scipy.sparse import issparse
 from spatialdata import SpatialData
 
 from cellestial.util.errors import UnsupportedDataTypeError, VariableNotFoundError
@@ -29,17 +31,23 @@ def anndata_variable_columns(
     columns = []
     if isinstance(keys, str):
         keys = [keys]
-    for key in keys:
-        if key in column_names:  # check for repeats
-            continue
-        elif key in data.var_names:
-            values = data.obs_vector(key)
-            # add the variable column to the list of columns
-            columns.append(pl.Series(key, values).cast(pl.Float32))
-            column_names.append(key)
-        else:
-            msg = f"Key `{key}` not found in data."
-            raise VariableNotFoundError(msg)
+    # remove keys that are already in column_names to avoid repeats
+    keys = [key for key in keys if key not in column_names]
+    # check that all keys are in data.var_names
+    available_names = set(data.var_names)
+    missing = [key for key in keys if key not in available_names]
+    if missing:
+        msg = f"Keys not found in data.var_names: {missing}"
+        raise VariableNotFoundError(msg)
+
+    # subset X
+    X = data[:, keys].X
+
+    if issparse(X):
+        X = X.toarray()  # ty:ignore[unresolved-attribute]
+    else:
+        X = np.asarray(X)
+    columns = [pl.Series(key, X[:, i]) for i, key in enumerate(keys)]
 
     return columns
 
@@ -210,7 +218,7 @@ def anndata_variables_frame(
 
 
 def build_frame(
-    data: AnnData,
+    data: AnnData | SpatialData,
     *,
     variable_keys: str | Sequence[str] | None = None,
     axis: Literal[0, 1] | None = None,
@@ -223,8 +231,8 @@ def build_frame(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object containing the variables.
+    data : AnnData | SpatialData
+        The AnnData or SpatialData object containing the variables.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : {0,1} | None
@@ -282,6 +290,7 @@ def build_frame(
     if isinstance(data, SpatialData):
         tables = list(data.tables.keys())
         if len(tables) == 1:
+            # retrieve an anndata
             data = data.tables[tables[0]]
         elif len(tables) == 0:
             msg = "No annotation tables found in the SpatialData object."
