@@ -238,10 +238,10 @@ def _compute_bracket_frame(
     brackets = brackets.with_columns(label=pl.Series(labels))
 
     # compute y positions so brackets stack above the data without overlapping
-    values = frame[y].to_numpy()
-    data_min = float(values.min())
-    data_max = float(values.max())
-    data_range = data_max - data_min
+
+    data_min = frame[y].min()
+    data_max = frame[y].max()
+    data_range = data_max - data_min  # ty:ignore[unsupported-operator]
     _y_position = data_max + data_range * y_padding if y_position is None else y_position
     _y_step = data_range * y_padding if y_step is None else y_step
     positions = [_y_position + _y_step * index for index in range(len(brackets))]
