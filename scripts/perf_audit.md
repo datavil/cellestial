@@ -5,9 +5,9 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 
 ## 1. Caching
 
-- [ ] **1a.** `_color_gradient` / `_fill_gradient` compute `series.min()` and `series.max()` twice when `mid_point='mid'`. [cellestial/util/utilities.py:224-287](../cellestial/util/utilities.py#L224-L287)
-- [ ] **1b.** `_share_labels` / `_share_axis` / `_share_ticks` each recompute the same `(nrow, ncol, left_places, bottom_places)`. [cellestial/util/utilities.py:290-366](../cellestial/util/utilities.py#L290-L366)
-- [ ] **1c.** Repeated `float()` cast per element in nested `icoord`/`dcoord` loop. [cellestial/util/dendrogram.py:37-43](../cellestial/util/dendrogram.py#L37-L43)
+
+- [x] **1b.** `_share_labels` / `_share_axis` / `_share_ticks` each recompute the same `(nrow, ncol, left_places, bottom_places)`. [cellestial/util/utilities.py:290-366](../cellestial/util/utilities.py#L290-L366)
+
 - [ ] **1d.** Same column extracted via `.to_list()` three times for star / pvalue / padj labels. [cellestial/layers/bracket.py:210-237](../cellestial/layers/bracket.py#L210-L237)
 - [ ] **1e.** `_resolve_embedding_key()` re-runs per panel in multi-plot grids; `@functools.cache` candidate. [cellestial/single/core/dimensional.py:200](../cellestial/single/core/dimensional.py#L200)
 
@@ -15,13 +15,13 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 
 - [ ] **2a.** `unpivot` then `drop_nulls` then `filter` is three eager passes; chain into one. [cellestial/single/core/distribution.py:116-134](../cellestial/single/core/distribution.py#L116-L134)
 - [ ] **2b.** Eager `pl.DataFrame(columns)` build forfeits lazy optimization across multi-column construction. [cellestial/frames/build.py:94-133](../cellestial/frames/build.py#L94-L133)
-- [ ] **2c.** Per-key `data.obs_vector(key)` instead of a single batched AnnData slice. [cellestial/frames/build.py:18-44](../cellestial/frames/build.py#L18-L44) **(implemented in [build_nextgen.py](../cellestial/frames/build_nextgen.py); see [perf_report.md](perf_report.md))**
+- [x] **2c.** Per-key `data.obs_vector(key)` instead of a single batched AnnData slice. [cellestial/frames/build.py:18-44](../cellestial/frames/build.py#L18-L44) **(implemented in [build_nextgen.py](../cellestial/frames/build_nextgen.py); see [perf_report.md](perf_report.md))**
 
 ## 3. Memory
 
 - [ ] **3a.** Vectorized numpy result then materialized back into Python floats in a loop. [cellestial/util/dendrogram.py:27-35](../cellestial/util/dendrogram.py#L27-L35)
 - [ ] **3b.** `.to_numpy()` on selected columns when downstream may accept Polars directly. [cellestial/layers/stream.py:81-82](../cellestial/layers/stream.py#L81-L82)
-- [ ] **3c.** `frame[y].to_numpy()` just to call `.min()` / `.max()`; call on the Series. [cellestial/layers/bracket.py:241-247](../cellestial/layers/bracket.py#L241-L247)
+- [x] **3c.** `frame[y].to_numpy()` just to call `.min()` / `.max()`; call on the Series. [cellestial/layers/bracket.py:241-247](../cellestial/layers/bracket.py#L241-L247)
 - [ ] **3d.** Full sparse `X.multiply(...)` for top-N gene normalization; slice `X[:, top_idx]` first. [cellestial/frames/operations.py:22-39](../cellestial/frames/operations.py#L22-L39)
 - [ ] **3e.** `keys.copy()` then mutating the copy while iterating the original. [cellestial/single/common/xyplot.py:167](../cellestial/single/common/xyplot.py#L167)
 
@@ -46,7 +46,7 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 
 ## 7. AnnData
 
-- [ ] **7a.** `data.obs_vector(key)` per-key fetch, no caching across calls. [cellestial/frames/build.py:36](../cellestial/frames/build.py#L36) **(subsumed by 2c)**
+- [x] **7a.** `data.obs_vector(key)` per-key fetch, no caching across calls. [cellestial/frames/build.py:36](../cellestial/frames/build.py#L36) **(subsumed by 2c)**
 - [ ] **7b.** Extra `.tocsr()` after sparse multiply — wasted copy. [cellestial/frames/operations.py:37-38](../cellestial/frames/operations.py#L37-L38)
 
 ## 8. Utility redundancy

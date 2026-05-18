@@ -4,6 +4,7 @@ import inspect
 import re
 import warnings
 from collections.abc import Sequence
+from functools import lru_cache
 from math import ceil, log10
 from pathlib import Path
 from typing import Literal
@@ -286,19 +287,24 @@ def _fill_gradient(
             midpoint=mid_value,
         )
 
-
-def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
+# cache to avoid recomputing for every plot in a grid...
+@lru_cache(maxsize=32)
+def _grid_places(total: int, ncol: int | None) -> tuple[frozenset[int], frozenset[int]]:
     if ncol is None:
-        ncol = len(keys)
-    total = len(keys)
+        ncol = total
     nrow = ceil(total / ncol)
-    left_places = [i for i in range(total) if i % ncol == 0]
-    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
+    left_places = {idx for idx in range(total) if idx % ncol == 0}
+    bottom_places = {idx for idx in range(total) if idx >= ncol * (nrow - 1)}
     # the last grid row may be incomplete; for the columns it does not cover,
     # the bottom-most plot lives in the penultimate row.
     last_row_count = total - ncol * (nrow - 1)
     if nrow >= 2 and last_row_count < ncol:
-        bottom_places.extend(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
+        bottom_places.update(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
+    return frozenset(left_places), frozenset(bottom_places)
+
+
+def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
+    left_places, bottom_places = _grid_places(len(keys), ncol)
     if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_title_x=element_blank())
     if i not in left_places:  # remove y axis title except for left column
@@ -310,17 +316,7 @@ def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlo
 def _share_axis(
     plot, i: int, keys: Sequence[str], ncol: int | None, axis_type: Literal["axis", "arrow"]
 ) -> SupPlotsSpec:
-    total = len(keys)
-    if ncol is None:
-        ncol = len(keys)
-    nrow = ceil(total / ncol)
-    left_places = [i for i in range(total) if i % ncol == 0]
-    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    # the last grid row may be incomplete; for the columns it does not cover,
-    # the bottom-most plot lives in the penultimate row.
-    last_row_count = total - ncol * (nrow - 1)
-    if nrow >= 2 and last_row_count < ncol:
-        bottom_places.extend(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
+    left_places, bottom_places = _grid_places(len(keys), ncol)
 
     if axis_type == "axis":
         if i not in bottom_places:  # remove x axis title except for bottom row
@@ -347,17 +343,7 @@ def _share_axis(
 
 
 def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
-    if ncol is None:
-        ncol = len(keys)
-    total = len(keys)
-    nrow = ceil(total / ncol)
-    left_places = [i for i in range(total) if i % ncol == 0]
-    bottom_places = [i for i in range(total) if i >= ncol * (nrow - 1)]
-    # the last grid row may be incomplete; for the columns it does not cover,
-    # the bottom-most plot lives in the penultimate row.
-    last_row_count = total - ncol * (nrow - 1)
-    if nrow >= 2 and last_row_count < ncol:
-        bottom_places.extend(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
+    left_places, bottom_places = _grid_places(len(keys), ncol)
     if i not in bottom_places:  # remove x axis title except for bottom row
         plot = plot + theme(axis_text_x=element_blank())
     if i not in left_places:  # remove y axis title except for left column
