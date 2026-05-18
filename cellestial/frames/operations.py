@@ -6,7 +6,6 @@ from anndata import AnnData
 from polars import DataFrame
 from scipy.sparse import issparse
 
-from cellestial.frames.build import anndata_variable_columns
 from cellestial.util.errors import UnsupportedDataTypeError
 
 
@@ -16,28 +15,44 @@ def _highest_expressed_genes_frame(
 ) -> DataFrame:
     """Get the top n highest expressed genes by mean percentage across all cells."""
     if isinstance(data, AnnData):
+        # VALIDATE: inputs
         if n > data.n_vars:
             msg = f"Requested n={n} genes, but only {data.n_vars} genes available in data."
             raise ValueError(msg)
         X = data.X
-        # normalize each cell to sum to 100 (percentage)
-        if issparse(X):
-            row_sums = np.array(X.sum(axis=1)).ravel()
-            row_sums[row_sums == 0] = 1
-            X_normalized = X.multiply(100 / row_sums[:, np.newaxis])
-            mean_percent = np.array(X_normalized.mean(axis=0)).ravel()
-        else:
-            row_sums = X.sum(axis=1, keepdims=True)
-            row_sums[row_sums == 0] = 1
-            X_normalized = X / row_sums * 100
-            mean_percent = X_normalized.mean(axis=0)
+        # matmul and fancy indexing below require an in-memory ndarray/sparse;
+        # fail fast on backed/dask/zappy rather than crashing deep in the math.
+        if not (isinstance(X, np.ndarray) or issparse(X)):
+            msg = (
+                f"Unsupported `X` type for this operation: {type(X).__name__}. "
+                "Load AnnData in non-backed mode or materialize `X` manually."
+            )
+            raise UnsupportedDataTypeError(msg)
 
+        # BUILD: per-cell normalizer so each cell's expression sums to 100
+        if issparse(X):
+            row_sums = np.asarray(X.sum(axis=1)).ravel()
+        else:
+            row_sums = X.sum(axis=1)
+        row_sums[row_sums == 0] = 1  # guard cells with zero total to avoid div-by-zero
+        inv_rows = 100.0 / row_sums
+
+        # RANK: gene means via a single matvec instead of materializing the
+        # full normalized matrix. Identity: mean(X / row_sums * 100, axis=0)
+        # equals (inv_rows @ X) / n_cells, but uses O(n_vars) memory instead of O(n_obs * n_vars).
+        mean_percent = np.asarray(inv_rows @ X).ravel() / X.shape[0]
         top_idx = np.argsort(mean_percent)[::-1][:n]
         genes = data.var_names[top_idx].tolist()
-        if issparse(X_normalized):
-            X_normalized = X_normalized.tocsr()
-        norm_data = AnnData(X=X_normalized, var=data.var, obs=data.obs)
-        frame = pl.DataFrame(anndata_variable_columns(norm_data, keys=genes, column_names=[]))
+
+        # EXTRACT: normalize only the top n columns (small n_obs * n slice),
+        # skipping the full n_obs * n_vars materialization the naive path would do.
+        X_top = X[:, top_idx]
+        if issparse(X_top):
+            X_top = X_top.toarray()
+        X_top_normalized = X_top * inv_rows[:, np.newaxis]
+
+        # BUILD: polars frame keyed by gene name
+        frame = pl.DataFrame({gene: X_top_normalized[:, i] for i, gene in enumerate(genes)})
     else:
         msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)

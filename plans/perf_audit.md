@@ -18,7 +18,6 @@ laziness, memory, and algorithmic wins. Each item is a self-contained task.
 ## 3. Memory
 
 - [x] **3c.** `frame[y].to_numpy()` just to call `.min()` / `.max()`; call on the Series. [cellestial/layers/bracket.py:241-247](../cellestial/layers/bracket.py#L241-L247)
-- [ ] **3d.** Full sparse `X.multiply(...)` for top-N gene normalization; slice `X[:, top_idx]` first. [cellestial/frames/operations.py:22-39](../cellestial/frames/operations.py#L22-L39)
 
 
 ## 4. Algorithmic
