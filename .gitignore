@@ -62,3 +62,6 @@ data/
 
 # small scripts
 merge.sh
+
+#
+.claude
