@@ -46,6 +46,83 @@ _GROUP_BAR_GAP_RATIO = 0.025
 _GROUP_BAR_GAP_MIN = 0.15
 
 
+def _bin_within_groups(
+    frame: pl.DataFrame,
+    *,
+    observations_name: str,
+    group_by: str,
+    variable_column: str,
+    value_column: str,
+    y_order_groups: list[str],
+    max_rows: int,
+) -> pl.DataFrame:
+    """
+    Collapse observations into at most ``max_rows`` virtual rows, within each group.
+
+    Cells within a group are sorted by observation id and chunked into contiguous
+    bins; each bin's expression value is the per-variable mean of its members.
+    Group boundaries are preserved, so group bars/lines remain meaningful.
+    Returns ``frame`` unchanged when the unique observation count fits in
+    ``max_rows``.
+    """
+    group_key = "_group_key"
+    frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
+    obs_per_group = (
+        frame_with_key.select(observations_name, group_key)
+        .unique()
+        .group_by(group_key, maintain_order=False)
+        .agg(pl.len().alias("_n_cells"))
+    )
+    total = int(obs_per_group["_n_cells"].sum())
+    if total <= max_rows:
+        return frame
+
+    obs_per_group = obs_per_group.with_columns(
+        pl.max_horizontal(
+            pl.lit(1, dtype=pl.Int64),
+            (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
+        ).alias("_bin_count")
+    )
+
+    group_index_frame = pl.DataFrame(
+        {
+            group_key: y_order_groups,
+            "_group_index": list(range(len(y_order_groups))),
+        }
+    )
+    offsets_frame = (
+        obs_per_group.join(group_index_frame, on=group_key)
+        .sort("_group_index")
+        .with_columns((pl.col("_bin_count").cum_sum() - pl.col("_bin_count")).alias("_bin_offset"))
+        .select(group_key, "_bin_count", "_n_cells", "_bin_offset", "_group_index")
+    )
+
+    obs_frame = (
+        frame_with_key.select(observations_name, group_key)
+        .unique(maintain_order=True)
+        .join(offsets_frame, on=group_key)
+        .sort(["_group_index", observations_name])
+        .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
+        .with_columns(
+            (
+                (pl.col("_rank_in_group") * pl.col("_bin_count") // pl.col("_n_cells"))
+                + pl.col("_bin_offset")
+            )
+            .cast(pl.String)
+            .alias("_binned_obs")
+        )
+        .select(observations_name, "_binned_obs")
+    )
+
+    return (
+        frame.join(obs_frame, on=observations_name)
+        .drop(observations_name)
+        .rename({"_binned_obs": observations_name})
+        .group_by(observations_name, group_by, variable_column, maintain_order=False)
+        .agg(pl.col(value_column).mean())
+    )
+
+
 def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str) -> pl.DataFrame:
     """Min-max scale `value_column` within partitions defined by `partition_key`."""
     value = pl.col(value_column)
@@ -229,6 +306,7 @@ def heatmap(
     variables_name: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
+    max_rows: int | None = 1000,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -333,6 +411,11 @@ def heatmap(
         Providing an integer will limit the number of dimensions to given number.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    max_rows : int | None, default=1000
+        When `aggregate=False`, cap the number of plotted rows by averaging
+        contiguous observations within each group into virtual bins.
+        Bypasses the long-form data payload sent to the renderer when row
+        counts exceed display resolution. Set to `None` to disable.
     **geom_kwargs
         Additional parameters for the heatmap geom layer.
 
@@ -509,6 +592,18 @@ def heatmap(
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
         paths = None
+
+    # BIN: collapse cells into at most ``max_rows`` virtual rows (within group)
+    if not aggregate and max_rows is not None:
+        frame = _bin_within_groups(
+            frame,
+            observations_name=observations_name,
+            group_by=group_by,
+            variable_column=variable_column,
+            value_column=value_column,
+            y_order_groups=y_order_groups,
+            max_rows=max_rows,
+        )
 
     # ASSIGN: _x / _y positions and layout metadata
     x_keys = list(keys)

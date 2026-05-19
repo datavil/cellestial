@@ -230,7 +230,10 @@ def _cl_stacked_violin(data, params, metadata):
     import cellestial as cl
 
     return cl.stacked_violin(
-        data, keys=params.extras["keys"], group_by=params.extras["group_by"]
+        data,
+        keys=params.extras["keys"],
+        group_by=params.extras["group_by"],
+        kde_max_samples=None,
     )
 
 

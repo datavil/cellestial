@@ -58,6 +58,7 @@ def _compute_violin_polygons(
     height_scale: float,
     aggregate: Literal["mean", "median"],
     aggregate_key: str,
+    kde_max_samples: int | None = None,
 ) -> pl.DataFrame:
     """
     Build a polygon-vertex frame for one violin per (variable, group) cell.
@@ -79,6 +80,8 @@ def _compute_violin_polygons(
     polygon_id = 0
     half_height = height_scale / 2
     half_width_max = width_scale / 2
+    # Deterministic subsample per (variable, group) before KDE.
+    rng = np.random.default_rng(0) if kde_max_samples is not None else None
 
     for x_index, var_key in enumerate(x_keys):
         if var_key not in var_range:
@@ -99,8 +102,14 @@ def _compute_violin_polygons(
             )
             if len(group_values) < 2 or group_values.std() == 0:
                 continue
+            if rng is not None and len(group_values) > kde_max_samples:
+                kde_input = group_values[
+                    rng.choice(len(group_values), size=kde_max_samples, replace=False)
+                ]
+            else:
+                kde_input = group_values
             try:
-                kde = gaussian_kde(group_values)
+                kde = gaussian_kde(kde_input)
             except Exception:
                 continue
             grid = np.linspace(var_min, var_max, n_points)
@@ -187,6 +196,7 @@ def stacked_violin(
     width_scale: float = 0.85,
     height_scale: float = 0.85,
     n_points: int = 64,
+    kde_max_samples: int | None = 1200,
     color_by: Literal["median", "mean", "group", "variable"] | None = "median",
     size: float = 0.2,
     color_low: str = "#F5F5F5",
@@ -257,6 +267,11 @@ def stacked_violin(
         Total height of a violin in y units (1 unit = one group row).
     n_points : int, default=64
         Number of grid points for the kernel density estimate.
+    kde_max_samples : int | None, default=1200
+        If set, subsample each (variable, group) to at most this many cells
+        before fitting the KDE. Color values (mean/median) and the "count"
+        scale use the full sample size. Sampling is deterministic. `None`
+        fits the KDE on every cell (slower at scale, no shape approximation).
     color_by : {'median', 'mean', 'group', 'variable'} | None, default='median'
         Which value drives the fill aesthetic of each violin.
         `'median'` colors by median expression per (variable, group).
@@ -480,6 +495,7 @@ def stacked_violin(
         height_scale=height_scale,
         aggregate="mean" if color_by == "mean" else "median",
         aggregate_key=aggregate_key,
+        kde_max_samples=kde_max_samples,
     )
 
     # HANDLE: tooltips
