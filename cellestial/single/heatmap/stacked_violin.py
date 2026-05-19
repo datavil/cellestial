@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-import numpy as np
 import polars as pl
 from anndata import AnnData
 from lets_plot import (
@@ -18,16 +17,16 @@ from lets_plot import (
     theme,
 )
 from lets_plot.plot.core import FeatureSpec
-from scipy.stats import gaussian_kde
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap._key_groups import (
+from cellestial.single.heatmap.utilities import (
+    _compute_violin_polygons,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
     _resolve_padding,
+    _resolve_rank_genes_groups_args,
 )
-from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_args
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _fill_gradient,
@@ -42,144 +41,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from lets_plot.plot.core import PlotSpec
-
-
-def _compute_violin_polygons(
-    frame: pl.DataFrame,
-    *,
-    variable_column: str,
-    value_column: str,
-    group_by: str,
-    x_keys: list[str],
-    y_order_groups: list[str],
-    n_points: int,
-    scale: Literal["area", "count", "width"],
-    width_scale: float,
-    height_scale: float,
-    aggregate: Literal["mean", "median"],
-    aggregate_key: str,
-    kde_max_samples: int | None = None,
-) -> pl.DataFrame:
-    """
-    Build a polygon-vertex frame for one violin per (variable, group) cell.
-
-    Each violin is centered at `(x=variable_index, y=group_index)` with value
-    mapped to local y inside the row band and density mapped to local x around
-    the column position.
-    """
-    var_stats = frame.group_by(variable_column).agg(
-        pl.col(value_column).min().alias("_vmin"),
-        pl.col(value_column).max().alias("_vmax"),
-    )
-    var_range = {
-        row[variable_column]: (row["_vmin"], row["_vmax"])
-        for row in var_stats.iter_rows(named=True)
-    }
-
-    rows: list[dict] = []
-    polygon_id = 0
-    half_height = height_scale / 2
-    half_width_max = width_scale / 2
-    # Deterministic subsample per (variable, group) before KDE.
-    rng = np.random.default_rng(0) if kde_max_samples is not None else None
-
-    for x_index, var_key in enumerate(x_keys):
-        if var_key not in var_range:
-            continue
-        var_min, var_max = var_range[var_key]
-        if var_min is None or var_max is None or var_max <= var_min:
-            continue
-        value_span = var_max - var_min
-
-        var_frame = frame.filter(pl.col(variable_column) == var_key)
-        kde_results: dict[str, tuple[int, np.ndarray, np.ndarray, int, float]] = {}
-
-        for y_index, group_key in enumerate(y_order_groups):
-            group_values = (
-                var_frame.filter(pl.col(group_by).cast(pl.String) == group_key)[value_column]
-                .drop_nulls()
-                .to_numpy()
-            )
-            if len(group_values) < 2 or group_values.std() == 0:
-                continue
-            if rng is not None and len(group_values) > kde_max_samples:
-                kde_input = group_values[
-                    rng.choice(len(group_values), size=kde_max_samples, replace=False)
-                ]
-            else:
-                kde_input = group_values
-            try:
-                kde = gaussian_kde(kde_input)
-            except Exception:
-                continue
-            grid = np.linspace(var_min, var_max, n_points)
-            density = kde(grid)
-            agg_value = (
-                float(np.median(group_values))
-                if aggregate == "median"
-                else float(group_values.mean())
-            )
-            kde_results[group_key] = (
-                y_index,
-                grid,
-                density,
-                len(group_values),
-                agg_value,
-            )
-
-        if not kde_results:
-            continue
-
-        if scale == "width":
-            normalizers = {gk: float(d.max()) for gk, (_, _, d, _, _) in kde_results.items()}
-        elif scale == "count":
-            global_max = max(float((d * n).max()) for _, _, d, n, _ in kde_results.values())
-            normalizers = dict.fromkeys(kde_results, global_max)
-        elif scale == "area":
-            global_max = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
-            normalizers = dict.fromkeys(kde_results, global_max)
-        else:
-            msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
-            raise ValueError(msg)
-
-        for group_key, (y_index, grid, density, n_obs, agg_value) in kde_results.items():
-            if scale == "count":
-                density = density * n_obs
-            normalizer = normalizers[group_key]
-            if normalizer <= 0:
-                continue
-
-            half_width = (density / normalizer) * half_width_max
-            y_local = (y_index - half_height) + (grid - var_min) / value_span * height_scale
-            x_left = x_index - half_width
-            x_right = x_index + half_width
-            poly_x = np.concatenate([x_right, x_left[::-1]])
-            poly_y = np.concatenate([y_local, y_local[::-1]])
-
-            for px, py in zip(poly_x.tolist(), poly_y.tolist(), strict=True):
-                rows.append(
-                    {
-                        "polygon_id": polygon_id,
-                        "x": px,
-                        "y": py,
-                        variable_column: var_key,
-                        group_by: group_key,
-                        aggregate_key: agg_value,
-                    }
-                )
-            polygon_id += 1
-
-    if not rows:
-        schema = {
-            "polygon_id": pl.Int64,
-            "x": pl.Float64,
-            "y": pl.Float64,
-            variable_column: pl.String,
-            group_by: pl.String,
-            aggregate_key: pl.Float64,
-        }
-        return pl.DataFrame(schema=schema)
-    return pl.DataFrame(rows)
 
 
 def stacked_violin(

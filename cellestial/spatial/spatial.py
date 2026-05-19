@@ -21,7 +21,7 @@ from lets_plot.plot.core import FeatureSpec, PlotSpec
 from spatialdata import SpatialData
 
 from cellestial.frames import build_frame
-from cellestial.spatial._components import spatialdata_components
+from cellestial.spatial.utilities import _spatial_components
 from cellestial.themes import _THEME_SPATIAL
 from cellestial.util import (
     _color_gradient,
@@ -37,95 +37,6 @@ if TYPE_CHECKING:
     from typing import Literal
 
     from lets_plot.plot.core import PlotSpec
-    from numpy.typing import NDArray
-
-
-def _spatial_components(
-    data,
-    *,
-    library_id: str | None,
-    image_key: str,
-    image: bool,
-    spatial_key: str,
-    table_name: str | None = None,
-    image_name: str | None = None,
-    shapes_name: str | None = None,
-    coordinate_system: str | None = None,
-    polygon: bool = False,
-) -> tuple[NDArray | None, NDArray | None, pl.DataFrame | None, AnnData]:
-    """
-    Extract image, geometry, and the annotation table.
-
-    Returns `(image, point_coords, polygon_frame, table)`. Exactly one of
-    `point_coords` and `polygon_frame` is non-None. For AnnData input
-    the table is the input itself; for SpatialData it is the resolved table.
-    """
-    if isinstance(data, SpatialData):
-        return spatialdata_components(
-            data,
-            table_name=table_name,
-            image_name=image_name,
-            shapes_name=shapes_name,
-            coordinate_system=coordinate_system,
-            image=image,
-            polygon=polygon,
-        )
-
-    if isinstance(data, AnnData):
-        if spatial_key not in data.obsm:
-            msg = f"spot coordinates not found under `{spatial_key}`"
-            raise KeyError(msg)
-
-        spatial_uns = data.uns.get("spatial", {})
-
-        # Generic mode: no tissue image / scalefactor metadata available.
-        if not spatial_uns:
-            if library_id is not None:
-                msg = (
-                    f"library_id `{library_id}` was provided but no spatial "
-                    "library metadata is present"
-                )
-                raise KeyError(msg)
-            return None, data.obsm[spatial_key], None, data
-
-        # Visium mode.
-        if library_id is None:
-            if len(spatial_uns) == 1:
-                library_id = next(iter(spatial_uns))
-            else:
-                msg = (
-                    f"Multiple spatial libraries found: {list(spatial_uns)}. "
-                    "Pass `library_id=` to select one."
-                )
-                raise ValueError(msg)
-        elif library_id not in spatial_uns:
-            msg = f"library_id `{library_id}` not found in spatial libraries"
-            raise KeyError(msg)
-
-        library = spatial_uns[library_id]
-        scale_factors = library.get("scalefactors", {})
-        scalef_key = f"tissue_{image_key}_scalef"
-        scale_factor = scale_factors.get(scalef_key)
-        if scale_factor is None:
-            if image:
-                _warn(
-                    f"Scale factor `{scalef_key}` missing; "
-                    "spots may not align with the image."
-                )
-            scale_factor = 1.0
-        spot_coordinates = data.obsm[spatial_key] * scale_factor
-
-        image_array = None
-        if image:
-            images = library.get("images", {})
-            image_array = images.get(image_key)
-            if image_array is None:
-                msg = f"image `{image_key}` not found for library `{library_id}`"
-                _warn(msg)
-        return image_array, spot_coordinates, None, data
-
-    msg = f"Unsupported data type: `{type(data)}`"
-    raise UnsupportedDataTypeError(msg)
 
 
 def spatial(

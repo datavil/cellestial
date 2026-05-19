@@ -20,13 +20,13 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap._key_groups import (
+from cellestial.single.heatmap.utilities import (
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
     _resolve_padding,
+    _resolve_rank_genes_groups_args,
 )
-from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_args
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _color_gradient,

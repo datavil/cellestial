@@ -20,13 +20,18 @@ from lets_plot import (
 )
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap._key_groups import (
+from cellestial.single.heatmap.utilities import (
+    _assign_positions,
+    _bin_within_groups,
+    _get_group_bar_frame,
+    _get_group_lines_frame,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
     _resolve_padding,
+    _resolve_rank_genes_groups_args,
+    _scale_values,
 )
-from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_args
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import (
     _fill_gradient,
@@ -40,229 +45,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from lets_plot.plot.core import FeatureSpec, PlotSpec
-
-_GROUP_BAR_RATIO = 0.02
-_GROUP_BAR_GAP_RATIO = 0.025
-_GROUP_BAR_GAP_MIN = 0.15
-
-
-def _bin_within_groups(
-    frame: pl.DataFrame,
-    *,
-    observations_name: str,
-    group_by: str,
-    variable_column: str,
-    value_column: str,
-    y_order_groups: list[str],
-    max_rows: int,
-) -> pl.DataFrame:
-    """
-    Collapse observations into at most ``max_rows`` virtual rows, within each group.
-
-    Cells within a group are sorted by observation id and chunked into contiguous
-    bins; each bin's expression value is the per-variable mean of its members.
-    Group boundaries are preserved, so group bars/lines remain meaningful.
-    Returns ``frame`` unchanged when the unique observation count fits in
-    ``max_rows``.
-    """
-    group_key = "_group_key"
-    frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
-    obs_per_group = (
-        frame_with_key.select(observations_name, group_key)
-        .unique()
-        .group_by(group_key, maintain_order=False)
-        .agg(pl.len().alias("_n_cells"))
-    )
-    total = int(obs_per_group["_n_cells"].sum())
-    if total <= max_rows:
-        return frame
-
-    obs_per_group = obs_per_group.with_columns(
-        pl.max_horizontal(
-            pl.lit(1, dtype=pl.Int64),
-            (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
-        ).alias("_bin_count")
-    )
-
-    group_index_frame = pl.DataFrame(
-        {
-            group_key: y_order_groups,
-            "_group_index": list(range(len(y_order_groups))),
-        }
-    )
-    offsets_frame = (
-        obs_per_group.join(group_index_frame, on=group_key)
-        .sort("_group_index")
-        .with_columns((pl.col("_bin_count").cum_sum() - pl.col("_bin_count")).alias("_bin_offset"))
-        .select(group_key, "_bin_count", "_n_cells", "_bin_offset", "_group_index")
-    )
-
-    obs_frame = (
-        frame_with_key.select(observations_name, group_key)
-        .unique(maintain_order=True)
-        .join(offsets_frame, on=group_key)
-        .sort(["_group_index", observations_name])
-        .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
-        .with_columns(
-            (
-                (pl.col("_rank_in_group") * pl.col("_bin_count") // pl.col("_n_cells"))
-                + pl.col("_bin_offset")
-            )
-            .cast(pl.String)
-            .alias("_binned_obs")
-        )
-        .select(observations_name, "_binned_obs")
-    )
-
-    return (
-        frame.join(obs_frame, on=observations_name)
-        .drop(observations_name)
-        .rename({"_binned_obs": observations_name})
-        .group_by(observations_name, group_by, variable_column, maintain_order=False)
-        .agg(pl.col(value_column).mean())
-    )
-
-
-def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str) -> pl.DataFrame:
-    """Min-max scale `value_column` within partitions defined by `partition_key`."""
-    value = pl.col(value_column)
-    value_min = value.min().over(partition_key)
-    value_max = value.max().over(partition_key)
-    value_range = value_max - value_min
-    return frame.with_columns(
-        pl.when(value_range == 0)
-        .then(0.0)
-        .otherwise((value - value_min) / value_range)
-        .alias(value_column)
-    )
-
-
-def _group_bar_gap(n_x: int) -> float:
-    """Return a stable visual gap between the heatmap and group bars."""
-    return max(_GROUP_BAR_GAP_MIN, n_x * _GROUP_BAR_GAP_RATIO)
-
-
-def _assign_positions(
-    frame: pl.DataFrame,
-    *,
-    aggregate: bool,
-    group_by: str,
-    observations_name: str,
-    variable_column: str,
-    x_keys: list[str],
-    y_order_groups: list[str],
-) -> tuple[pl.DataFrame, pl.DataFrame | None, int, int, list[float]]:
-    """
-    Attach `_x`/`_y` to `frame` and compute layout metadata.
-
-    Returns
-    -------
-    frame : pl.DataFrame
-        Frame with `_x` and `_y` columns.
-    cell_frame : pl.DataFrame | None
-        Per-cell layout frame (None when aggregating).
-    n_x : int
-    n_y : int
-    group_centers : list[float]
-        Y center of each group, in `y_order_groups` order.
-    """
-    n_x = len(x_keys)
-    x_pos = {k: i for i, k in enumerate(x_keys)}
-    frame = frame.with_columns(
-        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("position_x")
-    )
-
-    if aggregate:
-        n_y = len(y_order_groups)
-        y_pos = {g: i for i, g in enumerate(y_order_groups)}
-        frame = frame.with_columns(
-            pl.col(group_by)
-            .cast(pl.String)
-            .replace_strict(y_pos, return_dtype=pl.Float64)
-            .alias("position_y"),
-        )
-        return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
-
-    # non-aggregate: rescale per-cell _y to span [0, n_x] for square-ish aspect
-    group_index = {g: i for i, g in enumerate(y_order_groups)}
-    cell_frame = (
-        frame.select(observations_name, group_by)
-        .unique()
-        .with_columns(
-            pl.col(group_by)
-            .cast(pl.String)
-            .replace_strict(group_index, return_dtype=pl.Int64)
-            .alias("_group_index")
-        )
-        .sort(["_group_index", observations_name])
-    )
-    n_y = cell_frame.height
-    y_step = (n_x - 1) / max(n_y - 1, 1)
-    cell_frame = cell_frame.with_columns(
-        (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
-    )
-    frame = frame.join(cell_frame.select(observations_name, "position_y"), on=observations_name)
-    centers_frame = (
-        cell_frame.group_by(group_by, maintain_order=False)
-        .agg(pl.col("position_y").mean().alias("_center"), pl.col("_group_index").first())
-        .sort("_group_index")
-    )
-    return frame, cell_frame, n_x, n_y, centers_frame["_center"].to_list()
-
-
-def _get_group_bar_frame(cell_frame: pl.DataFrame, *, group_by: str, n_x: int) -> pl.DataFrame:
-    """Build the per-group colored bar frame drawn to the left of the heatmap."""
-    bar_width = max(1.0, n_x * _GROUP_BAR_RATIO)
-    bar_xend = -_group_bar_gap(n_x)
-    bar_x = bar_xend - bar_width
-    bar_x_mid = (bar_x + bar_xend) / 2
-    bar_frame = (
-        cell_frame.group_by(group_by, maintain_order=False)
-        .agg(
-            pl.col("position_y").min().alias("y_min"),
-            pl.col("position_y").max().alias("y_max"),
-            pl.col("_group_index").first(),
-        )
-        .sort("_group_index")
-        .with_columns(pl.lit(bar_x_mid).alias("x"))
-    )
-    return bar_frame
-
-
-def _get_group_lines_frame(
-    cell_frame: pl.DataFrame | None,
-    *,
-    aggregate: bool,
-    group_by: str,
-    n_x: int,
-    n_y: int,
-    n_groups: int,
-) -> pl.DataFrame:
-    """Build the horizontal separator-line frame between groups."""
-    if aggregate:
-        line_ys = [i + 0.5 for i in range(n_groups - 1)]
-    else:
-        assert cell_frame is not None
-        boundaries = (
-            cell_frame.group_by(group_by, maintain_order=False)
-            .agg(pl.col("position_y").max().alias("y_max"), pl.col("_group_index").first())
-            .sort("_group_index")
-            .head(n_groups - 1)["y_max"]
-            .to_list()
-        )
-        half_step = (n_x - 1) / max(n_y - 1, 1) / 2
-        line_ys = [y + half_step for y in boundaries]
-
-    x_start = -0.5
-    x_end = n_x - 0.5
-    return pl.DataFrame(
-        {
-            "x": [x_start] * len(line_ys),
-            "xend": [x_end] * len(line_ys),
-            "y": line_ys,
-            "yend": line_ys,
-        }
-    )
 
 
 def heatmap(

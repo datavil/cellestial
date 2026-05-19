@@ -6,9 +6,8 @@ from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
-from cellestial.single.differential.markers import _build_markers_frame
-from cellestial.single.differential.volcano import _build_volcano_frame
-from cellestial.single.heatmap._rank_genes_groups import (
+from cellestial.single.differential.utilities import _build_markers_frame, _build_volcano_frame
+from cellestial.single.heatmap.utilities import (
     _extract_rank_genes_groups,
     _resolve_rank_genes_groups_args,
     _resolve_rank_genes_groups_key,

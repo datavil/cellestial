@@ -12,14 +12,14 @@ from spatialdata.transformations import Identity, set_transformation
 from xarray import DataArray
 
 import cellestial as cl
-from cellestial.spatial._components import (
+from cellestial.spatial.utilities import (
     _image_to_yxc,
     _resolve_coordinate_system,
     _resolve_image_name,
+    _resolve_table,
     _select_one,
-    resolve_table,
+    _spatial_components,
 )
-from cellestial.spatial.spatial import _spatial_components
 
 # ---- fixtures ----
 
@@ -473,7 +473,7 @@ def test_spatial_component_selection_helpers(data_minimal, data_multi):
     with pytest.raises(ValueError, match="Multiple image"):
         _select_one(None, ["a", "b"], "image")
     with pytest.raises(TypeError, match="SpatialData"):
-        resolve_table("not sdata", None)
+        _resolve_table("not sdata", None)
     with pytest.raises(KeyError, match="image"):
         _resolve_image_name(data_minimal, "missing", coordinate_system="global")
     with pytest.raises(ValueError, match="Multiple image"):

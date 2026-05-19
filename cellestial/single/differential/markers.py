@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-import numpy as np
 import polars as pl
 from anndata import AnnData
 from lets_plot import (
@@ -23,154 +22,12 @@ from lets_plot import (
 )
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
-from cellestial.single.heatmap._rank_genes_groups import _resolve_rank_genes_groups_key
+from cellestial.single.differential.utilities import _build_markers_frame
 from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
-    from polars import DataFrame
-
-
-def _build_markers_frame(
-    data: AnnData,
-    *,
-    key: bool | str,
-    n_genes: int,
-    groups: Sequence[str] | None,
-    variable_column: str,
-    score_column: str,
-    rank_column: str,
-    group_column: str,
-) -> tuple[DataFrame, list[str], str]:
-    """
-    Build a long-form frame of the top-N ranked genes and scores per group.
-
-    Parameters
-    ----------
-    data : AnnData
-        Source object that already holds a precomputed ranking result.
-    key : bool | str
-        `True` reads the default ranking key; a string reads
-        the matching custom key (e.g. `"rank_genes_groups_wilcoxon"`).
-    n_genes : int
-        Number of top genes to pull per group.
-    groups : Sequence[str] | None
-        Subset of groups to include, in order. `None` keeps all groups in
-        their stored order.
-    variable_column : str
-        Output column name for the gene/feature names.
-    score_column : str
-        Output column name for the ranking scores.
-    rank_column : str
-        Output column name for the per-group rank index (0-based).
-    group_column : str
-        Output column name for the group label.
-
-    Returns
-    -------
-    frame : DataFrame
-        Long-form polars DataFrame with one row per (group, gene).
-    selected : list[str]
-        The selected group labels, in plotting order.
-    group_by : str
-        The categorical key used when the ranking was computed.
-
-    Raises
-    ------
-    UnsupportedDataTypeError
-        If `data` is not a supported single-cell data object.
-    KeyNotFoundError
-        If the ranking result, a requested group, or the stored grouping
-        is missing.
-    ValueError
-        If `n_genes` is out of range.
-
-    Notes
-    -----
-    Pulls the top `n_genes` gene names and their scores for each selected
-    group from a precomputed ranking. Unlike the heatmap extractor, genes
-    are kept per group with no cross-group de-duplication, since each group
-    is drawn in its own panel.
-    """
-    if n_genes < 1:
-        msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
-
-    uns_key = _resolve_rank_genes_groups_key(key)
-
-    if isinstance(data, AnnData):
-        if uns_key not in data.uns:
-            msg = (
-                f"`adata.uns[{uns_key!r}]` not found. "
-                "Run `scanpy.tl.rank_genes_groups` first "
-                "(or pass the correct `key_added` value as `key`)."
-            )
-            raise KeyNotFoundError(msg)
-
-        record = data.uns[uns_key]
-        if "names" not in record or "scores" not in record or "params" not in record:
-            msg = (
-                f"`adata.uns[{uns_key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names', 'scores', or 'params')."
-            )
-            raise KeyNotFoundError(msg)
-
-        names = record["names"]
-        scores = record["scores"]
-        available_groups = list(names.dtype.names)
-
-        if groups is None:
-            selected = available_groups
-        else:
-            selected = list(groups)
-            unknown = [group for group in selected if group not in available_groups]
-            if unknown:
-                msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{uns_key!r}]`. Available: {available_groups!r}."
-                )
-                raise KeyNotFoundError(msg)
-
-        n_available = len(names)
-        if n_genes > n_available:
-            msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{uns_key!r}]`."
-            )
-            raise ValueError(msg)
-
-        ranks = np.arange(n_genes)
-        group_frames = [
-            pl.DataFrame(
-                {
-                    group_column: group,
-                    rank_column: ranks,
-                    variable_column: [str(name) for name in names[group][:n_genes]],
-                    score_column: np.asarray(scores[group][:n_genes], dtype=np.float64),
-                }
-            )
-            for group in selected
-        ]
-        frame = pl.concat(group_frames)
-
-        params = record["params"]
-        stored_group_by = params.get("groupby")
-        if stored_group_by is None:
-            msg = (
-                f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "
-                "cannot infer `group_by`."
-            )
-            raise KeyNotFoundError(msg)
-
-        # Round scores to keep the embedded JSON compact when the frame is
-        # serialized into the plot output.
-        frame = frame.with_columns(pl.col(score_column).round(4))
-
-        return frame, list(selected), str(stored_group_by)
-
-    msg = f"Unsupported data type: `{type(data)}`"
-    raise UnsupportedDataTypeError(msg)
 
 
 def markers(

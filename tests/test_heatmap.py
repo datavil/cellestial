@@ -5,7 +5,7 @@ from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.single.heatmap.heatmap import _scale_values
-from cellestial.single.heatmap.stacked_violin import _compute_violin_polygons
+from cellestial.single.heatmap.utilities import _compute_violin_polygons
 from cellestial.util.errors import UnsupportedDataTypeError
 
 
@@ -262,7 +262,7 @@ def test_heatmap_dict_keys_duplicate_raises(adata, group_key):
 
 
 def test_resolve_key_groups_flat_passthrough():
-    from cellestial.single.heatmap._key_groups import _resolve_key_groups
+    from cellestial.single.heatmap.utilities import _resolve_key_groups
 
     flat, groups = _resolve_key_groups(["A", "B", "C"])
     assert flat == ["A", "B", "C"]
@@ -270,7 +270,7 @@ def test_resolve_key_groups_flat_passthrough():
 
 
 def test_resolve_key_groups_dict_flatten_preserves_order():
-    from cellestial.single.heatmap._key_groups import _resolve_key_groups
+    from cellestial.single.heatmap.utilities import _resolve_key_groups
 
     flat, groups = _resolve_key_groups({"G1": ["A", "B"], "G2": ["C"]})
     assert flat == ["A", "B", "C"]
@@ -278,14 +278,14 @@ def test_resolve_key_groups_dict_flatten_preserves_order():
 
 
 def test_resolve_key_groups_dict_rejects_single_string_value():
-    from cellestial.single.heatmap._key_groups import _resolve_key_groups
+    from cellestial.single.heatmap.utilities import _resolve_key_groups
 
     with pytest.raises(TypeError, match="not a single string"):
         _resolve_key_groups({"G1": "A"})
 
 
 def test_key_groups_bar_y_above_top_edge():
-    from cellestial.single.heatmap._key_groups import _key_groups_bar_y
+    from cellestial.single.heatmap.utilities import _key_groups_bar_y
 
     top_edge = 7.5
     bar_y = _key_groups_bar_y(top_edge)
@@ -294,7 +294,7 @@ def test_key_groups_bar_y_above_top_edge():
 
 
 def test_resolve_padding_scales_with_label_length():
-    from cellestial.single.heatmap._key_groups import _resolve_padding
+    from cellestial.single.heatmap.utilities import _resolve_padding
 
     short = _resolve_padding({"A": ["x"], "B": ["y"]}, padding=None)
     long = _resolve_padding({"Lymphocytes": ["x"], "Monocytes": ["y"]}, padding=None)
@@ -303,14 +303,14 @@ def test_resolve_padding_scales_with_label_length():
 
 
 def test_resolve_padding_explicit_overrides_auto():
-    from cellestial.single.heatmap._key_groups import _resolve_padding
+    from cellestial.single.heatmap.utilities import _resolve_padding
 
     explicit = _resolve_padding({"Lymphocytes": ["x"]}, padding=0.5)
     assert explicit == 0.5
 
 
 def test_key_groups_x_unit_label_size_ignores_y_span():
-    from cellestial.single.heatmap._key_groups import _key_groups_layers
+    from cellestial.single.heatmap.utilities import _key_groups_layers
 
     groups = {"Group_1": ["A", "B"], "Group_2": ["C", "D"]}
     small_y_text = _key_groups_layers(
