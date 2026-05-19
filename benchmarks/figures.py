@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _LIBRARY_COLORS = {"cellestial": "#1f9e89", "scanpy": "#D2042D"}
 
 
-def _load_results() -> "pl.DataFrame":
+def _load_results() -> pl.DataFrame:
     import polars as pl
 
     path = io.RESULTS_DIR / "results.feather"
@@ -30,7 +30,7 @@ def _load_results() -> "pl.DataFrame":
     return frame.filter(pl.col("seconds").is_not_null())
 
 
-def _mean_frame(frame: "pl.DataFrame", *, group_cols: list[str]) -> "pl.DataFrame":
+def _mean_frame(frame: pl.DataFrame, *, group_cols: list[str]) -> pl.DataFrame:
     import polars as pl
 
     return (
@@ -63,7 +63,7 @@ def build_all() -> list[Path]:
     return outputs
 
 
-def _build_plots(frame: "pl.DataFrame") -> dict[str, object]:
+def _build_plots(frame: pl.DataFrame) -> dict[str, object]:
     return {
         "scaling_by_data_size": _scaling_by_data_size(frame),
         "scaling_by_key_count": _scaling_by_key_count(frame),
@@ -72,7 +72,7 @@ def _build_plots(frame: "pl.DataFrame") -> dict[str, object]:
     }
 
 
-def _scaling_by_data_size(frame: "pl.DataFrame"):
+def _scaling_by_data_size(frame: pl.DataFrame):
     """Wall time vs n_cells, faceted by case, colored by library, linetype = phase."""
     import polars as pl
     from lets_plot import (
@@ -110,10 +110,10 @@ def _scaling_by_data_size(frame: "pl.DataFrame"):
         base,
         group_cols=["case", "library", "phase", "dataset", "n_cells"],
     )
-    pandas_frame = aggregated.to_pandas()
+
 
     return (
-        ggplot(pandas_frame, aes(x="n_cells", y="mean_seconds", color="library"))
+        ggplot(aggregated, aes(x="n_cells", y="mean_seconds", color="library"))
         + geom_line(aes(linetype="phase"))
         + geom_point(aes(shape="phase"), size=2)
         + facet_wrap("case", scales="free_y")
@@ -126,7 +126,7 @@ def _scaling_by_data_size(frame: "pl.DataFrame"):
     )
 
 
-def _scaling_by_key_count(frame: "pl.DataFrame"):
+def _scaling_by_key_count(frame: pl.DataFrame):
     """Wall time vs n_keys for heatmap-variant cases."""
     import polars as pl
     from lets_plot import (
@@ -150,10 +150,10 @@ def _scaling_by_key_count(frame: "pl.DataFrame"):
         base,
         group_cols=["case", "library", "phase", "dataset", "n_keys"],
     )
-    pandas_frame = aggregated.to_pandas()
+
 
     return (
-        ggplot(pandas_frame, aes(x="n_keys", y="mean_seconds", color="library"))
+        ggplot(aggregated, aes(x="n_keys", y="mean_seconds", color="library"))
         + geom_line(aes(linetype="phase"))
         + geom_point(aes(shape="phase"), size=2)
         + facet_grid(y="dataset", x="case", scales="free_y")
@@ -164,11 +164,12 @@ def _scaling_by_key_count(frame: "pl.DataFrame"):
     )
 
 
-def _construct_vs_render(frame: "pl.DataFrame"):
+def _construct_vs_render(frame: pl.DataFrame):
     """Stacked bar of construct vs render time per case, dodged by library."""
     import polars as pl
     from lets_plot import (
         aes,
+        element_text,
         facet_wrap,
         geom_bar,
         ggplot,
@@ -177,7 +178,6 @@ def _construct_vs_render(frame: "pl.DataFrame"):
         scale_fill_manual,
         theme,
         theme_bw,
-        element_text,
     )
 
     # Pick a single representative dataset per case (the smallest one we ran on)
@@ -201,10 +201,9 @@ def _construct_vs_render(frame: "pl.DataFrame"):
         representative,
         group_cols=["case", "library", "phase"],
     )
-    pandas_frame = aggregated.to_pandas()
 
     return (
-        ggplot(pandas_frame, aes(x="library", y="mean_seconds", fill="phase"))
+        ggplot(aggregated, aes(x="library", y="mean_seconds", fill="phase"))
         + geom_bar(stat="identity")
         + facet_wrap("case", scales="free_y")
         + scale_fill_manual(values={"construct": "#377eb8", "render": "#e6550d"})
@@ -215,11 +214,12 @@ def _construct_vs_render(frame: "pl.DataFrame"):
     )
 
 
-def _overall_summary(frame: "pl.DataFrame"):
+def _overall_summary(frame: pl.DataFrame):
     """Total time per case dodged by library, error bars from replicas."""
     import polars as pl
     from lets_plot import (
         aes,
+        element_text,
         geom_bar,
         geom_errorbar,
         ggplot,
@@ -229,7 +229,6 @@ def _overall_summary(frame: "pl.DataFrame"):
         scale_fill_manual,
         theme,
         theme_bw,
-        element_text,
     )
 
     by_replica = (
@@ -248,11 +247,10 @@ def _overall_summary(frame: "pl.DataFrame"):
         )
         .sort(["case", "library"])
     )
-    pandas_frame = aggregated.to_pandas()
 
     dodge = position_dodge(width=0.8)
     return (
-        ggplot(pandas_frame, aes(x="case", y="mean_total", fill="library"))
+        ggplot(aggregated, aes(x="case", y="mean_total", fill="library"))
         + geom_bar(stat="identity", position=dodge, width=0.7)
         + geom_errorbar(
             aes(ymin="lower", ymax="upper"),
@@ -268,13 +266,13 @@ def _overall_summary(frame: "pl.DataFrame"):
 
 
 def _empty_plot(message: str):
+    import pandas as pd
     from lets_plot import (
         aes,
         geom_text,
         ggplot,
         theme_bw,
     )
-    import pandas as pd
 
     return (
         ggplot(pd.DataFrame({"x": [0], "y": [0], "label": [message]}), aes("x", "y"))

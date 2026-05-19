@@ -8,8 +8,9 @@ should be evaluated across (data day-to-day vs high-coverage).
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from anndata import AnnData
@@ -44,16 +45,16 @@ class Case:
     """One head-to-head benchmark case."""
 
     name: str
-    cellestial_fn: Callable[["AnnData", Params, "DatasetMetadata"], object]
-    scanpy_fn: Callable[["AnnData", Params, "DatasetMetadata"], object]
-    expand: Callable[["DatasetMetadata"], list[Params]]
+    cellestial_fn: Callable[[AnnData, Params, DatasetMetadata], object]
+    scanpy_fn: Callable[[AnnData, Params, DatasetMetadata], object]
+    expand: Callable[[DatasetMetadata], list[Params]]
     supports: tuple[Literal["scrna", "spatial"], ...] = ("scrna",)
 
 
 # --- Helpers to resolve params from dataset metadata -------------------------
 
 
-def _expand_dim_reduction(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_dim_reduction(metadata: DatasetMetadata) -> list[Params]:
     """Two variants: gene (continuous) and category (discrete)."""
     results: list[Params] = []
     if metadata.genes:
@@ -77,7 +78,7 @@ def _expand_dim_reduction(metadata: "DatasetMetadata") -> list[Params]:
 
 
 def _expand_n_keys(
-    metadata: "DatasetMetadata",
+    metadata: DatasetMetadata,
     counts: tuple[int, ...],
     *,
     kind: KeyKind = "n_genes",
@@ -99,7 +100,7 @@ def _expand_n_keys(
     return results
 
 
-def _expand_violin_single(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_violin_single(metadata: DatasetMetadata) -> list[Params]:
     """Single-key violin on a gene split by group_by."""
     if not metadata.genes:
         return []
@@ -113,7 +114,7 @@ def _expand_violin_single(metadata: "DatasetMetadata") -> list[Params]:
     ]
 
 
-def _expand_highest(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_highest(metadata: DatasetMetadata) -> list[Params]:
     results: list[Params] = []
     for top in (10, 30, 60, 100):
         if top > metadata.n_vars:
@@ -124,7 +125,7 @@ def _expand_highest(metadata: "DatasetMetadata") -> list[Params]:
     return results
 
 
-def _expand_markers(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_markers(metadata: DatasetMetadata) -> list[Params]:
     if not metadata.has_rank_genes:
         return []
     results: list[Params] = []
@@ -135,7 +136,7 @@ def _expand_markers(metadata: "DatasetMetadata") -> list[Params]:
     return results
 
 
-def _expand_scatter_obs_obs(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_scatter_obs_obs(metadata: DatasetMetadata) -> list[Params]:
     if len(metadata.numeric_obs) < 2:
         return []
     first, second = metadata.numeric_obs[0], metadata.numeric_obs[1]
@@ -149,7 +150,7 @@ def _expand_scatter_obs_obs(metadata: "DatasetMetadata") -> list[Params]:
     ]
 
 
-def _expand_scatter_gene_gene(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_scatter_gene_gene(metadata: DatasetMetadata) -> list[Params]:
     if len(metadata.genes) < 2:
         return []
     return [
@@ -162,7 +163,7 @@ def _expand_scatter_gene_gene(metadata: "DatasetMetadata") -> list[Params]:
     ]
 
 
-def _expand_spatial(metadata: "DatasetMetadata") -> list[Params]:
+def _expand_spatial(metadata: DatasetMetadata) -> list[Params]:
     if not metadata.genes:
         return []
     results: list[Params] = []
@@ -254,8 +255,9 @@ def _cl_markers(data, params, metadata):
 
 
 def _cl_scatter_obs_obs(data, params, metadata):
-    import cellestial as cl
     from lets_plot import aes
+
+    import cellestial as cl
 
     return cl.scatter(
         data, mapping=aes(x=params.extras["x"], y=params.extras["y"]), axis=0

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -24,7 +24,7 @@ def svg_path(case: str, dataset: str, param_slug: str, library: str, replica: in
     return directory / f"replica_{replica}.svg"
 
 
-def write_results(frame: "pl.DataFrame", *, snapshot_label: str | None = None) -> Path:
+def write_results(frame: pl.DataFrame, *, snapshot_label: str | None = None) -> Path:
     """
     Write the consolidated results.feather and a timestamped snapshot.
 
@@ -36,7 +36,7 @@ def write_results(frame: "pl.DataFrame", *, snapshot_label: str | None = None) -
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
 
     # Snapshot FIRST so the run's data is durable even if the merge step blows up.
-    label = snapshot_label or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    label = snapshot_label or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     snapshot = RUNS_DIR / f"run_{label}.feather"
     frame.write_ipc(snapshot)
 

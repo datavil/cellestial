@@ -19,17 +19,17 @@ import gc
 import os
 import time
 import traceback
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from benchmarks import _console, io
 
 if TYPE_CHECKING:
-    from anndata import AnnData
-    from lets_plot.plot.core import PlotSpec
     import polars as pl
+    from anndata import AnnData
 
     from benchmarks.cases import Case, Params
     from benchmarks.datasets import DatasetEntry, DatasetMetadata
@@ -181,10 +181,10 @@ def _time_call(
 
 def _make_rows(
     *,
-    case: "Case",
-    dataset: "DatasetEntry",
-    metadata: "DatasetMetadata",
-    params: "Params",
+    case: Case,
+    dataset: DatasetEntry,
+    metadata: DatasetMetadata,
+    params: Params,
     library: str,
     replica: int,
     timing: ReplicaTiming,
@@ -220,18 +220,18 @@ def _make_rows(
     ]
 
 
-def _supports_dataset(case: "Case", metadata: "DatasetMetadata") -> bool:
+def _supports_dataset(case: Case, metadata: DatasetMetadata) -> bool:
     return metadata.kind in case.supports
 
 
 def _skip_row(
     *,
-    case: "Case",
-    dataset: "DatasetEntry",
-    metadata: "DatasetMetadata",
+    case: Case,
+    dataset: DatasetEntry,
+    metadata: DatasetMetadata,
     reason: str,
 ) -> list[Row]:
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     common = dict(
         case=case.name,
         dataset=dataset.name,
@@ -254,15 +254,13 @@ def _skip_row(
 
 def run(
     *,
-    cases: list["Case"],
-    datasets: list["DatasetEntry"],
+    cases: list[Case],
+    datasets: list[DatasetEntry],
     replicas: int,
     warmup: bool = True,
     skip_render: bool = False,
-) -> "pl.DataFrame":
+) -> pl.DataFrame:
     """Run the full grid and return the result frame."""
-    import polars as pl
-
     all_rows: list[Row] = []
     total_combos = sum(
         len(case.expand(dataset.metadata()))
@@ -331,11 +329,11 @@ def run(
 
 def _run_combo(
     *,
-    case: "Case",
-    dataset: "DatasetEntry",
-    metadata: "DatasetMetadata",
-    params: "Params",
-    data: "AnnData",
+    case: Case,
+    dataset: DatasetEntry,
+    metadata: DatasetMetadata,
+    params: Params,
+    data: AnnData,
     replicas: int,
     warmup: bool,
     skip_render: bool,
@@ -378,17 +376,17 @@ def _run_combo(
 
 def _run_one(
     *,
-    case: "Case",
-    dataset: "DatasetEntry",
-    metadata: "DatasetMetadata",
-    params: "Params",
-    data: "AnnData",
+    case: Case,
+    dataset: DatasetEntry,
+    metadata: DatasetMetadata,
+    params: Params,
+    data: AnnData,
     library: str,
     replica: int,
     skip_render: bool,
     record_into: list[Row] | None,
 ) -> None:
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     svg_path = io.svg_path(case.name, dataset.name, params.slug, library, max(replica, 0))
 
     if library == "cellestial":
@@ -464,7 +462,7 @@ def _print_replica_summary(rows: list[Row]) -> None:
         )
 
 
-def _print_summary(frame: "pl.DataFrame") -> None:
+def _print_summary(frame: pl.DataFrame) -> None:
     """Print an end-of-run overview by case × library."""
     import polars as pl
 
@@ -497,12 +495,12 @@ def _save_partial(rows: list[Row], path: Path) -> None:
         tmp = path.with_name(path.name + ".part")
         frame.write_ipc(tmp)
         tmp.replace(path)
-    except Exception:  # noqa: BLE001
+    except Exception:
         # Partial saves are best-effort; never let them kill the run.
         pass
 
 
-def _rows_to_frame(rows: list[Row]) -> "pl.DataFrame":
+def _rows_to_frame(rows: list[Row]) -> pl.DataFrame:
     import polars as pl
 
     return pl.DataFrame(

@@ -10,8 +10,9 @@ is derived on first load and reused.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
@@ -46,11 +47,11 @@ class DatasetEntry:
 
     name: str
     kind: DatasetKind
-    loader: Callable[[], "AnnData"]
-    _data: "AnnData | None" = field(default=None, repr=False)
+    loader: Callable[[], AnnData]
+    _data: AnnData | None = field(default=None, repr=False)
     _metadata: DatasetMetadata | None = field(default=None, repr=False)
 
-    def load(self) -> "AnnData":
+    def load(self) -> AnnData:
         if self._data is None:
             _console.step(f"loading dataset '{self.name}' ({self.kind})")
             self._data = self.loader()
@@ -65,7 +66,7 @@ class DatasetEntry:
         return self._metadata
 
 
-def _describe(name: str, kind: DatasetKind, data: "AnnData") -> DatasetMetadata:
+def _describe(name: str, kind: DatasetKind, data: AnnData) -> DatasetMetadata:
     """Pick a default group_by, marker genes and continuous obs from `data`."""
     group_by = _pick_group_by(data)
     try:
@@ -95,7 +96,7 @@ def _describe(name: str, kind: DatasetKind, data: "AnnData") -> DatasetMetadata:
     return metadata
 
 
-def _pick_group_by(data: "AnnData", *, exclude: set[str] | None = None) -> str:
+def _pick_group_by(data: AnnData, *, exclude: set[str] | None = None) -> str:
     """Choose a sensible categorical column from obs (largest small cardinality)."""
     exclude = exclude or set()
     candidates: list[tuple[int, str]] = []
@@ -137,7 +138,7 @@ def _pick_group_by(data: "AnnData", *, exclude: set[str] | None = None) -> str:
     return candidates[0][1]
 
 
-def _pick_genes(data: "AnnData", *, n: int) -> list[str]:
+def _pick_genes(data: AnnData, *, n: int) -> list[str]:
     """Return up to `n` benchmark genes: HVG-ranked if available, else top-mean."""
     var = data.var
     if "highly_variable_rank" in var.columns:
@@ -161,7 +162,7 @@ def _pick_genes(data: "AnnData", *, n: int) -> list[str]:
     return [str(name) for name in data.var_names[order]]
 
 
-def _list_numeric_obs(data: "AnnData") -> list[str]:
+def _list_numeric_obs(data: AnnData) -> list[str]:
     """Return numeric obs column names, preferred ones first."""
     import pandas as pd
 
@@ -181,31 +182,31 @@ def _list_numeric_obs(data: "AnnData") -> list[str]:
 # --- Loaders -----------------------------------------------------------------
 
 
-def _load_cl_pbmc3k() -> "AnnData":
+def _load_cl_pbmc3k() -> AnnData:
     import cellestial as cl
 
     return cl.datasets.pbmc3k(cache_directory="data")
 
 
-def _load_cl_pancreas() -> "AnnData":
+def _load_cl_pancreas() -> AnnData:
     import cellestial as cl
 
     return cl.datasets.pancreas(cache_directory="data")
 
 
-def _load_cl_lymph_node() -> "AnnData":
+def _load_cl_lymph_node() -> AnnData:
     import cellestial as cl
 
     return cl.datasets.human_lymph_node(cache_directory="data")
 
 
-def _load_sc_pbmc68k() -> "AnnData":
+def _load_sc_pbmc68k() -> AnnData:
     import scanpy as sc
 
     return sc.datasets.pbmc68k_reduced()
 
 
-def _load_sc_paul15() -> "AnnData":
+def _load_sc_paul15() -> AnnData:
     import scanpy as sc
 
     data = sc.datasets.paul15()
@@ -221,7 +222,7 @@ def _load_sc_paul15() -> "AnnData":
     return data
 
 
-def _load_sq_visium_hne() -> "AnnData":
+def _load_sq_visium_hne() -> AnnData:
     import squidpy as sq
 
     return sq.datasets.visium_hne_adata()

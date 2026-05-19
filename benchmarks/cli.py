@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from benchmarks import _console, cases, datasets, figures, io, runner
 
@@ -97,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     _setup_environment()
 
     _console.banner("cellestial vs scanpy.pl — benchmark suite")
-    _console.kv("started_at", datetime.now(timezone.utc).isoformat())
+    _console.kv("started_at", datetime.now(UTC).isoformat())
     _console.kv("replicas", namespace.replicas)
     _console.kv(
         "datasets",
@@ -135,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     for dataset in selected_datasets:
         try:
             dataset.metadata()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             _console.fail(f"failed to load '{dataset.name}': {exc}")
             return 2
 
