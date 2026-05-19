@@ -65,3 +65,6 @@ merge.sh
 
 #
 .claude
+
+benchmarks/svg
+benchmarks/results/runs
