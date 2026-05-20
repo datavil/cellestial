@@ -11,8 +11,6 @@
 
 The __Grammar of Graphics__ for single-cell omics.
 
-## Introduction
-
 __Cellestial__ is an interactive and a highly customizable _Single-Cell_ & _Spatial_ omics data visualization library. Built on top [Lets-Plot](https://lets-plot.org/), it offers a ggplot-like layered and modular approach offering __high customizability__ and __publication-ready figures__.
 
 Cellestial is highly integrated with scverse's [AnnData](https://github.com/scverse/anndata) with room for integration with any upcoming single-cell omics data type in the Python single-cell omics ecosystem.
