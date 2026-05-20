@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
 
+
 def dimensionals(
     data: AnnData,
     keys: Sequence[str],
@@ -281,6 +282,7 @@ def dimensionals(
 
     return scttrs
 
+
 def umaps(
     data: AnnData,
     keys: Sequence[str],
@@ -543,6 +545,7 @@ def umaps(
 
     return scttrs
 
+
 def tsnes(
     data: AnnData,
     keys: Sequence[str],
@@ -802,6 +805,7 @@ def tsnes(
         scttrs += ggtb(size_zoomin=-1)
 
     return scttrs
+
 
 def pcas(
     data: AnnData,
@@ -1063,6 +1067,7 @@ def pcas(
         scttrs += ggtb(size_zoomin=-1)
 
     return scttrs
+
 
 def expressions(
     data: AnnData,

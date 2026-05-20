@@ -287,6 +287,7 @@ def _fill_gradient(
             midpoint=mid_value,
         )
 
+
 # cache to avoid recomputing for every plot in a grid...
 @lru_cache(maxsize=32)
 def _grid_places(total: int, ncol: int | None) -> tuple[frozenset[int], frozenset[int]]:
@@ -588,8 +589,7 @@ def _resolve_embedding_key(
             return key.upper()
 
     prefix_matches = [
-        key for key in candidates
-        if any(key.upper().startswith(t) for t in search_targets)
+        key for key in candidates if any(key.upper().startswith(t) for t in search_targets)
     ]
     if not prefix_matches:
         msg = (

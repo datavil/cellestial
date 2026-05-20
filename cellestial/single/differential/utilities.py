@@ -166,7 +166,6 @@ def _build_volcano_frame(
     return frame
 
 
-
 def _build_markers_frame(
     data: AnnData,
     *,
@@ -306,4 +305,3 @@ def _build_markers_frame(
 
     msg = f"Unsupported data type: `{type(data)}`"
     raise UnsupportedDataTypeError(msg)
-

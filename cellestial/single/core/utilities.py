@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
 
 
-
 def _distribution(
     data: AnnData,
     key: str | Sequence[str],
@@ -218,4 +217,3 @@ def _distribution(
         dst += ggtb(size_zoomin=-1)
 
     return dst
-

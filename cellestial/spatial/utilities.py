@@ -358,10 +358,7 @@ def _spatial_components(
         scale_factor = scale_factors.get(scalef_key)
         if scale_factor is None:
             if image:
-                _warn(
-                    f"Scale factor `{scalef_key}` missing; "
-                    "spots may not align with the image."
-                )
+                _warn(f"Scale factor `{scalef_key}` missing; spots may not align with the image.")
             scale_factor = 1.0
         spot_coordinates = data.obsm[spatial_key] * scale_factor
 
@@ -376,4 +373,3 @@ def _spatial_components(
 
     msg = f"Unsupported data type: `{type(data)}`"
     raise UnsupportedDataTypeError(msg)
-

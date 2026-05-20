@@ -95,9 +95,7 @@ def _axis_arrow_layers(
     tip_y = (yend - y0) * _TIP_FRACTION
 
     # semi-square L (stopping short of both tips), drawn as one connected path
-    path_frame = pl.DataFrame(
-        {"x": [xend - tip_x, x0, x0], "y": [y0, y0, yend - tip_y]}
-    )
+    path_frame = pl.DataFrame({"x": [xend - tip_x, x0, x0], "y": [y0, y0, yend - tip_y]})
 
     layers = geom_path(
         data=path_frame,
