@@ -250,6 +250,10 @@ def arrow_axis(
     MissingAestheticError
         If `x` or `y` cannot be inferred from the receiving plot.
 
+    Notes
+    -----
+    Uses `geom_path` to draw the axis lines and `geom_segment` for the arrowheads.
+
     Examples
     --------
     Without arrow.
