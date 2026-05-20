@@ -116,9 +116,9 @@ def dimensional(
     axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
-        Length of the arrow head (px).
+        Span of each axis line as a fraction of its data range (0.25 covers 25%).
     arrow_size : float, default=1
-        Size of the arrow.
+        Width of the axis lines.
     arrow_color : str, default='#3f3f3f'
         Color of the arrows.
     arrow_angle : float, default=10
