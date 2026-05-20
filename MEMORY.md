@@ -23,6 +23,7 @@
 - [Feedback: No hidden aesthetic promotion](feedback_no_hidden_aesthetic_promotion.md) — Don't auto-promote `group_by` to `fill`/`color`; user wires aesthetics explicitly, prefer warn+facet over hidden magic
 - [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
 - [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
+- [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 
 
 ---
@@ -634,3 +635,24 @@ Do NOT collapse into `variable_keys = [*(variable_keys or []), *_select_variable
 **Why:** User finds the splat-unpacking form ugly. The explicit form reads top-to-bottom, mirrors patterns already used elsewhere in the codebase (see `cellestial/spatial/spatial.py` around the `variable_keys` handling), and the variable's role is clearer.
 
 **How to apply:** Whenever you reach for `[*a, *b]` to merge a sequence parameter with computed items in this codebase, write `x = list(x); x.extend(...)` instead.
+
+
+---
+
+## Source: feedback_audit_ai_tracking.md
+
+---
+name: Record AI-written functions in audit_AI.md
+description: Whenever an agent generates or significantly modifies a function, add a row for it to plans/audit_AI.md
+metadata:
+  type: feedback
+---
+Whenever an agent (Claude or any other model) writes a new function or modifies a significant portion of an existing one in cellestial, add a row for that function to `plans/audit_AI.md`.
+
+**Why:** The user tracks every AI-touched function there so each can later be verified (behavioral, visual, edge cases, line-by-line review). Functions that get AI-written but never logged silently escape that review pass. The audit table replaced the old inline `# AI-GENERATED:` / `# AI-MODIFIED:` source comments (removed in commit "replace AI notice"), so the markdown table is now the single source of truth.
+
+**How to apply:** The table columns are `Function | AI status | Source | Behavioral | Visual | Edge cases | Line-by-line`.
+- `AI status`: `GENERATED` for brand-new functions, `MODIFIED` for significant edits to existing ones.
+- `Source`: the model that did the work (e.g. `Claude 4.7`, `Claude 4.6`, `Mixed`).
+- Leave the verification columns (`Behavioral`, `Visual`, `Edge cases`, `Line-by-line`) blank when adding the row; the user fills `✓` after they review. Do not mark them verified yourself unless you actually ran/verified that check.
+Place the new row near related functions (e.g. singular/plural pairs and their helpers together). Key private helpers count too (the table already lists `_spatial_components`, `_get_dendrogram`, `_build_markers_frame`, etc.).

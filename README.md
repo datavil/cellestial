@@ -223,14 +223,14 @@ Cellestial mirrors most of `scanpy.pl` with a few naming shifts:
 - `groupby` becomes `group_by`, `var_names` becomes `keys`.
 - Saving is a separate `cl.save(plot, "umap.png")` call.
 
-See the [migration guide](sphinx/migrating_from_scanpy.rst) for a side-by-side mapping.
+See the [migration guide](https://cellestial.datavil.org/migrating_from_scanpy.html) for a side-by-side mapping.
 
 ## Documentation
 
-- [Quickstart](sphinx/quickstart.rst) — guided tour of the API.
-- [Features](sphinx/features.rst) — tooltips, layers, grids, colors, faceting.
-- [API reference](sphinx/API.rst) — every function.
-- [Migrating from Scanpy](sphinx/migrating_from_scanpy.rst).
+- [Quickstart](https://cellestial.datavil.org/quickstart.html) — guided tour of the API.
+- [Features](https://cellestial.datavil.org/features.html) — tooltips, layers, grids, colors, faceting.
+- [API reference](https://cellestial.datavil.org/API.html) — every function.
+- [Migrating from Scanpy](https://cellestial.datavil.org/migrating_from_scanpy.html).
 
 ## License
 
