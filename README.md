@@ -7,7 +7,7 @@
 [![Powered by Polars](https://img.shields.io/badge/Powered%20by-Polars-377eb8?logo=polars&logoColor=white)](https://www.pola.rs/)
 [![Graphics: Lets-Plot](https://img.shields.io/badge/Graphics-Lets--Plot-FF00CC?logo=jetbrains&logoColor=white)](https://lets-plot.org/)
 
-<img align="left" src="assets/cellestial.svg" alt="Cellestial Logo" width="280">
+<img align="left" src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/cellestial.svg" alt="Cellestial Logo" width="280">
 
 The __Grammar of Graphics__ for single-cell omics.
 
@@ -51,7 +51,7 @@ cl.umap(
 ```
 
 <p align="center">
-  <img src="assets/first-umap.svg" alt="UMAP coloured by cell type" width="600">
+  <img src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/first-umap.svg" alt="UMAP coloured by cell type" width="600">
 </p>
 
 ## Examples
@@ -81,7 +81,7 @@ gggrid(
 </details>
 
 <p align="center">
-  <img src="assets/spatial-categorical.svg" alt="Spatial categorical overlay" width="800">
+  <img src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/spatial-categorical.svg" alt="Spatial categorical overlay" width="800">
 </p>
 
 ### Dimensionality reduction with layers
@@ -118,7 +118,7 @@ gggrid([outlined, streamed])
 </details>
 
 <p align="center">
-  <img src="assets/dimensionality-layers.svg" alt="UMAP with cluster outlines and velocity stream" width="800">
+  <img src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/dimensionality-layers.svg" alt="UMAP with cluster outlines and velocity stream" width="800">
 </p>
 
 ### Marker genes
@@ -155,7 +155,7 @@ cl.heatmap(
 </details>
 
 <p align="center">
-  <img src="assets/heatmap.svg" alt="Marker gene heatmap" width="700">
+  <img src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/heatmap.svg" alt="Marker gene heatmap" width="700">
 </p>
 
 ### Statistical comparisons
@@ -187,7 +187,7 @@ cl.boxplot(
 </details>
 
 <p align="center">
-  <img src="assets/boxplot-bracket.svg" alt="Boxplot with significance brackets" width="600">
+  <img src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/boxplot-bracket.svg" alt="Boxplot with significance brackets" width="600">
 </p>
 
 ### Ridge plots
@@ -209,7 +209,7 @@ cl.ridge(
 </details>
 
 <p align="center">
-  <img src="assets/ridge.svg" alt="Ridge plot of B2M expression" width="600">
+  <img src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/ridge.svg" alt="Ridge plot of B2M expression" width="600">
 </p>
 
 ## Migrating from Scanpy
