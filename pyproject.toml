@@ -1,6 +1,6 @@
 [project]
 name = "cellestial"
-version = "0.49.2"
+version = "0.49.3"
 description = "Interactive single-cell and spatial omics visualization library"
 authors = [
     { name = "Zaf4", email = "zafermolbio@gmail.com" },
