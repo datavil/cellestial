@@ -136,8 +136,8 @@ def _distribution(
     elif len(keys) > 1 and group_by != variable_column:
         _warn(
             f"Multiple keys provided; `group_by={group_by!r}` cannot share the "
-            f"x-axis with the variable column. Falling back to "
-            f"`group_by={variable_column!r}`. For a per-key panel, use the plural variant."
+            f"x-axis with the variable column.\nFalling back to "
+            f"`group_by={variable_column!r}`. For a per-key panel, use the plural variant ({geom}s)."
         )
         group_by = variable_column
 

@@ -37,7 +37,15 @@ from cellestial.single import (
     xyplots,
 )
 from cellestial.spatial import spatial, spatials
-from cellestial.util import get_figure, get_figures, get_mapping, retrieve, save
+from cellestial.util import (
+    get_figure,
+    get_figures,
+    get_mapping,
+    marker_genes,
+    marker_genes_dict,
+    retrieve,
+    save,
+)
 from cellestial.util.colors import (
     BLUE,
     CHERRY,
@@ -84,6 +92,8 @@ __all__ = [
     "get_mapping",
     "heatmap",
     "highest_expressed_genes",
+    "marker_genes",
+    "marker_genes_dict",
     "markers",
     "matrixplot",
     "ondata_legend",

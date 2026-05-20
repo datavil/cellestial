@@ -2,6 +2,7 @@ from cellestial.util.dendrogram import (
     _get_dendrogram,
     _get_dendrogram_path_frame,
 )
+from cellestial.util.markers import marker_genes, marker_genes_dict
 from cellestial.util.operations import get_figure, get_figures, get_mapping, retrieve
 from cellestial.util.save import save
 from cellestial.util.utilities import (
@@ -43,6 +44,8 @@ __all__ = [
     "get_figure",
     "get_figures",
     "get_mapping",
+    "marker_genes",
+    "marker_genes_dict",
     "retrieve",
     "save",
 ]
