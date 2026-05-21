@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import PlotSpec
     from lets_plot.plot.subplots import SupPlotsSpec
+    from polars import DataFrame
 
 
 def ridge(
@@ -35,6 +36,7 @@ def ridge(
     key: str,
     group_by: str,
     *,
+    frame: DataFrame | None = None,
     scale: float = 2.0,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
@@ -59,6 +61,9 @@ def ridge(
     group_by : str
         The key to group the ridges by (categorical).
         e.g., 'cell_type' or 'leiden'.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the `key` and `group_by` columns.
     scale : float, default=2.0
         Scaling factor for the height of the ridges.
     mapping : FeatureSpec | None, default=None
@@ -153,16 +158,17 @@ def ridge(
     # DETERMINE: axis if not provided
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
 
-    # BUILD: the DataFrame
+    # BUILD: the DataFrame (variable_keys is still needed for tooltip resolution)
     variable_keys = _select_variable_keys(data=data, keys=keys)
     variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
-    frame = build_frame(
-        data=data,
-        variable_keys=variable_keys,
-        axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
-    )
+    if frame is None:
+        frame = build_frame(
+            data=data,
+            variable_keys=variable_keys,
+            axis=axis,
+            observations_name=observations_name,
+            variables_name=variables_name,
+        )
 
     # FILTER: drop nulls and apply threshold
     frame = frame.drop_nulls(subset=[key])
@@ -337,12 +343,28 @@ def ridges(
             guides="collect",
         )
     """
+    # BUILD: one shared frame for all keys, instead of rebuilding per key.
+    # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
+    variable_keys = _select_variable_keys(data=data, keys=keys)
+    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+    )
+
     plots = []
     for key in keys:
         plot = ridge(
             data=data,
             key=key,
             group_by=group_by,
+            frame=frame,
             scale=scale,
             mapping=mapping,
             axis=axis,

@@ -37,12 +37,14 @@ if TYPE_CHECKING:
     from typing import Literal
 
     from lets_plot.plot.core import PlotSpec
+    from polars import DataFrame
 
 
 def spatial(
     data: AnnData | SpatialData,
     key: str | None = None,
     *,
+    frame: DataFrame | None = None,
     library_id: str | None = None,
     image: bool = True,
     image_key: Literal["hires", "lowres"] | str = "lowres",
@@ -86,6 +88,9 @@ def spatial(
         `image_name`, `shapes_name`, and `coordinate_system` arguments below.
     key : str, default=None
         The key (cell feature or gene name) to color the spots by.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the `key` column.
     library_id : str | None, default=None
         The library identifier. If None and only one library is present, it is
         auto-selected; if multiple libraries are present, this must be provided.
@@ -290,13 +295,14 @@ def spatial(
     )
 
     # BUILD: dataframe
-    frame = build_frame(
-        data=data,
-        variable_keys=variable_keys,
-        axis=0,
-        observations_name=observations_name,
-        include_dimensions=include_dimensions,
-    )
+    if frame is None:
+        frame = build_frame(
+            data=data,
+            variable_keys=variable_keys,
+            axis=0,
+            observations_name=observations_name,
+            include_dimensions=include_dimensions,
+        )
 
     is_polygon = polygon_frame is not None
     if is_polygon:

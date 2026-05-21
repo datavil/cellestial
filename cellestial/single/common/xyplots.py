@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Literal
 from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
+from cellestial.frames import build_frame
 from cellestial.single.common.xyplot import xyplot
+from cellestial.util import _determine_axis, _select_variable_keys
 from cellestial.util.errors import ConfilictingLengthError
 
 if TYPE_CHECKING:
@@ -185,6 +187,28 @@ def xyplots(
             msg = f"Length of x ({len(x)}) and y ({len(y)}) must be the same, or one of them must be of length 1."
             raise ConfilictingLengthError(msg)
 
+    # BUILD: one shared frame for all pairs, instead of rebuilding per pair.
+    # Mirrors `xyplot`'s build over the union of x/y and shared mapping keys.
+    mapping_keys = [key for key in mapping.as_dict().values() if key is not None] if mapping else []
+    all_keys = list(dict.fromkeys([*x, *y, *mapping_keys]))
+    variable_keys = _select_variable_keys(data=data, keys=all_keys)
+    # embedding (X_-prefixed) keys are not features; they request `include_dimensions`
+    feature_keys = list(all_keys)
+    if not include_dimensions:
+        for key in all_keys:
+            if key.startswith("X_"):
+                include_dimensions = True
+                feature_keys.remove(key)
+    axis = _determine_axis(data=data, keys=feature_keys) if axis is None else axis
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+        include_dimensions=include_dimensions,
+    )
+
     # build plots
     plots = []
     for xi, yi in zip(x, y, strict=True):
@@ -192,6 +216,7 @@ def xyplots(
             data,
             x=xi,
             y=yi,
+            frame=frame,
             mapping=mapping,
             axis=axis,
             tooltips=tooltips,

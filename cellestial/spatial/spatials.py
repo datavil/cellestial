@@ -3,14 +3,16 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
+from anndata import AnnData
 from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
+from cellestial.frames import build_frame
 from cellestial.spatial.spatial import spatial
-from cellestial.util import _share_labels
+from cellestial.spatial.utilities import _spatial_components
+from cellestial.util import _is_variable_key, _share_labels
 
 if TYPE_CHECKING:
-    from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
     from spatialdata import SpatialData
 
@@ -225,11 +227,48 @@ def spatials(
         msg = "keys must be a Sequence of strings"
         raise TypeError(msg)
 
+    # Resolve the annotation table once (mirrors `spatial`); SpatialData needs extraction
+    # for the variable-key check below, while `build_frame` accepts either type.
+    if isinstance(data, AnnData):
+        table = data
+    else:
+        _, _, _, table = _spatial_components(
+            data,
+            library_id=library_id,
+            image_key=image_key,
+            image=image,
+            spatial_key=spatial_key,
+            table_name=table_name,
+            image_name=image_name,
+            shapes_name=shapes_name,
+            coordinate_system=coordinate_system,
+            polygon=polygon,
+        )
+
+    # BUILD: one shared frame for all keys, instead of rebuilding per key.
+    # spatial is always observations-axis; only gene keys are pulled from X.
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    else:
+        variable_keys = list(variable_keys)
+    variable_keys.extend(key for key in keys if _is_variable_key(table, key))
+    variable_keys = list(dict.fromkeys(variable_keys))
+    frame = build_frame(
+        data=table,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=observations_name,
+        include_dimensions=include_dimensions,
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = spatial(
             data=data,
             key=key,
+            frame=frame,
             library_id=library_id,
             image=image,
             image_key=image_key,

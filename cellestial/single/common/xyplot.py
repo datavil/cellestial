@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from lets_plot.plot.core import PlotSpec
+    from polars import DataFrame
 
 
 def xyplot(
@@ -33,6 +34,7 @@ def xyplot(
     x: str,
     y: str,
     *,
+    frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -53,6 +55,9 @@ def xyplot(
         The key for the x-axis.
     y : str
         The key for the y-axis.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the `x`, `y` and mapping columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
@@ -180,14 +185,15 @@ def xyplot(
 
     # BUILD: the dataframe
     axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
-    frame = build_frame(
-        data=data,
-        variable_keys=variable_keys,
-        axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
-        include_dimensions=include_dimensions,
-    )
+    if frame is None:
+        frame = build_frame(
+            data=data,
+            variable_keys=variable_keys,
+            axis=axis,
+            observations_name=observations_name,
+            variables_name=variables_name,
+            include_dimensions=include_dimensions,
+        )
     _validate_tooltips(tooltips, frame)
 
     # BUILD: the scatterplot
