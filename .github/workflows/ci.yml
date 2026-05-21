@@ -23,6 +23,9 @@ jobs:
   test:
     name: Test (${{ matrix.os }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +69,6 @@ jobs:
           key: pbmc3k-${{ runner.os }}-${{ hashFiles('test/get_data.py') }}
 
       - name: Prepare test fixture
-        shell: bash
         run: |
           mkdir -p data
           poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
