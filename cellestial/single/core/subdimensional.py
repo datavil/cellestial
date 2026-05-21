@@ -11,12 +11,14 @@ if TYPE_CHECKING:
 
     from anndata import AnnData
     from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from polars import DataFrame
 
 
 def umap(
     data: AnnData,
     key: str | None = None,
     *,
+    frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -53,6 +55,9 @@ def umap(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     use_key : str, default=None
@@ -155,6 +160,7 @@ def umap(
     return dimensional(
         data=data,
         key=key,
+        frame=frame,
         mapping=mapping,
         dimensions="umap",
         use_key=use_key,
@@ -188,6 +194,7 @@ def tsne(
     data: AnnData,
     key: str | None = None,
     *,
+    frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -224,6 +231,9 @@ def tsne(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     use_key : str, default=None
@@ -326,6 +336,7 @@ def tsne(
     return dimensional(
         data=data,
         key=key,
+        frame=frame,
         mapping=mapping,
         dimensions="tsne",
         use_key=use_key,
@@ -359,6 +370,7 @@ def pca(
     data: AnnData,
     key: str | None = None,
     *,
+    frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
@@ -395,6 +407,9 @@ def pca(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     use_key : str, default=None
@@ -497,6 +512,7 @@ def pca(
     return dimensional(
         data=data,
         key=key,
+        frame=frame,
         mapping=mapping,
         dimensions="pca",
         use_key=use_key,
@@ -530,6 +546,7 @@ def expression(
     data: AnnData,
     key: str,
     *,
+    frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
@@ -566,6 +583,9 @@ def expression(
         The AnnData object of the single cell data.
     key : str
         The key (gene names) to color the points by.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
@@ -666,6 +686,7 @@ def expression(
     return dimensional(
         data=data,
         key=key,
+        frame=frame,
         mapping=mapping,
         dimensions=dimensions,
         use_key=use_key,

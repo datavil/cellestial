@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, Literal
 from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
+from cellestial.frames import build_frame
 from cellestial.single.core.dimensional import dimensional
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
-from cellestial.util import _share_axis, _share_labels
+from cellestial.util import _is_variable_key, _share_axis, _share_labels
 
 if TYPE_CHECKING:
     from anndata import AnnData
@@ -217,11 +218,31 @@ def dimensionals(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
+    # BUILD: one shared frame for all keys, instead of rebuilding per key
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    else:
+        variable_keys = list(variable_keys)
+    # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
+    variable_keys.extend(key for key in keys if _is_variable_key(data, key))
+    # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
+    variable_keys = list(dict.fromkeys(variable_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=observations_name,
+        include_dimensions=max(xy),
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = dimensional(
             data=data,
             key=key,
+            frame=frame,
             mapping=mapping,
             dimensions=dimensions,
             use_key=use_key,
@@ -481,11 +502,31 @@ def umaps(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
+    # BUILD: one shared frame for all keys, instead of rebuilding per key
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    else:
+        variable_keys = list(variable_keys)
+    # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
+    variable_keys.extend(key for key in keys if _is_variable_key(data, key))
+    # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
+    variable_keys = list(dict.fromkeys(variable_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=observations_name,
+        include_dimensions=max(xy),
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = umap(
             data=data,
             key=key,
+            frame=frame,
             mapping=mapping,
             use_key=use_key,
             xy=xy,
@@ -743,11 +784,31 @@ def tsnes(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
+    # BUILD: one shared frame for all keys, instead of rebuilding per key
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    else:
+        variable_keys = list(variable_keys)
+    # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
+    variable_keys.extend(key for key in keys if _is_variable_key(data, key))
+    # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
+    variable_keys = list(dict.fromkeys(variable_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=observations_name,
+        include_dimensions=max(xy),
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = tsne(
             data=data,
             key=key,
+            frame=frame,
             mapping=mapping,
             use_key=use_key,
             xy=xy,
@@ -1004,11 +1065,31 @@ def pcas(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
+    # BUILD: one shared frame for all keys, instead of rebuilding per key
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    else:
+        variable_keys = list(variable_keys)
+    # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
+    variable_keys.extend(key for key in keys if _is_variable_key(data, key))
+    # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
+    variable_keys = list(dict.fromkeys(variable_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=observations_name,
+        include_dimensions=max(xy),
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = pca(
             data=data,
             key=key,
+            frame=frame,
             mapping=mapping,
             use_key=use_key,
             xy=xy,
@@ -1269,11 +1350,30 @@ def expressions(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
 
+    # BUILD: one shared frame for all keys, instead of rebuilding per key
+    if variable_keys is None:
+        variable_keys = []
+    elif isinstance(variable_keys, str):
+        variable_keys = [variable_keys]
+    else:
+        variable_keys = list(variable_keys)
+    variable_keys.extend(keys)
+    # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
+    variable_keys = list(dict.fromkeys(variable_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=0,
+        observations_name=observations_name,
+        include_dimensions=max(xy),
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = expression(
             data=data,
             key=key,
+            frame=frame,
             mapping=mapping,
             dimensions=dimensions,
             use_key=use_key,

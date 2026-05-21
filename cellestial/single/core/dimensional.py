@@ -33,12 +33,14 @@ from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
+    from polars import DataFrame
 
 
 def dimensional(
     data: AnnData,
     key: str | None = None,
     *,
+    frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] = "umap",
     use_key: str | None = None,
@@ -76,6 +78,9 @@ def dimensional(
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the embedding and key columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     dimensions : {'umap', 'pca', 'tsne'}, default='umap'
@@ -222,13 +227,14 @@ def dimensional(
     )
 
     # BUILD: dataframe
-    frame = build_frame(
-        data=data,
-        variable_keys=variable_keys,
-        axis=0,
-        observations_name=observations_name,
-        include_dimensions=max(xy),
-    )
+    if frame is None:
+        frame = build_frame(
+            data=data,
+            variable_keys=variable_keys,
+            axis=0,
+            observations_name=observations_name,
+            include_dimensions=max(xy),
+        )
     _validate_tooltips(tooltips, frame)
 
     # BUILD: scatter plot
