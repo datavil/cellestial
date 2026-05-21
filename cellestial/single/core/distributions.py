@@ -5,8 +5,14 @@ from typing import TYPE_CHECKING, Any, Literal
 from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 
+from cellestial.frames import build_frame
 from cellestial.single.core.distribution import boxplot, violin
-from cellestial.util import _share_axis, _share_ticks
+from cellestial.util import (
+    _determine_axis,
+    _select_variable_keys,
+    _share_axis,
+    _share_ticks,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -196,11 +202,27 @@ def violins(
             ncol=2,
         )
     """
+    # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
+    # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
+    variable_keys = _select_variable_keys(data=data, keys=keys)
+    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = violin(
             data=data,
             key=key,
+            frame=frame,
             group_by=group_by,
             mapping=mapping,
             axis=axis,
@@ -432,11 +454,27 @@ def boxplots(
             ncol=2,
         )
     """
+    # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
+    # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
+    variable_keys = _select_variable_keys(data=data, keys=keys)
+    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
+    frame = build_frame(
+        data=data,
+        variable_keys=variable_keys,
+        axis=axis,
+        observations_name=observations_name,
+        variables_name=variables_name,
+    )
+
     plots = []
     for i, key in enumerate(keys):
         plot = boxplot(
             data=data,
             key=key,
+            frame=frame,
             group_by=group_by,
             mapping=mapping,
             axis=axis,

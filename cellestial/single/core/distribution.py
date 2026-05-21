@@ -11,12 +11,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from lets_plot.plot.core import PlotSpec
+    from polars import DataFrame
 
 
 def violin(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    frame: DataFrame | None = None,
     group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
@@ -51,6 +53,9 @@ def violin(
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the `key` and grouping columns.
     group_by : str | None, default=None
         Column to group observations on the x-axis.
         If not provided, falls back to `fill`, `color`, or the variable column.
@@ -210,6 +215,7 @@ def violin(
     return _distribution(
         data=data,
         key=key,
+        frame=frame,
         group_by=group_by,
         mapping=mapping,
         geom="violin",
@@ -241,6 +247,7 @@ def boxplot(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    frame: DataFrame | None = None,
     group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
@@ -275,6 +282,9 @@ def boxplot(
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
+    frame : DataFrame | None, default=None
+        A prebuilt frame to plot from. If provided, the frame is used directly and
+        building from `data` is skipped. Must contain the `key` and grouping columns.
     group_by : str | None, default=None
         Column to group observations on the x-axis.
         If not provided, falls back to `fill`, `color`, or the variable column.
@@ -428,6 +438,7 @@ def boxplot(
     return _distribution(
         data=data,
         key=key,
+        frame=frame,
         group_by=group_by,
         mapping=mapping,
         geom="boxplot",

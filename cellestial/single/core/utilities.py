@@ -38,6 +38,7 @@ def _distribution(
     data: AnnData,
     key: str | Sequence[str],
     *,
+    frame: pl.DataFrame | None = None,
     group_by: str | None = None,
     mapping: FeatureSpec | None = None,
     geom: Literal["violin", "boxplot"] = "violin",
@@ -110,16 +111,17 @@ def _distribution(
     # DETERMINE: axis if not provided
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
 
-    # BUILD: the DataFrame
+    # BUILD: the DataFrame (variable_keys is still needed for tooltip resolution)
     variable_keys = _select_variable_keys(data=data, keys=keys)
     variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
-    frame = build_frame(
-        data=data,
-        variable_keys=variable_keys,
-        axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
-    )
+    if frame is None:
+        frame = build_frame(
+            data=data,
+            variable_keys=variable_keys,
+            axis=axis,
+            observations_name=observations_name,
+            variables_name=variables_name,
+        )
 
     if group_by is not None:
         frame = frame.filter(pl.col(group_by).is_not_null())
