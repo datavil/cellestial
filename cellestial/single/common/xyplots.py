@@ -189,7 +189,9 @@ def xyplots(
 
     # BUILD: one shared frame for all pairs, instead of rebuilding per pair.
     # Mirrors `xyplot`'s build over the union of x/y and shared mapping keys.
-    mapping_keys = [key for key in mapping.as_dict().values() if key is not None] if mapping else []
+    mapping_keys = (
+        [key for key in mapping.as_dict().values() if key is not None] if mapping else []
+    )
     all_keys = list(dict.fromkeys([*x, *y, *mapping_keys]))
     variable_keys = _select_variable_keys(data=data, keys=all_keys)
     # embedding (X_-prefixed) keys are not features; they request `include_dimensions`

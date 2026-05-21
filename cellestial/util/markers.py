@@ -139,13 +139,18 @@ def marker_genes(
 
         data = sc.datasets.pbmc68k_reduced()
 
-        cl.umaps(data, keys=cl.marker_genes(data, groups=["CD14+ Monocyte"]))
+        cl.umaps(
+            data,
+            keys=cl.marker_genes(data, groups=["CD14+ Monocyte"], n_genes=4),
+            size=2,
+            ncol=2,
+        )
 
-    Violin the top markers across every group.
+    A heatmap of the top markers of all groups (3 genes per group) , with duplicates removed.
 
     .. jupyter-execute::
 
-        cl.violins(data, keys=cl.marker_genes(data, n_genes=3))
+        cl.heatmap(data, keys=cl.marker_genes(data, n_genes=3), group_by="louvain")
     """
     per_group = _marker_names_per_group(data, groups, key=key, n_genes=n_genes)
 
