@@ -26,8 +26,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.11", "3.13"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
 
@@ -62,9 +62,11 @@ jobs:
             data/pbmc3k_pped.h5ad
             ~/.cache/scverse_tutorials
             ~/Library/Caches/scverse_tutorials
+            ~/AppData/Local/scverse_tutorials/Cache
           key: pbmc3k-${{ runner.os }}-${{ hashFiles('test/get_data.py') }}
 
       - name: Prepare test fixture
+        shell: bash
         run: |
           mkdir -p data
           poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
