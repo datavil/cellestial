@@ -145,3 +145,46 @@ def test_ridges_ncol(adata, group_key):
 def test_violin_mapping_extra_aes(adata, group_key):
     plot = cl.violin(adata, "CD14", fill=group_key, mapping=aes(color=group_key))
     assert isinstance(plot, PlotSpec)
+
+
+# ---- drop ----
+
+
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
+def test_distribution_drop_removes_group(adata, fn, group_key):
+    full = set(fn(adata, "CD14", group_by=group_key).as_dict()["data"][group_key].to_list())
+    dropped = sorted(full)[0]
+    remaining = set(
+        fn(adata, "CD14", group_by=group_key, drop=dropped).as_dict()["data"][group_key].to_list()
+    )
+    assert remaining == full - {dropped}
+
+
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
+def test_distribution_groups_keeps_only_selected(adata, fn, group_key):
+    full = sorted(
+        set(fn(adata, "CD14", group_by=group_key).as_dict()["data"][group_key].to_list())
+    )
+    kept = full[:2]
+    remaining = set(
+        fn(adata, "CD14", group_by=group_key, groups=kept).as_dict()["data"][group_key].to_list()
+    )
+    assert remaining == set(kept)
+
+
+def test_distribution_drop_non_categorical_warns(adata):
+    with pytest.warns(cl.util.errors.CellestialWarning, match="`drop` filter ignored"):
+        cl.violin(adata, "CD14", group_by="n_genes_by_counts", drop="x")
+
+
+def test_ridge_drop_removes_group(adata, group_key):
+    full = set(
+        cl.ridge(adata, key="CD14", group_by=group_key).as_dict()["data"][group_key].to_list()
+    )
+    dropped = sorted(value for value in full if value is not None)[0]
+    remaining = set(
+        cl.ridge(adata, key="CD14", group_by=group_key, drop=dropped)
+        .as_dict()["data"][group_key]
+        .to_list()
+    )
+    assert remaining == full - {dropped}

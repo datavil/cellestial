@@ -24,6 +24,7 @@
 - [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
 - [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
+- [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
 
 
 ---
@@ -656,3 +657,26 @@ Whenever an agent (Claude or any other model) writes a new function or modifies 
 - `Source`: the model that did the work (e.g. `Claude 4.7`, `Claude 4.6`, `Mixed`).
 - Leave the verification columns (`Behavioral`, `Visual`, `Edge cases`, `Line-by-line`) blank when adding the row; the user fills `✓` after they review. Do not mark them verified yourself unless you actually ran/verified that check.
 Place the new row near related functions (e.g. singular/plural pairs and their helpers together). Key private helpers count too (the table already lists `_spatial_components`, `_get_dendrogram`, `_build_markers_frame`, etc.).
+
+
+---
+
+## Source: project_polars_drop_null_gotcha.md
+
+---
+name: project_polars_drop_null_gotcha
+description: Polars exclude/drop filters must use `.fill_null(False)` or they silently drop null rows too
+type: project
+---
+
+When implementing a `drop`/exclude filter on a categorical column in polars, use
+`frame.filter(~pl.col(col).is_in(values).fill_null(False))`, NOT plain
+`~pl.col(col).is_in(values)`.
+
+`is_in` returns `null` (not `False`) for null entries, and `filter` drops null
+rows. So `~col.is_in([...])` removes unannotated/`None`-category rows in addition
+to the requested groups. `.fill_null(False)` keeps the null rows.
+
+This is how the `drop` parameter is implemented across the plotting functions
+(spatial, dimensional/_distribution/ridge). The positive `groups` keep-filter
+does not need this since dropping nulls there is acceptable.

@@ -47,6 +47,8 @@ def dimensional(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -97,6 +99,12 @@ def dimensional(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where `key` matches any of
+        them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where `key` matches any of
+        them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -236,6 +244,26 @@ def dimensional(
             include_dimensions=max(xy),
         )
     _validate_tooltips(tooltips, frame)
+
+    # HANDLE: groups filter (categorical-only)
+    if groups is not None and key is not None:
+        if isinstance(groups, str):
+            groups = [groups]
+        if frame[key].dtype == pl.Categorical:
+            frame = frame.filter(pl.col(key).is_in(list(groups)))
+        else:
+            msg = f"key `{key}` is not categorical, `groups` filter ignored"
+            _warn(msg)
+
+    # HANDLE: drop filter (categorical-only)
+    if drop is not None and key is not None:
+        if isinstance(drop, str):
+            drop = [drop]
+        if frame[key].dtype == pl.Categorical:
+            frame = frame.filter(~pl.col(key).is_in(list(drop)).fill_null(False))
+        else:
+            msg = f"key `{key}` is not categorical, `drop` filter ignored"
+            _warn(msg)
 
     # BUILD: scatter plot
     if "size" in mapping.as_dict():

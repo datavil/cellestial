@@ -345,7 +345,7 @@ def spatial(
         if isinstance(drop, str):
             drop = [drop]
         if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(key).is_in(list(drop)))
+            frame = frame.filter(~pl.col(key).is_in(list(drop)).fill_null(False))
         else:
             msg = f"key `{key}` is not categorical, `drop` filter ignored"
             _warn(msg)

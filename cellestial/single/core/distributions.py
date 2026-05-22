@@ -26,6 +26,8 @@ def violins(
     keys: Sequence[str],
     *,
     group_by: str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
@@ -76,6 +78,12 @@ def violins(
     group_by : str | None, default=None
         Column to group observations on the x-axis.
         If not provided, falls back to `fill`, `color`, or the variable column.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping rows where `group_by` matches any
+        of them. Categorical grouping columns only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out rows where `group_by` matches any
+        of them. Categorical grouping columns only.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
@@ -224,6 +232,8 @@ def violins(
             key=key,
             frame=frame,
             group_by=group_by,
+            groups=groups,
+            drop=drop,
             mapping=mapping,
             axis=axis,
             color=color,
@@ -281,6 +291,8 @@ def boxplots(
     keys: Sequence[str],
     *,
     group_by: str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
@@ -331,6 +343,12 @@ def boxplots(
     group_by : str | None, default=None
         Column to group observations on the x-axis.
         If not provided, falls back to `fill`, `color`, or the variable column.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping rows where `group_by` matches any
+        of them. Categorical grouping columns only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out rows where `group_by` matches any
+        of them. Categorical grouping columns only.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
@@ -476,6 +494,8 @@ def boxplots(
             key=key,
             frame=frame,
             group_by=group_by,
+            groups=groups,
+            drop=drop,
             mapping=mapping,
             axis=axis,
             color=color,

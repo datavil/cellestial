@@ -24,6 +24,8 @@ def umap(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -71,6 +73,12 @@ def umap(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where `key` matches any of
+        them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where `key` matches any of
+        them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -167,6 +175,8 @@ def umap(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        groups=groups,
+        drop=drop,
         tooltips=tooltips,
         interactive=interactive,
         observations_name=observations_name,
@@ -200,6 +210,8 @@ def tsne(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -247,6 +259,12 @@ def tsne(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where `key` matches any of
+        them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where `key` matches any of
+        them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -343,6 +361,8 @@ def tsne(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        groups=groups,
+        drop=drop,
         tooltips=tooltips,
         interactive=interactive,
         observations_name=observations_name,
@@ -376,6 +396,8 @@ def pca(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -423,6 +445,12 @@ def pca(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where `key` matches any of
+        them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where `key` matches any of
+        them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -519,6 +547,8 @@ def pca(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        groups=groups,
+        drop=drop,
         tooltips=tooltips,
         interactive=interactive,
         observations_name=observations_name,

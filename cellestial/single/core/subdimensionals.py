@@ -26,6 +26,8 @@ def dimensionals(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -88,6 +90,12 @@ def dimensionals(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where the colored key
+        matches any of them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where the colored key
+        matches any of them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -249,6 +257,8 @@ def dimensionals(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            groups=groups,
+            drop=drop,
             tooltips=tooltips,
             observations_name=observations_name,
             color_low=color_low,
@@ -313,6 +323,8 @@ def umaps(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -372,6 +384,12 @@ def umaps(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where the colored key
+        matches any of them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where the colored key
+        matches any of them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -532,6 +550,8 @@ def umaps(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            groups=groups,
+            drop=drop,
             tooltips=tooltips,
             observations_name=observations_name,
             color_low=color_low,
@@ -596,6 +616,8 @@ def tsnes(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -655,6 +677,12 @@ def tsnes(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where the colored key
+        matches any of them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where the colored key
+        matches any of them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -814,6 +842,8 @@ def tsnes(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            groups=groups,
+            drop=drop,
             tooltips=tooltips,
             observations_name=observations_name,
             color_low=color_low,
@@ -877,6 +907,8 @@ def pcas(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -936,6 +968,12 @@ def pcas(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping points where the colored key
+        matches any of them. Categorical keys only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out points where the colored key
+        matches any of them. Categorical keys only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -1095,6 +1133,8 @@ def pcas(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            groups=groups,
+            drop=drop,
             tooltips=tooltips,
             observations_name=observations_name,
             color_low=color_low,

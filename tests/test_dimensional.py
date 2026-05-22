@@ -99,3 +99,53 @@ def test_dimensionals_ncol(adata, group_key):
 def test_plural_invalid_key_raises(adata):
     with pytest.raises(Exception):
         cl.umaps(adata, ["NOT_A_KEY_xyz"])
+
+
+# ---- drop ----
+
+
+def test_dimensional_drop_removes_group(adata, group_key):
+    full = set(cl.umap(adata, group_key).as_dict()["data"][group_key].to_list())
+    dropped = sorted(value for value in full if value is not None)[0]
+    remaining = set(cl.umap(adata, group_key, drop=dropped).as_dict()["data"][group_key].to_list())
+    assert remaining == full - {dropped}
+
+
+def test_dimensional_drop_non_categorical_warns(adata):
+    with pytest.warns(cl.util.errors.CellestialWarning, match="`drop` filter ignored"):
+        cl.umap(adata, "CD14", drop="x")
+
+
+def test_dimensional_groups_keeps_only_selected(adata, group_key):
+    full = sorted(
+        value
+        for value in set(cl.umap(adata, group_key).as_dict()["data"][group_key].to_list())
+        if value is not None
+    )
+    kept = full[:2]
+    remaining = set(cl.umap(adata, group_key, groups=kept).as_dict()["data"][group_key].to_list())
+    assert remaining == set(kept)
+
+
+def test_dimensional_groups_then_drop(adata, group_key):
+    full = sorted(
+        value
+        for value in set(cl.umap(adata, group_key).as_dict()["data"][group_key].to_list())
+        if value is not None
+    )
+    kept = full[:3]
+    remaining = set(
+        cl.umap(adata, group_key, groups=kept, drop=kept[-1])
+        .as_dict()["data"][group_key]
+        .to_list()
+    )
+    assert remaining == set(kept[:-1])
+
+
+def test_dimensionals_drop_propagates(adata, group_key):
+    full = set(cl.umap(adata, group_key).as_dict()["data"][group_key].to_list())
+    dropped = sorted(value for value in full if value is not None)[0]
+    plot = cl.umaps(adata, [group_key], drop=dropped)
+    assert isinstance(plot, SupPlotsSpec)
+    panel = plot.as_dict()["figures"][0]
+    assert dropped not in set(panel["data"][group_key].to_list())

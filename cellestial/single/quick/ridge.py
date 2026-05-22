@@ -20,6 +20,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _select_variable_keys,
     _validate_tooltips,
+    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError
 
@@ -42,6 +43,8 @@ def ridge(
     axis: Literal[0, 1] | None = None,
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
@@ -74,6 +77,12 @@ def ridge(
         If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping rows where `group_by` matches any
+        of them. Categorical grouping columns only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out rows where `group_by` matches any
+        of them. Categorical grouping columns only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -176,6 +185,26 @@ def ridge(
         pl.col(key) >= threshold if threshold is not None else True,
     )
 
+    # HANDLE: groups filter (categorical-only) on the grouping column
+    if groups is not None:
+        if isinstance(groups, str):
+            groups = [groups]
+        if frame[group_by].dtype == pl.Categorical:
+            frame = frame.filter(pl.col(group_by).is_in(list(groups)))
+        else:
+            msg = f"group_by `{group_by}` is not categorical, `groups` filter ignored"
+            _warn(msg)
+
+    # HANDLE: drop filter (categorical-only) on the grouping column
+    if drop is not None:
+        if isinstance(drop, str):
+            drop = [drop]
+        if frame[group_by].dtype == pl.Categorical:
+            frame = frame.filter(~pl.col(group_by).is_in(list(drop)).fill_null(False))
+        else:
+            msg = f"group_by `{group_by}` is not categorical, `drop` filter ignored"
+            _warn(msg)
+
     # HANDLE: tooltips
     tooltips = _resolve_tooltips(
         tooltips,
@@ -217,6 +246,8 @@ def ridges(
     axis: Literal[0, 1] | None = None,
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
@@ -259,6 +290,12 @@ def ridges(
         If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
+    groups : str | Sequence[str] | None, default=None
+        Show only specific groups, keeping rows where `group_by` matches any
+        of them. Categorical grouping columns only.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out rows where `group_by` matches any
+        of them. Categorical grouping columns only.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -364,6 +401,8 @@ def ridges(
             data=data,
             key=key,
             group_by=group_by,
+            groups=groups,
+            drop=drop,
             frame=frame,
             scale=scale,
             mapping=mapping,

@@ -24,8 +24,8 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `matrixplot` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `stacked_violin` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `_bin_within_groups` | GENERATED | Claude 4.7 |  |  |  |  |
-| `ridge` | GENERATED | Claude 4.6 | ✓ | ✓ |  |  |
-| `ridges` | GENERATED | Claude 4.6 | ✓ | ✓ |  |  |
+| `ridge` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `ridges` | MODIFIED | Claude 4.7 |  |  |  |  |
 | `volcano` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `volcanos` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `_build_volcano_frame` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
@@ -36,3 +36,16 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `_marker_names_per_group` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `_get_dendrogram` | GENERATED | Claude 4.6 | ✓ | ✓ | ✓ |  |
 | `_get_dendrogram_path_frame` | GENERATED | Claude 4.6 | ✓ | ✓ |  |  |
+| `dimensional` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `umap` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `tsne` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `pca` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `dimensionals` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `umaps` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `tsnes` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `pcas` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `violin` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `boxplot` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `violins` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `boxplots` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `_distribution` | MODIFIED | Claude 4.7 |  |  |  |  |
