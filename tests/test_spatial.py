@@ -304,6 +304,59 @@ def test_spatial_scale_axis_constant_key_returns_zero():
     assert plot.as_dict()["data"]["score"].to_list() == [0.0] * n
 
 
+def test_spatial_drop_filters_out_groups():
+    """`drop` removes rows whose categorical `key` matches the given groups."""
+    n = 6
+    rng = np.random.default_rng(17)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame(
+            {"cluster": pd.Categorical(["a", "b", "c", "a", "b", "c"])},
+            index=[f"c{i}" for i in range(n)],
+        ),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+
+    plot = cl.spatial(data, key="cluster", drop=["b", "c"])
+    assert set(plot.as_dict()["data"]["cluster"].to_list()) == {"a"}
+
+
+def test_spatials_drop_filters_out_groups():
+    """`drop` propagates to every subplot in the grid."""
+    n = 6
+    rng = np.random.default_rng(19)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame(
+            {"cluster": pd.Categorical(["a", "b", "c", "a", "b", "c"])},
+            index=[f"c{i}" for i in range(n)],
+        ),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+
+    plot = cl.spatials(data, keys=["cluster", "G1"], drop="c")
+    assert isinstance(plot, SupPlotsSpec)
+    cluster_subplot = plot.as_dict()["figures"][0]
+    assert "c" not in set(cluster_subplot["data"]["cluster"].to_list())
+
+
+def test_spatial_drop_non_categorical_warns():
+    """`drop` on a numeric key is ignored with a warning."""
+    n = 4
+    rng = np.random.default_rng(18)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame({"score": [1.0, 2.0, 3.0, 4.0]}, index=[f"c{i}" for i in range(n)]),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
+
+    with pytest.warns(cl.util.errors.CellestialWarning, match="`drop` filter ignored"):
+        cl.spatial(data, key="score", drop="1.0")
+
+
 def test_spatial_anndata_visium_metadata_paths():
     n = 4
     rng = np.random.default_rng(13)

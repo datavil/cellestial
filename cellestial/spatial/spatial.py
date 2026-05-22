@@ -66,6 +66,7 @@ def spatial(
     size: float | None = 1.5,
     alpha: float = 1.0,
     groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -155,6 +156,9 @@ def spatial(
         Alpha (transparency) of the spots.
     groups : str | Sequence[str] | None, default=None
         Select specific groups to show.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out rows where `key` matches any of
+        them. Categorical keys only.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     include_dimensions : bool | int
@@ -334,6 +338,16 @@ def spatial(
             frame = frame.filter(pl.col(key).is_in(list(groups)))
         else:
             msg = f"key `{key}` is not categorical, `groups` filter ignored"
+            _warn(msg)
+
+    # HANDLE: drop filter (categorical-only)
+    if drop is not None and key is not None:
+        if isinstance(drop, str):
+            drop = [drop]
+        if frame[key].dtype == pl.Categorical:
+            frame = frame.filter(~pl.col(key).is_in(list(drop)))
+        else:
+            msg = f"key `{key}` is not categorical, `drop` filter ignored"
             _warn(msg)
 
     # HANDLE: standard scaling (numeric keys only)

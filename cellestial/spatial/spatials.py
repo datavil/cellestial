@@ -42,6 +42,7 @@ def spatials(
     size: float | None = 1.5,
     alpha: float = 1.0,
     groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -141,6 +142,9 @@ def spatials(
         Alpha (transparency) of the spots.
     groups : str | Sequence[str] | None, default=None
         Select specific groups to show.
+    drop : str | Sequence[str] | None, default=None
+        Drop specific groups, filtering out rows where the key matches any of
+        them. Categorical keys only.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     include_dimensions : bool | int
@@ -291,6 +295,7 @@ def spatials(
             size=size,
             alpha=alpha,
             groups=groups,
+            drop=drop,
             variable_keys=variable_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
