@@ -418,6 +418,38 @@ def test_spatial_scalefactor_missing_without_image_silent():
     assert _scalef_warnings(caught) == []
 
 
+def test_spatial_components_falls_back_to_available_image():
+    """Missing `image_key` falls back to `hires` and its matching scale factor."""
+    n = 3
+    rng = np.random.default_rng(16)
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame({"score": [1.0, 2.0, 3.0]}, index=[f"c{i}" for i in range(n)]),
+        var=pd.DataFrame(index=["G1", "G2"]),
+    )
+    coordinates = rng.random((n, 2)).astype("float32")
+    data.obsm["spatial"] = coordinates
+    hires_image = rng.random((8, 8, 4)).astype("float32")
+    data.uns["spatial"] = {
+        "lib": {
+            "images": {"hires": hires_image},
+            "scalefactors": {"tissue_hires_scalef": 2.0},
+        }
+    }
+
+    with pytest.warns(cl.util.errors.CellestialWarning, match="using `hires` instead"):
+        image_array, spot_coordinates, _, _ = _spatial_components(
+            data,
+            library_id=None,
+            image_key="lowres",
+            image=True,
+            spatial_key="spatial",
+        )
+
+    assert image_array is hires_image
+    np.testing.assert_allclose(spot_coordinates, coordinates * 2.0)
+
+
 def test_spatial_components_anndata_errors():
     data = AnnData(X=np.ones((2, 2)), var=pd.DataFrame(index=["G1", "G2"]))
 

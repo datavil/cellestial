@@ -353,8 +353,25 @@ def _spatial_components(
             raise KeyError(msg)
 
         library = spatial_uns[library_id]
+        images = library.get("images", {})
+
+        # Resolve which image variant to render. When the requested one is
+        # absent, fall back to `hires`, then to whatever else is available, so
+        # the image and the scale factor below stay matched to one resolution.
+        resolved_image_key = image_key
+        if image and image_key not in images:
+            if "hires" in images:
+                resolved_image_key = "hires"
+            elif images:
+                resolved_image_key = next(iter(images))
+            if resolved_image_key in images:
+                _warn(
+                    f"image `{image_key}` not found for library `{library_id}`; "
+                    f"using `{resolved_image_key}` instead"
+                )
+
         scale_factors = library.get("scalefactors", {})
-        scalef_key = f"tissue_{image_key}_scalef"
+        scalef_key = f"tissue_{resolved_image_key}_scalef"
         scale_factor = scale_factors.get(scalef_key)
         if scale_factor is None:
             if image:
@@ -364,11 +381,9 @@ def _spatial_components(
 
         image_array = None
         if image:
-            images = library.get("images", {})
-            image_array = images.get(image_key)
+            image_array = images.get(resolved_image_key)
             if image_array is None:
-                msg = f"image `{image_key}` not found for library `{library_id}`"
-                _warn(msg)
+                _warn(f"no images found for library `{library_id}`")
         return image_array, spot_coordinates, None, data
 
     msg = f"Unsupported data type: `{type(data)}`"

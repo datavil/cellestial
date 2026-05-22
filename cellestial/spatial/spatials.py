@@ -87,7 +87,8 @@ def spatials(
         Whether to render the tissue image as a background layer.
     image_key : str, default='lowres'
         Which image variant to render. Visium ships with 'hires' and 'lowres'.
-        Ignored for SpatialData inputs.
+        Falls back to 'hires', then to any available variant, when the requested
+        one is missing. Ignored for SpatialData inputs.
     greyscale : bool, default=False
         Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
     image_alpha : float | None, default=None

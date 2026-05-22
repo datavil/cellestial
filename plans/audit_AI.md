@@ -9,7 +9,7 @@ Each function follows the _conventions_ and _best practises_ of the project.
 
 | Function | AI status | Source | Behavioral | Visual | Edge cases | Line-by-line |
 | --- | --- | --- | --- | --- | --- | --- |
-| `_spatial_components` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
+| `_spatial_components` | MODIFIED | Claude 4.7 |  |  |  |  |
 | `spatial` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `spatials` | GENERATED | Claude 4.7 | ✓ | ✓ |  |  |
 | `_THEME_SPATIAL` | GENERATED | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
