@@ -72,7 +72,7 @@ def _build_tooltips(
     title: str | None = None,
     clustering: bool = False,
 ) -> FeatureSpec | Literal["none"]:
-    """Crete the tooltips for the plot."""
+    """Builds the tooltips for the plot."""
     if tooltips == "none":
         return "none"
 
