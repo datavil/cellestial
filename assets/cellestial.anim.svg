@@ -1,0 +1,45 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="300" height="300">
+  <circle cx="6" cy="8" r="1.6" fill="#0075ff">
+    <animate attributeName="cx" values="6;6.7;6;5.3;6" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="8;7.4;8;8.6;8" dur="5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.4;1" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="9" cy="5" r="1.1" fill="#0075ff" opacity="0.75">
+    <animate attributeName="cx" values="9;9.6;9;8.4;9" dur="5s" begin="0.5s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="5;4.5;5;5.5;5" dur="4.3s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="5" cy="12" r="1.2" fill="#0075ff" opacity="0.65">
+    <animate attributeName="cx" values="5;5.5;5;4.5;5" dur="6s" begin="1s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="12;12.7;12;11.3;12" dur="4s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="9.5" cy="10.5" r="1" fill="#00c2ff" opacity="0.7">
+    <animate attributeName="cx" values="9.5;10.1;9.5;8.9;9.5" dur="3.8s" begin="0.3s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="10.5;11;10.5;10;10.5" dur="5.5s" begin="0.3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="16" cy="9" r="1.5" fill="#00c2ff">
+    <animate attributeName="cx" values="16;16.6;16;15.4;16" dur="4.5s" begin="0.7s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="9;8.3;9;9.7;9" dur="3.5s" begin="0.7s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.4;1" dur="3.7s" begin="0.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="19" cy="6" r="1" fill="#00c2ff" opacity="0.7">
+    <animate attributeName="cx" values="19;19.5;19;18.5;19" dur="5.5s" begin="1.2s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="6;5.4;6;6.6;6" dur="4s" begin="1.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="14.5" cy="13" r="1.1" fill="#00c2ff" opacity="0.6">
+    <animate attributeName="cx" values="14.5;15.1;14.5;13.9;14.5" dur="3.5s" begin="0.4s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="13;13.6;13;12.4;13" dur="5s" begin="0.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="12" cy="18" r="1.6" fill="#0075ff">
+    <animate attributeName="cx" values="12;12.6;12;11.4;12" dur="5s" begin="0.9s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="18;17.3;18;18.7;18" dur="4s" begin="0.9s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.4;1" dur="4.2s" begin="1.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="16.5" cy="19" r="1.1" fill="#0075ff" opacity="0.7">
+    <animate attributeName="cx" values="16.5;17;16.5;16;16.5" dur="4s" begin="1.4s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="19;18.5;19;19.5;19" dur="5.5s" begin="1.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="9" cy="19" r="1" fill="#0075ff" opacity="0.6">
+    <animate attributeName="cx" values="9;8.4;9;9.6;9" dur="6s" begin="0.6s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="19;18.5;19;19.5;19" dur="3.5s" begin="0.6s" repeatCount="indefinite"/>
+  </circle>
+</svg>

@@ -7,7 +7,7 @@
 [![Powered by Polars](https://img.shields.io/badge/Powered%20by-Polars-377eb8?logo=polars&logoColor=white)](https://www.pola.rs/)
 [![Graphics: Lets-Plot](https://img.shields.io/badge/Graphics-Lets--Plot-FF00CC?logo=jetbrains&logoColor=white)](https://lets-plot.org/)
 
-<img align="left" src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/cellestial.svg" alt="Cellestial Logo" width="280">
+<img align="left" src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/cellestial.anim.svg" alt="Cellestial Logo" width="280">
 
 The __Grammar of Graphics__ for single-cell omics.
 
