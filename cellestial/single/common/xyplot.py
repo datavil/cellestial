@@ -15,6 +15,7 @@ from lets_plot.plot.core import FeatureSpec
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
+    _collect_aes_columns,
     _determine_axis,
     _resolve_tooltips,
     _select_variable_keys,
@@ -37,6 +38,7 @@ def xyplot(
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
+    add_columns: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -62,6 +64,9 @@ def xyplot(
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the frame,
+        on top of those inferred from `mapping` and `tooltips`.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -175,24 +180,41 @@ def xyplot(
                 include_dimensions = True
                 _keys.remove(key)
 
+    # BUILD: the dataframe
+    axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
+
     # HANDLE: tooltips
     tooltips = _resolve_tooltips(
         tooltips,
         data=data,
         variable_keys=variable_keys,
         defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=axis,
     )
 
-    # BUILD: the dataframe
-    axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
     if frame is None:
+        observation_column_name = None if tooltips == "none" else observations_name
+        variable_column_name = None if tooltips == "none" else variables_name
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observations_name=observation_column_name,
+            variables_name=variable_column_name,
             include_dimensions=include_dimensions,
+            metadata_columns=metadata_columns,
         )
     _validate_tooltips(tooltips, frame)
 

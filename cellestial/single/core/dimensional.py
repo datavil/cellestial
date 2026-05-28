@@ -22,8 +22,8 @@ from cellestial.frames import build_frame
 from cellestial.layers import _modify_axis, ondata_legend
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
+    _collect_aes_columns,
     _color_gradient,
-    _is_variable_key,
     _resolve_embedding_key,
     _resolve_tooltips,
     _validate_tooltips,
@@ -47,6 +47,7 @@ def dimensional(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -99,6 +100,10 @@ def dimensional(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the frame,
+        on top of those inferred from `key`, `mapping`, and `tooltips`. Useful
+        when an added layer reads a column the plot itself does not reference.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where `key` matches any of
         them. Categorical keys only.
@@ -222,9 +227,18 @@ def dimensional(
     elif isinstance(variable_keys, Sequence):
         variable_keys = list(variable_keys)
 
-    # Append the key if it is a variable key
-    if _is_variable_key(data, key):
-        variable_keys.append(key)  # ty:ignore[invalid-argument-type]
+    # Collect the frame columns from the colour key, aes refs, and `add_columns`.
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[key, *(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
 
     # HANDLE: tooltips
     tooltips = _resolve_tooltips(
@@ -232,16 +246,23 @@ def dimensional(
         data=data,
         variable_keys=variable_keys,
         defaults=[observations_name, *([key] if key is not None else [])],
+        metadata_columns=metadata_columns,
+        axis=0,
     )
 
     # BUILD: dataframe
+    # All embeddings are materialised (not just the plotted one) so deferred
+    # layers like `stream` can read velocity embeddings from the frame.
     if frame is None:
+        # Skip the observation identifier column when no tooltip can reference it.
+        observation_column_name = None if tooltips == "none" else observations_name
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=0,
-            observations_name=observations_name,
+            observations_name=observation_column_name,
             include_dimensions=max(xy),
+            metadata_columns=metadata_columns,
         )
     _validate_tooltips(tooltips, frame)
 

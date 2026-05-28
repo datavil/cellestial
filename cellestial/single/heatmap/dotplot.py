@@ -282,11 +282,14 @@ def dotplot(
     # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
-    # BUILD: dataframe
+    # BUILD: dataframe. Only `group_by` is needed from the observation metadata;
+    # the cell identifier is unused by the dotplot aggregation.
     frame = build_frame(
         data=data,
         axis=0,
         variable_keys=keys,
+        observations_name=None,
+        metadata_columns=[group_by],
     )
     # WARN: negative expression makes the percent-expressed (dot size) misleading
     overall_min = frame.select(pl.min_horizontal(pl.col(keys).min())).item()

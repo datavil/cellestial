@@ -523,3 +523,17 @@ def test_highest_expressed_genes_n_larger_than_var(adata):
     # n larger than var count should clip gracefully, not crash.
     with pytest.raises(ValueError):
         cl.highest_expressed_genes(adata, n=adata.n_vars + 100)
+
+
+def test_heatmap_variable_axis_aggregate(adata):
+    # Regression: on the variable axis the `keys` are variable metadata columns
+    # (not genes from X), so they must be materialised via metadata_columns or
+    # the unpivot raises ColumnNotFoundError.
+    plot = cl.heatmap(
+        adata,
+        keys=["mean_counts", "log1p_mean_counts"],
+        group_by="mt",
+        axis=1,
+        aggregate=True,
+    )
+    assert isinstance(plot, PlotSpec)

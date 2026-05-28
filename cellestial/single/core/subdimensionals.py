@@ -9,7 +9,13 @@ from lets_plot.plot.core import FeatureSpec, LayerSpec
 from cellestial.frames import build_frame
 from cellestial.single.core.dimensional import dimensional
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
-from cellestial.util import _is_variable_key, _share_axis, _share_labels
+from cellestial.util import (
+    _collect_aes_columns,
+    _is_variable_key,
+    _resolve_tooltips,
+    _share_axis,
+    _share_labels,
+)
 
 if TYPE_CHECKING:
     from anndata import AnnData
@@ -26,6 +32,7 @@ def dimensionals(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -90,6 +97,9 @@ def dimensionals(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the shared
+        frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
         matches any of them. Categorical keys only.
@@ -237,12 +247,35 @@ def dimensionals(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, *(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's tooltip validation can find them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=0,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         include_dimensions=max(xy),
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -257,6 +290,7 @@ def dimensionals(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            add_columns=add_columns,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -323,6 +357,7 @@ def umaps(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -384,6 +419,9 @@ def umaps(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the shared
+        frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
         matches any of them. Categorical keys only.
@@ -531,12 +569,35 @@ def umaps(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, *(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's tooltip validation can find them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=0,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         include_dimensions=max(xy),
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -550,6 +611,7 @@ def umaps(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            add_columns=add_columns,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -616,6 +678,7 @@ def tsnes(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -677,6 +740,9 @@ def tsnes(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the shared
+        frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
         matches any of them. Categorical keys only.
@@ -823,12 +889,35 @@ def tsnes(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, *(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's tooltip validation can find them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=0,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         include_dimensions=max(xy),
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -842,6 +931,7 @@ def tsnes(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            add_columns=add_columns,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -907,6 +997,7 @@ def pcas(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -968,6 +1059,9 @@ def pcas(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the shared
+        frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
         matches any of them. Categorical keys only.
@@ -1114,12 +1208,35 @@ def pcas(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, *(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's tooltip validation can find them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=0,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         include_dimensions=max(xy),
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -1133,6 +1250,7 @@ def pcas(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            add_columns=add_columns,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -1200,6 +1318,7 @@ def expressions(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -1261,6 +1380,9 @@ def expressions(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the shared
+        frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -1400,12 +1522,35 @@ def expressions(
     variable_keys.extend(keys)
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's tooltip validation can find them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=0,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         include_dimensions=max(xy),
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -1420,6 +1565,7 @@ def expressions(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
+            add_columns=add_columns,
             tooltips=tooltips,
             observations_name=observations_name,
             color_low=color_low,

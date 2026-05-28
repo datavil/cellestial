@@ -25,6 +25,23 @@
 - [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
+- [Project: Deferred layers read the built frame](project_deferred_layers_read_frame.md) — Don't narrow embeddings in plot functions; `cl.stream()` reads velocity embeddings from the frame after the plot call
+
+
+---
+
+## Source: project_deferred_layers_read_frame.md
+
+---
+name: project-deferred-layers-read-frame
+description: Don't narrow embeddings (obsm/dimension_keys) in plot functions; deferred layers like cl.stream() read extra embedding columns from the built frame
+type: project
+---
+Plot functions must NOT narrow which embeddings get materialised into the frame (i.e. do not pass `dimension_keys` to `build_frame` in `dimensional`, `umap`, etc.). Embeddings stay governed by `include_dimensions`.
+
+**Why:** Deferred layers added after the plot call (notably `cl.stream()`, the velocity layer in `cellestial/layers/stream.py`) read columns from the *already-built* frame via `retrieve(plot)`. `cl.stream()` needs a *different* embedding than the plotted one — e.g. plotting `X_umap` but reading `velocity_umap` -> `VELOCITY_UMAP1/2`. Since `cl.stream()` lets users name velocity columns arbitrarily (`velocity_key=` / `velocity_prefix=`), the plot call cannot predict which embeddings a later layer will need. Narrowing `dimension_keys=[prefix]` caused `KeyError: Velocity columns not found`.
+
+**How to apply:** When optimizing frame builds, narrow `metadata_columns` (unused obs/var columns) and skip the identifier column (`observations_name=None`) freely, but leave embeddings alone. Embeddings are cheap anyway (each capped at `max(xy)` columns). The other deferred layers (`arrow_axis`, `ondata_legend`, `cluster_outlines`, `bracket`) only read `x`/`y`/`color`, which are the plot's own aesthetics and always present, so `metadata_columns` narrowing is safe for them. See plans/frame_overhead_narrowing.md.
 
 
 ---

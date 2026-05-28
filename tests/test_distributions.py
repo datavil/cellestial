@@ -4,6 +4,7 @@ from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+from cellestial.util import retrieve
 
 # ---- violin / boxplot (singular) ----
 
@@ -188,3 +189,42 @@ def test_ridge_drop_removes_group(adata, group_key):
         .to_list()
     )
     assert remaining == full - {dropped}
+
+
+def test_ridge_custom_metadata_tooltip(adata, group_key):
+    # Regression: tooltips are resolved before the frame is built, so a custom
+    # obs tooltip column is materialised rather than failing validation.
+    plot = cl.ridge(adata, key="CD14", group_by=group_key, tooltips=["n_genes_by_counts"])
+    assert "n_genes_by_counts" in retrieve(plot).columns
+
+
+def test_ridges_custom_metadata_tooltip(adata, group_key):
+    # Regression: the shared ridges frame must contain the custom tooltip column.
+    plot = cl.ridges(
+        adata, keys=["CD14", "MS4A1"], group_by=group_key, tooltips=["n_genes_by_counts"]
+    )
+    assert isinstance(plot, SupPlotsSpec)
+    for panel in plot.as_dict()["figures"]:
+        assert "n_genes_by_counts" in panel["data"]
+
+
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
+def test_distribution_custom_metadata_tooltip(adata, fn, group_key):
+    # Regression mirror of ridge: custom tooltip columns must be included before
+    # the narrowed frame is validated.
+    plot = fn(adata, "CD14", fill=group_key, tooltips=["n_genes_by_counts"])
+    assert "n_genes_by_counts" in retrieve(plot).columns
+
+
+@pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
+def test_plural_distribution_custom_metadata_tooltip(adata, fn, group_key):
+    # Regression mirror of ridges: shared frames must contain tooltip-only columns.
+    plot = fn(
+        adata,
+        ["CD14", "MS4A1"],
+        fill=group_key,
+        tooltips=["n_genes_by_counts"],
+    )
+    assert isinstance(plot, SupPlotsSpec)
+    for panel in plot.as_dict()["figures"]:
+        assert "n_genes_by_counts" in panel["data"].columns

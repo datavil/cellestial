@@ -59,6 +59,15 @@ def _resolve_shapes_name(data: SpatialData, shapes_name: str | None, table: AnnD
     return _select_one(None, list(data.shapes), "shapes")
 
 
+def _resolve_instance_key(table: AnnData) -> str | None:
+    """Return the metadata column joining a table to its shapes element, if present."""
+    if isinstance(table, AnnData):
+        instance_key = table.uns.get("spatialdata_attrs", {}).get("instance_key")
+        if instance_key is not None and instance_key in table.obs.columns:
+            return instance_key
+    return None
+
+
 def _resolve_coordinate_system(
     data: SpatialData,
     coordinate_system: str | None,

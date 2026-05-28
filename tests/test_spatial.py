@@ -267,6 +267,44 @@ def test_spatials_invalid_keys_type(data_minimal):
         cl.spatials(data_minimal, "cluster")
 
 
+def test_spatial_add_columns_materializes_metadata_and_gene(data_minimal):
+    plot = cl.spatial(
+        data_minimal,
+        key="cluster",
+        add_columns=["n_counts", "GENE_B"],
+        image=False,
+    )
+    assert isinstance(plot, PlotSpec)
+    data_columns = plot.as_dict()["data"].columns
+    assert "n_counts" in data_columns
+    assert "GENE_B" in data_columns
+
+
+def test_spatials_add_columns_materializes_shared_frame_columns(data_minimal):
+    plot = cl.spatials(
+        data_minimal,
+        ["cluster", "GENE_A"],
+        add_columns=["n_counts", "GENE_B"],
+        image=False,
+    )
+    assert isinstance(plot, SupPlotsSpec)
+    for panel in plot.as_dict()["figures"]:
+        panel_columns = panel["data"].columns
+        assert "n_counts" in panel_columns
+        assert "GENE_B" in panel_columns
+
+
+def test_spatial_polygon_add_columns_survive_shape_join(data_polygons):
+    plot = cl.spatial(
+        data_polygons,
+        key="cluster",
+        add_columns="G2",
+        polygon=True,
+    )
+    assert isinstance(plot, PlotSpec)
+    assert "G2" in plot.as_dict()["data"].columns
+
+
 # ---- AnnData regression: existing path still works ----
 
 

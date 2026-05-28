@@ -57,8 +57,10 @@ def anndata_observations_frame(
     /,
     variable_keys: str | Sequence[str] | None = None,
     *,
-    observations_name="barcode",
+    observations_name: str | None = "barcode",
     include_dimensions: bool | int = False,
+    metadata_columns: Sequence[str] | None = None,
+    dimension_keys: Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build an Observations DataFrame from an AnnData object.
@@ -69,11 +71,19 @@ def anndata_observations_frame(
         The AnnData object containing the observations.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str, optional
-        The name of the observations column, default is 'barcode'
+    observations_name : str | None, optional
+        The name of the observation identifier column, default is 'barcode'.
+        Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
         Whether to include dimensions from embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
+    metadata_columns : Sequence[str] | None
+        Restrict which observation metadata columns are materialised. `None`
+        includes all metadata columns (default). An empty sequence skips them.
+    dimension_keys : Sequence[str] | None
+        Restrict which embeddings are materialised when `include_dimensions`
+        is truthy. Case-insensitive. `None` includes all embeddings (default).
+        An empty sequence skips embeddings entirely.
 
     Returns
     -------
@@ -85,7 +95,10 @@ def anndata_observations_frame(
     UnsupportedDataTypeError
         If `data` is not an AnnData object.
     VariableNotFoundError
-        If any `variable_keys` entry is not present in `data.var_names`.
+        If any `variable_keys` entry is not present in the variable names.
+    KeyError
+        If any `metadata_columns` entry is not a known metadata column, or any
+        `dimension_keys` entry is not a known embedding.
     ValueError
         If `include_dimensions` is a negative integer.
     """
@@ -99,9 +112,20 @@ def anndata_observations_frame(
         part = data.obs
     partm = data.obsm
     # PART 1: INITIALIZE
-    columns = [pl.Series(observations_name, data.obs_names)]
+    if observations_name is None:
+        columns = []
+    else:
+        columns = [pl.Series(observations_name, data.obs_names)]
     # PART 2: ADD AnnData.obs
-    for key in part.columns:
+    if metadata_columns is None:
+        selected_columns = list(part.columns)
+    else:
+        missing = [name for name in metadata_columns if name not in part.columns]
+        if missing:
+            msg = f"metadata_columns not found in observations: {missing}"
+            raise KeyError(msg)
+        selected_columns = list(metadata_columns)
+    for key in selected_columns:
         # handle categorical integer data
         if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
             # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
@@ -113,7 +137,8 @@ def anndata_observations_frame(
 
     # PART 3: ADD dimensions if needed
     if include_dimensions:
-        for X in partm:
+        selected_embeddings = _select_embedding_keys(partm, dimension_keys)
+        for X in selected_embeddings:
             total_cols = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
@@ -132,7 +157,8 @@ def anndata_observations_frame(
                 columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
 
     # PART 4: ADD keys if provided
-    if variable_keys is not None:
+    # Empty list short-circuits: data[:, []].X still triggers a full sparse slice.
+    if variable_keys:
         column_names = [column.name for column in columns]
         columns.extend(
             anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
@@ -144,8 +170,10 @@ def anndata_observations_frame(
 def anndata_variables_frame(
     data: AnnData,
     *,
-    variables_name: str = "variable",
+    variables_name: str | None = "variable",
     include_dimensions: bool | int = False,
+    metadata_columns: Sequence[str] | None = None,
+    dimension_keys: Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build a Variables DataFrame from an AnnData object.
@@ -154,11 +182,19 @@ def anndata_variables_frame(
     ----------
     data : AnnData
         The AnnData object containing the variables.
-    variables_name : str
-        Name for the variables index column, default is 'variable'
+    variables_name : str | None
+        Name for the variable identifier column, default is 'variable'.
+        Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
-        Whether to include dimensions from `varm` in the DataFrame, default is False.
+        Whether to include variable-axis embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
+    metadata_columns : Sequence[str] | None
+        Restrict which variable metadata columns are materialised. `None`
+        includes all metadata columns (default). An empty sequence skips them.
+    dimension_keys : Sequence[str] | None
+        Restrict which variable-axis embeddings are materialised when
+        `include_dimensions` is truthy. Case-insensitive. `None` includes all
+        embeddings (default). An empty sequence skips embeddings entirely.
 
     Returns
     -------
@@ -169,6 +205,9 @@ def anndata_variables_frame(
     ------
     UnsupportedDataTypeError
         If `data` is not an AnnData object.
+    KeyError
+        If any `metadata_columns` entry is not a known metadata column, or any
+        `dimension_keys` entry is not a known embedding.
     ValueError
         If `include_dimensions` is a negative integer.
     """
@@ -182,9 +221,20 @@ def anndata_variables_frame(
         part = data.var
     partm = data.varm
     # PART1: initalize columns
-    columns = [pl.Series(variables_name, data.var_names)]
+    if variables_name is None:
+        columns = []
+    else:
+        columns = [pl.Series(variables_name, data.var_names)]
     # PART 3: ADD AnnData.var
-    for key in part.columns:
+    if metadata_columns is None:
+        selected_columns = list(part.columns)
+    else:
+        missing = [name for name in metadata_columns if name not in part.columns]
+        if missing:
+            msg = f"metadata_columns not found in variables: {missing}"
+            raise KeyError(msg)
+        selected_columns = list(metadata_columns)
+    for key in selected_columns:
         # handle categorical integer data
         if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
             # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
@@ -196,7 +246,8 @@ def anndata_variables_frame(
 
     # PART 4: ADD dimensions if needed
     if include_dimensions:
-        for X in partm:
+        selected_embeddings = _select_embedding_keys(partm, dimension_keys)
+        for X in selected_embeddings:
             total_cols = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
@@ -217,14 +268,36 @@ def anndata_variables_frame(
     return pl.DataFrame(columns)
 
 
+def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> list[str]:
+    """Return the subset of embedding keys to materialise, matched case-insensitively."""
+    available = list(embeddings.keys())
+    if dimension_keys is None:
+        return available
+    available_upper = {name.upper(): name for name in available}
+    selected = []
+    missing = []
+    for key in dimension_keys:
+        actual = available_upper.get(key.upper())
+        if actual is None:
+            missing.append(key)
+        else:
+            selected.append(actual)
+    if missing:
+        msg = f"dimension_keys not found in embeddings: {missing}"
+        raise KeyError(msg)
+    return selected
+
+
 def build_frame(
     data: AnnData | SpatialData,
     *,
     variable_keys: str | Sequence[str] | None = None,
     axis: Literal[0, 1] | None = None,
-    observations_name: str = "barcode",
-    variables_name: str = "variable",
+    observations_name: str | None = "barcode",
+    variables_name: str | None = "variable",
     include_dimensions: bool | int = False,
+    metadata_columns: Sequence[str] | None = None,
+    dimension_keys: Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build a DataFrame from a single-cell object.
@@ -237,14 +310,21 @@ def build_frame(
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : {0,1} | None
         The axis to build the frame for. 0 for observations, 1 for variables.
-    observations_name : str
-        The name of the observations column, default is 'barcode'
-    variables_name : str
-        Name for the variables index column, default is 'variable'
+    observations_name : str | None
+        The name of the observation identifier column, default is 'barcode'.
+        Pass `None` to omit the identifier column entirely.
+    variables_name : str | None
+        Name for the variable identifier column, default is 'variable'.
+        Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
         Whether to include dimensions in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-
+    metadata_columns : Sequence[str] | None
+        Restrict which metadata columns from the selected axis are materialised.
+        `None` includes all metadata columns (default). An empty sequence skips them.
+    dimension_keys : Sequence[str] | None
+        Restrict which embeddings are materialised when `include_dimensions`
+        is truthy. Case-insensitive. `None` includes all embeddings (default).
 
     Returns
     -------
@@ -257,6 +337,8 @@ def build_frame(
         If `data` is not a supported data object.
     VariableNotFoundError
         If any `variable_keys` entry is not present in variable names.
+    KeyError
+        If any `metadata_columns` or `dimension_keys` entry is unknown.
     ValueError
         If `axis` cannot be inferred, or the data object does not resolve to
         exactly one annotation table.
@@ -314,12 +396,16 @@ def build_frame(
                 variable_keys=variable_keys,
                 observations_name=observations_name,
                 include_dimensions=include_dimensions,
+                metadata_columns=metadata_columns,
+                dimension_keys=dimension_keys,
             )
         elif axis == 1:
             frame = anndata_variables_frame(
                 data,
                 variables_name=variables_name,
                 include_dimensions=include_dimensions,
+                metadata_columns=metadata_columns,
+                dimension_keys=dimension_keys,
             )
         elif axis is None:
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."

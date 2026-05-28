@@ -9,8 +9,13 @@ from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
 from cellestial.spatial.spatial import spatial
-from cellestial.spatial.utilities import _spatial_components
-from cellestial.util import _is_variable_key, _share_labels
+from cellestial.spatial.utilities import _resolve_instance_key, _spatial_components
+from cellestial.util import (
+    _collect_aes_columns,
+    _is_variable_key,
+    _resolve_tooltips,
+    _share_labels,
+)
 
 if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
@@ -44,6 +49,7 @@ def spatials(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -147,6 +153,9 @@ def spatials(
         them. Categorical keys only.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the shared
+        frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     include_dimensions : bool | int
         Whether to include dimensions from embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
@@ -260,12 +269,39 @@ def spatials(
         variable_keys = list(variable_keys)
     variable_keys.extend(key for key in keys if _is_variable_key(table, key))
     variable_keys = list(dict.fromkeys(variable_keys))
+    if isinstance(add_columns, str):
+        add_columns = [add_columns]
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        table,
+        keys=[*keys, *(add_columns or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=0,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's tooltip validation can find them.
+    _resolve_tooltips(
+        tooltips,
+        data=table,
+        variable_keys=variable_keys,
+        defaults=keys,
+        metadata_columns=metadata_columns,
+        axis=0,
+    )
+    # Polygon mode joins on an instance key; include it up front.
+    instance_key = _resolve_instance_key(table)
+    if polygon and instance_key is not None and instance_key not in metadata_columns:
+        metadata_columns.append(instance_key)
+    observation_column_name = None if tooltips == "none" else observations_name
     frame = build_frame(
         data=table,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         include_dimensions=include_dimensions,
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -297,6 +333,7 @@ def spatials(
             groups=groups,
             drop=drop,
             variable_keys=variable_keys,
+            add_columns=add_columns,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
             observations_name=observations_name,

@@ -339,14 +339,22 @@ def heatmap(
     # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
-    # BUILD: long-form dataframe
+    # BUILD: long-form dataframe.
+    # `group_by` (and the cell identifier, when not aggregating) are needed from
+    # the observation metadata. On the variable axis `keys` are metadata columns
+    # rather than genes pulled from X, so they must be materialised explicitly.
+    observation_column_name = None if aggregate else observations_name
+    metadata_columns = [group_by] if group_by is not None else []
+    if axis == 1:
+        metadata_columns = list(dict.fromkeys([*keys, *metadata_columns]))
     frame = build_frame(
         data=data,
         variable_keys=keys,
         axis=axis,
-        observations_name=observations_name,
+        observations_name=observation_column_name,
         variables_name=variables_name,
         include_dimensions=include_dimensions,
+        metadata_columns=metadata_columns,
     )
     index_columns = [group_by] if aggregate else [observations_name, group_by]
     frame = frame.unpivot(

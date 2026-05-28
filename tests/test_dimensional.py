@@ -4,6 +4,7 @@ from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+from cellestial.util import retrieve
 
 # ---- singular: dimensional / umap / pca / tsne ----
 
@@ -149,3 +150,84 @@ def test_dimensionals_drop_propagates(adata, group_key):
     assert isinstance(plot, SupPlotsSpec)
     panel = plot.as_dict()["figures"][0]
     assert dropped not in set(panel["data"][group_key].to_list())
+
+
+# ---- frame narrowing: custom metadata tooltips and add_columns ----
+
+
+def test_dimensionals_custom_metadata_tooltip(adata, group_key):
+    # Regression: the shared frame built for the grid must contain custom
+    # tooltip columns, even though they are not the colour key or in `mapping`.
+    obs_column = "n_genes_by_counts"
+    plot = cl.dimensionals(adata, keys=[group_key, "CD3D"], tooltips=[obs_column])
+    assert isinstance(plot, SupPlotsSpec)
+    for panel in plot.as_dict()["figures"]:
+        assert obs_column in panel["data"]
+
+
+def test_umap_add_columns_materializes_extra_columns(adata, group_key):
+    # `add_columns` forces obs metadata and gene columns into the frame so an
+    # added layer can read columns the plot itself does not reference.
+    frame = retrieve(cl.umap(adata, group_key, add_columns=["n_genes_by_counts", "MS4A1"]))
+    assert "n_genes_by_counts" in frame.columns
+    assert "MS4A1" in frame.columns
+
+
+def test_umap_custom_metadata_tooltip_single(adata, group_key):
+    # Single-plot path: a custom obs tooltip must survive into the frame.
+    frame = retrieve(cl.umap(adata, group_key, tooltips=["n_genes_by_counts"]))
+    assert "n_genes_by_counts" in frame.columns
+
+
+@pytest.mark.parametrize("fn", [cl.umap, cl.pca, cl.tsne])
+def test_dimensional_wrappers_add_columns_materialize_extra_columns(adata, fn, group_key):
+    frame = retrieve(
+        fn(
+            adata,
+            group_key,
+            add_columns=["n_genes_by_counts", "MS4A1"],
+            tooltips="none",
+        )
+    )
+    assert "n_genes_by_counts" in frame.columns
+    assert "MS4A1" in frame.columns
+
+
+@pytest.mark.parametrize("fn", [cl.dimensionals, cl.umaps, cl.pcas, cl.tsnes])
+def test_plural_dimensional_wrappers_add_columns_shared_frame(adata, fn, group_key):
+    plot = fn(
+        adata,
+        [group_key, "CD14"],
+        add_columns=["n_genes_by_counts", "MS4A1"],
+        tooltips="none",
+    )
+    assert isinstance(plot, SupPlotsSpec)
+    for panel in plot.as_dict()["figures"]:
+        panel_columns = panel["data"].columns
+        assert "n_genes_by_counts" in panel_columns
+        assert "MS4A1" in panel_columns
+
+
+def test_expression_add_columns_materializes_extra_columns(adata):
+    frame = retrieve(
+        cl.expression(
+            adata,
+            "CD14",
+            add_columns=["n_genes_by_counts", "MS4A1"],
+            tooltips="none",
+        )
+    )
+    assert "n_genes_by_counts" in frame.columns
+    assert "MS4A1" in frame.columns
+
+
+def test_expressions_add_columns_materializes_shared_frame_columns(adata):
+    plot = cl.expressions(
+        adata,
+        ["CD14", "MS4A1"],
+        add_columns="n_genes_by_counts",
+        tooltips="none",
+    )
+    assert isinstance(plot, SupPlotsSpec)
+    for panel in plot.as_dict()["figures"]:
+        assert "n_genes_by_counts" in panel["data"].columns

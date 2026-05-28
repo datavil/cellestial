@@ -11,6 +11,7 @@ import cellestial as cl
 from cellestial.layers import DeferredLayer
 from cellestial.layers.bracket import _compute_bracket_frame, _correct_pvalues, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
+from cellestial.util import retrieve
 from cellestial.util.errors import InvalidComparisonError
 
 
@@ -434,4 +435,40 @@ def test_stream_builds_layers_with_mocked_velocity_grid(monkeypatch):
 
     combined = plot + cl.stream(arrow_kwargs={"alpha": 0.5}, density=0.5)
 
+    assert isinstance(combined, PlotSpec)
+
+
+def _adata_with_velocity(adata):
+    """Copy the fixture and attach a velocity embedding paired with `X_umap`."""
+    data = adata.copy()
+    rng = np.random.default_rng(0)
+    data.obsm["velocity_umap"] = rng.standard_normal(data.obsm["X_umap"].shape)
+    return data
+
+
+def test_umap_frame_includes_unplotted_velocity_embedding(adata):
+    # Regression: `cl.umap` plots `X_umap` but must still materialise every
+    # embedding into the frame, because the deferred `cl.stream()` layer reads a
+    # different embedding (`velocity_umap` -> VELOCITY_UMAP1/2) from it. Narrowing
+    # the built frame to only the plotted embedding broke `+ cl.stream()`.
+    data = _adata_with_velocity(adata)
+    frame = retrieve(cl.umap(data, tooltips="none"))
+    assert {"VELOCITY_UMAP1", "VELOCITY_UMAP2"} <= set(frame.columns)
+
+
+def test_stream_builds_on_umap_with_velocity_embedding(adata, monkeypatch):
+    # End-to-end mirror of the reported failure: `cl.umap(...) + cl.stream()`
+    # must resolve velocity columns from the umap frame without raising.
+    data = _adata_with_velocity(adata)
+    umap = cl.umap(data, tooltips="none")
+
+    def compute_velocity_on_grid(**kwargs):
+        grid = np.linspace(0.0, 1.0, 5)
+        velocity = np.ones((5, 5))
+        return (grid, grid), (velocity, velocity)
+
+    fake_module = types.SimpleNamespace(compute_velocity_on_grid=compute_velocity_on_grid)
+    monkeypatch.setitem(sys.modules, "scvelo.plotting.velocity_embedding_grid", fake_module)
+
+    combined = umap + cl.stream()
     assert isinstance(combined, PlotSpec)

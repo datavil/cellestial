@@ -57,7 +57,7 @@ def _warn(message: str) -> None:
         stacklevel += 1
         caller = caller.f_back
     original_format = warnings.formatwarning
-    warnings.formatwarning = _format_warning
+    warnings.formatwarning = _format_warning  # ty:ignore[invalid-assignment]
     try:
         warnings.warn(message, CellestialWarning, stacklevel=stacklevel)
     finally:
@@ -136,12 +136,17 @@ def _resolve_tooltips(
     data: AnnData,
     variable_keys: list[str],
     defaults: Sequence[str],
+    metadata_columns: list[str] | None = None,
+    axis: Literal[0, 1] = 0,
 ) -> Sequence[str] | FeatureSpec | Literal["none"]:
     """
     Resolve tooltips. `defaults` apply only when tooltips is None.
 
     Extends `variable_keys` in place with any tooltip fields that are variable
-    names, so they get pulled into the frame by `build_frame`.
+    names. When `metadata_columns` is provided, the tooltip fields are routed
+    onto the requested `axis` (observation metadata for axis 0, variable
+    metadata for axis 1) so callers can request a narrow frame from
+    `build_frame`.
     """
     if tooltips is None:
         fields = list(defaults)
@@ -159,9 +164,20 @@ def _resolve_tooltips(
         msg = f"Invalid tooltips type: {type(tooltips)}"
         raise TypeError(msg)
 
-    for variable in _select_variable_keys(data, fields):
-        if variable not in variable_keys:
-            variable_keys.append(variable)
+    if metadata_columns is None:
+        # No narrowing requested; only pull gene tooltip fields into variable_keys.
+        for variable in _select_variable_keys(data, fields):
+            if variable not in variable_keys:
+                variable_keys.append(variable)
+    else:
+        _collect_aes_columns(
+            data,
+            keys=fields,
+            mapping=None,
+            metadata_columns=metadata_columns,
+            variable_keys=variable_keys,
+            axis=axis,
+        )
     return resolved
 
 
@@ -457,6 +473,59 @@ def _select_variable_keys(
         msg = f"Unknown data type: {type(data)}."
         raise TypeError(msg)
     return variable_keys
+
+
+def _collect_aes_columns(
+    data: AnnData,
+    *,
+    keys: Sequence[str | None],
+    mapping: FeatureSpec | None,
+    metadata_columns: list[str],
+    variable_keys: list[str],
+    axis: Literal[0, 1] = 0,
+) -> None:
+    """
+    Route `keys` and `mapping` references into metadata vs variable buckets.
+
+    Mutates both `metadata_columns` and `variable_keys` in place so callers
+    can pass them directly to `build_frame` for a minimal materialised frame.
+
+    Parameters
+    ----------
+    data : AnnData
+        The single-cell data object.
+    keys : Sequence[str | None]
+        Explicit string references (e.g., the color key, x/y keys).
+        `None` entries are skipped.
+    mapping : FeatureSpec | None
+        A `lets_plot.aes(...)` result. Any string value in its dict is
+        treated as a column reference; non-string values are skipped.
+    metadata_columns : list[str]
+        Mutated in place: references that match observation metadata columns
+        (axis=0) or variable metadata columns (axis=1) are appended.
+    variable_keys : list[str]
+        Mutated in place: references that match variable names (gene names)
+        are appended. Only relevant for axis=0; ignored for axis=1.
+    axis : {0, 1}, default=0
+        The axis the frame is being built for.
+    """
+    if isinstance(data, AnnData):
+        metadata_pool = set(data.obs.columns) if axis == 0 else set(data.var.columns)
+        candidates: list[str] = []
+        for key in keys:
+            if isinstance(key, str):
+                candidates.append(key)
+        if mapping is not None:
+            for value in mapping.as_dict().values():
+                if isinstance(value, str):
+                    candidates.append(value)
+
+        for candidate in candidates:
+            if candidate in metadata_pool:
+                if candidate not in metadata_columns:
+                    metadata_columns.append(candidate)
+            elif axis == 0 and candidate in data.var_names and candidate not in variable_keys:
+                variable_keys.append(candidate)
 
 
 def _is_observation_feature(data: AnnData, key: str | None) -> bool:

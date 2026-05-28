@@ -305,13 +305,15 @@ def stacked_violin(
     # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
     keys_list, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
-    # BUILD: dataframe
+    # BUILD: dataframe. Only `group_by` is needed from the observation metadata
+    # alongside the per-cell identifier used as the unpivot index.
     frame = build_frame(
         data=data,
         axis=0,
         variable_keys=keys_list,
         observations_name=observations_name,
         variables_name=variables_name,
+        metadata_columns=[group_by],
     )
     # DROP: rows with null group_by to avoid null labels downstream
     frame = frame.filter(pl.col(group_by).is_not_null())

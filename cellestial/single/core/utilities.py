@@ -22,9 +22,9 @@ from lets_plot.plot.core import FeatureSpec, PlotSpec
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
 from cellestial.util import (
+    _collect_aes_columns,
     _determine_axis,
     _resolve_tooltips,
-    _select_variable_keys,
     _validate_tooltips,
     _warn,
 )
@@ -114,15 +114,40 @@ def _distribution(
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
 
     # BUILD: the DataFrame (variable_keys is still needed for tooltip resolution)
-    variable_keys = _select_variable_keys(data=data, keys=keys)
-    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
+    variable_keys: list[str] = []
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, group_by, mapping_fill, mapping_color, *(add_keys or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
+    # Resolve tooltips before the unpivot so tooltip fields reach both the frame
+    # and the unpivot index; otherwise the unpivot drops tooltip-only columns.
+    tooltips = _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[variable_column, value_column],
+        metadata_columns=metadata_columns,
+        axis=axis,
+    )
+    # Keep tooltip-referenced metadata columns through the unpivot.
+    for column in metadata_columns:
+        if column not in index and column not in keys:
+            index.append(column)
     if frame is None:
+        observation_column_name = None if tooltips == "none" else observations_name
+        variable_column_name = None if tooltips == "none" else variables_name
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observations_name=observation_column_name,
+            variables_name=variable_column_name,
+            metadata_columns=metadata_columns,
         )
 
     if group_by is not None:
@@ -164,13 +189,7 @@ def _distribution(
         )
         group_by = variable_column
 
-    # HANDLE: tooltips
-    tooltips = _resolve_tooltips(
-        tooltips,
-        data=data,
-        variable_keys=variable_keys,
-        defaults=[variable_column, value_column],
-    )
+    # VALIDATE: tooltips were resolved before the frame build / unpivot above.
     _validate_tooltips(tooltips, frame)
 
     # BUILD: the plot

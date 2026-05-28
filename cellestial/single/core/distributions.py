@@ -8,8 +8,9 @@ from lets_plot.plot.core import FeatureSpec, LayerSpec
 from cellestial.frames import build_frame
 from cellestial.single.core.distribution import boxplot, violin
 from cellestial.util import (
+    _collect_aes_columns,
     _determine_axis,
-    _select_variable_keys,
+    _resolve_tooltips,
     _share_axis,
     _share_ticks,
 )
@@ -215,14 +216,35 @@ def violins(
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     if isinstance(add_keys, str):
         add_keys = [add_keys]
-    variable_keys = _select_variable_keys(data=data, keys=keys)
-    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
+    variable_keys: list[str] = []
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, group_by, color, fill, *(add_keys or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's unpivot index can keep them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[variable_column, value_column],
+        metadata_columns=metadata_columns,
+        axis=axis,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
+    variable_column_name = None if tooltips == "none" else variables_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observations_name=observation_column_name,
+        variables_name=variable_column_name,
+        metadata_columns=metadata_columns,
     )
 
     plots = []
@@ -477,14 +499,35 @@ def boxplots(
     axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     if isinstance(add_keys, str):
         add_keys = [add_keys]
-    variable_keys = _select_variable_keys(data=data, keys=keys)
-    variable_keys.extend(_select_variable_keys(data=data, keys=add_keys))
+    variable_keys: list[str] = []
+    metadata_columns: list[str] = []
+    _collect_aes_columns(
+        data,
+        keys=[*keys, group_by, color, fill, *(add_keys or [])],
+        mapping=mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
+    # Tooltips are shared across subplots; pull their fields into the shared
+    # frame so each subplot's unpivot index can keep them.
+    _resolve_tooltips(
+        tooltips,
+        data=data,
+        variable_keys=variable_keys,
+        defaults=[variable_column, value_column],
+        metadata_columns=metadata_columns,
+        axis=axis,
+    )
+    observation_column_name = None if tooltips == "none" else observations_name
+    variable_column_name = None if tooltips == "none" else variables_name
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observations_name=observation_column_name,
+        variables_name=variable_column_name,
+        metadata_columns=metadata_columns,
     )
 
     plots = []

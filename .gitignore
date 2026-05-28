@@ -68,3 +68,5 @@ merge.sh
 
 benchmarks/svg
 benchmarks/results/runs
+
+figures/

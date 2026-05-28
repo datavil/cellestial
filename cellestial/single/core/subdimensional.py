@@ -24,6 +24,7 @@ def umap(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -73,6 +74,9 @@ def umap(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the frame,
+        on top of those inferred from `key`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where `key` matches any of
         them. Categorical keys only.
@@ -175,6 +179,7 @@ def umap(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        add_columns=add_columns,
         groups=groups,
         drop=drop,
         tooltips=tooltips,
@@ -210,6 +215,7 @@ def tsne(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -259,6 +265,9 @@ def tsne(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the frame,
+        on top of those inferred from `key`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where `key` matches any of
         them. Categorical keys only.
@@ -361,6 +370,7 @@ def tsne(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        add_columns=add_columns,
         groups=groups,
         drop=drop,
         tooltips=tooltips,
@@ -396,6 +406,7 @@ def pca(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -445,6 +456,9 @@ def pca(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the frame,
+        on top of those inferred from `key`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where `key` matches any of
         them. Categorical keys only.
@@ -547,6 +561,7 @@ def pca(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        add_columns=add_columns,
         groups=groups,
         drop=drop,
         tooltips=tooltips,
@@ -583,6 +598,7 @@ def expression(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
+    add_columns: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -632,6 +648,9 @@ def expression(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
+    add_columns : str | Sequence[str] | None, default=None
+        Extra metadata columns or variable names to materialise into the frame,
+        on top of those inferred from `key`, `mapping`, and `tooltips`.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -723,6 +742,7 @@ def expression(
         xy=xy,
         size=size,
         variable_keys=variable_keys,
+        add_columns=add_columns,
         tooltips=tooltips,
         interactive=interactive,
         observations_name=observations_name,
