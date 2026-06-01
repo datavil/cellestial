@@ -7,7 +7,6 @@ import pandas as pd
 import polars as pl
 from anndata import AnnData
 from scipy.sparse import issparse
-from spatialdata import SpatialData
 
 from cellestial.util.errors import UnsupportedDataTypeError, VariableNotFoundError
 
@@ -15,6 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from polars import DataFrame
+    from spatialdata import SpatialData
 
 
 def anndata_variable_columns(
@@ -369,6 +369,8 @@ def build_frame(
         frame.head()
 
     """
+    from spatialdata import SpatialData
+
     if isinstance(data, SpatialData):
         tables = list(data.tables.keys())
         if len(tables) == 1:

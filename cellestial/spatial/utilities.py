@@ -5,17 +5,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import polars as pl
-import shapely
 from anndata import AnnData
-from spatialdata import SpatialData
-from spatialdata.transformations import get_transformation
-from xarray import DataArray
 
 from cellestial.util import _warn
 from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+    from spatialdata import SpatialData
 
 
 def _select_one(name: str | None, available: list[str], kind: str) -> str:
@@ -39,6 +36,8 @@ def _select_one(name: str | None, available: list[str], kind: str) -> str:
 
 def _element_in_coordinate_system(elem, coordinate_system: str) -> bool:
     """True when `elem` has a transformation registered for `coordinate_system`."""
+    from spatialdata.transformations import get_transformation
+
     return coordinate_system in get_transformation(elem, get_all=True)
 
 
@@ -154,6 +153,8 @@ def _resolve_image_name(
 
 def _resolve_table(data: SpatialData, table_name: str | None) -> AnnData:
     """Pick the annotation table from a SpatialData object."""
+    from spatialdata import SpatialData
+
     if not isinstance(data, SpatialData):
         msg = f"Expected a SpatialData object, got {type(data)}."
         raise TypeError(msg)
@@ -167,6 +168,8 @@ def _image_to_yxc(elem) -> NDArray:
 
     Accepts either an `xarray.DataArray` or a multiscale `DataTree`.
     """
+    from xarray import DataArray
+
     if isinstance(elem, DataArray):
         array = np.asarray(elem.values)
         dims = elem.dims
@@ -191,6 +194,8 @@ def _polygon_vertex_frame(shapes_geo) -> pl.DataFrame:
 
     Columns: `instance_id`, `polygon_x`, `polygon_y`.
     """
+    import shapely
+
     geoms = shapes_geo.geometry.values
     coords = shapely.get_coordinates(geoms)
     per_geom_counts = np.fromiter(
@@ -243,6 +248,8 @@ def _spatialdata_components(
     (the default) reduces them to centroids and returns point coordinates
     instead.
     """
+    from spatialdata import SpatialData
+
     if not isinstance(data, SpatialData):
         msg = f"Expected a SpatialData object, got {type(data)}."
         raise TypeError(msg)
@@ -319,6 +326,8 @@ def _spatial_components(
     `point_coords` and `polygon_frame` is non-None. For AnnData input
     the table is the input itself; for SpatialData it is the resolved table.
     """
+    from spatialdata import SpatialData
+
     if isinstance(data, SpatialData):
         return _spatialdata_components(
             data,

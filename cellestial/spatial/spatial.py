@@ -18,7 +18,6 @@ from lets_plot import (
     scale_y_reverse,
 )
 from lets_plot.plot.core import FeatureSpec, PlotSpec
-from spatialdata import SpatialData
 
 from cellestial.frames import build_frame
 from cellestial.spatial.utilities import _resolve_instance_key, _spatial_components
@@ -38,6 +37,7 @@ if TYPE_CHECKING:
 
     from lets_plot.plot.core import PlotSpec
     from polars import DataFrame
+    from spatialdata import SpatialData
 
 
 def spatial(
@@ -264,6 +264,8 @@ def spatial(
         cl.spatial(data_hne,key="cluster", groups=["Hippocampus", "Hypothalamus_1", "Striatum"], interactive=True)
     """
     # HANDLE: data type
+    from spatialdata import SpatialData
+
     if not isinstance(data, (AnnData, SpatialData)):
         msg = f"Unsupported data type: `{type(data)}`"
         raise UnsupportedDataTypeError(msg)
