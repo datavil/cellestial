@@ -1,6 +1,6 @@
 [project]
 name = "cellestial"
-version = "0.51.0"
+version = "0.53.0"
 description = "Interactive single-cell and spatial omics visualization library"
 authors = [
     { name = "Zaf4", email = "zafermolbio@gmail.com" },
@@ -48,7 +48,6 @@ Issues = "https://github.com/DataVil/Cellestial/issues"
 [project.optional-dependencies]
 extras = [
     "matplotlib>=3.9,<4.0",
-    "pooch>=1.8.2,<2.0.0",
     "scanpy[leiden]>=1.10.4,<2.0.0",
     "scvelo>=0.3.3,<0.4.0",
 ]
