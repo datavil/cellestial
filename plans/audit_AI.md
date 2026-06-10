@@ -65,3 +65,5 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `stacked_violin` | MODIFIED | Claude 4.7 |  |  |  |  |
 | `_resolve_instance_key` | GENERATED | Claude 4.7 |  |  |  |  |
 | `expression` | MODIFIED | Claude 4.7 |  |  |  |  |
+| `layout` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_normalize_widths` | GENERATED | Claude 4.8 |  |  |  |  |
