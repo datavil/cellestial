@@ -115,7 +115,7 @@ def layout(
         data = cl.datasets.pbmc3k(cache_directory="data")
 
         first = cl.umap(data, key="CD14", axis_type="arrow")
-        second = cl.umap(data, key="MALAT1", axis_type="arrow")
+        second = cl.tsne(data, key="MALAT1", axis_type="arrow")
         third = cl.umap(data, key="leiden", axis_type="arrow")
 
         cl.layout(
