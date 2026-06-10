@@ -38,7 +38,7 @@ def _get_density_boundaries(
         groups = [[g] if isinstance(g, str) else list(g) for g in groups]
 
     requested = {g for group in groups for g in group}
-    available = set(frame.get_column(group_by).unique().to_list())
+    available = set(frame.get_column(group_by).drop_nulls().unique().to_list())
     missing = requested - available
     if missing:
         msg = (
