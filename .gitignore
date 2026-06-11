@@ -70,3 +70,4 @@ benchmarks/svg
 benchmarks/results/runs
 
 figures/
+.zed/
