@@ -8,7 +8,7 @@ import polars as pl
 from anndata import AnnData
 
 from cellestial.util import _warn
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -404,5 +404,4 @@ def _spatial_components(
                 _warn(f"no images found for library `{library_id}`")
         return image_array, spot_coordinates, None, data
 
-    msg = f"Unsupported data type: `{type(data)}`"
-    raise UnsupportedDataTypeError(msg)
+    raise _unsupported_data_type(data, AnnData, SpatialData)

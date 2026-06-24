@@ -37,7 +37,7 @@ from cellestial.util import (
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -261,8 +261,7 @@ def dotplot(
     """
     # HANDLE: Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     if markers:
         keys, group_by = _resolve_rank_genes_groups_args(

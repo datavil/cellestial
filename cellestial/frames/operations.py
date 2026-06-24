@@ -6,7 +6,7 @@ from anndata import AnnData
 from polars import DataFrame
 from scipy.sparse import issparse
 
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
 
 
 def _highest_expressed_genes_frame(
@@ -54,8 +54,7 @@ def _highest_expressed_genes_frame(
         # BUILD: polars frame keyed by gene name
         frame = pl.DataFrame({gene: X_top_normalized[:, i] for i, gene in enumerate(genes)})
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     return frame
 
@@ -90,7 +89,6 @@ def _pca_variance_frame(
             }
         )
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     return frame

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 
 from anndata import AnnData
 
-from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
+from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
 
 
 def _marker_names_per_group(
@@ -71,8 +71,7 @@ def _marker_names_per_group(
 
         markers = {group: [str(gene) for gene in names[group][:n_genes]] for group in selected}
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     return markers
 

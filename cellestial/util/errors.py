@@ -63,3 +63,10 @@ class SpatialLibraryError(Exception):
 
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
+
+
+def _unsupported_data_type(received: object, *expected: type) -> UnsupportedDataTypeError:
+    """Build an `UnsupportedDataTypeError` naming the expected and received types."""
+    expected_names = " or ".join(cls.__name__ for cls in expected)
+    received_name = type(received).__name__
+    return UnsupportedDataTypeError(f"Expected {expected_names}, but received `{received_name}`.")

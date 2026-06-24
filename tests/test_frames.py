@@ -72,7 +72,7 @@ def test_anndata_observations_frame_dimension_validation():
         anndata_observations_frame(data, include_dimensions=-1)
     with pytest.raises(TypeError, match="bool"):
         anndata_observations_frame(data, include_dimensions="yes")
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         anndata_observations_frame("not adata")
 
 
@@ -93,7 +93,7 @@ def test_anndata_variables_frame_dimension_validation():
         anndata_variables_frame(data, include_dimensions=-1)
     with pytest.raises(TypeError, match="bool"):
         anndata_variables_frame(data, include_dimensions="yes")
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         anndata_variables_frame("not adata")
 
 
@@ -116,7 +116,7 @@ def test_highest_expressed_genes_frame_errors():
 
     with pytest.raises(ValueError, match="only 2 genes"):
         _highest_expressed_genes_frame(data, n=3)
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         _highest_expressed_genes_frame("not adata")
 
 
@@ -140,7 +140,7 @@ def test_pca_variance_frame_errors():
     data.uns["pca"] = {"variance_ratio": np.array([0.5])}
     with pytest.raises(ValueError, match="only 1 components"):
         _pca_variance_frame(data, n_pcs=2)
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         _pca_variance_frame("not adata")
 
 

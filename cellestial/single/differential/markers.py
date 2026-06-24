@@ -24,7 +24,7 @@ from lets_plot.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.single.differential.utilities import _build_markers_frame
 from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
@@ -204,8 +204,7 @@ def markers(
     """
     # HANDLE: Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
         msg = "`groups` must be a Sequence of strings or None"

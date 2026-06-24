@@ -26,11 +26,12 @@ from cellestial.util import (
     _collect_aes_columns,
     _color_gradient,
     _fill_gradient,
+    _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from typing import Literal
@@ -196,6 +197,8 @@ def spatial(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported spatial data object.
+    TypeError
+        If `key` is a sequence of keys; use `spatials` for multiple keys.
     KeyError
         If a requested table, image, shape, or coordinate system is missing.
     ValueError
@@ -267,8 +270,9 @@ def spatial(
     from spatialdata import SpatialData
 
     if not isinstance(data, (AnnData, SpatialData)):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData, SpatialData)
+
+    _reject_sequence_key(key, singular="spatial", plural="spatials")
 
     image_array, spot_coordinates, polygon_frame, data = _spatial_components(
         data,

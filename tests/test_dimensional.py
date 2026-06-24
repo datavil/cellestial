@@ -64,7 +64,9 @@ def test_dimensional_tooltips_sequence(adata, group_key):
 
 
 def test_dimensional_invalid_key_raises(adata):
-    with pytest.raises((KeyError, ValueError, Exception)):
+    from cellestial.util.errors import KeyNotFoundError
+
+    with pytest.raises(KeyNotFoundError, match="not found"):
         cl.umap(adata, "NOT_A_REAL_KEY_xyz")
 
 

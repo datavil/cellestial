@@ -7,7 +7,7 @@ import polars as pl
 from anndata import AnnData
 
 from cellestial.single.heatmap.utilities import _resolve_rank_genes_groups_key
-from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
+from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -132,8 +132,7 @@ def _build_volcano_frame(
             }
         )
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     # CRITICAL PARTS: Dataframe Operations
     # 1. -log10(pvalue) transform
@@ -303,5 +302,4 @@ def _build_markers_frame(
 
         return frame, list(selected), str(stored_group_by)
 
-    msg = f"Unsupported data type: `{type(data)}`"
-    raise UnsupportedDataTypeError(msg)
+    raise _unsupported_data_type(data, AnnData)

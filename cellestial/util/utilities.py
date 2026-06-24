@@ -25,7 +25,7 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
-from cellestial.util.errors import CellestialWarning, KeyNotFoundError, UnsupportedDataTypeError
+from cellestial.util.errors import CellestialWarning, KeyNotFoundError, _unsupported_data_type
 
 _PACKAGE_ROOT = str(Path(__file__).parents[1])
 
@@ -401,6 +401,29 @@ def _wrap_legend(
     return legend
 
 
+def _reject_sequence_key(key: object, *, singular: str, plural: str) -> None:
+    """Reject a non-string sequence where a single key is expected, pointing to the plural API."""
+    if key is None or isinstance(key, str):
+        return
+    if isinstance(key, Sequence):
+        msg = (
+            f"`{singular}` plots a single key but received {len(key)} keys. "
+            f"Use `{plural}` for multiple keys."
+        )
+        raise TypeError(msg)
+
+
+def _require_feature_key(data: AnnData, key: str | None) -> None:
+    """Validate that a provided color key resolves to a known column or variable."""
+    if key is None:
+        return
+    if isinstance(data, AnnData):
+        if key in data.obs.columns or key in data.var_names:
+            return
+        msg = f"Key `{key}` not found.\nLooked in observation metadata and variable (gene) names."
+        raise KeyNotFoundError(msg)
+
+
 def _is_variable_key(data: AnnData, key: str | None) -> bool:
     if key is None:
         return False
@@ -646,8 +669,7 @@ def _resolve_embedding_key(
         candidates = list(data.obsm.keys())
         shapes = {key: data.obsm[key].shape[1] for key in candidates}
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     target = f"X_{dimensions.upper()}"
     needed = max(xy)

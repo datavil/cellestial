@@ -12,7 +12,7 @@ from lets_plot import (
 
 from cellestial.frames import _highest_expressed_genes_frame
 from cellestial.themes import _THEME_HIGHEST
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, PlotSpec
@@ -115,8 +115,7 @@ def highest_expressed_genes(
     """
     # Handling Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     # HANDLE: mapping
     defaults = aes(x=variable_column, y=value_column, fill=variable_column).as_dict()

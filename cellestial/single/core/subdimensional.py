@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from cellestial.single.core.dimensional import dimensional
-from cellestial.util import _is_variable_key
+from cellestial.util import _is_variable_key, _reject_sequence_key
 from cellestial.util.errors import VariableNotFoundError
 
 if TYPE_CHECKING:
@@ -169,6 +169,7 @@ def umap(
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
     """
+    _reject_sequence_key(key, singular="umap", plural="umaps")
     return dimensional(
         data=data,
         key=key,
@@ -360,6 +361,7 @@ def tsne(
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
 
     """  # noqa: D403
+    _reject_sequence_key(key, singular="tsne", plural="tsnes")
     return dimensional(
         data=data,
         key=key,
@@ -551,6 +553,7 @@ def pca(
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
 
     """
+    _reject_sequence_key(key, singular="pca", plural="pcas")
     return dimensional(
         data=data,
         key=key,
@@ -729,6 +732,7 @@ def expression(
         cl.expression(data,key="CD14",axis_type="arrow",color_high="red")
 
     """
+    _reject_sequence_key(key, singular="expression", plural="expressions")
     if not _is_variable_key(data, key):
         msg = f"'{key}' is not present in `variable` names"
         raise VariableNotFoundError(msg)

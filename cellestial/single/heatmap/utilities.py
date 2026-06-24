@@ -10,7 +10,7 @@ from lets_plot import aes, geom_path, geom_text
 from scipy.stats import gaussian_kde
 
 from cellestial.util import _warn
-from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, UnsupportedDataTypeError
+from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -685,8 +685,7 @@ def _extract_rank_genes_groups(
 
         return keys, str(stored_group_by)
 
-    msg = f"Unsupported data type: `{type(data)}`"
-    raise UnsupportedDataTypeError(msg)
+    raise _unsupported_data_type(data, AnnData)
 
 
 def _resolve_rank_genes_groups_args(

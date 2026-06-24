@@ -448,7 +448,7 @@ def test_dotplot_no_dendrogram_no_rectangle(adata, markers, group_key):
 
 
 def test_dotplot_invalid_data_type(markers, group_key):
-    with pytest.raises(UnsupportedDataTypeError, match="Unsupported data type"):
+    with pytest.raises(UnsupportedDataTypeError, match="Expected"):
         cl.dotplot({"not": "anndata"}, keys=markers, group_by=group_key)
 
 

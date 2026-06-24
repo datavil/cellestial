@@ -16,7 +16,7 @@ from lets_plot import (
 
 from cellestial.frames import _pca_variance_frame
 from cellestial.themes import _THEME_SCATTER_BASE
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, PlotSpec
@@ -120,8 +120,7 @@ def elbow(
     """
     # Handling Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     # BUILD: variance ratio frame
     frame = _pca_variance_frame(

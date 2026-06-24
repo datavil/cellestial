@@ -18,11 +18,12 @@ from cellestial.frames import build_frame
 from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
+    _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -149,8 +150,9 @@ def ridge(
     """
     # Handling Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
+
+    _reject_sequence_key(key, singular="ridge", plural="ridges")
 
     # HANDLE: mapping
     mapping = mapping or aes()

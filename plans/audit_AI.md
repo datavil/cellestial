@@ -67,3 +67,7 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `expression` | MODIFIED | Claude 4.7 |  |  |  |  |
 | `layout` | GENERATED | Claude 4.8 |  |  |  |  |
 | `_normalize_widths` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_unsupported_data_type` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_reject_sequence_key` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_require_feature_key` | GENERATED | Claude 4.8 |  |  |  |  |
+| `dimensional` | MODIFIED | Claude 4.8 |  |  |  |  |

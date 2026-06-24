@@ -24,12 +24,14 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _collect_aes_columns,
     _color_gradient,
+    _reject_sequence_key,
+    _require_feature_key,
     _resolve_embedding_key,
     _resolve_tooltips,
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
@@ -171,6 +173,10 @@ def dimensional(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    TypeError
+        If `key` is a sequence of keys; use `dimensionals` for multiple keys.
+    KeyNotFoundError
+        If `key` is not found in observation metadata or variable names.
     KeyError
         If `xy` does not contain exactly two dimensions.
 
@@ -205,8 +211,12 @@ def dimensional(
     """
     # HANDLE: Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
+
+    # HANDLE: key
+    _reject_sequence_key(key, singular="dimensional", plural="dimensionals")
+    if frame is None:
+        _require_feature_key(data, key)
 
     # HANDLE: mapping
     mapping = mapping or aes()

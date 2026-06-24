@@ -562,7 +562,7 @@ def test_spatial_components_anndata_errors():
             image=False,
             spatial_key="spatial",
         )
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         _spatial_components(
             "not data",
             library_id=None,

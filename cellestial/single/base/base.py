@@ -7,7 +7,7 @@ from lets_plot import ggplot
 
 from cellestial.frames import build_frame
 from cellestial.util import _determine_axis
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -93,8 +93,7 @@ def plot(
     """
     # Handling Data types
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise UnsupportedDataTypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     # BUILD: the dataframe
     if mapping is not None:

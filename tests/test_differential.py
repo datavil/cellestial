@@ -119,7 +119,7 @@ def test_extract_rank_genes_groups_missing_params_groupby(ranked_adata):
 
 
 def test_extract_rank_genes_groups_rejects_wrong_data_type():
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         _extract_rank_genes_groups(
             "not adata",
             rank_genes_groups=True,
@@ -210,7 +210,7 @@ def test_markers_rejects_invalid_groups(ranked_adata):
 
 
 def test_markers_rejects_wrong_data_type():
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         cl.markers("not adata")
 
 
@@ -234,7 +234,7 @@ def test_build_volcano_frame_errors(ranked_adata):
     with pytest.raises(KeyError, match="not found"):
         _build_volcano_frame(ranked_adata, "A", key="missing")
 
-    with pytest.raises(Exception, match="Unsupported data type"):
+    with pytest.raises(Exception, match="Expected"):
         _build_volcano_frame("not adata", "A")
 
 
