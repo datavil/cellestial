@@ -752,10 +752,11 @@ def histograms(
 
         cl.histograms(
             data,
-            ["n_genes_by_counts", "HLA-DRA", "log1p_total_counts_mt", "pct_counts_hb"],
+            ["n_genes_by_counts", "log1p_total_counts_mt"],
             fill="cell_type_lvl1",
             bins=40,
             ncol=2,
+            guides="collect",
         )
     """
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.

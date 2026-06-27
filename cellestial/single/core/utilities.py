@@ -126,11 +126,13 @@ def _distribution(
     )
     # Resolve tooltips before the unpivot so tooltip fields reach both the frame
     # and the unpivot index; otherwise the unpivot drops tooltip-only columns.
+    # for a single key the `variable` column just repeats the key name, so drop it
+    tooltip_defaults = [value_column] if len(keys) == 1 else [variable_column, value_column]
     tooltips = _resolve_tooltips(
         tooltips,
         data=data,
         variable_keys=variable_keys,
-        defaults=[variable_column, value_column],
+        defaults=tooltip_defaults,
         metadata_columns=metadata_columns,
         axis=axis,
     )
@@ -192,6 +194,11 @@ def _distribution(
     # VALIDATE: tooltips were resolved before the frame build / unpivot above.
     _validate_tooltips(tooltips, frame)
 
+    # for a single key the `variable` column just repeats the key name, so drop it
+    geom_tooltips = [
+        column for column in frame.columns if not (len(keys) == 1 and column == variable_column)
+    ]
+
     # BUILD: the plot
     dst = ggplot(data=frame) + _THEME_DIST
 
@@ -205,7 +212,7 @@ def _distribution(
             ),
             fill=geom_fill,
             color=geom_color,
-            tooltips=frame.columns,
+            tooltips=geom_tooltips,
             **geom_kwargs,
         )
     elif geom == "boxplot":
@@ -217,7 +224,7 @@ def _distribution(
             ),
             fill=geom_fill,
             color=geom_color,
-            tooltips=frame.columns,
+            tooltips=geom_tooltips,
             **geom_kwargs,
         )
     elif geom == "histogram":
@@ -230,7 +237,7 @@ def _distribution(
             ),
             fill=geom_fill,
             color=geom_color,
-            tooltips=frame.columns,
+            tooltips=geom_tooltips,
             **geom_kwargs,
         )
 

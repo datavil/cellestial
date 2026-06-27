@@ -609,17 +609,9 @@ def histogram(
 
     .. jupyter-execute::
 
-        import cellestial as cl
-        import scanpy as sc
-
-        from lets_plot import *
-
-        data = cl.datasets.pbmc3k(cache_directory="data")
-
         histogram = (
-            cl.histogram(data, "CD14", fill="cell_type_lvl1", bins=40)
+            cl.histogram(data, "n_genes_by_counts", fill="cell_type_lvl1", bins=50)
             + ggsize(800, 400)
-            + scale_fill_brewer(palette="Set2")
         )
 
         histogram
