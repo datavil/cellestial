@@ -77,3 +77,7 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `stream` | MODIFIED | Claude 4.8 |  |  |  |  |
 | `volcanos` | MODIFIED | Claude 4.8 |  |  |  |  |
 | `highest_expressed_genes` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `xyplot` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `xyplots` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `spatial` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `spatials` | MODIFIED | Claude 4.8 |  |  |  |  |

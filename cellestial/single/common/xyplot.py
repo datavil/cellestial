@@ -38,7 +38,7 @@ def xyplot(
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -64,7 +64,7 @@ def xyplot(
         Additional aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `mapping` and `tooltips`.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -181,12 +181,12 @@ def xyplot(
 
     # BUILD: the dataframe
     axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*(add_columns or [])],
+        keys=[*(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,

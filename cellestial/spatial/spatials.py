@@ -49,7 +49,7 @@ def spatials(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -153,7 +153,7 @@ def spatials(
         them. Categorical keys only.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     include_dimensions : bool | int
@@ -269,12 +269,12 @@ def spatials(
         variable_keys = list(variable_keys)
     variable_keys.extend(key for key in keys if _is_variable_key(table, key))
     variable_keys = list(dict.fromkeys(variable_keys))
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         table,
-        keys=[*keys, *(add_columns or [])],
+        keys=[*keys, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -333,7 +333,7 @@ def spatials(
             groups=groups,
             drop=drop,
             variable_keys=variable_keys,
-            add_columns=add_columns,
+            add_keys=add_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
             observations_name=observations_name,

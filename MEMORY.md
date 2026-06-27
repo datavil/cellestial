@@ -26,6 +26,7 @@
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
 - [Project: Deferred layers read the built frame](project_deferred_layers_read_frame.md) — Don't narrow embeddings in plot functions; `cl.stream()` reads velocity embeddings from the frame after the plot call
+- [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under the current poetry version in repo-root `CHANGELOG.md` (`### Breaking` + migration note)
 
 
 ---
@@ -698,3 +699,24 @@ to the requested groups. `.fill_null(False)` keeps the null rows.
 This is how the `drop` parameter is implemented across the plotting functions
 (spatial, dimensional/_distribution/ridge). The positive `groups` keep-filter
 does not need this since dropping nulls there is acceptable.
+
+## Source: feedback_changelog_breaking_changes.md
+
+---
+name: feedback_changelog_breaking_changes
+description: Record breaking API changes in CHANGELOG.md under the current poetry version
+type: feedback
+---
+
+When making a breaking API change (renaming/removing/repurposing a public
+parameter or function), record it in the repo-root `CHANGELOG.md` under a
+`### Breaking` heading, with a one-line migration note (e.g. "replace `old=` with
+`new=`). Keep a Changelog style; non-breaking fixes go under `### Fixed`.
+
+**Why:** The user tracks breaking changes by version so users can migrate; this
+matters more as the project approaches v1.0.
+
+**How to apply:** Run `poetry version` to get the current version and date the
+section `## [X.Y.Z] - YYYY-MM-DD`. If the version hasn't been bumped yet, put
+entries under `## [Unreleased]` and rename the heading once bumped. Related:
+feedback_audit_ai_tracking.

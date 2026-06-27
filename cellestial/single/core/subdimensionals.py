@@ -32,7 +32,7 @@ def dimensionals(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -97,7 +97,7 @@ def dimensionals(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
@@ -247,12 +247,12 @@ def dimensionals(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*keys, *(add_columns or [])],
+        keys=[*keys, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -290,7 +290,7 @@ def dimensionals(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
-            add_columns=add_columns,
+            add_keys=add_keys,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -357,7 +357,7 @@ def umaps(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -419,7 +419,7 @@ def umaps(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
@@ -569,12 +569,12 @@ def umaps(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*keys, *(add_columns or [])],
+        keys=[*keys, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -611,7 +611,7 @@ def umaps(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
-            add_columns=add_columns,
+            add_keys=add_keys,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -678,7 +678,7 @@ def tsnes(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -740,7 +740,7 @@ def tsnes(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
@@ -889,12 +889,12 @@ def tsnes(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*keys, *(add_columns or [])],
+        keys=[*keys, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -931,7 +931,7 @@ def tsnes(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
-            add_columns=add_columns,
+            add_keys=add_keys,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -997,7 +997,7 @@ def pcas(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -1059,7 +1059,7 @@ def pcas(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
@@ -1208,12 +1208,12 @@ def pcas(
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*keys, *(add_columns or [])],
+        keys=[*keys, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -1250,7 +1250,7 @@ def pcas(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
-            add_columns=add_columns,
+            add_keys=add_keys,
             groups=groups,
             drop=drop,
             tooltips=tooltips,
@@ -1318,7 +1318,7 @@ def expressions(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     observations_name: str = "Barcode",
@@ -1380,7 +1380,7 @@ def expressions(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -1522,12 +1522,12 @@ def expressions(
     variable_keys.extend(keys)
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*(add_columns or [])],
+        keys=[*(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -1565,7 +1565,7 @@ def expressions(
             xy=xy,
             size=size,
             variable_keys=variable_keys,
-            add_columns=add_columns,
+            add_keys=add_keys,
             tooltips=tooltips,
             observations_name=observations_name,
             color_low=color_low,

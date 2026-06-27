@@ -69,7 +69,7 @@ def spatial(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -163,7 +163,7 @@ def spatial(
         them. Categorical keys only.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
     include_dimensions : bool | int
@@ -298,13 +298,13 @@ def spatial(
     elif isinstance(variable_keys, Sequence):
         variable_keys = list(variable_keys)
 
-    # Collect the frame columns from the colour key, aes refs, and `add_columns`.
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    # Collect the frame columns from the colour key, aes refs, and `add_keys`.
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[key, *(add_columns or [])],
+        keys=[key, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,

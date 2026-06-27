@@ -14,7 +14,7 @@ Inconsistencies and "makes-no-sense" items found across the public API ahead of 
 
 ## B. Naming inconsistencies (same concept, two names)
 
-5. **`add_keys` vs `add_columns`** — same documented meaning ("additional keys/columns to include in the dataframe"). Distributions + ridge use `add_keys` (`distribution.py:84`); dimensional/xyplot/spatial use `add_columns` (`dimensional.py:105`). Pick one.
+5. ~~**`add_keys` vs `add_columns`**~~ — RESOLVED: standardized on `add_keys` across the board (renamed `add_columns` → `add_keys` in dimensional/subdimensional(s)/xyplot(s)/spatial(s)). Chosen because it matches the library's "key" vocabulary and accepts a gene/variable name as well as an obs column (so "column" was too narrow, and collided with the `value_column`/`variable_column` output-name params).
 
 6. **`line_type` vs `linetype`** — `elbow(line_type=...)` is the only one with an underscore; `cluster_outlines(linetype=...)` and `volcano(threshold_linetype=...)` (and lets-plot itself) use `linetype`.
 

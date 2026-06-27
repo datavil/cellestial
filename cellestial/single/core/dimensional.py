@@ -49,7 +49,7 @@ def dimensional(
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     variable_keys: Sequence[str] | str | None = None,
-    add_columns: Sequence[str] | str | None = None,
+    add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -102,7 +102,7 @@ def dimensional(
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    add_columns : str | Sequence[str] | None, default=None
+    add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`. Useful
         when an added layer reads a column the plot itself does not reference.
@@ -237,13 +237,13 @@ def dimensional(
     elif isinstance(variable_keys, Sequence):
         variable_keys = list(variable_keys)
 
-    # Collect the frame columns from the colour key, aes refs, and `add_columns`.
-    if isinstance(add_columns, str):
-        add_columns = [add_columns]
+    # Collect the frame columns from the colour key, aes refs, and `add_keys`.
+    if isinstance(add_keys, str):
+        add_keys = [add_keys]
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[key, *(add_columns or [])],
+        keys=[key, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
