@@ -71,3 +71,6 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `_reject_sequence_key` | GENERATED | Claude 4.8 |  |  |  |  |
 | `_require_feature_key` | GENERATED | Claude 4.8 |  |  |  |  |
 | `dimensional` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `histogram` | GENERATED | Claude 4.8 |  |  |  |  |
+| `histograms` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_distribution` | MODIFIED | Claude 4.8 |  |  |  |  |

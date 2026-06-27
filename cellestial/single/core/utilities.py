@@ -8,6 +8,7 @@ from anndata import AnnData
 from lets_plot import (
     aes,
     geom_boxplot,
+    geom_histogram,
     geom_jitter,
     geom_point,
     geom_sina,
@@ -43,7 +44,7 @@ def _distribution(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     mapping: FeatureSpec | None = None,
-    geom: Literal["violin", "boxplot"] = "violin",
+    geom: Literal["violin", "boxplot", "histogram"] = "violin",
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
@@ -212,6 +213,19 @@ def _distribution(
             mapping=aes(
                 x=group_by,
                 y=value_column,
+                **mapping.as_dict(),
+            ),
+            fill=geom_fill,
+            color=geom_color,
+            tooltips=frame.columns,
+            **geom_kwargs,
+        )
+    elif geom == "histogram":
+        # histogram puts the value on the x-axis; grouping rides `fill` (from
+        # mapping), not the x-axis, so `group_by` only filters rows here.
+        dst += geom_histogram(
+            mapping=aes(
+                x=value_column,
                 **mapping.as_dict(),
             ),
             fill=geom_fill,

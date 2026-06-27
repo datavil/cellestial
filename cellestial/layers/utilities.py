@@ -17,7 +17,7 @@ def borders(
     legend_size=4,
     plot_size=4,
 ) -> FeatureSpec:
-    """Add colored rectangels around panel, legend, and plot areas."""
+    """Add colored rectangles around panel, legend, and plot areas."""
     return theme(
         panel_background=element_rect(color=panel_color, size=panel_size),
         legend_background=element_rect(color=legend_color, size=legend_size),
