@@ -9,7 +9,7 @@
 - [Project: Cellestial tooling](project_cellestial_tooling.md) — Uses Poetry (not uv/pip) for deps and running commands
 - [Project: Cellestial code patterns](project_cellestial_patterns.md) — Naming conventions, parameter patterns, singular/plural pairs, type annotations, data transformation patterns
 - [Feedback: Test code changes](feedback_test_code.md) — Run actual test code against data/pbmc3k_pped.h5ad before reporting success
-- [Feedback: Sandbox Numba test runs](feedback_sandbox_numba.md) - Use NUMBA_DISABLE_JIT=1 when running commands in a sandboxed local workspace
+
 - [Feedback: Sync repo MEMORY.md](feedback_sync_repo_memory.md) — Mirror every auto-memory change in repo's `MEMORY.md` (index line + inlined source block)
 - [Feedback: Avoid shortened variable names](feedback_naming.md) — No abbreviations like `grp_idx`/`obs`/`cfg`; use full words (only `n`-style counts OK)
 - [Feedback: Docs avoid AnnData internals](feedback_docs_no_anndata_internals.md) — Don't reference AnnData slots OR scanpy APIs (`scanpy.tl.dendrogram`, `key_added`) in user-facing docstrings; abstract them
@@ -43,26 +43,6 @@ Plot functions must NOT narrow which embeddings get materialised into the frame 
 **Why:** Deferred layers added after the plot call (notably `cl.stream()`, the velocity layer in `cellestial/layers/stream.py`) read columns from the *already-built* frame via `retrieve(plot)`. `cl.stream()` needs a *different* embedding than the plotted one — e.g. plotting `X_umap` but reading `velocity_umap` -> `VELOCITY_UMAP1/2`. Since `cl.stream()` lets users name velocity columns arbitrarily (`velocity_key=` / `velocity_prefix=`), the plot call cannot predict which embeddings a later layer will need. Narrowing `dimension_keys=[prefix]` caused `KeyError: Velocity columns not found`.
 
 **How to apply:** When optimizing frame builds, narrow `metadata_columns` (unused obs/var columns) and skip the identifier column (`observations_name=None`) freely, but leave embeddings alone. Embeddings are cheap anyway (each capped at `max(xy)` columns). The other deferred layers (`arrow_axis`, `ondata_legend`, `cluster_outlines`, `bracket`) only read `x`/`y`/`color`, which are the plot's own aesthetics and always present, so `metadata_columns` narrowing is safe for them. See plans/frame_overhead_narrowing.md.
-
-
----
-
-## Source: feedback_sandbox_numba.md
-
---- 
-(CLAUDE, SKIP THIS SECTION! YOU DON'T HAVE TO USE `NUMBA_DISABLE_JIT=1`.)
-name: Use NUMBA_DISABLE_JIT in sandboxed local workspaces
-description: Use NUMBA_DISABLE_JIT=1 when running commands in a sandboxed local workspace
-type: feedback
----
-When running tests or other commands in a sandboxed local workspace, set `NUMBA_DISABLE_JIT=1`.
-
-**Why:** Numba JIT compilation can be slow or environment-sensitive under sandbox constraints. Disabling JIT makes command runs more reliable in that environment.
-
-**How to apply:** Prefix sandboxed test or script commands with `NUMBA_DISABLE_JIT=1`, for example `NUMBA_DISABLE_JIT=1 poetry run pytest ...`.
-
-
----
 
 ## Source: feedback_sync_repo_memory.md
 

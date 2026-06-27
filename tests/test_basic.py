@@ -131,12 +131,12 @@ def test_xyplot_variable_axis_custom_tooltip(adata):
     assert "n_cells_by_counts" in plot.as_dict()["data"]
 
 
-def test_xyplot_add_columns_materializes_obs_metadata_and_gene(adata):
+def test_xyplot_add_keys_materializes_obs_metadata_and_gene(adata):
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
         y="pct_counts_mt",
-        add_columns=["log1p_total_counts", "MS4A1"],
+        add_keys=["log1p_total_counts", "MS4A1"],
         tooltips="none",
     )
     assert isinstance(plot, PlotSpec)
@@ -145,25 +145,25 @@ def test_xyplot_add_columns_materializes_obs_metadata_and_gene(adata):
     assert "MS4A1" in data_columns
 
 
-def test_xyplot_variable_axis_add_columns_materializes_var_metadata(adata):
+def test_xyplot_variable_axis_add_keys_materializes_var_metadata(adata):
     plot = cl.xyplot(
         adata,
         x="mean_counts",
         y="total_counts",
         axis=1,
-        add_columns="n_cells_by_counts",
+        add_keys="n_cells_by_counts",
         tooltips="none",
     )
     assert isinstance(plot, PlotSpec)
     assert "n_cells_by_counts" in plot.as_dict()["data"].columns
 
 
-def test_xyplots_add_columns_materializes_shared_frame_columns(adata):
+def test_xyplots_add_keys_materializes_shared_frame_columns(adata):
     plot = cl.xyplots(
         adata,
         x="n_genes_by_counts",
         y=["pct_counts_mt", "pct_counts_ribo"],
-        add_columns=["log1p_total_counts", "MS4A1"],
+        add_keys=["log1p_total_counts", "MS4A1"],
         tooltips="none",
     )
     assert isinstance(plot, SupPlotsSpec)

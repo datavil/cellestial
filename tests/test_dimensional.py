@@ -154,7 +154,7 @@ def test_dimensionals_drop_propagates(adata, group_key):
     assert dropped not in set(panel["data"][group_key].to_list())
 
 
-# ---- frame narrowing: custom metadata tooltips and add_columns ----
+# ---- frame narrowing: custom metadata tooltips and add_keys ----
 
 
 def test_dimensionals_custom_metadata_tooltip(adata, group_key):
@@ -167,10 +167,10 @@ def test_dimensionals_custom_metadata_tooltip(adata, group_key):
         assert obs_column in panel["data"]
 
 
-def test_umap_add_columns_materializes_extra_columns(adata, group_key):
-    # `add_columns` forces obs metadata and gene columns into the frame so an
+def test_umap_add_keys_materializes_extra_columns(adata, group_key):
+    # `add_keys` forces obs metadata and gene columns into the frame so an
     # added layer can read columns the plot itself does not reference.
-    frame = retrieve(cl.umap(adata, group_key, add_columns=["n_genes_by_counts", "MS4A1"]))
+    frame = retrieve(cl.umap(adata, group_key, add_keys=["n_genes_by_counts", "MS4A1"]))
     assert "n_genes_by_counts" in frame.columns
     assert "MS4A1" in frame.columns
 
@@ -182,12 +182,12 @@ def test_umap_custom_metadata_tooltip_single(adata, group_key):
 
 
 @pytest.mark.parametrize("fn", [cl.umap, cl.pca, cl.tsne])
-def test_dimensional_wrappers_add_columns_materialize_extra_columns(adata, fn, group_key):
+def test_dimensional_wrappers_add_keys_materialize_extra_columns(adata, fn, group_key):
     frame = retrieve(
         fn(
             adata,
             group_key,
-            add_columns=["n_genes_by_counts", "MS4A1"],
+            add_keys=["n_genes_by_counts", "MS4A1"],
             tooltips="none",
         )
     )
@@ -196,11 +196,11 @@ def test_dimensional_wrappers_add_columns_materialize_extra_columns(adata, fn, g
 
 
 @pytest.mark.parametrize("fn", [cl.dimensionals, cl.umaps, cl.pcas, cl.tsnes])
-def test_plural_dimensional_wrappers_add_columns_shared_frame(adata, fn, group_key):
+def test_plural_dimensional_wrappers_add_keys_shared_frame(adata, fn, group_key):
     plot = fn(
         adata,
         [group_key, "CD14"],
-        add_columns=["n_genes_by_counts", "MS4A1"],
+        add_keys=["n_genes_by_counts", "MS4A1"],
         tooltips="none",
     )
     assert isinstance(plot, SupPlotsSpec)
@@ -210,12 +210,12 @@ def test_plural_dimensional_wrappers_add_columns_shared_frame(adata, fn, group_k
         assert "MS4A1" in panel_columns
 
 
-def test_expression_add_columns_materializes_extra_columns(adata):
+def test_expression_add_keys_materializes_extra_columns(adata):
     frame = retrieve(
         cl.expression(
             adata,
             "CD14",
-            add_columns=["n_genes_by_counts", "MS4A1"],
+            add_keys=["n_genes_by_counts", "MS4A1"],
             tooltips="none",
         )
     )
@@ -223,11 +223,11 @@ def test_expression_add_columns_materializes_extra_columns(adata):
     assert "MS4A1" in frame.columns
 
 
-def test_expressions_add_columns_materializes_shared_frame_columns(adata):
+def test_expressions_add_keys_materializes_shared_frame_columns(adata):
     plot = cl.expressions(
         adata,
         ["CD14", "MS4A1"],
-        add_columns="n_genes_by_counts",
+        add_keys="n_genes_by_counts",
         tooltips="none",
     )
     assert isinstance(plot, SupPlotsSpec)

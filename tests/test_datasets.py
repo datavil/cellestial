@@ -1,5 +1,3 @@
-import sys
-import types
 import urllib.request
 
 import anndata as ad
@@ -14,19 +12,6 @@ def _small_adata() -> ad.AnnData:
     data.obs_names = [f"cell_{i}" for i in range(4)]
     data.var_names = ["MT-ND1", "RPS3", "HBA1", "CD3D"]
     return data
-
-
-def _run_steps_immediately(steps, desc):
-    assert desc.startswith("Preprocessing")
-    for _, _, action in steps:
-        action()
-
-
-def test_require_extras_reports_missing_module(monkeypatch):
-    monkeypatch.setattr(datasets.importlib.util, "find_spec", lambda module: None)
-
-    with pytest.raises(ImportError, match="requires optional dependencies"):
-        datasets._require_extras("demo", "missing")
 
 
 def test_resolve_cache_file_bring_and_remove(tmp_path, monkeypatch):
@@ -54,145 +39,32 @@ def test_resolve_cache_file_bring_and_remove(tmp_path, monkeypatch):
     assert not cache_file.exists()
 
 
-def test_run_steps_executes_actions():
-    calls = []
+@pytest.mark.parametrize(
+    ("loader", "expected_filename"),
+    [
+        (datasets.pbmc3k, "pbmc3k_pped.h5ad"),
+        (datasets.pancreas, "endocrinogenesis_day15_pped.h5ad"),
+        (datasets.human_lymph_node, "V1_Human_Lymph_Node_pped.h5ad"),
+    ],
+)
+def test_bundled_loader_delegates_to_from_url(loader, expected_filename, tmp_path, monkeypatch):
+    # The bundled datasets are now downloaded pre-preprocessed, so each loader is
+    # a thin wrapper that forwards its caching args to `from_url` with a fixed URL.
+    calls = {}
 
-    datasets._run_steps(
-        [
-            ("first", "one()", lambda: calls.append("one")),
-            ("second", "two()", lambda: calls.append("two")),
-        ],
-        desc="Preprocessing {demo}",
-    )
+    def fake_from_url(url, *, cache_directory, use_cache, bring):
+        calls.update(url=url, cache_directory=cache_directory, use_cache=use_cache, bring=bring)
+        return _small_adata()
 
-    assert calls == ["one", "two"]
+    monkeypatch.setattr(datasets, "from_url", fake_from_url)
 
-
-def test_pbmc3k_preprocess_pipeline_with_fakes(tmp_path, monkeypatch):
-    monkeypatch.setattr(datasets, "_require_extras", lambda *args: None)
-    monkeypatch.setattr(datasets, "_run_steps", _run_steps_immediately)
-
-    class FakeRegistry:
-        def load_registry_from_doi(self):
-            self.loaded = True
-
-        def fetch(self, filename):
-            return filename
-
-    fake_pooch = types.SimpleNamespace(
-        create=lambda path, base_url: FakeRegistry(),
-        os_cache=lambda name: str(tmp_path / name),
-    )
-
-    def read_10x_h5(path):
-        data = _small_adata()
-        data.obs["source"] = path
-        return data
-
-    def leiden(data, key_added="leiden", resolution=None, **kwargs):
-        data.obs[key_added] = ["0", "1", "2", "3", "0", "1", "2", "3"][: data.n_obs]
-
-    fake_scanpy = types.SimpleNamespace(
-        read_10x_h5=read_10x_h5,
-        pp=types.SimpleNamespace(
-            calculate_qc_metrics=lambda *args, **kwargs: None,
-            filter_cells=lambda *args, **kwargs: None,
-            filter_genes=lambda *args, **kwargs: None,
-            scrublet=lambda *args, **kwargs: None,
-            normalize_total=lambda *args, **kwargs: None,
-            log1p=lambda *args, **kwargs: None,
-            highly_variable_genes=lambda *args, **kwargs: None,
-            neighbors=lambda *args, **kwargs: None,
-        ),
-        tl=types.SimpleNamespace(
-            pca=lambda *args, **kwargs: None,
-            umap=lambda *args, **kwargs: None,
-            tsne=lambda *args, **kwargs: None,
-            leiden=leiden,
-        ),
-    )
-
-    monkeypatch.setitem(sys.modules, "pooch", fake_pooch)
-    monkeypatch.setitem(sys.modules, "scanpy", fake_scanpy)
-
-    data = datasets.pbmc3k(cache_directory=tmp_path, use_cache=False, bring=False)
+    data = loader(cache_directory=tmp_path, use_cache=False, bring=False)
 
     assert isinstance(data, ad.AnnData)
-    assert "counts" in data.layers
-    assert "cell_type_lvl1" in data.obs
-    assert (tmp_path / "pbmc3k_pped.h5ad").exists()
-
-
-def test_pancreas_preprocess_pipeline_with_fakes(tmp_path, monkeypatch):
-    monkeypatch.setattr(datasets, "_require_extras", lambda *args: None)
-    monkeypatch.setattr(datasets, "_run_steps", _run_steps_immediately)
-
-    fake_scanpy = types.SimpleNamespace(
-        pp=types.SimpleNamespace(neighbors=lambda *args, **kwargs: None),
-    )
-    fake_scvelo = types.SimpleNamespace(
-        datasets=types.SimpleNamespace(pancreas=lambda raw_file: _small_adata()),
-        pp=types.SimpleNamespace(
-            filter_and_normalize=lambda *args, **kwargs: None,
-            moments=lambda *args, **kwargs: None,
-        ),
-        tl=types.SimpleNamespace(
-            velocity=lambda *args, **kwargs: None,
-            velocity_graph=lambda *args, **kwargs: None,
-            velocity_embedding=lambda *args, **kwargs: None,
-        ),
-    )
-
-    monkeypatch.setitem(sys.modules, "scanpy", fake_scanpy)
-    monkeypatch.setitem(sys.modules, "scvelo", fake_scvelo)
-
-    data = datasets.pancreas(cache_directory=tmp_path, use_cache=False, bring=False)
-
-    assert isinstance(data, ad.AnnData)
-    assert (tmp_path / "endocrinogenesis_day15_pped.h5ad").exists()
-
-
-def test_human_lymph_node_preprocess_pipeline_with_fakes(tmp_path, monkeypatch):
-    monkeypatch.setattr(datasets, "_require_extras", lambda *args: None)
-    monkeypatch.setattr(datasets, "_run_steps", _run_steps_immediately)
-
-    def visium_sge(sample_id):
-        data = _small_adata()
-        data.obs["pct_counts_mt"] = [5.0, 10.0, 25.0, 1.0]
-        return data
-
-    def calculate_qc_metrics(data, qc_vars, inplace):
-        data.obs["pct_counts_mt"] = [5.0, 10.0, 25.0, 1.0]
-
-    def leiden(data, key_added, **kwargs):
-        data.obs[key_added] = [str(i) for i in range(data.n_obs)]
-
-    fake_scanpy = types.SimpleNamespace(
-        datasets=types.SimpleNamespace(visium_sge=visium_sge),
-        pp=types.SimpleNamespace(
-            calculate_qc_metrics=calculate_qc_metrics,
-            filter_cells=lambda *args, **kwargs: None,
-            filter_genes=lambda *args, **kwargs: None,
-            normalize_total=lambda *args, **kwargs: None,
-            log1p=lambda *args, **kwargs: None,
-            highly_variable_genes=lambda *args, **kwargs: None,
-            pca=lambda *args, **kwargs: None,
-            neighbors=lambda *args, **kwargs: None,
-        ),
-        tl=types.SimpleNamespace(
-            umap=lambda *args, **kwargs: None,
-            leiden=leiden,
-        ),
-    )
-
-    monkeypatch.setitem(sys.modules, "scanpy", fake_scanpy)
-
-    data = datasets.human_lymph_node(cache_directory=tmp_path, use_cache=False, bring=False)
-
-    assert isinstance(data, ad.AnnData)
-    assert data.n_obs == 3
-    assert "clusters" in data.obs
-    assert (tmp_path / "V1_Human_Lymph_Node_pped.h5ad").exists()
+    assert calls["url"].endswith(expected_filename)
+    assert calls["cache_directory"] == tmp_path
+    assert calls["use_cache"] is False
+    assert calls["bring"] is False
 
 
 def test_from_url_downloads_and_reads(tmp_path, monkeypatch):
