@@ -28,7 +28,7 @@ def highest_expressed_genes(
     value_column: str = "value",
     variable_column: str = "variable",
     color: str = "#1f1f1f",
-    size=0.5,
+    size: float = 0.5,
     outlier_size: float = 0.2,
     outlier_alpha: float = 0.5,
     fatten: float = 1,

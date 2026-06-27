@@ -31,6 +31,7 @@ from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import PlotSpec
+    from lets_plot.plot.subplots import SupPlotsSpec
 
 
 def volcano(
@@ -416,7 +417,7 @@ def volcanos(
     align: bool | None = None,
     guides: str = "auto",
     **point_kwargs,
-):
+) -> SupPlotsSpec:
     """
     Grid of volcano plots, one per group.
 

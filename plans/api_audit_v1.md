@@ -4,13 +4,13 @@ Inconsistencies and "makes-no-sense" items found across the public API ahead of 
 
 ## A. Clear defects / "makes-no-sense" (fix before 1.0)
 
-1. **`borders()` has debug-colour defaults** — defaults are `panel_color="green", legend_color="blue", plot_color="red"`. Those are primary-colour placeholders, not a sensible public default. Should default to something neutral/off. Docstring also has a typo: "rectangels".
+1. **`borders()` has debug-colour defaults** — defaults are `panel_color="green", legend_color="blue", plot_color="red"`. ACCEPTED AS-IS (intentional, kept for debugging panel/legend/plot regions).
 
-2. **`stream(cutoff_percentile)` is mis-typed as `None`** — `cellestial/layers/stream.py:34` annotates `cutoff_percentile: None = None`, but the docstring says `float | None` and it is actually used at `stream.py:244`. The annotation says "only `None` is valid," contradicting its own behavior. Should be `float | None`.
+2. ~~**`stream(cutoff_percentile)` is mis-typed as `None`**~~ — FIXED: now `float | None`.
 
-3. **`volcanos` is missing its return annotation** — every other plural returns `-> SupPlotsSpec`; `volcanos` has none.
+3. ~~**`volcanos` is missing its return annotation**~~ — FIXED: now `-> SupPlotsSpec`.
 
-4. **`highest_expressed_genes(size=0.5)` is untyped** — every comparable param is annotated `float`; this one alone has no annotation.
+4. ~~**`highest_expressed_genes(size=0.5)` is untyped**~~ — FIXED: now `size: float = 0.5`.
 
 ## B. Naming inconsistencies (same concept, two names)
 

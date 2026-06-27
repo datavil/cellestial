@@ -31,7 +31,7 @@ def stream(
     smooth: float = 0.5,
     n_neighbors: int | None = None,
     min_mass: int = 1,
-    cutoff_percentile: None = None,
+    cutoff_percentile: float | None = None,
     density: float = 2,
     max_length: float = 4,
     integration_direction: Literal["forward", "backward", "both"] = "both",

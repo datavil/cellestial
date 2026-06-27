@@ -74,3 +74,6 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `histogram` | GENERATED | Claude 4.8 |  |  |  |  |
 | `histograms` | GENERATED | Claude 4.8 |  |  |  |  |
 | `_distribution` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `stream` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `volcanos` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `highest_expressed_genes` | MODIFIED | Claude 4.8 |  |  |  |  |
