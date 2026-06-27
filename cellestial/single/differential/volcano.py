@@ -82,7 +82,8 @@ def volcano(
         The single-cell data object holding a precomputed differential
         expression ranking.
     group : str
-        The group name to plot results for.
+        Which level of `group_by` to plot the differential-expression
+        ranking for, e.g. "B Cells" vs the rest.
     group_by : str | None, default=None
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
@@ -427,7 +428,8 @@ def volcanos(
         The single-cell data object holding a precomputed differential
         expression ranking.
     groups : Sequence[str]
-        The group names to plot results for. One subplot per group.
+        Which levels of `group_by` to plot, one subplot per group. Each
+        shows that group's ranking, e.g. "B Cells" vs the rest.
     group_by : str | None, default=None
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different

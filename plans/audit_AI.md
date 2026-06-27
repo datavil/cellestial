@@ -81,3 +81,8 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `xyplots` | MODIFIED | Claude 4.8 |  |  |  |  |
 | `spatial` | MODIFIED | Claude 4.8 |  |  |  |  |
 | `spatials` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `elbow` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `expression` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `build_frame` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `anndata_observations_frame` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `anndata_variables_frame` | MODIFIED | Claude 4.8 |  |  |  |  |

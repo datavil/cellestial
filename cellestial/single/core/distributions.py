@@ -55,8 +55,8 @@ def violins(
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -130,8 +130,8 @@ def violins(
     value_column : str, default='value'
         Additional layers to add to the plot.
         The name of the value column in the dataframe.
-    share_ticks : bool, default=True
-        Whether to share the labels across all plots.
+    share_ticks : bool, default=False
+        Whether to share the ticks across all plots.
         If True, only X tick texts on bottom row and Y tick text on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
@@ -341,8 +341,8 @@ def boxplots(
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -413,8 +413,8 @@ def boxplots(
         The name of the variable column in the dataframe.
     value_column : str, default='value'
         The name of the value column in the dataframe.
-    share_ticks : bool, default=True
-        Whether to share the labels across all plots.
+    share_ticks : bool, default=False
+        Whether to share the ticks across all plots.
         If True, only X tick texts on bottom row and Y tick text on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.
@@ -622,8 +622,8 @@ def histograms(
     ncol: int | None = None,
     sharex: str | None = None,
     sharey: str | None = None,
-    widths: list | None = None,
-    heights: list | None = None,
+    widths: list[float] | None = None,
+    heights: list[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
     fit: bool | None = None,
@@ -686,7 +686,7 @@ def histograms(
     value_column : str, default='value'
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the labels across all plots.
+        Whether to share the ticks across all plots.
         If True, only X tick texts on bottom row and Y tick text on left column are shown.
     share_axis : bool, default=False
         Whether to share the axis across all plots.

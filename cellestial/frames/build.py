@@ -57,7 +57,7 @@ def anndata_observations_frame(
     /,
     variable_keys: str | Sequence[str] | None = None,
     *,
-    observations_name: str | None = "barcode",
+    observations_name: str | None = "Barcode",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -72,7 +72,7 @@ def anndata_observations_frame(
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str | None, optional
-        The name of the observation identifier column, default is 'barcode'.
+        The name of the observation identifier column, default is 'Barcode'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
         Whether to include dimensions from embeddings in the DataFrame, default is False.
@@ -169,7 +169,7 @@ def anndata_observations_frame(
 def anndata_variables_frame(
     data: AnnData,
     *,
-    variables_name: str | None = "variable",
+    variables_name: str | None = "Variable",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -182,7 +182,7 @@ def anndata_variables_frame(
     data : AnnData
         The AnnData object containing the variables.
     variables_name : str | None
-        Name for the variable identifier column, default is 'variable'.
+        Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
         Whether to include variable-axis embeddings in the DataFrame, default is False.
@@ -291,8 +291,8 @@ def build_frame(
     *,
     variable_keys: str | Sequence[str] | None = None,
     axis: Literal[0, 1] | None = None,
-    observations_name: str | None = "barcode",
-    variables_name: str | None = "variable",
+    observations_name: str | None = "Barcode",
+    variables_name: str | None = "Variable",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -309,10 +309,10 @@ def build_frame(
     axis : {0,1} | None
         The axis to build the frame for. 0 for observations, 1 for variables.
     observations_name : str | None
-        The name of the observation identifier column, default is 'barcode'.
+        The name of the observation identifier column, default is 'Barcode'.
         Pass `None` to omit the identifier column entirely.
     variables_name : str | None
-        Name for the variable identifier column, default is 'variable'.
+        Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
         Whether to include dimensions in the DataFrame, default is False.

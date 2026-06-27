@@ -609,7 +609,7 @@ def expression(
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     mid_point: Literal["mean", "median", "mid"] | float = "median",
-    axis_type: Literal["axis", "arrow"] | None = "axis",
+    axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
     arrow_color: str = "#3f3f3f",

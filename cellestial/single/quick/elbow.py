@@ -32,7 +32,7 @@ def elbow(
     color: str = "#1f1f1f",
     size: float = 4.0,
     line_size: float = 1,
-    line_type: str = "dashed",
+    linetype: str = "dashed",
     label: bool = False,
     label_size: float = 4.0,
     label_every: int = 5,
@@ -62,7 +62,7 @@ def elbow(
         Size of the points.
     line_size : float, default=1
         Size of the connecting line.
-    line_type : str, default='dashed'
+    linetype : str, default='dashed'
         Linetype of the connecting line (e.g., 'solid', 'dashed', 'dotted').
     label : bool, default=False
         If True, draw a vertical `PC{n}` label on each selected component using `geom_label`.
@@ -139,7 +139,7 @@ def elbow(
 
     # BUILD: elbow plot
     plot = ggplot(frame, mapping=mapping)
-    plot += geom_line(color=color, size=line_size, linetype=line_type)
+    plot += geom_line(color=color, size=line_size, linetype=linetype)
     plot += geom_point(color=color, size=size, **geom_kwargs)
 
     # ADD: per-component labels (PC{label_every}, PC{2*label_every}, ...)
