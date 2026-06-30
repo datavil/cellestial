@@ -2,6 +2,7 @@ from lets_plot import LetsPlot
 
 from cellestial import datasets
 from cellestial._version import __version__, versions
+from cellestial.complex import annotated_heatmap
 from cellestial.frames import build_frame
 from cellestial.layers import arrow_axis, borders, bracket, cluster_outlines, ondata_legend, stream
 from cellestial.single import (
@@ -75,6 +76,7 @@ __all__ = [
     "SNOW",
     "TEAL",
     "__version__",
+    "annotated_heatmap",
     "arrow_axis",
     "bar",
     "borders",

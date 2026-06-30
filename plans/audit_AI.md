@@ -86,3 +86,12 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `build_frame` | MODIFIED | Claude 4.8 |  |  |  |  |
 | `anndata_observations_frame` | MODIFIED | Claude 4.8 |  |  |  |  |
 | `anndata_variables_frame` | MODIFIED | Claude 4.8 |  |  |  |  |
+| `annotated_heatmap` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_order_observations` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_annotation_strip` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_as_list` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_bin_observations` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_assign_position_y` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_annotation_scale` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_dendrogram_panel` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_blank_strip_theme` | GENERATED | Claude 4.8 |  |  |  |  |

@@ -27,6 +27,8 @@
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
 - [Project: Deferred layers read the built frame](project_deferred_layers_read_frame.md) — Don't narrow embeddings in plot functions; `cl.stream()` reads velocity embeddings from the frame after the plot call
 - [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under the current poetry version in repo-root `CHANGELOG.md` (`### Breaking` + migration note)
+- [Project: geom_raster aspect lock](project_letsplot_geom_raster_aspect.md) — lets-plot geom_raster forces square pixels; cl.heatmap rescales y, cl.annotated_heatmap (cellestial/complex) uses geom_tile + gggrid(align, guides)
+- [Project: annotated_heatmap overflow](project_annotated_heatmap_overflow.md) — cl.annotated_heatmap layout: dendrogram clip fixed (expand left margin), legend overflow fixed (bottom horizontal compact, set on subplots+grid); per-track brewer palettes; bar-end labels tried+reverted (leftmost row-label column clips). ggsize is not a fix.
 
 
 ---
@@ -475,6 +477,18 @@ type: project
 - Color constants: TEAL, BLUE, RED, CHERRY, LIGHT_GRAY, SNOW, PURPLE, PINK, ORANGE
 - Custom exceptions: ConflictingKeysError, KeyNotFoundError, ConfilictingLengthError
 
+## complex/annotated_heatmap.py
+
+- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observations_name` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. Excludes `group_bars*`/`aggregate`/`key_labels*`/`geom`/`markers` (contradict the composite). All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
+- `_order_observations(frame, group_by, group_order=None)` — sorts rows into contiguous group blocks (explicit group_order e.g. from dendrogram, else first-appearance; group_by=None -> unchanged); returns (frame, group_order|None)
+- `_bin_observations(frame, group_by, max_rows)` — caps rows; reuses heatmap's `_bin_within_groups` proportional per-group allocation formula (not shared code); numeric->mean, categorical->mode
+- `_assign_position_y(frame)` — adds `position_y`, first row at top
+- `_annotation_scale(series, colors)` — resolves a track's fill scale
+- `_annotation_strip(frame, position, value, horizontal, legend, colors, position_limits)` — one-row/col track plot
+- `_dendrogram_panel(paths, group_centers, n_groups, position_limits, color, size, kwargs)` — group dendrogram as a left vertical panel (geom_path; leaves at group centers, root extends left)
+- `_blank_strip_theme(legend)` — void theme shared by tracks + dendrogram
+- `_as_list(keys)` — str|Sequence|None -> list
+
 
 ---
 
@@ -700,3 +714,90 @@ matters more as the project approaches v1.0.
 section `## [X.Y.Z] - YYYY-MM-DD`. If the version hasn't been bumped yet, put
 entries under `## [Unreleased]` and rename the heading once bumped. Related:
 feedback_audit_ai_tracking.
+
+---
+
+## Source: project_letsplot_geom_raster_aspect.md
+
+---
+name: project_letsplot_geom_raster_aspect
+description: lets-plot geom_raster locks square pixels (data aspect); heatmaps must dodge it
+metadata:
+  type: project
+---
+
+In lets-plot (4.10), `geom_raster` renders with square pixels: the panel aspect
+is forced to the data dimensions (n_x : n_y). For a heatmap with few columns and
+many rows this collapses to a thin line. Two ways the repo handles it:
+
+- `cl.heatmap` (single ggplot): rescales per-cell `position_y` to span `[0, n_x-1]`
+  (same range as x) in `_assign_positions` (`y_step = (n_x-1)/(n_y-1)`), so raster's
+  square pixels yield a square-ish plot regardless of cell count.
+- `cl.annotated_heatmap` (in `cellestial/complex`, a `gggrid` composite): now uses
+  `geom_raster` + `coord_cartesian()`. `coord_cartesian()` FREES raster's forced
+  square-pixel aspect (without it the few-column many-row heatmap collapses to a thin
+  sliver, verified), so the grid widths/heights control the shape. This is a simpler
+  dodge than `cl.heatmap`'s y-rescaling. Annotation strips still use `geom_tile`.
+
+Composite alignment relies on `gggrid(align=True)` (aligns panel areas across the
+grid despite differing axis labels) and `guides="collect"` (gathers each track's
+legend). `aes()` objects do not combine with `+`; build one `aes(...)` per geom.
+See [[project_cellestial_functions]] and [[project_annotated_heatmap_overflow]].
+
+---
+
+## Source: project_annotated_heatmap_overflow.md
+
+---
+name: project_annotated_heatmap_overflow
+description: cl.annotated_heatmap layout fixes (dendrogram clip, legend overflow) and why bar-end track labels were reverted
+metadata:
+  type: project
+---
+
+`cl.annotated_heatmap` (`cellestial/complex/annotated_heatmap.py`, a `gggrid`
+composite) layout notes:
+
+- **Dendrogram clip (fixed)**: the root segment sat flush on the panel/canvas edge.
+  Fixed by giving `_dendrogram_panel`'s `scale_x_continuous` a small left margin
+  (`expand=[0.05, 0]`). ggsize does NOT fix this (it only rescales proportionally).
+- **Legend overflow (fixed)**: collected legends stacked into one tall right-side
+  column that clipped off the bottom. Fixed by moving them to one bottom row.
+  KEY lets-plot 4.10 gotcha for `gggrid(guides="collect")`: the grid theme controls
+  ONLY legend PLACEMENT/arrangement (`legend_position`, `legend_box`,
+  `legend_direction`); legend ELEMENT properties (`legend_position` per subplot,
+  `legend_key_size`, `legend_text`, `legend_title` sizes) must be set on the SUBPLOTS
+  that own each legend, or they are ignored. So: subplots (heatmap +
+  `_blank_strip_theme`) carry `legend_position="bottom"` + `_LEGEND_THEME`
+  (key_size=10, text size 9, title size 10); the grid carries only
+  `theme(legend_position="bottom", legend_box="horizontal", legend_direction="horizontal")`.
+  Other facts: collected legends arrange as ONE row (`legend_box="horizontal"`) or ONE
+  column (`"vertical"`) only, no N-per-row / ncol / wrapping (verified; manual
+  carrier-plot hack looks bad). No legend-title-position param either, but
+  `legend_direction="vertical"` puts each title above its keys.
+- Each annotation track gets a distinct ColorBrewer palette cycled from
+  `_BREWER_PALETTES` via `scale_fill_brewer` (categorical tracks only; numeric keep
+  the gray gradient). Palette order is qualitative-first (Spectral, Accent, Dark2,
+  Paired, Pastel1/2, Set1/2/3) then diverging. Strip x-axis lines removed via
+  `axis_line=element_blank()`.
+- **Bold legend titles**: a legend title's `face` is inherited from the parent
+  `title` element, NOT from `legend_title` (setting `face` on `legend_title` does
+  nothing). So `_LEGEND_THEME` sets `title=element_text(face="bold")` (safe because
+  axis titles are blanked). This bolds the categorical track titles; the continuous
+  colorbar ("value") title does NOT bold under gggrid collection (lets-plot quirk,
+  unresolved).
+- **`layers` param**: `annotated_heatmap(..., layers=<FeatureSpec>)` adds extra
+  lets-plot layers to the heatmap (combine several with `+`); a `scale_fill_*` like
+  `scale_fill_viridis()` overrides the default value gradient (added after it, last
+  wins, no warning). Just `htmp += layers` after the heatmap is built.
+
+**Bar-end track labels were tried and REVERTED.** The idea: dedicated label lanes
+in the grid (top lane for row-track names rotated vertical, right lane for
+column-track names). Column (horizontal) labels worked. The vertical row labels did
+not: they live in the thin row-annotation columns (`row_annotation_width` ~0.025) and
+the LEFTMOST row-label cell collapses to near-zero width and clips the text to
+slivers, independent of `align` (False too) and of text length (swapping order moves
+the clip to whichever name is leftmost). A real fix needs the labels decoupled from
+the thin strip columns (e.g. one spanning label panel), not per-strip cells.
+
+See [[project_letsplot_geom_raster_aspect]].
