@@ -30,7 +30,7 @@ from lets_plot import (
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import _scale_values
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _fill_gradient, _get_dendrogram
+from cellestial.util import _fill_gradient, _get_dendrogram, _warn
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
@@ -93,8 +93,8 @@ def _as_layers(layers: FeatureSpec | Sequence[FeatureSpec] | None) -> list[Featu
     if layers is None:
         return []
     if isinstance(layers, (list, tuple)):
-        return list(layers)
-    return [layers]
+        return list(layers)  # ty:ignore[invalid-return-type]
+    return [layers]  # ty:ignore[invalid-return-type]
 
 
 def _apply_layers(plot: PlotSpec, layers: Sequence[FeatureSpec]) -> PlotSpec:
@@ -338,14 +338,15 @@ def annotated_heatmap(
     row_annotations: str | Sequence[str] | None = None,
     annotation_colors: Mapping[str, AnnotationColors] | None = None,
     mapping: FeatureSpec | None = None,
+    geom: Literal["raster", "tile"] = "raster",
     layers: FeatureSpec | Sequence[FeatureSpec] | None = None,
     layers_all: FeatureSpec | Sequence[FeatureSpec] | None = None,
     scale_axis: Literal[0, 1] | None = None,
     transpose: bool = False,
     dendrogram: bool = False,
     group_lines: bool = True,
-    group_lines_color: str = "black",
-    group_lines_size: float = 0.5,
+    group_lines_color: str = "white",
+    group_lines_size: float = 0.6,
     group_lines_kwargs: dict | None = None,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
@@ -368,12 +369,7 @@ def annotated_heatmap(
     **geom_kwargs,
 ) -> SupPlotsSpec:
     """
-    Annotated heatmap with metadata tracks along both axes.
-
-    Rows are observations, columns are the variable `keys`. Variable-metadata
-    tracks are drawn above the heatmap (over the columns) and observation-metadata
-    tracks to its left (over the rows). The result is a composite assembled with
-    `gggrid`; the panels are aligned and every track keeps its own legend.
+    Annotated heatmap.
 
     Parameters
     ----------
@@ -394,6 +390,9 @@ def annotated_heatmap(
         gradient for numeric tracks). Tracks without an entry use the defaults.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the heatmap, the result of `aes()`.
+    geom : {'raster', 'tile'}, default='raster'
+        The geom to use for the heatmap cells. Use 'raster' for performance.
+        Use 'tile' to enable tooltips.
     layers : FeatureSpec | Sequence[FeatureSpec] | None, default=None
         Extra lets-plot layers to add to the heatmap, such as a scale or theme; a
         single spec or a sequence of them. A `scale_fill_*` (e.g.
@@ -415,9 +414,9 @@ def annotated_heatmap(
         The clustering is computed if not already available. Requires `group_by`.
     group_lines : bool, default=True
         Whether to draw horizontal separator lines between groups.
-    group_lines_color : str, default='black'
+    group_lines_color : str, default='white'
         Color of the group separator lines.
-    group_lines_size : float, default=0.5
+    group_lines_size : float, default=0.6
         Size (thickness) of the group separator lines.
     group_lines_kwargs : dict | None, default=None
         Additional parameters for the group separator `geom_segment`.
@@ -479,6 +478,12 @@ def annotated_heatmap(
     ValueError
         If `dendrogram` is set without `group_by`.
 
+    Notes
+    -----
+    Rows are observations and columns are the variable `keys`. Variable tracks
+    sit above the heatmap and observation tracks to its left. The panels are
+    composed with `gggrid`, each keeping its own legend.
+
     Examples
     --------
     .. jupyter-execute::
@@ -511,9 +516,13 @@ def annotated_heatmap(
         raise ValueError(msg)
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
-    dendrogram_order, dendrogram_paths = (
-        _get_dendrogram(data, group_by, use_key=dendrogram_key) if dendrogram else (None, None)
-    )
+    if dendrogram:
+        assert group_by is not None  # guaranteed by the guard above
+        dendrogram_order, dendrogram_paths = _get_dendrogram(
+            data, group_by, use_key=dendrogram_key
+        )
+    else:
+        dendrogram_order, dendrogram_paths = None, None
 
     # BUILD: observation frame with expression and row metadata, order, then bin.
     metadata = [group_by, *row_annotations] if group_by is not None else list(row_annotations)
@@ -547,10 +556,17 @@ def annotated_heatmap(
         frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
 
     n_keys = len(keys)
-    n_obs = observations.height
+    n_observations = observations.height
     key_limits = (-0.5, n_keys - 0.5)
-    obs_limits = (-0.5, n_obs - 0.5)
+    observation_limits = (-0.5, n_observations - 0.5)
     mapping = mapping or aes()
+
+    if "tooltips" in geom_kwargs and geom == "raster":
+        _warn(
+            "\nWarning: tooltips are not supported for 'raster' geom and will be ignored."
+            "\nUse 'tile' geom to enable tooltips."
+        )
+        geom_kwargs.pop("tooltips")
 
     # Axis roles. `position_x` holds the variable-key index, `position_y` the
     # observation index; `transpose` swaps which is drawn on the visual x-axis.
@@ -560,23 +576,28 @@ def annotated_heatmap(
         key_scale = scale_y_continuous(
             breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
         )
-        observation_scale = scale_x_continuous(limits=list(obs_limits), expand=[0, 0])
+        observation_scale = scale_x_continuous(limits=list(observation_limits), expand=[0, 0])
         blank_observation_axis = theme(axis_text_x=element_blank(), axis_ticks_x=element_blank())
     else:
         heatmap_x, heatmap_y = "position_x", "position_y"
         key_scale = scale_x_continuous(
             breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
         )
-        observation_scale = scale_y_continuous(limits=list(obs_limits), expand=[0, 0])
+        observation_scale = scale_y_continuous(limits=list(observation_limits), expand=[0, 0])
         blank_observation_axis = theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
 
-    # MAIN heatmap. `geom_raster` renders the cells as one image (fast for many cells);
-    # aspect stays controllable through the grid widths/heights.
+    # MAIN heatmap. `raster` renders the cells as one image (fast for many cells);
+    # `tile` draws individual cells and supports tooltips. Aspect stays controllable
+    # through the grid widths/heights.
+    aes_main = aes(heatmap_x, heatmap_y, fill=value_column, **mapping.as_dict())
+    geom_layer = (
+        geom_raster(aes_main, **geom_kwargs)
+        if geom == "raster"
+        else geom_tile(aes_main, **geom_kwargs)
+    )
     htmp = (
         ggplot(frame)
-        + geom_raster(
-            aes(heatmap_x, heatmap_y, fill=value_column, **mapping.as_dict()), **geom_kwargs
-        )
+        + geom_layer
         + _fill_gradient(
             frame[value_column],
             color_low=color_low,
@@ -595,7 +616,7 @@ def annotated_heatmap(
         + _LEGEND_THEME
     )
     if interactive:
-        htmp += ggtb()
+        htmp += ggtb(size_zoomin=-1)
     # Extra user layers for the heatmap, a single spec or a sequence. A `scale_fill_*`
     # here overrides the default value gradient (lets-plot keeps the last scale).
     htmp = _apply_layers(htmp, _as_layers(layers))
@@ -608,7 +629,7 @@ def annotated_heatmap(
         running = 0
         for size in sizes[:-1]:
             running += size
-            boundaries.append(n_obs - running - 0.5)
+            boundaries.append(n_observations - running - 0.5)
         if transpose:
             lines = pl.DataFrame({"x": boundaries})
             htmp += geom_segment(
@@ -689,13 +710,16 @@ def annotated_heatmap(
             legend=legend,
             colors=annotation_colors.get(annotation),
             palette=palette_of[annotation],
-            position_limits=obs_limits,
+            position_limits=observation_limits,
         )
         row_strips.append(_apply_layers(strip, shared_layers))
 
     # DENDROGRAM panel (group clustering), drawn alongside the observation axis.
     dendrogram_panel = None
     if dendrogram:
+        assert group_by is not None
+        assert dendrogram_paths is not None
+        assert group_order is not None
         centers = observations.group_by(group_by, maintain_order=True).agg(
             pl.col("position_y").mean().alias("_center")
         )
@@ -706,7 +730,7 @@ def annotated_heatmap(
                 dendrogram_paths,
                 group_centers=group_centers,
                 n_groups=len(group_order),
-                position_limits=obs_limits,
+                position_limits=observation_limits,
                 color=dendrogram_color,
                 size=dendrogram_size,
                 side=observation_side,
@@ -759,11 +783,11 @@ def annotated_heatmap(
         row_cells = [htmp, *reversed(flank_panels)]
         widths = [1.0, *reversed(flank_thickness)]
         heatmap_column = 0
-    n_cols = len(row_cells)
+    n_columns = len(row_cells)
 
     def _stack_row(panel: PlotSpec) -> list[PlotSpec | None]:
         """A grid row holding one stacked track in the heatmap column, else empty."""
-        row: list[PlotSpec | None] = [None] * n_cols
+        row: list[PlotSpec | None] = [None] * n_columns
         row[heatmap_column] = panel
         return row
 
@@ -793,11 +817,11 @@ def annotated_heatmap(
     heights = [*top_thickness, 1.0, *bottom_thickness]
     grid = gggrid(
         plots,
-        ncol=n_cols,
+        ncol=n_columns,
         widths=widths,
         heights=heights,
         align=True,
-        guides="collect" if legend else None,
+        guides="collect" if legend else None,  # ty:ignore[invalid-argument-type]
     )
     if legend:
         # The grid only places/arranges the collected legends (one bottom row); their

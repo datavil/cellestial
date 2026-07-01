@@ -151,7 +151,7 @@ def heatmap(
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_segment.
+        Additional parameters to pass to the dendrogram geom_path.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
@@ -624,7 +624,7 @@ def matrixplot(
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
     dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_segment.
+        Additional parameters to pass to the dendrogram geom_path.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
