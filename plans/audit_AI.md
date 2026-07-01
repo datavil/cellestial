@@ -95,3 +95,5 @@ Each function follows the _conventions_ and _best practises_ of the project.
 | `_annotation_scale` | GENERATED | Claude 4.8 |  |  |  |  |
 | `_dendrogram_panel` | GENERATED | Claude 4.8 |  |  |  |  |
 | `_blank_strip_theme` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_as_layers` | GENERATED | Claude 4.8 |  |  |  |  |
+| `_apply_layers` | GENERATED | Claude 4.8 |  |  |  |  |

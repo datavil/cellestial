@@ -47,8 +47,23 @@ _DENDROGRAM_WIDTH = 0.15
 # ColorBrewer palettes cycled across annotation tracks so each gets a distinct one.
 # Qualitative palettes come first (better for categorical tracks), then diverging.
 _BREWER_PALETTES = (
-    "Spectral", "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3",
-    "BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn",
+    "Set1",
+    "Set2",
+    "Set3",
+    "Spectral",
+    "Accent",
+    "Dark2",
+    "Paired",
+    "Pastel1",
+    "Pastel2",
+    "BrBG",
+    "PiYG",
+    "PRGn",
+    "PuOr",
+    "RdBu",
+    "RdGy",
+    "RdYlBu",
+    "RdYlGn",
 )
 
 # Legend element sizing. Must live on the subplots that own each legend: the grid
@@ -71,6 +86,22 @@ def _as_list(keys: str | Sequence[str] | None) -> list[str]:
     if isinstance(keys, str):
         return [keys]
     return list(keys)
+
+
+def _as_layers(layers: FeatureSpec | Sequence[FeatureSpec] | None) -> list[FeatureSpec]:
+    """Normalize a single layer, a sequence of layers, or `None` into a list."""
+    if layers is None:
+        return []
+    if isinstance(layers, (list, tuple)):
+        return list(layers)
+    return [layers]
+
+
+def _apply_layers(plot: PlotSpec, layers: Sequence[FeatureSpec]) -> PlotSpec:
+    """Append each layer to `plot`, returning the extended spec."""
+    for layer in layers:
+        plot = plot + layer
+    return plot
 
 
 def _order_observations(
@@ -262,24 +293,38 @@ def _dendrogram_panel(
     position_limits: tuple[float, float],
     color: str,
     size: float,
+    side: Literal["left", "right", "top", "bottom"],
     kwargs: dict,
 ) -> PlotSpec:
     """
-    Build the group dendrogram as a vertical panel left of the heatmap.
+    Build the group dendrogram as a panel on one `side` of the heatmap.
 
-    Leaves sit at the group centers (height 0, right edge, next to the tracks);
-    the root extends left. `position_limits` match the heatmap y-axis so leaves
-    line up with the group blocks.
+    Leaves sit at the group centers (height 0, next to the tracks); the root
+    extends away from the heatmap toward `side`. `position_limits` match the
+    heatmap observation axis so leaves line up with the group blocks. On a
+    left/right side the height runs along x and leaves along y; on a top/bottom
+    side the height runs along y and leaves along x.
     """
     leaf_positions = np.arange(n_groups, dtype=float)
-    y = np.interp(paths["x"].to_numpy(), leaf_positions, group_centers)
-    frame = pl.DataFrame({"x": -paths["y"].to_numpy(), "y": y, "group": paths["group"]})
+    leaf = np.interp(paths["x"].to_numpy(), leaf_positions, group_centers)
+    height = paths["y"].to_numpy()
+    # Root extends away from the heatmap: negative toward left/bottom, positive
+    # toward right/top. `expand` keeps a small margin so the root is not clipped.
+    if side in ("left", "right"):
+        signed_height = -height if side == "left" else height
+        frame = pl.DataFrame({"x": signed_height, "y": leaf, "group": paths["group"]})
+        height_scale = scale_x_continuous(expand=[0.05, 0])
+        leaf_scale = scale_y_continuous(limits=list(position_limits), expand=[0, 0])
+    else:
+        signed_height = height if side == "top" else -height
+        frame = pl.DataFrame({"x": leaf, "y": signed_height, "group": paths["group"]})
+        height_scale = scale_y_continuous(expand=[0.05, 0])
+        leaf_scale = scale_x_continuous(limits=list(position_limits), expand=[0, 0])
     return (
         ggplot(frame)
         + geom_path(aes("x", "y", group="group"), color=color, size=size, **kwargs)
-        # Small left margin so the root segment is not clipped at the panel edge.
-        + scale_x_continuous(expand=[0.05, 0])
-        + scale_y_continuous(limits=list(position_limits), expand=[0, 0])
+        + height_scale
+        + leaf_scale
         + _blank_strip_theme(legend=False)
     )
 
@@ -294,7 +339,9 @@ def annotated_heatmap(
     annotation_colors: Mapping[str, AnnotationColors] | None = None,
     mapping: FeatureSpec | None = None,
     layers: FeatureSpec | Sequence[FeatureSpec] | None = None,
+    layers_all: FeatureSpec | Sequence[FeatureSpec] | None = None,
     scale_axis: Literal[0, 1] | None = None,
+    transpose: bool = False,
     dendrogram: bool = False,
     group_lines: bool = True,
     group_lines_color: str = "black",
@@ -306,6 +353,8 @@ def annotated_heatmap(
     dendrogram_kwargs: dict | None = None,
     column_annotation_height: float = 0.025,
     row_annotation_width: float = 0.025,
+    column_annotation_position: Literal["top", "bottom"] = "top",
+    row_annotation_position: Literal["left", "right"] = "left",
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
@@ -349,9 +398,18 @@ def annotated_heatmap(
         Extra lets-plot layers to add to the heatmap, such as a scale or theme; a
         single spec or a sequence of them. A `scale_fill_*` (e.g.
         `scale_fill_viridis()`) overrides the default value gradient.
+    layers_all : FeatureSpec | Sequence[FeatureSpec] | None, default=None
+        Extra lets-plot layers to add to every subplot (the heatmap, each
+        annotation track, and the dendrogram panel), unlike `layers` which only
+        affects the heatmap; a single spec or a sequence of them.
     scale_axis : {0, 1} | None, default=None
         Standardize values with min-max scaling. If 0, standardize each
         variable (column); if 1, standardize each observation (row).
+    transpose : bool, default=False
+        Swap the axes so observations run along the x-axis and the variable
+        `keys` along the y-axis. Annotation tracks and the dendrogram move with
+        their data: variable tracks to the left, observation tracks and the
+        dendrogram above the heatmap.
     dendrogram : bool, default=False
         Whether to cluster the groups and draw a dendrogram panel to the left.
         The clustering is computed if not already available. Requires `group_by`.
@@ -375,6 +433,14 @@ def annotated_heatmap(
         Height of each column annotation track, relative to the heatmap.
     row_annotation_width : float, default=0.025
         Width of each row annotation track, relative to the heatmap.
+    column_annotation_position : {'top', 'bottom'}, default='top'
+        Which side of the heatmap the column (variable) tracks sit on. Under
+        `transpose` this reflects to the left/right side (top to left, bottom
+        to right).
+    row_annotation_position : {'left', 'right'}, default='left'
+        Which side of the heatmap the row (observation) tracks and the
+        dendrogram sit on. Under `transpose` this reflects to the top/bottom
+        side (left to top, right to bottom).
     color_low : str, default='#0000ff'
         Color for low values in the heatmap gradient.
     color_mid : str, default='#ffffff'
@@ -438,6 +504,7 @@ def annotated_heatmap(
     column_annotations = _as_list(column_annotations)
     row_annotations = _as_list(row_annotations)
     annotation_colors = annotation_colors or {}
+    shared_layers = _as_layers(layers_all)
 
     if dendrogram and group_by is None:
         msg = "`group_by` is required when `dendrogram` is set."
@@ -479,18 +546,36 @@ def annotated_heatmap(
         partition_key = variable_column if scale_axis == 0 else "position_y"
         frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
 
-    n_x = len(keys)
-    n_y = observations.height
-    x_limits = (-0.5, n_x - 0.5)
-    y_limits = (-0.5, n_y - 0.5)
+    n_keys = len(keys)
+    n_obs = observations.height
+    key_limits = (-0.5, n_keys - 0.5)
+    obs_limits = (-0.5, n_obs - 0.5)
     mapping = mapping or aes()
+
+    # Axis roles. `position_x` holds the variable-key index, `position_y` the
+    # observation index; `transpose` swaps which is drawn on the visual x-axis.
+    # The variable axis carries the tick labels; the observation axis is blanked.
+    if transpose:
+        heatmap_x, heatmap_y = "position_y", "position_x"
+        key_scale = scale_y_continuous(
+            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+        )
+        observation_scale = scale_x_continuous(limits=list(obs_limits), expand=[0, 0])
+        blank_observation_axis = theme(axis_text_x=element_blank(), axis_ticks_x=element_blank())
+    else:
+        heatmap_x, heatmap_y = "position_x", "position_y"
+        key_scale = scale_x_continuous(
+            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+        )
+        observation_scale = scale_y_continuous(limits=list(obs_limits), expand=[0, 0])
+        blank_observation_axis = theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
 
     # MAIN heatmap. `geom_raster` renders the cells as one image (fast for many cells);
     # aspect stays controllable through the grid widths/heights.
     htmp = (
         ggplot(frame)
         + geom_raster(
-            aes("position_x", "position_y", fill=value_column, **mapping.as_dict()), **geom_kwargs
+            aes(heatmap_x, heatmap_y, fill=value_column, **mapping.as_dict()), **geom_kwargs
         )
         + _fill_gradient(
             frame[value_column],
@@ -499,47 +584,68 @@ def annotated_heatmap(
             color_high=color_high,
             mid_point=mid_point,
         )
-        + scale_x_continuous(
-            breaks=list(range(n_x)), labels=keys, limits=list(x_limits), expand=[0, 0]
-        )
-        + scale_y_continuous(limits=list(y_limits), expand=[0, 0])
+        + key_scale
+        + observation_scale
         # `geom_raster` otherwise locks to square pixels (collapsing a few-column,
         # many-row heatmap); `coord_cartesian` frees the aspect for the grid to set.
         + coord_cartesian()
         + _THEME_HEATMAP
-        + theme(
-            axis_text_y=element_blank(),
-            axis_ticks_y=element_blank(),
-            legend_position="bottom" if legend else "none",
-        )
+        + blank_observation_axis
+        + theme(legend_position="bottom" if legend else "none")
         + _LEGEND_THEME
     )
     if interactive:
         htmp += ggtb()
     # Extra user layers for the heatmap, a single spec or a sequence. A `scale_fill_*`
     # here overrides the default value gradient (lets-plot keeps the last scale).
-    if layers is not None:
-        for layer in layers if isinstance(layers, (list, tuple)) else [layers]:
-            htmp += layer
+    htmp = _apply_layers(htmp, _as_layers(layers))
+    htmp = _apply_layers(htmp, shared_layers)
 
-    # GROUP separator lines between contiguous blocks.
+    # GROUP separator lines between contiguous blocks, spanning the variable axis.
     if group_lines and group_order is not None and len(group_order) > 1:
         sizes = observations.group_by(group_by, maintain_order=True).len()["len"].to_list()
         boundaries = []
         running = 0
         for size in sizes[:-1]:
             running += size
-            boundaries.append(n_y - running - 0.5)
-        lines = pl.DataFrame({"y": boundaries})
-        htmp += geom_segment(
-            data=lines,
-            mapping=aes(y="y", yend="y"),
-            x=-0.5,
-            xend=n_x - 0.5,
-            color=group_lines_color,
-            size=group_lines_size,
-            **(group_lines_kwargs or {}),
-        )
+            boundaries.append(n_obs - running - 0.5)
+        if transpose:
+            lines = pl.DataFrame({"x": boundaries})
+            htmp += geom_segment(
+                data=lines,
+                mapping=aes(x="x", xend="x"),
+                y=-0.5,
+                yend=n_keys - 0.5,
+                color=group_lines_color,
+                size=group_lines_size,
+                **(group_lines_kwargs or {}),
+            )
+        else:
+            lines = pl.DataFrame({"y": boundaries})
+            htmp += geom_segment(
+                data=lines,
+                mapping=aes(y="y", yend="y"),
+                x=-0.5,
+                xend=n_keys - 0.5,
+                color=group_lines_color,
+                size=group_lines_size,
+                **(group_lines_kwargs or {}),
+            )
+
+    # Resolve which side each annotation group sits on. `transpose` reflects the
+    # requested position across the main diagonal (left<->top, right<->bottom),
+    # since it swaps which axis is horizontal. A top/bottom side means the track
+    # is a horizontal strip; a left/right side means a vertical strip.
+    reflect: dict[str, Literal["left", "right", "top", "bottom"]] = {
+        "left": "top",
+        "right": "bottom",
+        "top": "left",
+        "bottom": "right",
+    }
+    observation_side = reflect[row_annotation_position] if transpose else row_annotation_position
+    variable_side = (
+        reflect[column_annotation_position] if transpose else column_annotation_position
+    )
 
     # Assign each annotation track a distinct ColorBrewer palette (cycled).
     palette_of = {
@@ -547,7 +653,7 @@ def annotated_heatmap(
         for index, name in enumerate([*column_annotations, *row_annotations])
     }
 
-    # COLUMN annotation tracks (variable metadata, drawn above the heatmap).
+    # COLUMN annotation tracks (variable metadata), drawn along the variable axis.
     column_strips: list[PlotSpec] = []
     if column_annotations:
         variables = build_frame(
@@ -560,36 +666,34 @@ def annotated_heatmap(
             pl.col(variables_name).replace_strict(position_x).alias("position_x")
         )
         for annotation in column_annotations:
-            column_strips.append(
-                _annotation_strip(
-                    variables.select("position_x", annotation),
-                    position="position_x",
-                    value=annotation,
-                    horizontal=True,
-                    legend=legend,
-                    colors=annotation_colors.get(annotation),
-                    palette=palette_of[annotation],
-                    position_limits=x_limits,
-                )
-            )
-
-    # ROW annotation tracks (observation metadata, drawn left of the heatmap).
-    row_strips: list[PlotSpec] = []
-    for annotation in row_annotations:
-        row_strips.append(
-            _annotation_strip(
-                observations.select("position_y", annotation),
-                position="position_y",
+            strip = _annotation_strip(
+                variables.select("position_x", annotation),
+                position="position_x",
                 value=annotation,
-                horizontal=False,
+                horizontal=variable_side in ("top", "bottom"),
                 legend=legend,
                 colors=annotation_colors.get(annotation),
                 palette=palette_of[annotation],
-                position_limits=y_limits,
+                position_limits=key_limits,
             )
-        )
+            column_strips.append(_apply_layers(strip, shared_layers))
 
-    # DENDROGRAM panel (group clustering, drawn at the far left).
+    # ROW annotation tracks (observation metadata), drawn along the observation axis.
+    row_strips: list[PlotSpec] = []
+    for annotation in row_annotations:
+        strip = _annotation_strip(
+            observations.select("position_y", annotation),
+            position="position_y",
+            value=annotation,
+            horizontal=observation_side in ("top", "bottom"),
+            legend=legend,
+            colors=annotation_colors.get(annotation),
+            palette=palette_of[annotation],
+            position_limits=obs_limits,
+        )
+        row_strips.append(_apply_layers(strip, shared_layers))
+
+    # DENDROGRAM panel (group clustering), drawn alongside the observation axis.
     dendrogram_panel = None
     if dendrogram:
         centers = observations.group_by(group_by, maintain_order=True).agg(
@@ -597,30 +701,96 @@ def annotated_heatmap(
         )
         center_of = dict(zip(centers[group_by].cast(pl.String), centers["_center"], strict=True))
         group_centers = [center_of[group] for group in group_order]
-        dendrogram_panel = _dendrogram_panel(
-            dendrogram_paths,
-            group_centers=group_centers,
-            n_groups=len(group_order),
-            position_limits=y_limits,
-            color=dendrogram_color,
-            size=dendrogram_size,
-            kwargs=dendrogram_kwargs or {},
+        dendrogram_panel = _apply_layers(
+            _dendrogram_panel(
+                dendrogram_paths,
+                group_centers=group_centers,
+                n_groups=len(group_order),
+                position_limits=obs_limits,
+                color=dendrogram_color,
+                size=dendrogram_size,
+                side=observation_side,
+                kwargs=dendrogram_kwargs or {},
+            ),
+            shared_layers,
         )
 
-    # COMPOSE: dendrogram (far left), row tracks, then the heatmap (last column);
-    # column tracks stack above the heatmap. First listed track is the outermost.
-    left_panels = ([dendrogram_panel] if dendrogram_panel is not None else []) + row_strips
-    n_cols = len(left_panels) + 1
-    plots: list[PlotSpec | None] = []
-    for strip in column_strips:
-        plots.extend([*([None] * len(left_panels)), strip])
-    plots.extend([*left_panels, htmp])
+    # COMPOSE: the observation group (dendrogram outermost, then observation
+    # tracks) and the variable group (variable tracks). One group flanks the
+    # heatmap horizontally (left/right side), the other vertically (top/bottom),
+    # since their axes are perpendicular. First listed track is the outermost;
+    # each keeps its per-track thickness.
+    dendrogram_thickness = [_DENDROGRAM_WIDTH] if dendrogram_panel is not None else []
+    observation_panels = ([dendrogram_panel] if dendrogram_panel is not None else []) + row_strips
+    observation_thickness = dendrogram_thickness + [row_annotation_width] * len(row_strips)
+    variable_thickness = [column_annotation_height] * len(column_strips)
+    if observation_side in ("left", "right"):
+        flank_panels, flank_thickness, flank_side = (
+            observation_panels,
+            observation_thickness,
+            observation_side,
+        )
+        stack_panels, stack_thickness, stack_side = (
+            column_strips,
+            variable_thickness,
+            variable_side,
+        )
+    else:
+        flank_panels, flank_thickness, flank_side = (
+            column_strips,
+            variable_thickness,
+            variable_side,
+        )
+        stack_panels, stack_thickness, stack_side = (
+            observation_panels,
+            observation_thickness,
+            observation_side,
+        )
 
-    left_widths = ([_DENDROGRAM_WIDTH] if dendrogram_panel is not None else []) + [
-        row_annotation_width
-    ] * len(row_strips)
-    widths = [*left_widths, 1.0]
-    heights = [*([column_annotation_height] * len(column_strips)), 1.0]
+    # Heatmap row: flank tracks sit to the left or right of the heatmap; on the
+    # right the first-listed (outermost) track ends up farthest out, so reverse.
+    if flank_side == "left":
+        row_cells, widths, heatmap_column = (
+            [*flank_panels, htmp],
+            [*flank_thickness, 1.0],
+            len(flank_panels),
+        )
+    else:
+        row_cells = [htmp, *reversed(flank_panels)]
+        widths = [1.0, *reversed(flank_thickness)]
+        heatmap_column = 0
+    n_cols = len(row_cells)
+
+    def _stack_row(panel: PlotSpec) -> list[PlotSpec | None]:
+        """A grid row holding one stacked track in the heatmap column, else empty."""
+        row: list[PlotSpec | None] = [None] * n_cols
+        row[heatmap_column] = panel
+        return row
+
+    # Stack tracks sit above or below the heatmap; reverse for bottom so the
+    # first-listed (outermost) track ends up farthest out.
+    if stack_side == "top":
+        top_panels, top_thickness, bottom_panels, bottom_thickness = (
+            stack_panels,
+            stack_thickness,
+            [],
+            [],
+        )
+    else:
+        top_panels, top_thickness = [], []
+        bottom_panels, bottom_thickness = (
+            list(reversed(stack_panels)),
+            list(reversed(stack_thickness)),
+        )
+
+    plots: list[PlotSpec | None] = []
+    for panel in top_panels:
+        plots.extend(_stack_row(panel))
+    plots.extend(row_cells)
+    for panel in bottom_panels:
+        plots.extend(_stack_row(panel))
+
+    heights = [*top_thickness, 1.0, *bottom_thickness]
     grid = gggrid(
         plots,
         ncol=n_cols,

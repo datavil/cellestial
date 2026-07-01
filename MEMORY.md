@@ -786,10 +786,14 @@ composite) layout notes:
   axis titles are blanked). This bolds the categorical track titles; the continuous
   colorbar ("value") title does NOT bold under gggrid collection (lets-plot quirk,
   unresolved).
-- **`layers` param**: `annotated_heatmap(..., layers=<FeatureSpec>)` adds extra
-  lets-plot layers to the heatmap (combine several with `+`); a `scale_fill_*` like
-  `scale_fill_viridis()` overrides the default value gradient (added after it, last
-  wins, no warning). Just `htmp += layers` after the heatmap is built.
+- **`layers` param**: `annotated_heatmap(..., layers=...)` adds extra lets-plot
+  layers to the heatmap; accepts a single `FeatureSpec` OR a sequence of them. A
+  `scale_fill_*` like `scale_fill_viridis()` overrides the default value gradient
+  (added after it, last wins, no warning).
+- **Heatmap geom is `geom_raster` + `coord_cartesian()`** (was `geom_tile`). Raster
+  is fast for many cells; `coord_cartesian()` is required to free raster's square-
+  pixel aspect lock (else the heatmap collapses to a sliver). See
+  [[project_letsplot_geom_raster_aspect]].
 
 **Bar-end track labels were tried and REVERTED.** The idea: dedicated label lanes
 in the grid (top lane for row-track names rotated vertical, right lane for
