@@ -1,3 +1,5 @@
+import inspect
+
 import pytest
 from lets_plot import aes
 from lets_plot.plot.core import PlotSpec
@@ -233,3 +235,39 @@ def test_expressions_add_keys_materializes_shared_frame_columns(adata):
     assert isinstance(plot, SupPlotsSpec)
     for panel in plot.as_dict()["figures"]:
         assert "n_genes_by_counts" in panel["data"].columns
+
+
+# ---- on-data legend halo forwarding ----
+
+
+@pytest.mark.parametrize(
+    "fn",
+    [
+        cl.dimensional,
+        cl.umap,
+        cl.pca,
+        cl.tsne,
+        cl.expression,
+        cl.dimensionals,
+        cl.umaps,
+        cl.pcas,
+        cl.tsnes,
+        cl.expressions,
+    ],
+)
+def test_wrappers_expose_halo_params(fn):
+    params = inspect.signature(fn).parameters
+    assert "halo_width" in params
+    assert "halo_color" in params
+
+
+@pytest.mark.parametrize("fn", [cl.umap, cl.pca, cl.tsne])
+def test_singular_legend_ondata_halo_renders(adata, group_key, fn):
+    plot = fn(adata, group_key, legend_ondata=True, halo_width=2.0, halo_color="black")
+    assert isinstance(plot, PlotSpec)
+
+
+@pytest.mark.parametrize("fn", [cl.umaps, cl.pcas, cl.tsnes])
+def test_plural_legend_ondata_halo_renders(adata, group_key, fn):
+    plot = fn(adata, [group_key], legend_ondata=True, halo_width=2.0, halo_color="black")
+    assert isinstance(plot, SupPlotsSpec)

@@ -85,6 +85,51 @@ def test_ondata_legend_layer_options_and_missing_aesthetics():
         _ = (ggplot(frame) + geom_point(aes(x="x", y="y"))) + cl.ondata_legend()
 
 
+def _collect_keys(obj, name):
+    """Recursively gather every value stored under `name` in a spec dict."""
+    found = []
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key == name:
+                found.append(value)
+            found.extend(_collect_keys(value, name))
+    elif isinstance(obj, list):
+        for value in obj:
+            found.extend(_collect_keys(value, name))
+    return found
+
+
+def _build_ondata(**kwargs):
+    frame = pl.DataFrame(
+        {
+            "x": [0.0, 1.0, 2.0, 3.0],
+            "y": [0.0, 1.0, 0.0, 1.0],
+            "group": ["a", "a", "b", "b"],
+        }
+    )
+    source = ggplot(frame) + geom_point(aes(x="x", y="y", color="group"))
+    layer = cl.ondata_legend(plot=source, x="x", y="y", group_by="group", **kwargs)
+    return layer._builder(source).as_dict()
+
+
+def test_ondata_legend_halo_reaches_text_geom():
+    spec = _build_ondata(halo_width=3.0, halo_color="black")
+    assert _collect_keys(spec, "halo_width") == [3.0]
+    assert _collect_keys(spec, "halo_color") == ["black"]
+
+
+def test_ondata_legend_default_halo_width():
+    spec = _build_ondata()
+    assert _collect_keys(spec, "halo_width") == [0.5]
+
+
+def test_ondata_legend_label_ignores_halo():
+    # `geom_label` has no halo; halo params must not leak into the label geom.
+    spec = _build_ondata(label=True, halo_width=3.0, halo_color="black")
+    assert _collect_keys(spec, "halo_width") == []
+    assert _collect_keys(spec, "halo_color") == []
+
+
 def test_cluster_outlines_single_group(adata, group_key):
     umap = cl.umap(adata, key=group_key)
     outline = cl.cluster_outlines(groups="B Cells")

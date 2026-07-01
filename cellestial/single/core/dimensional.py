@@ -71,6 +71,8 @@ def dimensional(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     **point_kwargs,
 ) -> PlotSpec:
     """
@@ -159,6 +161,12 @@ def dimensional(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -363,6 +371,8 @@ def dimensional(
                 family=ondata_family,
                 alpha=ondata_alpha,
                 label=ondata_label,
+                halo_width=halo_width,
+                halo_color=halo_color,
             )
         elif frame[key].dtype != pl.Categorical:
             msg = f"key `{key}` is not categorical, legend on data will not be added"

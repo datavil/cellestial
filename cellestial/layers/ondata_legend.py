@@ -41,6 +41,8 @@ def ondata_legend(
     fontface: str = "bold",
     family: str = "sans",
     alpha: float = 1,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     label: bool = False,
     repel: bool = False,
     **geom_kwargs,
@@ -75,6 +77,10 @@ def ondata_legend(
         https://lets-plot.org/python/pages/aesthetics.html#font-family
     alpha : float, default=1
         Alpha (transparency) of the legend text.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
     label : bool, default=False
         If True, draw labels with a filled background using `geom_label`.
     repel : bool, default=False
@@ -165,15 +171,31 @@ def ondata_legend(
             }
         else:
             geom = geom_text_repel if repel else geom_text
-        return geom(
-            data=grouped,
-            mapping=aes(x=x, y=y, label=group_by),
-            size=size,
-            color=color,
-            fontface=fontface,
-            family=family,
-            alpha=alpha,
-            **layer_kwargs,
-        ) + theme(legend_position="none")
+
+        if label:
+            layer = geom(
+                data=grouped,
+                mapping=aes(x=x, y=y, label=group_by),
+                size=size,
+                color=color,
+                fontface=fontface,
+                family=family,
+                alpha=alpha,
+                **layer_kwargs,
+            ) + theme(legend_position="none")
+        else:
+            layer = geom(
+                data=grouped,
+                mapping=aes(x=x, y=y, label=group_by),
+                size=size,
+                color=color,
+                fontface=fontface,
+                family=family,
+                halo_width=halo_width,
+                halo_color=halo_color,
+                alpha=alpha,
+                **layer_kwargs,
+            ) + theme(legend_position="none")
+        return layer
 
     return DeferredLayer(_build)

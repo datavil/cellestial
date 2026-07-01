@@ -54,6 +54,8 @@ def dimensionals(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -156,6 +158,12 @@ def dimensionals(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -311,6 +319,8 @@ def dimensionals(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
+            halo_width=halo_width,
+            halo_color=halo_color,
             **point_kwargs,
         )
 
@@ -379,6 +389,8 @@ def umaps(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -478,6 +490,12 @@ def umaps(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -632,6 +650,8 @@ def umaps(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
+            halo_width=halo_width,
+            halo_color=halo_color,
             **point_kwargs,
         )
 
@@ -700,6 +720,8 @@ def tsnes(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -798,6 +820,12 @@ def tsnes(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -951,6 +979,8 @@ def tsnes(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
+            halo_width=halo_width,
+            halo_color=halo_color,
             **point_kwargs,
         )
 
@@ -1019,6 +1049,8 @@ def pcas(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1117,6 +1149,12 @@ def pcas(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1271,6 +1309,8 @@ def pcas(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
+            halo_width=halo_width,
+            halo_color=halo_color,
             **point_kwargs,
         )
 
@@ -1338,6 +1378,8 @@ def expressions(
     ondata_family: str = "sans",
     ondata_alpha: float = 1,
     ondata_label: bool = False,
+    halo_width: float | None = 0.5,
+    halo_color: str | None = None,
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1432,6 +1474,12 @@ def expressions(
         alpha (transparency) of the legend on data.
     ondata_label: bool, default=False
         Whether to draw on-data legends with a filled label background.
+    halo_width : float | None, default = 0.5
+        Width of the text halo (text outline), not rendered when 0.
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    halo_color : str | None, default = None
+        Color of the text halo (text outline).
+        Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1584,6 +1632,8 @@ def expressions(
             ondata_family=ondata_family,
             ondata_alpha=ondata_alpha,
             ondata_label=ondata_label,
+            halo_width=halo_width,
+            halo_color=halo_color,
             **point_kwargs,
         )
 
