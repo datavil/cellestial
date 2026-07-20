@@ -125,7 +125,8 @@ def scatter(
     else:
         variable_keys = list(variable_keys)
         variable_keys.extend(_select_variable_keys(data, keys))
-    axis = axis or _determine_axis(data=data, keys=keys)
+
+    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
     # BUILD: the scatter plot
     scttr = baseplot(
         data=data,
