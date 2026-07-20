@@ -135,6 +135,8 @@ def _compute_bracket_frame(
     y_padding: float,
 ) -> DataFrame:
     """Build a `geom_bracket` DataFrame from pairwise significance tests."""
+    finite_frame = frame.filter(pl.col(y).is_not_null() & pl.col(y).is_finite())
+
     # determine which pairs to compare
     groups = frame[x].drop_nulls().unique(maintain_order=True).to_list()
     if comparisons is None:
@@ -157,10 +159,14 @@ def _compute_bracket_frame(
     run_test = test_functions[test]
 
     records = []
+    invalid_comparisons = []
     for group_a, group_b in pairs:
-        values_a = frame.filter(pl.col(x) == group_a)[y].to_numpy()
-        values_b = frame.filter(pl.col(x) == group_b)[y].to_numpy()
+        values_a = finite_frame.filter(pl.col(x) == group_a)[y].to_numpy()
+        values_b = finite_frame.filter(pl.col(x) == group_b)[y].to_numpy()
         if len(values_a) < 2 or len(values_b) < 2:
+            invalid_comparisons.append(
+                f"{group_a!r} ({len(values_a)}) vs {group_b!r} ({len(values_b)})"
+            )
             continue
         result = run_test(values_a, values_b)
         records.append(
@@ -172,10 +178,16 @@ def _compute_bracket_frame(
             }
         )
 
-    if not records:
-        msg = (
+    if invalid_comparisons:
+        prefix = (
             "No valid group comparisons available. "
-            "Each comparison needs at least 2 observations per group."
+            if len(invalid_comparisons) == len(pairs)
+            else "Invalid group comparisons. "
+        )
+        details = ", ".join(invalid_comparisons)
+        msg = (
+            f"{prefix}Each comparison needs at least 2 observations per group after "
+            f"removing non-finite values. Received: {details}."
         )
         raise ValueError(msg)
 
@@ -238,8 +250,8 @@ def _compute_bracket_frame(
 
     # compute y positions so brackets stack above the data without overlapping
 
-    data_min = frame[y].min()
-    data_max = frame[y].max()
+    data_min = finite_frame[y].min()
+    data_max = finite_frame[y].max()
     data_range = data_max - data_min  # ty:ignore[unsupported-operator]
     _y_position = data_max + data_range * y_padding if y_position is None else y_position
     _y_step = data_range * y_padding if y_step is None else y_step

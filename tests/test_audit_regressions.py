@@ -87,6 +87,7 @@ def test_bracket_omits_nonfinite_observations(nonfinite_value):
     assert brackets["pvalue"][0] == pytest.approx(expected.pvalue)
     assert brackets["pvalue_adj"][0] == pytest.approx(expected.pvalue)
     assert np.isfinite(brackets["pvalue"][0])
+    assert np.isfinite(brackets["y"][0])
 
 
 @pytest.mark.parametrize("nonfinite_value", [None, np.nan, np.inf, -np.inf])
@@ -102,6 +103,36 @@ def test_bracket_rejects_groups_with_too_few_finite_observations(nonfinite_value
 
     with pytest.raises(ValueError, match="at least 2 observations"):
         _compute_single_bracket(frame)
+
+
+def test_bracket_rejects_partial_results_with_an_invalid_comparison():
+    """A valid pair must not hide another requested pair with insufficient data."""
+    frame = pl.DataFrame(
+        {
+            "group": ["a", "a", "b", "b", "c", "c"],
+            "value": [1.0, 2.0, 10.0, 11.0, 20.0, np.nan],
+        }
+    )
+
+    with pytest.raises(ValueError, match=r"'a'.*'c'.*\(1\)"):
+        _compute_bracket_frame(
+            frame,
+            x="group",
+            y="value",
+            comparisons=[("a", "b"), ("a", "c")],
+            test="ttest",
+            alternative="two-sided",
+            correction="none",
+            label="stars",
+            label_format=".3g",
+            prefix="",
+            prefix_style="=",
+            separator=" ",
+            threshold=None,
+            y_position=None,
+            y_step=None,
+            y_padding=0.1,
+        )
 
 
 @pytest.mark.parametrize(
