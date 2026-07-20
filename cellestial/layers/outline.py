@@ -169,7 +169,7 @@ def cluster_outlines(
 
     Returns
     -------
-    LayerSpec
+    DeferredLayer
         Cluster Outlines.
 
     Raises

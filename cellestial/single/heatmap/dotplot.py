@@ -113,8 +113,6 @@ def dotplot(
         The expression threshold to consider a gene as expressed.
     size_scale : float, default=1.0
         Scaling factor for the point sizes in the plot.
-    point_size : float, default=1.0
-        Scaling factor for the point sizes in the plot.
     variable_column : str, default='variable'
         Name for the variable column after unpivoting.
     color_low : str, default='#e6e6e6'
@@ -125,10 +123,8 @@ def dotplot(
         Color for high values in the gradient.
     mid_point : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the color gradient.
-    fill : bool, optional
-        Whether to use fill aesthetic instead of color, by default False.
-    sort_by : str | None
-        The column to sort the results by, by default None.
+    sort_by : str | Sequence[str] | None, default=None
+        The column or columns to sort the results by.
     sort_order : str, default='descending'
         The sort order, either 'ascending' or 'descending'.
     percentage_key : str, default='pct_exp'
@@ -173,8 +169,6 @@ def dotplot(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    show_tooltips : bool, default=True
-        Whether to show tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
     **geom_kwargs : Any

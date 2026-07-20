@@ -109,7 +109,7 @@ def stream(
 
     Returns
     -------
-        DeferredLayer
+    DeferredLayer
 
     Raises
     ------

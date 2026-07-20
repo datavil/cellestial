@@ -15,7 +15,7 @@ def save(
     *,
     path: str = ".",
     iframe: bool = True,
-    scale: float = 1.0,
+    scale: float = 2.0,
     w: int | float | None = None,
     h: int | float | None = None,
     unit: Literal["in", "cm", "mm", "px"] = "in",

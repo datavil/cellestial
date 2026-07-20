@@ -13,7 +13,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _select_variable_keys,
 )
-from cellestial.util.errors import ConfilictingLengthError
+from cellestial.util.errors import ConflictingLengthError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -57,9 +57,9 @@ def xyplots(
     ----------
     data : AnnData
         The AnnData object of the single cell data.
-    x : str
+    x : str | Sequence[str]
         The key(s) for the x-axis.
-    y : str
+    y : str | Sequence[str]
         The key(s) for the y-axis.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
@@ -85,10 +85,10 @@ def xyplots(
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None
@@ -99,10 +99,10 @@ def xyplots(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -127,19 +127,19 @@ def xyplots(
 
     Returns
     -------
-    PlotSpec
+    SupPlotsSpec
         Scatter plot.
 
     Raises
     ------
-    ConfilictingLengthError
+    ConflictingLengthError
         If `x` and `y` have incompatible lengths for pairwise plotting or
         broadcasting.
 
     Examples
     --------
     xyplots allows providing sequences of x and y values.
-    Matching the indiviual x and y values one-by-by.
+    Matching the individual x and y values one-by-one.
 
     .. jupyter-execute::
 
@@ -194,7 +194,7 @@ def xyplots(
             y = list(y) * len(x)
         else:
             msg = f"Length of x ({len(x)}) and y ({len(y)}) must be the same, or one of them must be of length 1."
-            raise ConfilictingLengthError(msg)
+            raise ConflictingLengthError(msg)
 
     # BUILD: one shared frame for all pairs, instead of rebuilding per pair.
     # Mirrors `xyplot`'s build over the union of x/y and shared mapping keys.

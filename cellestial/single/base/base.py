@@ -36,12 +36,12 @@ def plot(
         Aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
-    variable_keys : str | Sequence[str] | None
+    variable_keys : Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str
-        The name of the observations column, default is 'barcode'
-    variables_name : str
-        Name for the variables index column, default is 'variable'
+    observations_name : str, default='Barcode'
+        The name of the observations column.
+    variables_name : str, default='Variable'
+        Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.

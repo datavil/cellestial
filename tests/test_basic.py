@@ -4,6 +4,7 @@ from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+from cellestial.util.errors import ConflictingLengthError
 
 # ---- scatter ----
 
@@ -88,6 +89,18 @@ def test_xyplots_scalar_x(adata):
         y=["pct_counts_mt", "pct_counts_ribo"],
     )
     assert isinstance(plot, SupPlotsSpec)
+
+
+def test_xyplots_conflicting_lengths_raise_specific_error(adata):
+    """Incompatible pair lengths raise the public, correctly spelled error."""
+    with pytest.raises(ConflictingLengthError):
+        cl.xyplots(
+            adata,
+            x=["n_genes_by_counts", "total_counts"],
+            y=["pct_counts_mt", "pct_counts_ribo", "pct_counts_in_top_50_genes"],
+        )
+
+    assert issubclass(ConflictingLengthError, ValueError)
 
 
 # ---- plot ----

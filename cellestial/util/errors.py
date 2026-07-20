@@ -5,11 +5,8 @@ class KeyNotFoundError(Exception):
         super().__init__(message)
 
 
-class ConfilictingLengthError(Exception):
-    """Raised when sizes conflict."""
-
-    def __init__(self, message: str):
-        super().__init__(message)
+class ConflictingLengthError(ValueError):
+    """Raised when input lengths cannot be broadcast together."""
 
 
 class UnsupportedDataTypeError(TypeError):

@@ -353,7 +353,7 @@ def bracket(
         Color of the brackets and labels.
     label_size : float | None, default=None
         Font size of the label text. If None, `geom_bracket`'s default is used.
-    segment_size : float, default=1
+    segment_size : float, default=0.5
         Line width of the bracket segments.
     x : str | None, default=None
         The column name holding the grouping categories. If None, inferred from
@@ -370,7 +370,7 @@ def bracket(
 
     Returns
     -------
-    LayerSpec
+    DeferredLayer
         Pairwise significance brackets.
 
     Raises
