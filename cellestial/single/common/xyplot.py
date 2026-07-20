@@ -172,15 +172,21 @@ def xyplot(
     keys = [key for key in mapping.as_dict().values() if key is not None]
     variable_keys = _select_variable_keys(data=data, keys=keys)
     # include dimensions if a dimensional key provided
-    if not include_dimensions:
-        _keys = keys.copy()
-        for key in keys:
-            if key.startswith("X_"):
-                include_dimensions = True
-                _keys.remove(key)
+    feature_keys = [key for key in keys if not key.startswith("X_")]
+    has_dimensions = len(feature_keys) != len(keys)
+    if has_dimensions:
+        include_dimensions = True
 
     # BUILD: the dataframe
-    axis = _determine_axis(data=data, keys=_keys) if axis is None else axis
+    if axis is None:
+        observation_dimensions = bool(include_dimensions and data.obsm) and all(
+            key in data.obs.columns or key in data.var_names for key in feature_keys
+        )
+        axis = (
+            0
+            if (has_dimensions and not feature_keys) or observation_dimensions
+            else _determine_axis(data=data, keys=feature_keys)
+        )
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     metadata_columns: list[str] = []

@@ -204,13 +204,19 @@ def xyplots(
     all_keys = list(dict.fromkeys([*x, *y, *mapping_keys]))
     variable_keys = _select_variable_keys(data=data, keys=all_keys)
     # embedding (X_-prefixed) keys are not features; they request `include_dimensions`
-    feature_keys = list(all_keys)
-    if not include_dimensions:
-        for key in all_keys:
-            if key.startswith("X_"):
-                include_dimensions = True
-                feature_keys.remove(key)
-    axis = _determine_axis(data=data, keys=feature_keys) if axis is None else axis
+    feature_keys = [key for key in all_keys if not key.startswith("X_")]
+    has_dimensions = len(feature_keys) != len(all_keys)
+    if has_dimensions:
+        include_dimensions = True
+    if axis is None:
+        observation_dimensions = bool(include_dimensions and data.obsm) and all(
+            key in data.obs.columns or key in data.var_names for key in feature_keys
+        )
+        axis = (
+            0
+            if (has_dimensions and not feature_keys) or observation_dimensions
+            else _determine_axis(data=data, keys=feature_keys)
+        )
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     metadata_columns: list[str] = []
