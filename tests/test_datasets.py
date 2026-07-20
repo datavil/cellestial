@@ -91,7 +91,11 @@ def test_from_url_downloads_and_reads(tmp_path, monkeypatch):
         def read(self, block_size):
             return chunks.pop(0)
 
-    monkeypatch.setattr(urllib.request, "urlopen", lambda url: StatefulResponse())
+    monkeypatch.setattr(
+        urllib.request,
+        "urlopen",
+        lambda _url, **_kwargs: StatefulResponse(),
+    )
 
     data = datasets.from_url(
         "https://example.test/example.h5ad",
@@ -130,7 +134,11 @@ def test_from_url_removes_partial_file_on_incomplete_download(tmp_path, monkeypa
         def read(self, block_size):
             return chunks.pop(0)
 
-    monkeypatch.setattr(urllib.request, "urlopen", lambda url: StatefulShortResponse())
+    monkeypatch.setattr(
+        urllib.request,
+        "urlopen",
+        lambda _url, **_kwargs: StatefulShortResponse(),
+    )
 
     with pytest.raises(OSError, match="Download incomplete"):
         datasets.from_url(

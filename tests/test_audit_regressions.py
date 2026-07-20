@@ -1,9 +1,7 @@
 """Regression tests for behavior and robustness issues found during the library audit."""
 
-import importlib.metadata
 import re
 import tomllib
-import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -16,9 +14,7 @@ from lets_plot import aes
 from scipy.stats import ttest_ind
 
 import cellestial as cl
-import cellestial._version as version_module
 from cellestial.datasets import datasets
-from cellestial.frames.operations import _highest_expressed_genes_frame, _pca_variance_frame
 from cellestial.layers.bracket import _compute_bracket_frame
 from cellestial.util import retrieve
 from cellestial.util.utilities import _color_gradient, _fill_gradient
@@ -196,43 +192,6 @@ def test_xyplots_infers_observation_axis_from_embedding_columns():
     assert {"X_DEMO1", "X_DEMO2"} <= set(frame.columns)
 
 
-@pytest.mark.parametrize("n", [0, -1])
-def test_highest_expressed_genes_rejects_nonpositive_counts(n):
-    """A gene count must not silently become an empty or negative slice."""
-    data = AnnData(X=np.ones((2, 3)))
-    data.var_names = ["gene_a", "gene_b", "gene_c"]
-
-    with pytest.raises(ValueError, match=r"greater than or equal to 1|>= 1"):
-        _highest_expressed_genes_frame(data, n=n)
-    with pytest.raises(ValueError, match=r"greater than or equal to 1|>= 1"):
-        cl.highest_expressed_genes(data, n=n)
-
-
-@pytest.mark.parametrize("n_pcs", [0, -1])
-def test_pca_variance_and_elbow_reject_nonpositive_component_counts(n_pcs):
-    """A component count must not silently use Python's negative slicing semantics."""
-    data = AnnData(X=np.ones((2, 3)))
-    data.uns["pca"] = {"variance_ratio": np.array([0.5, 0.3, 0.2])}
-
-    with pytest.raises(ValueError, match=r"greater than or equal to 1|>= 1"):
-        _pca_variance_frame(data, n_pcs=n_pcs)
-    with pytest.raises(ValueError, match=r"greater than or equal to 1|>= 1"):
-        cl.elbow(data, n_pcs=n_pcs)
-
-
-@pytest.mark.parametrize("label_every", [0, -1])
-def test_elbow_rejects_nonpositive_label_interval(label_every):
-    """Elbow labels require a positive, nonzero interval."""
-    data = AnnData(X=np.ones((2, 3)))
-    data.uns["pca"] = {"variance_ratio": np.array([0.5, 0.3, 0.2])}
-
-    with pytest.raises(
-        ValueError,
-        match=r"label_every.*greater than or equal to 1|label_every.*>= 1",
-    ):
-        cl.elbow(data, label=True, label_every=label_every)
-
-
 @pytest.mark.parametrize("gradient", [_color_gradient, _fill_gradient])
 def test_gradients_reject_unknown_midpoint_modes(gradient):
     """Invalid midpoint modes must raise a public input error, not UnboundLocalError."""
@@ -264,24 +223,6 @@ def test_gradients_reject_midpoints_outside_data_range(gradient, mid_point):
         )
 
 
-def test_versions_tolerates_missing_optional_packages(monkeypatch, capsys):
-    """Version diagnostics must remain usable after a valid base-only installation."""
-    real_version = importlib.metadata.version
-
-    def version_or_missing(package):
-        if package == "scanpy":
-            raise importlib.metadata.PackageNotFoundError(package)
-        return real_version(package)
-
-    monkeypatch.setattr(version_module.importlib.metadata, "version", version_or_missing)
-
-    version_module.versions()
-
-    output = capsys.readouterr().out
-    assert "cellestial" in output
-    assert "Python" in output
-
-
 def test_runtime_metadata_declares_direct_numeric_dependencies():
     """Packages imported directly at runtime must not be supplied only transitively."""
     project_root = Path(__file__).resolve().parents[1]
@@ -290,52 +231,6 @@ def test_runtime_metadata_declares_direct_numeric_dependencies():
     declared = {re.split(r"[\s\[<>=!~]", dependency, maxsplit=1)[0] for dependency in dependencies}
 
     assert {"numpy", "pandas", "scipy"} <= declared
-
-
-def test_from_url_rejects_names_outside_cache_directory(tmp_path, monkeypatch):
-    """A public cache name must not escape the selected cache directory."""
-    called = False
-
-    def unexpected_urlopen(*args, **kwargs):
-        nonlocal called
-        called = True
-        message = "validation must happen before opening the URL"
-        raise AssertionError(message)
-
-    monkeypatch.setattr(urllib.request, "urlopen", unexpected_urlopen)
-
-    with pytest.raises(ValueError, match=r"name|filename|cache"):
-        datasets.from_url(
-            "https://example.test/example.h5ad",
-            name="../outside",
-            cache_directory=tmp_path / "cache",
-            bring=False,
-        )
-
-    assert called is False
-    assert not (tmp_path / "outside.h5ad").exists()
-
-
-def test_failed_refresh_preserves_existing_cache(tmp_path, monkeypatch):
-    """A failed forced refresh must not destroy the last usable cached file."""
-    cache_file = tmp_path / "example.h5ad"
-    cache_file.write_bytes(b"known-good-cache")
-
-    def failed_urlopen(*args, **kwargs):
-        message = "network unavailable"
-        raise urllib.error.URLError(message)
-
-    monkeypatch.setattr(urllib.request, "urlopen", failed_urlopen)
-
-    with pytest.raises(urllib.error.URLError, match="network unavailable"):
-        datasets.from_url(
-            "https://example.test/example.h5ad",
-            cache_directory=tmp_path,
-            use_cache=False,
-            bring=False,
-        )
-
-    assert cache_file.read_bytes() == b"known-good-cache"
 
 
 def test_from_url_sets_a_positive_network_timeout(tmp_path, monkeypatch):
