@@ -143,7 +143,7 @@ def elbow(
     plot += geom_point(color=color, size=size, **geom_kwargs)
 
     # ADD: per-component labels (PC{label_every}, PC{2*label_every}, ...)
-    if label:
+    if label and label_every > 0:
         label_column = "PC"
         labeled_frame = frame.filter(
             pl.col(component_column) % label_every == 0,

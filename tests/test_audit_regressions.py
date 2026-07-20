@@ -248,6 +248,22 @@ def test_gradients_reject_unknown_midpoint_modes(gradient):
         )
 
 
+@pytest.mark.parametrize("gradient", [_color_gradient, _fill_gradient])
+@pytest.mark.parametrize("mid_point", [0.0, 4.0])
+def test_gradients_reject_midpoints_outside_data_range(gradient, mid_point):
+    """A diverging scale midpoint must lie within its finite data range."""
+    series = pl.Series("value", [1.0, 2.0, 3.0])
+
+    with pytest.raises(ValueError, match="within the finite data range"):
+        gradient(
+            series,
+            color_low="white",
+            color_mid="gray",
+            color_high="black",
+            mid_point=mid_point,
+        )
+
+
 def test_versions_tolerates_missing_optional_packages(monkeypatch, capsys):
     """Version diagnostics must remain usable after a valid base-only installation."""
     real_version = importlib.metadata.version

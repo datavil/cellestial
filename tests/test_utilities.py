@@ -28,6 +28,7 @@ from cellestial.util.utilities import (
     _is_variable_key,
     _range_inclusive,
     _resolve_embedding_key,
+    _resolve_midpoint,
     _select_variable_keys,
     _share_axis,
     _share_labels,
@@ -170,6 +171,55 @@ def test_fill_gradient_with_mid_float():
         series, color_low="white", color_mid="yellow", color_high="red", mid_point=2.0
     )
     assert isinstance(result, FeatureSpec)
+
+
+@pytest.mark.parametrize("mid_point", ["mean", "median", "mid"])
+def test_resolve_midpoint_ignores_nonfinite_values(mid_point):
+    """Calculated midpoints should use only finite values."""
+    series = pl.Series("x", [None, np.nan, -np.inf, -2.0, 0.0, 2.0, np.inf])
+
+    assert _resolve_midpoint(series, mid_point) == pytest.approx(0.0)
+
+
+def test_resolve_midpoint_accepts_negative_value_within_range():
+    """Negative numeric midpoints remain valid when they are within range."""
+    series = pl.Series("x", [-3.0, -1.0, 2.0])
+
+    assert _resolve_midpoint(series, -1.5) == -1.5
+
+
+@pytest.mark.parametrize("mid_point", [-3.0, 3.0])
+def test_resolve_midpoint_rejects_value_outside_range(mid_point):
+    """Numeric midpoints must fall within the finite data range."""
+    series = pl.Series("x", [-2.0, 0.0, 2.0])
+
+    with pytest.raises(ValueError, match="within the finite data range"):
+        _resolve_midpoint(series, mid_point)
+
+
+@pytest.mark.parametrize("mid_point", [np.nan, np.inf, -np.inf])
+def test_resolve_midpoint_rejects_nonfinite_value(mid_point):
+    """Numeric midpoints must themselves be finite."""
+    series = pl.Series("x", [-2.0, 0.0, 2.0])
+
+    with pytest.raises(ValueError, match="must be finite"):
+        _resolve_midpoint(series, mid_point)
+
+
+def test_resolve_midpoint_rejects_boolean():
+    """Booleans should not be interpreted as numeric midpoints."""
+    series = pl.Series("x", [0.0, 1.0])
+
+    with pytest.raises(TypeError, match="mid_point"):
+        _resolve_midpoint(series, True)
+
+
+def test_resolve_midpoint_rejects_series_without_finite_values():
+    """Calculated midpoint modes require at least one finite value."""
+    series = pl.Series("x", [None, np.nan, np.inf, -np.inf])
+
+    with pytest.raises(ValueError, match="without finite data values"):
+        _resolve_midpoint(series, "median")
 
 
 # ---- _wrap_legend ----
