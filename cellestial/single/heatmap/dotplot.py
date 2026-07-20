@@ -198,6 +198,13 @@ def dotplot(
         If `keys` and `group_by` are missing while `markers` is
         disabled.
 
+    Notes
+    -----
+    When `dendrogram=True` and the requested dendrogram is absent from
+    `data.uns`, plot construction calls `scanpy.tl.dendrogram` and stores the
+    result in `data.uns`. This mutates the input `AnnData`. Precompute the
+    dendrogram under `dendrogram_key` to avoid mutation during plotting.
+
     Examples
     --------
     A simple dotplot.

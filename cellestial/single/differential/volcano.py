@@ -188,6 +188,12 @@ def volcano(
     expression results of `group` (vs the rest), colored by significance and
     optionally annotated with the top up- and down-regulated genes.
 
+    When `group_by` is provided and the ranking under `key` is missing or was
+    computed with different parameters, plot construction calls
+    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.
+    This mutates the input `AnnData`. Precompute a matching ranking and omit
+    `group_by` to avoid mutation during plotting.
+
     Examples
     --------
     A simple volcano plot.
@@ -544,6 +550,12 @@ def volcanos(
     Builds a volcano plot for each entry in `groups` (vs the rest) and
     arranges them in a grid via `gggrid`. All single-plot styling and
     threshold options behave the same as in :func:`volcano`.
+
+    When `group_by` is provided and the ranking under `key` is missing or was
+    computed with different parameters, plot construction calls
+    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.
+    This mutates the input `AnnData`. Precompute a matching ranking and omit
+    `group_by` to avoid mutation during plotting.
 
     Examples
     --------

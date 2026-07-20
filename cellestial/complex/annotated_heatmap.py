@@ -484,6 +484,11 @@ def annotated_heatmap(
     sit above the heatmap and observation tracks to its left. The panels are
     composed with `gggrid`, each keeping its own legend.
 
+    When `dendrogram=True` and the requested dendrogram is absent from
+    `data.uns`, plot construction calls `scanpy.tl.dendrogram` and stores the
+    result in `data.uns`. This mutates the input `AnnData`. Precompute the
+    dendrogram under `dendrogram_key` to avoid mutation during plotting.
+
     Examples
     --------
     .. jupyter-execute::
