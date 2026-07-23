@@ -22,6 +22,7 @@ def test_heatmap_tile_with_tooltips(adata, markers, group_key):
 def test_heatmap_dendrogram(adata, markers, group_key):
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, dendrogram=True)
     assert isinstance(plot, PlotSpec)
+    assert plot.to_svg() is not None
 
 
 def _stage_custom_dendrogram(adata, group_key, custom_key="dendrogram_custom_v2"):
@@ -537,3 +538,77 @@ def test_heatmap_variable_axis_aggregate(adata):
         aggregate=True,
     )
     assert isinstance(plot, PlotSpec)
+
+
+def test_heatmap_variable_axis_nonaggregate(adata):
+    """Use variable identifiers for nonaggregated variable-axis rows."""
+    local = adata[:, :100].copy()
+    plot = cl.heatmap(
+        local,
+        keys=["mean_counts", "log1p_mean_counts"],
+        group_by="mt",
+        axis=1,
+        aggregate=False,
+        variables_name="Feature",
+        max_rows=None,
+    )
+
+    assert isinstance(plot, PlotSpec)
+    assert plot.as_dict()["data"]["Feature"].n_unique() == local.n_vars
+    y_scale = next(scale for scale in plot.as_dict()["scales"] if scale.get("aesthetic") == "y")
+    half_step = 1 / (local.n_vars - 1) / 2
+    assert y_scale["limits"] == pytest.approx([-half_step, 1 + half_step])
+
+
+def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
+    """Keep usable row spacing and aligned separators with one heatmap column."""
+    local = adata[:, :100].copy()
+    local.var["test_group"] = ["a"] * 50 + ["b"] * 50
+    plot = cl.heatmap(
+        local,
+        keys=["mean_counts"],
+        group_by="test_group",
+        axis=1,
+        aggregate=False,
+        variables_name="Feature",
+        max_rows=None,
+    )
+
+    spec = plot.as_dict()
+    y_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "y")
+    half_step = 1 / (local.n_vars - 1) / 2
+    assert y_scale["limits"] == pytest.approx([-half_step, 1 + half_step])
+
+    group_lines = [
+        layer["data"]
+        for layer in spec["layers"]
+        if layer.get("geom") == "segment"
+        and hasattr(layer.get("data"), "columns")
+        and "xend" in layer["data"].columns
+    ]
+    assert group_lines[-1]["y"].to_list() == pytest.approx([0.5])
+
+
+@pytest.mark.parametrize(
+    ("scale_axis", "max_rows"),
+    [
+        (1, None),
+        (None, 10),
+    ],
+)
+def test_heatmap_variable_axis_nonaggregate_row_operations(adata, scale_axis, max_rows):
+    """Keep the variable identifier through row-wise transformations."""
+    local = adata[:, :100].copy()
+    plot = cl.heatmap(
+        local,
+        keys=["mean_counts", "log1p_mean_counts"],
+        group_by="mt",
+        axis=1,
+        aggregate=False,
+        variables_name="Feature",
+        scale_axis=scale_axis,
+        max_rows=max_rows,
+    )
+
+    assert isinstance(plot, PlotSpec)
+    assert "Feature" in plot.as_dict()["data"].columns

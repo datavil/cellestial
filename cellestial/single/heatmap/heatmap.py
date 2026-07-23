@@ -27,6 +27,7 @@ from cellestial.single.heatmap.utilities import (
     _get_group_lines_frame,
     _key_groups_bar_y,
     _key_groups_layers,
+    _nonaggregate_y_step,
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
@@ -286,7 +287,7 @@ def heatmap(
             group_lines_size=0.5,
             group_lines_color="white",
             dendrogram=True,
-            dendrogram_size="0.7",
+            dendrogram_size=0.7,
             group_bars_labels=True,
             group_bars=True,
         ) + scale_fill_viridis()
@@ -362,7 +363,8 @@ def heatmap(
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
-    index_columns = [group_by] if aggregate else [observations_name, group_by]
+    row_identifier = variables_name if axis == 1 else observations_name
+    index_columns = [group_by] if aggregate else [row_identifier, group_by]
     frame = frame.unpivot(
         on=keys,
         index=index_columns,
@@ -376,7 +378,7 @@ def heatmap(
     # HANDLE: standard scaling
     if scale_axis is not None:
         partition_key = (
-            variable_column if scale_axis == 0 else (group_by if aggregate else observations_name)
+            variable_column if scale_axis == 0 else (group_by if aggregate else row_identifier)
         )
         frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
 
@@ -393,7 +395,7 @@ def heatmap(
     if not aggregate and max_rows is not None:
         frame = _bin_within_groups(
             frame,
-            observations_name=observations_name,
+            observations_name=row_identifier,
             group_by=group_by,
             variable_column=variable_column,
             value_column=value_column,
@@ -407,7 +409,7 @@ def heatmap(
         frame,
         aggregate=aggregate,
         group_by=group_by,
-        observations_name=observations_name,
+        observations_name=row_identifier,
         variable_column=variable_column,
         x_keys=x_keys,
         y_order_groups=y_order_groups,
@@ -428,15 +430,17 @@ def heatmap(
     # Compute top edge of data and the y limit, extending the latter when
     # key-group brackets are drawn so rotated labels are not clipped.
     if aggregate:
+        data_bottom = -0.5
         data_top = n_y - 0.5
     else:
-        # ``position_y`` ranges from 0 to ``n_x - 1``; cells extend half a row above.
-        half_step = (n_x - 1) / max(n_y - 1, 1) / 2
-        data_top = (n_x - 1) + half_step
+        y_step = _nonaggregate_y_step(n_x, n_y)
+        half_step = y_step / 2
+        data_bottom = -half_step
+        data_top = y_step * max(n_y - 1, 0) + half_step
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
-        data_range = data_top + 0.5
+        data_range = data_top - data_bottom
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
@@ -452,19 +456,19 @@ def heatmap(
         htmp += scale_y_continuous(
             breaks=list(range(n_y)),
             labels=y_order_groups,
-            limits=[-0.5, y_max_limit],
+            limits=[data_bottom, y_max_limit],
             expand=[0, 0],
         )
     elif group_bars and group_bars_labels:
         htmp += scale_y_continuous(
             breaks=group_centers,
             labels=y_order_groups,
-            limits=[-0.5, y_max_limit],
+            limits=[data_bottom, y_max_limit],
             expand=[0, 0],
         )
         htmp += guides(color="none")
     else:
-        htmp += scale_y_continuous(limits=[-0.5, y_max_limit], expand=[0, 0])
+        htmp += scale_y_continuous(limits=[data_bottom, y_max_limit], expand=[0, 0])
         htmp += theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
 
     # GROUP color bar on left for non-aggregate

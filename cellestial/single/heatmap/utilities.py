@@ -123,6 +123,12 @@ def _group_bar_gap(n_x: int) -> float:
     return max(_GROUP_BAR_GAP_MIN, n_x * _GROUP_BAR_GAP_RATIO)
 
 
+def _nonaggregate_y_step(n_x: int, n_y: int) -> float:
+    """Return the distance between adjacent nonaggregated row centers."""
+    y_span = max(n_x - 1, 1)
+    return y_span / max(n_y - 1, 1)
+
+
 def _assign_positions(
     frame: pl.DataFrame,
     *,
@@ -164,7 +170,7 @@ def _assign_positions(
         )
         return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
 
-    # non-aggregate: rescale per-cell _y to span [0, n_x] for square-ish aspect
+    # Nonaggregate: use a width-comparable y span for a square-ish aspect.
     group_index = {g: i for i, g in enumerate(y_order_groups)}
     cell_frame = (
         frame.select(observations_name, group_by)
@@ -178,7 +184,7 @@ def _assign_positions(
         .sort(["_group_index", observations_name])
     )
     n_y = cell_frame.height
-    y_step = (n_x - 1) / max(n_y - 1, 1)
+    y_step = _nonaggregate_y_step(n_x, n_y)
     cell_frame = cell_frame.with_columns(
         (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
     )
@@ -231,7 +237,7 @@ def _get_group_lines_frame(
             .head(n_groups - 1)["y_max"]
             .to_list()
         )
-        half_step = (n_x - 1) / max(n_y - 1, 1) / 2
+        half_step = _nonaggregate_y_step(n_x, n_y) / 2
         line_ys = [y + half_step for y in boundaries]
 
     x_start = -0.5
