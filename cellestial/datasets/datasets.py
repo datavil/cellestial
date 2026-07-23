@@ -13,6 +13,7 @@ _UUID_PATTERN = re.compile(
 )
 _DOWNLOAD_TIMEOUT_SECONDS = 300
 
+
 def _resolve_cache_file(
     cache_directory: str | Path | PathLike,
     filename: str,
@@ -198,7 +199,7 @@ def from_url(
     # download cannot poison the cache.
     partial_file = cache_file.with_name(cache_file.name + ".part")
 
-    with urlopen(url, timeout = _DOWNLOAD_TIMEOUT_SECONDS) as response:
+    with urlopen(url, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as response:
         total_size = int(response.headers.get("Content-Length", 0))
         progress_bar = tqdm(
             total=total_size, unit="iB", unit_scale=True, desc=f"Downloading {filename}"
