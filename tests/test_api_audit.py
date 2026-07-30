@@ -1,4 +1,5 @@
-"""Tests for the v1.0 API-audit changes.
+"""
+Tests for the v1.0 API-audit changes.
 
 Each section maps to an item in `plans/api_audit_v1.md`. The signature-level
 checks guard the renames / default / annotation decisions against regressions;

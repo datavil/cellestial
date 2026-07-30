@@ -1,4 +1,5 @@
-"""Tests for cellestial.save, exporting plots to disk.
+"""
+Tests for cellestial.save, exporting plots to disk.
 
 PNG and PDF export go through cairo, which is the part most likely to break on
 Windows, so those formats are exercised explicitly.

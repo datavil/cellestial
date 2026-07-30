@@ -12,18 +12,17 @@ import subprocess
 import sys
 from pathlib import Path
 
-
-OUTPUT_CSV = Path("benchmarks") / "results"/ "benchmark_cold.csv"
+OUTPUT_CSV = Path("benchmarks") / "results" / "benchmark_cold.csv"
 REPEATS = 5
 
 CASES: list[tuple[str, str]] = [
     ("cellestial", "html"),
     ("cellestial", "svg"),
-    #("cellestial", "pdf"),
-    #("cellestial", "png"),
+    # ("cellestial", "pdf"),
+    # ("cellestial", "png"),
     ("scanpy", "png"),
     ("scanpy", "svg"),
-    #("scanpy", "pdf"),
+    # ("scanpy", "pdf"),
 ]
 
 CHILD = r"""
@@ -97,4 +96,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

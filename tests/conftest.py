@@ -1,9 +1,7 @@
-from pathlib import Path
 
-import anndata as ad
 import pytest
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "pbmc3k_pped.h5ad"
+import cellestial as cl
 
 # Curated, small set of marker genes that are known to exist in the fixture.
 # Kept short so distribution plots stay fast.
@@ -14,7 +12,7 @@ CLUSTER_KEY = "leiden"
 
 @pytest.fixture(scope="session")
 def adata():
-    return ad.read_h5ad(DATA_PATH)
+    return cl.datasets.pbmc3k()
 
 
 @pytest.fixture(scope="session")

@@ -152,9 +152,7 @@ def main() -> None:
     """Parse arguments, benchmark both libraries, and append the results."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-r", "--replica", type=int, required=True)
-    parser.add_argument(
-        "-d", "--dataset", required=True, help="human_lymph_node or visium_hne"
-    )
+    parser.add_argument("-d", "--dataset", required=True, help="human_lymph_node or visium_hne")
     args = parser.parse_args()
 
     data = _load_spatial(args.dataset)
