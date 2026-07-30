@@ -8,6 +8,7 @@ import polars as pl
 from anndata import AnnData
 from scipy.sparse import issparse
 
+from cellestial.frames._axis import _axis_frame_columns
 from cellestial.util.errors import VariableNotFoundError, _unsupported_data_type
 
 if TYPE_CHECKING:
@@ -110,50 +111,16 @@ def anndata_observations_frame(
     else:
         part = data.obs
     partm = data.obsm
-    # PART 1: INITIALIZE
-    if observations_name is None:
-        columns = []
-    else:
-        columns = [pl.Series(observations_name, data.obs_names)]
-    # PART 2: ADD AnnData.obs
-    if metadata_columns is None:
-        selected_columns = list(part.columns)
-    else:
-        missing = [name for name in metadata_columns if name not in part.columns]
-        if missing:
-            msg = f"metadata_columns not found in observations: {missing}"
-            raise KeyError(msg)
-        selected_columns = list(metadata_columns)
-    for key in selected_columns:
-        # handle categorical integer data
-        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
-            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Convert to string (str) and then back to categorical
-            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
-        else:
-            columns.append(pl.Series(part[key]))
-
-    # PART 3: ADD dimensions if needed
-    if include_dimensions:
-        selected_embeddings = _select_embedding_keys(partm, dimension_keys)
-        for X in selected_embeddings:
-            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
-            if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
-                if include_dimensions >= 0:
-                    col_count = min(include_dimensions, total_cols)
-                else:
-                    msg = "Number of dimensions cannot be a negative number."
-                    raise ValueError(msg)
-            elif isinstance(include_dimensions, bool):
-                col_count = total_cols
-            else:
-                msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
-                msg += f" You provided type {type(include_dimensions)}"
-                raise TypeError(msg)
-
-            for col in range(col_count):
-                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
+    columns = _axis_frame_columns(
+        identifiers=data.obs_names,
+        identifier_name=observations_name,
+        metadata=part,
+        metadata_columns=metadata_columns,
+        metadata_axis="observations",
+        embeddings=partm,
+        include_dimensions=include_dimensions,
+        dimension_keys=dimension_keys,
+    )
 
     # PART 4: ADD keys if provided
     # Empty list short-circuits: data[:, []].X still triggers a full sparse slice.
@@ -218,72 +185,18 @@ def anndata_variables_frame(
     else:
         part = data.var
     partm = data.varm
-    # PART1: initalize columns
-    if variables_name is None:
-        columns = []
-    else:
-        columns = [pl.Series(variables_name, data.var_names)]
-    # PART 3: ADD AnnData.var
-    if metadata_columns is None:
-        selected_columns = list(part.columns)
-    else:
-        missing = [name for name in metadata_columns if name not in part.columns]
-        if missing:
-            msg = f"metadata_columns not found in variables: {missing}"
-            raise KeyError(msg)
-        selected_columns = list(metadata_columns)
-    for key in selected_columns:
-        # handle categorical integer data
-        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
-            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Convert to string (str) and then back to categorical
-            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
-        else:
-            columns.append(pl.Series(part[key]))
-
-    # PART 4: ADD dimensions if needed
-    if include_dimensions:
-        selected_embeddings = _select_embedding_keys(partm, dimension_keys)
-        for X in selected_embeddings:
-            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
-            if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
-                if include_dimensions >= 0:
-                    col_count = min(include_dimensions, total_cols)
-                else:
-                    msg = "Number of dimensions cannot be a negative number."
-                    raise ValueError(msg)
-            elif isinstance(include_dimensions, bool):
-                col_count = total_cols
-            else:
-                msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
-                msg += f" You provided type {type(include_dimensions)}"
-                raise TypeError(msg)
-
-            for col in range(col_count):
-                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
+    columns = _axis_frame_columns(
+        identifiers=data.var_names,
+        identifier_name=variables_name,
+        metadata=part,
+        metadata_columns=metadata_columns,
+        metadata_axis="variables",
+        embeddings=partm,
+        include_dimensions=include_dimensions,
+        dimension_keys=dimension_keys,
+    )
 
     return pl.DataFrame(columns)
-
-
-def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> list[str]:
-    """Return the subset of embedding keys to materialise, matched case-insensitively."""
-    available = list(embeddings.keys())
-    if dimension_keys is None:
-        return available
-    available_upper = {name.upper(): name for name in available}
-    selected = []
-    missing = []
-    for key in dimension_keys:
-        actual = available_upper.get(key.upper())
-        if actual is None:
-            missing.append(key)
-        else:
-            selected.append(actual)
-    if missing:
-        msg = f"dimension_keys not found in embeddings: {missing}"
-        raise KeyError(msg)
-    return selected
 
 
 def build_frame(
