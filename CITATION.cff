@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use Cellestial, please cite it using these metadata."
+title: "Cellestial: A grammar of graphics for single-cell omics"
+type: software
+authors:
+  - family-names: Kosar
+    given-names: Zafer
+doi: "10.5281/zenodo.21710312"
+license: Apache-2.0
+repository-code: "https://github.com/datavil/cellestial"
+url: "https://cellestial.datavil.org"
+abstract: "An interactive and highly customizable single-cell and spatial omics visualization library."
+keywords:
+  - single-cell omics
+  - spatial omics
+  - data visualization
+  - grammar of graphics

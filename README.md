@@ -2,6 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/DataVil/Cellestial)
 [![PyPI](https://img.shields.io/pypi/v/cellestial?color=377eb8)](https://pypi.org/project/cellestial/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21710312.svg)](https://doi.org/10.5281/zenodo.21710312)
 [![codecov](https://codecov.io/gh/datavil/cellestial/branch/master/graph/badge.svg)](https://codecov.io/gh/datavil/cellestial)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-ff0000)](https://opensource.org/licenses/Apache-2.0)
 [![Powered by Polars](https://img.shields.io/badge/Powered%20by-Polars-377eb8?logo=polars&logoColor=white)](https://www.pola.rs/)
@@ -229,6 +230,22 @@ See the [migration guide](https://cellestial.datavil.org/migrating_from_scanpy.h
 - [Features](https://cellestial.datavil.org/features.html) — tooltips, layers, grids, colors, faceting.
 - [API reference](https://cellestial.datavil.org/API.html) — every function.
 - [Migrating from Scanpy](https://cellestial.datavil.org/migrating_from_scanpy.html).
+
+## Citation
+
+If you use Cellestial, please cite:
+
+```bibtex
+@misc{https://doi.org/10.5281/zenodo.21710312,
+  doi = {10.5281/ZENODO.21710312},
+  url = {https://zenodo.org/doi/10.5281/zenodo.21710312},
+  author = {Kosar, Zafer},
+  title = {Cellestial: A grammar of graphics for single-cell omics},
+  publisher = {Zenodo},
+  year = {2026},
+  copyright = {Apache License 2.0}
+}
+```
 
 ## License
 
