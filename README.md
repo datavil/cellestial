@@ -2,11 +2,11 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/DataVil/Cellestial)
 [![PyPI](https://img.shields.io/pypi/v/cellestial?color=377eb8)](https://pypi.org/project/cellestial/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21710312.svg)](https://doi.org/10.5281/zenodo.21710312)
 [![codecov](https://codecov.io/gh/datavil/cellestial/branch/master/graph/badge.svg)](https://codecov.io/gh/datavil/cellestial)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-ff0000)](https://opensource.org/licenses/Apache-2.0)
 [![Powered by Polars](https://img.shields.io/badge/Powered%20by-Polars-377eb8?logo=polars&logoColor=white)](https://www.pola.rs/)
 [![Graphics: Lets-Plot](https://img.shields.io/badge/Graphics-Lets--Plot-FF00CC?logo=jetbrains&logoColor=white)](https://lets-plot.org/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21710312.svg)](https://doi.org/10.5281/zenodo.21710312)
 
 <img align="left" src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/cellestial.anim.svg" alt="Cellestial Logo" width="280">
 
