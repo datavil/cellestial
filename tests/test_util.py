@@ -1,9 +1,11 @@
 import polars as pl
 import pytest
+from lets_plot import ggplot
 from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+from cellestial.util.operations import _normalize_widths
 
 
 def test_get_mapping_returns_dict(adata):
@@ -47,6 +49,13 @@ def test_get_figures_out_of_range(adata):
     grid = cl.expressions(adata, keys=["CD14", "MS4A1"])
     with pytest.raises(IndexError):
         cl.get_figures(grid, indices=[0, 99])
+
+
+def test_normalize_widths_accepts_nested_sequences():
+    """Nested widths should accept any non-string sequence."""
+    plot = ggplot()
+
+    assert _normalize_widths([[plot, plot]], [range(2)]) == [[0, 1]]
 
 
 # ---- colors ----

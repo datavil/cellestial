@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from lets_plot import gggrid
 from lets_plot.plot.core import PlotSpec
@@ -30,32 +30,39 @@ def _normalize_widths(
         msg = f"`widths` must be a flat or nested sequence, but received {type(widths)}"
         raise TypeError(msg)
 
-    is_nested = any(isinstance(row_widths, (list, tuple)) for row_widths in widths)
-    if is_nested:
-        if not all(isinstance(row_widths, (list, tuple)) for row_widths in widths):
-            msg = "`widths` mixes numbers and sub-lists; use a fully nested list, one per row."
+    nested_flags = [
+        isinstance(row_widths, Sequence) and not isinstance(row_widths, (str, bytes))
+        for row_widths in widths
+    ]
+    if any(nested_flags):
+        if not all(nested_flags):
+            msg = "`widths` mixes numbers and sequences; use one sequence per row."
             raise ValueError(msg)
-        if len(widths) != len(plots):
-            msg = f"nested `widths` has {len(widths)} rows but `plots` has {len(plots)} rows."
+        nested_widths = cast("Sequence[Sequence[float]]", widths)
+        if len(nested_widths) != len(plots):
+            msg = (
+                f"nested `widths` has {len(nested_widths)} rows but `plots` has {len(plots)} rows."
+            )
             raise ValueError(msg)
-        for index, (row, row_widths) in enumerate(zip(plots, widths, strict=True)):
+        for index, (row, row_widths) in enumerate(zip(plots, nested_widths, strict=True)):
             if len(row_widths) != len(row):
                 msg = (
                     f"`widths[{index}]` has {len(row_widths)} values "
                     f"but row {index} has {len(row)} plots."
                 )
                 raise ValueError(msg)
-        return [list(row_widths) for row_widths in widths]
+        return [list(row_widths) for row_widths in nested_widths]
 
     # flat widths: broadcast to every row, valid only when all rows share that length.
-    uneven = [index for index, row in enumerate(plots) if len(row) != len(widths)]
+    flat_widths = cast("Sequence[float]", widths)
+    uneven = [index for index, row in enumerate(plots) if len(row) != len(flat_widths)]
     if uneven:
         msg = (
-            f"flat `widths` of length {len(widths)} cannot broadcast to rows {uneven} "
+            f"flat `widths` of length {len(flat_widths)} cannot broadcast to rows {uneven} "
             "with differing plot counts; pass a nested `widths` instead."
         )
         raise ValueError(msg)
-    return [list(widths) for _ in plots]
+    return [list(flat_widths) for _ in plots]
 
 
 def layout(

@@ -72,10 +72,20 @@ def _axis_arrow_layers(
     """
     arrow_kwargs = arrow_kwargs or {}
 
-    x_min = frame[x].min()
-    x_max = frame[x].max()
-    y_min = frame[y].min()
-    y_max = frame[y].max()
+    bounds = frame.select(
+        pl.col(x).min().alias("x_min"),
+        pl.col(x).max().alias("x_max"),
+        pl.col(y).min().alias("y_min"),
+        pl.col(y).max().alias("y_max"),
+    ).row(0, named=True)
+    if any(value is None for value in bounds.values()):
+        msg = "Arrow axes require at least one valid coordinate pair."
+        raise ValueError(msg)
+
+    x_min = bounds["x_min"]
+    x_max = bounds["x_max"]
+    y_min = bounds["y_min"]
+    y_max = bounds["y_max"]
 
     # find total difference between the max and min for both axis
     x_diff = x_max - x_min

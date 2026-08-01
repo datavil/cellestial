@@ -9,6 +9,7 @@ from lets_plot.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.layers import DeferredLayer
+from cellestial.layers.arrow import _axis_arrow_layers
 from cellestial.layers.bracket import _compute_bracket_frame, _correct_pvalues, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util import retrieve
@@ -40,6 +41,22 @@ def test_arrow_axis_explicit_plot_kwarg(adata):
     # Even when added to an empty ggplot, the data source stays `umap`.
     combined = ggplot() + arrow
     assert isinstance(combined, PlotSpec)
+
+
+def test_arrow_axis_rejects_empty_coordinates():
+    """Empty coordinates should raise a clear validation error."""
+    frame = pl.DataFrame(schema={"x": pl.Float64, "y": pl.Float64})
+
+    with pytest.raises(ValueError, match="coordinate"):
+        _axis_arrow_layers(
+            frame,
+            x="x",
+            y="y",
+            length=0.25,
+            size=1.0,
+            color="black",
+            angle=10.0,
+        )
 
 
 def test_ondata_legend_uses_group_median_positions():
