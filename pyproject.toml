@@ -1,6 +1,6 @@
 [project]
 name = "cellestial"
-version = "0.58.1"
+version = "0.58.2"
 description = "Interactive single-cell and spatial omics visualization library"
 authors = [
     { name = "Zaf4", email = "zafermolbio@gmail.com" },
@@ -72,6 +72,7 @@ pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
 nbstripout = "^0.9.1"
 pytest-xdist = "^3.8.0"
+pytest-playwright = "^0.8.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"
@@ -85,7 +86,10 @@ squidpy = "^1.8.1"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=cellestial --cov-report=xml:tests/coverage.xml --cov-report=term-missing"
+addopts = "-n 4 --dist=loadscope -m 'not browser' --cov=cellestial --cov-report=xml:tests/coverage.xml --cov-report=term-missing"
+markers = [
+    "browser: exercises Lets-Plot in a real browser",
+]
 
 [tool.coverage.run]
 data_file = "tests/.coverage"

@@ -1,6 +1,22 @@
+import atexit
+import os
+import shutil
+import tempfile
+from pathlib import Path
+
 import pytest
 
-import cellestial as cl
+_CACHE_ROOT = Path(tempfile.mkdtemp(prefix="cellestial-pytest-"))
+for _name, _path in {
+    "NUMBA_CACHE_DIR": _CACHE_ROOT / "numba",
+    "MPLCONFIGDIR": _CACHE_ROOT / "matplotlib",
+    "XDG_CACHE_HOME": _CACHE_ROOT,
+}.items():
+    _path.mkdir(parents=True, exist_ok=True)
+    os.environ[_name] = str(_path)
+atexit.register(shutil.rmtree, _CACHE_ROOT, ignore_errors=True)
+
+import cellestial as cl  # noqa: E402
 
 # Curated, small set of marker genes that are known to exist in the fixture.
 # Kept short so distribution plots stay fast.

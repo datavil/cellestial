@@ -203,7 +203,7 @@ def ridge(
         )
 
     # FILTER: keep finite values and apply threshold
-    frame = _drop_nonfinite_rows(frame, [key])
+    frame = _drop_nonfinite_rows(frame, [key]).filter(pl.col(group_by).is_not_null())
     frame = frame.filter(
         pl.col(key) >= threshold if threshold is not None else True,
     )

@@ -75,13 +75,61 @@ jobs:
           poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
 
       - name: Run tests with coverage
-        run: poetry run pytest
+        run: poetry run pytest -m "not browser"
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  browser-test:
+    name: Browser rendering (Chromium, py3.14)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install system cairo
+        run: sudo apt-get update && sudo apt-get install -y libcairo2-dev pkg-config
+
+      - name: Install project
+        run: poetry install --with dev --without docs --no-interaction
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Install Chromium
+        run: poetry run playwright install --with-deps chromium
+
+      - name: Cache preprocessed pbmc3k fixture
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/pbmc3k_pped.h5ad
+            ~/.cache/scverse_tutorials
+          key: pbmc3k-browser-${{ hashFiles('test/get_data.py') }}
+
+      - name: Prepare test fixture
+        run: |
+          mkdir -p data
+          poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
+
+      - name: Run browser rendering tests
+        run: poetry run pytest tests/test_browser_plots.py -m browser -n 2 --no-cov
 
   build:
     name: Build wheel
