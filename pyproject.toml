@@ -71,6 +71,7 @@ tqdm = "^4.67.3"
 pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
 nbstripout = "^0.9.1"
+pytest-xdist = "^3.8.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"
