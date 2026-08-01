@@ -29,6 +29,7 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
+    _drop_nonfinite_rows,
     _fill_gradient,
     _get_dendrogram,
     _get_dendrogram_path_frame,
@@ -332,7 +333,7 @@ def stacked_violin(
         variable_name=variable_column,
         value_name=value_column,
     )
-    frame = frame.drop_nulls(subset=[value_column])
+    frame = _drop_nonfinite_rows(frame, [value_column])
     # 2. Apply threshold filter
     if threshold is not None:
         frame = frame.filter(pl.col(value_column) >= threshold)

@@ -65,6 +65,22 @@ def _warn(message: str) -> None:
         warnings.formatwarning = original_format
 
 
+def _drop_nonfinite_rows(frame: pl.DataFrame, columns: Sequence[str]) -> pl.DataFrame:
+    """Keep rows whose selected numeric columns are present and finite."""
+    numeric_columns = [
+        column
+        for column in dict.fromkeys(columns)
+        if column in frame.columns and frame.schema[column].is_numeric()
+    ]
+    if not numeric_columns:
+        return frame
+    return frame.filter(
+        pl.all_horizontal(
+            pl.col(column).is_not_null() & pl.col(column).is_finite() for column in numeric_columns
+        )
+    )
+
+
 def _build_tooltips(
     *,
     tooltips: list[str] | str,

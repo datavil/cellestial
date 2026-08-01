@@ -134,6 +134,13 @@ def _build_volcano_frame(
     else:
         raise _unsupported_data_type(data, AnnData)
 
+    frame = frame.filter(
+        pl.col(logfoldchange_column).is_not_null()
+        & pl.col(logfoldchange_column).is_finite()
+        & pl.col(pvalue_column).is_not_null()
+        & pl.col(pvalue_column).is_finite()
+    )
+
     # CRITICAL PARTS: Dataframe Operations
     # 1. -log10(pvalue) transform
     frame = frame.with_columns(
@@ -299,6 +306,7 @@ def _build_markers_frame(
         # Round scores to keep the embedded JSON compact when the frame is
         # serialized into the plot output.
         frame = frame.with_columns(pl.col(score_column).round(4))
+        frame = frame.filter(pl.col(score_column).is_not_null() & pl.col(score_column).is_finite())
 
         return frame, list(selected), str(stored_group_by)
 

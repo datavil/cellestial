@@ -372,7 +372,9 @@ def heatmap(
         value_name=value_column,
     )
     if aggregate:
-        frame = frame.group_by(group_by, variable_column).agg(pl.col(value_column).mean())
+        frame = frame.group_by(group_by, variable_column).agg(
+            pl.col(value_column).filter(pl.col(value_column).is_finite()).mean()
+        )
     frame = frame.drop_nulls()
 
     # HANDLE: standard scaling

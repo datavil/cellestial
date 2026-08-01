@@ -315,6 +315,7 @@ def dotplot(
         variable_name=variable_column,
         value_name=value_name,
     )
+    frame = frame.filter(pl.col(value_name).is_not_null() & pl.col(value_name).is_finite())
     # 2. Aggregate and compute stats
     frame = frame.group_by([group_by, variable_column]).agg(
         [

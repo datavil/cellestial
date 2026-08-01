@@ -17,6 +17,7 @@ from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
+    _drop_nonfinite_rows,
     _resolve_tooltips,
     _select_variable_keys,
     _validate_tooltips,
@@ -221,6 +222,7 @@ def xyplot(
             include_dimensions=include_dimensions,
             metadata_columns=metadata_columns,
         )
+    frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)
 
     # BUILD: the scatterplot

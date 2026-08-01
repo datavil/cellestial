@@ -248,10 +248,6 @@ def volcano(
         .otherwise(cap)
         .alias(neg_log_pvalue_column)
     )
-    # logFC infinities mean the gene is expressed in only one group; fold change
-    # is undefined, drop those rows.
-    frame = frame.filter(pl.col(logfoldchange_column).is_finite())
-
     # SUBSAMPLE: cap non-significant points to keep the embedded data small.
     # The non-significant cloud overplots itself heavily, so dropping most of
     # it has no visible effect but shrinks the rendered plot's on-disk size.

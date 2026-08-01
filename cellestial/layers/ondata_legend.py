@@ -6,7 +6,7 @@ import polars as pl
 from lets_plot import aes, geom_label, geom_label_repel, geom_text, geom_text_repel, theme
 
 from cellestial.layers._deferred import DeferredLayer
-from cellestial.util import get_mapping, retrieve
+from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
@@ -22,7 +22,7 @@ def _compute_label_positions(
     group_by: str,
 ) -> DataFrame:
     """Aggregate per-group median coordinates for `geom_text` placement."""
-    frame = frame.filter(pl.col(group_by).is_not_null())
+    frame = _drop_nonfinite_rows(frame, [x, y]).filter(pl.col(group_by).is_not_null())
     return frame.group_by(group_by).agg(
         pl.col(x).median(),
         pl.col(y).median(),

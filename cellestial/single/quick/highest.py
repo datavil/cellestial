@@ -12,6 +12,7 @@ from lets_plot import (
 
 from cellestial.frames import _highest_expressed_genes_frame
 from cellestial.themes import _THEME_HIGHEST
+from cellestial.util import _drop_nonfinite_rows
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
@@ -134,8 +135,8 @@ def highest_expressed_genes(
         descending=True,
     )
 
-    # FILTER: drop nulls and apply threshold if provided
-    frame = frame.drop_nulls()
+    # FILTER: keep finite values and apply threshold if provided
+    frame = _drop_nonfinite_rows(frame, [value_column])
     frame = frame.filter(
         pl.col(value_column) >= threshold if threshold is not None else True,
     )

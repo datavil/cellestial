@@ -21,6 +21,7 @@ from cellestial.util.utilities import (
     _build_tooltips,
     _color_gradient,
     _determine_axis,
+    _drop_nonfinite_rows,
     _fill_gradient,
     _is_observation_feature,
     _is_observation_key,
@@ -35,6 +36,26 @@ from cellestial.util.utilities import (
     _share_ticks,
     _wrap_legend,
 )
+
+
+def test_drop_nonfinite_rows_is_silent_and_column_scoped():
+    """Only selected numeric columns should control silent row filtering."""
+    frame = pl.DataFrame(
+        {
+            "value": [1.0, None, np.nan, np.inf, -np.inf, 2.0],
+            "tooltip": [np.nan, 1.0, 2.0, 3.0, 4.0, np.inf],
+            "group": ["a", "b", "c", "d", "e", "f"],
+        }
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        filtered = _drop_nonfinite_rows(frame, ["value", "group"])
+
+    assert caught == []
+    assert filtered["value"].to_list() == [1.0, 2.0]
+    assert filtered["tooltip"].to_list()[0] != filtered["tooltip"].to_list()[0]
+    assert np.isinf(filtered["tooltip"].to_list()[1])
+
 
 # ---- _build_tooltips ----
 

@@ -8,7 +8,7 @@ from lets_plot import aes, geom_path
 from scipy.stats import gaussian_kde
 
 from cellestial.layers._deferred import DeferredLayer
-from cellestial.util import get_mapping
+from cellestial.util import _drop_nonfinite_rows, get_mapping
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
@@ -50,7 +50,8 @@ def _get_density_boundaries(
     boundaries = []
     for group in groups:
         group_label = "+".join(group) if len(group) > 1 else group[0]
-        points = frame.filter(pl.col(group_by).is_in(group)).select([x, y]).to_numpy()
+        group_frame = frame.filter(pl.col(group_by).is_in(group))
+        points = _drop_nonfinite_rows(group_frame, [x, y]).select([x, y]).to_numpy()
         if len(points) < 5:
             continue
 

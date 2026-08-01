@@ -25,6 +25,7 @@ from cellestial.themes import _THEME_SPATIAL
 from cellestial.util import (
     _collect_aes_columns,
     _color_gradient,
+    _drop_nonfinite_rows,
     _fill_gradient,
     _reject_sequence_key,
     _resolve_tooltips,
@@ -357,6 +358,17 @@ def spatial(
             pl.Series("spatial_x", spot_coordinates[:, 0]),
             pl.Series("spatial_y", spot_coordinates[:, 1]),
         )
+
+    if is_polygon:
+        finite_vertex = pl.all_horizontal(
+            pl.col("polygon_x").is_not_null(),
+            pl.col("polygon_x").is_finite(),
+            pl.col("polygon_y").is_not_null(),
+            pl.col("polygon_y").is_finite(),
+        )
+        frame = frame.filter(finite_vertex.all().over("instance_id"))
+    else:
+        frame = _drop_nonfinite_rows(frame, ["spatial_x", "spatial_y"])
 
     _validate_tooltips(tooltips, frame)
 

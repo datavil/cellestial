@@ -49,6 +49,21 @@ def test_resolve_rank_genes_groups_key_default_and_custom():
     assert _resolve_rank_genes_groups_key("custom") == "custom"
 
 
+def test_volcano_frame_drops_nonfinite_values_but_keeps_zero_pvalue(ranked_adata):
+    """Raw non-finite values should be dropped while zero p-values remain."""
+    ranked_adata.uns["rank_genes_groups"]["pvals_adj"]["A"] = [
+        0.0,
+        np.nan,
+        -0.1,
+        0.01,
+    ]
+
+    frame = _build_volcano_frame(ranked_adata, "A")
+
+    assert frame["variable"].to_list() == ["gene_a", "gene_c"]
+    assert np.isinf(frame["neg_log_pvalue"][0])
+
+
 def test_resolve_rank_genes_groups_key_invalid():
     with pytest.raises(TypeError, match="must be True or a string"):
         _resolve_rank_genes_groups_key(False)

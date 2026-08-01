@@ -1,4 +1,3 @@
-
 import pytest
 
 import cellestial as cl

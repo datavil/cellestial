@@ -12,7 +12,7 @@ from lets_plot import (
 )
 
 from cellestial.layers._deferred import DeferredLayer
-from cellestial.util import get_mapping, retrieve
+from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
@@ -226,6 +226,8 @@ def stream(
         except ImportError as err:
             msg = "`scvelo` must be installed to use the stream layer."
             raise ImportError(msg) from err
+
+        frame = _drop_nonfinite_rows(frame, [x, y, x_velocity, y_velocity])
 
         # extract coordinates and velocities as numpy arrays
         dimensions = frame.select(pl.col(x), pl.col(y)).to_numpy()

@@ -18,6 +18,7 @@ from cellestial.frames import build_frame
 from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
+    _drop_nonfinite_rows,
     _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
@@ -201,8 +202,8 @@ def ridge(
             metadata_columns=metadata_columns,
         )
 
-    # FILTER: drop nulls and apply threshold
-    frame = frame.drop_nulls(subset=[key])
+    # FILTER: keep finite values and apply threshold
+    frame = _drop_nonfinite_rows(frame, [key])
     frame = frame.filter(
         pl.col(key) >= threshold if threshold is not None else True,
     )

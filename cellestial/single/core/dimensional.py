@@ -24,6 +24,7 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _collect_aes_columns,
     _color_gradient,
+    _drop_nonfinite_rows,
     _reject_sequence_key,
     _require_feature_key,
     _resolve_embedding_key,
@@ -282,6 +283,7 @@ def dimensional(
             include_dimensions=max(xy),
             metadata_columns=metadata_columns,
         )
+    frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)
 
     # HANDLE: groups filter (categorical-only)
