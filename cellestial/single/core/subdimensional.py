@@ -33,7 +33,7 @@ def umap(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    midpoint: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -99,7 +99,7 @@ def umap(
         The color to use for the middle part of the color gradient.
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    midpoint : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
@@ -197,7 +197,7 @@ def umap(
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
-        mid_point=mid_point,
+        midpoint=midpoint,
         axis_type=axis_type,
         arrow_length=arrow_length,
         arrow_size=arrow_size,
@@ -235,7 +235,7 @@ def tsne(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    midpoint: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -301,7 +301,7 @@ def tsne(
         The color to use for the middle part of the color gradient.
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    midpoint : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
@@ -399,7 +399,7 @@ def tsne(
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
-        mid_point=mid_point,
+        midpoint=midpoint,
         axis_type=axis_type,
         arrow_length=arrow_length,
         arrow_size=arrow_size,
@@ -437,7 +437,7 @@ def pca(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    midpoint: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -503,7 +503,7 @@ def pca(
         The color to use for the middle part of the color gradient.
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    midpoint : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
@@ -601,7 +601,7 @@ def pca(
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
-        mid_point=mid_point,
+        midpoint=midpoint,
         axis_type=axis_type,
         arrow_length=arrow_length,
         arrow_size=arrow_size,
@@ -638,7 +638,7 @@ def expression(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    midpoint: Literal["mean", "median", "mid"] | float = "median",
     axis_type: Literal["axis", "arrow"] | None = None,
     arrow_length: float = 0.25,
     arrow_size: float = 1,
@@ -700,7 +700,7 @@ def expression(
         The color to use for the middle part of the color gradient.
     color_high : str, default='#377EB8'
         The color to use for the high end of the color gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    midpoint : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         - If 'mean', the midpoint is the mean of the data.
@@ -791,7 +791,7 @@ def expression(
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
-        mid_point=mid_point,
+        midpoint=midpoint,
         axis_type=axis_type,
         arrow_length=arrow_length,
         arrow_size=arrow_size,

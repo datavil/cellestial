@@ -554,7 +554,7 @@ interactive: bool = False
 
 ### Color/fill parameters
 - Geom level: `geom_fill`, `geom_color`, `point_color`
-- Scale level: `color_low`, `color_mid`, `color_high`, `mid_point`
+- Scale level: `color_low`, `color_mid`, `color_high`, `midpoint`
 - Discrete: `scale_color_brewer(palette="Set2")` — always Set2 for categoricals
 - Continuous: `_color_gradient()` for expression/numeric data
 

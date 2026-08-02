@@ -17,6 +17,10 @@ from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+import cellestial.frames as frames
+import cellestial.layers as layers
+import cellestial.themes as themes
+import cellestial.util as util
 from cellestial.frames.build import anndata_observations_frame, anndata_variables_frame
 
 
@@ -162,3 +166,39 @@ def test_volcanos_return_annotation():
 def test_volcanos_returns_supplots(ranked_adata):
     plot = cl.volcanos(ranked_adata, ["A", "B"])
     assert isinstance(plot, SupPlotsSpec)
+
+
+# ---- final v1 API fixes: `midpoint` spelling and public subpackage exports ----
+
+
+@pytest.mark.parametrize(
+    "fn",
+    [
+        cl.annotated_heatmap,
+        cl.dimensional,
+        cl.dimensionals,
+        cl.dotplot,
+        cl.expression,
+        cl.expressions,
+        cl.heatmap,
+        cl.matrixplot,
+        cl.pca,
+        cl.pcas,
+        cl.spatial,
+        cl.spatials,
+        cl.stacked_violin,
+        cl.tsne,
+        cl.tsnes,
+        cl.umap,
+        cl.umaps,
+    ],
+)
+def test_gradient_parameter_is_midpoint(fn):
+    parameters = inspect.signature(fn).parameters
+    assert "midpoint" in parameters
+    assert "mid_point" not in parameters
+
+
+@pytest.mark.parametrize("module", [frames, layers, themes, util])
+def test_subpackage_all_excludes_private_names(module):
+    assert all(not name.startswith("_") for name in module.__all__)

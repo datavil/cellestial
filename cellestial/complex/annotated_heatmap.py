@@ -359,7 +359,7 @@ def annotated_heatmap(
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     max_rows: int | None = 1000,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -446,7 +446,7 @@ def annotated_heatmap(
         Color for mid values in the heatmap gradient.
     color_high : str, default='#ff0000'
         Color for high values in the heatmap gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the heatmap color gradient.
     max_rows : int | None, default=1000
         Cap the number of plotted rows by averaging contiguous observations
@@ -608,7 +608,7 @@ def annotated_heatmap(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
-            mid_point=mid_point,
+            midpoint=midpoint,
         )
         + key_scale
         + observation_scale

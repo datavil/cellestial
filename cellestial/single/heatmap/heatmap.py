@@ -83,7 +83,7 @@ def heatmap(
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     axis: Literal[0, 1] | None = 0,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
@@ -181,7 +181,7 @@ def heatmap(
         Color for mid values in the gradient.
     color_high : str, default='#ff0000'
         Color for high values in the gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the color gradient.
     axis : {0,1} | None, default=0
         Axis of the data, 0 for observations and 1 for variables.
@@ -521,7 +521,7 @@ def heatmap(
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
-        mid_point=mid_point,
+        midpoint=midpoint,
     )
 
     # KEY-GROUP brackets above the plot when ``keys`` was a mapping.
@@ -577,7 +577,7 @@ def matrixplot(
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     axis: Literal[0, 1] | None = 0,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
@@ -661,7 +661,7 @@ def matrixplot(
         Color for mid values in the gradient.
     color_high : str, default='#ff0000'
         Color for high values in the gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the color gradient.
     axis : {0,1} | None, default=0
         Axis of the data, 0 for observations and 1 for variables.
@@ -762,7 +762,7 @@ def matrixplot(
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
-        mid_point=mid_point,
+        midpoint=midpoint,
         axis=axis,
         observations_name=observations_name,
         variables_name=variables_name,

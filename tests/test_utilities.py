@@ -124,7 +124,7 @@ def test_color_gradient_no_mid():
 def test_color_gradient_with_mid_mean():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _color_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point="mean"
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint="mean"
     )
     assert isinstance(result, FeatureSpec)
 
@@ -132,15 +132,15 @@ def test_color_gradient_with_mid_mean():
 def test_color_gradient_with_mid_median():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _color_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point="median"
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint="median"
     )
     assert isinstance(result, FeatureSpec)
 
 
-def test_color_gradient_with_mid_point_value():
+def test_color_gradient_with_midpoint_value():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _color_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point="mid"
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint="mid"
     )
     assert isinstance(result, FeatureSpec)
 
@@ -148,7 +148,7 @@ def test_color_gradient_with_mid_point_value():
 def test_color_gradient_with_mid_float():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _color_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point=1.5
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint=1.5
     )
     assert isinstance(result, FeatureSpec)
 
@@ -165,7 +165,7 @@ def test_fill_gradient_no_mid():
 def test_fill_gradient_with_mid_mean():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _fill_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point="mean"
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint="mean"
     )
     assert isinstance(result, FeatureSpec)
 
@@ -173,7 +173,7 @@ def test_fill_gradient_with_mid_mean():
 def test_fill_gradient_with_mid_median():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _fill_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point="median"
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint="median"
     )
     assert isinstance(result, FeatureSpec)
 
@@ -181,7 +181,7 @@ def test_fill_gradient_with_mid_median():
 def test_fill_gradient_with_mid_mid():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _fill_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point="mid"
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint="mid"
     )
     assert isinstance(result, FeatureSpec)
 
@@ -189,17 +189,17 @@ def test_fill_gradient_with_mid_mid():
 def test_fill_gradient_with_mid_float():
     series = pl.Series("x", [1.0, 2.0, 3.0])
     result = _fill_gradient(
-        series, color_low="white", color_mid="yellow", color_high="red", mid_point=2.0
+        series, color_low="white", color_mid="yellow", color_high="red", midpoint=2.0
     )
     assert isinstance(result, FeatureSpec)
 
 
-@pytest.mark.parametrize("mid_point", ["mean", "median", "mid"])
-def test_resolve_midpoint_ignores_nonfinite_values(mid_point):
+@pytest.mark.parametrize("midpoint", ["mean", "median", "mid"])
+def test_resolve_midpoint_ignores_nonfinite_values(midpoint):
     """Calculated midpoints should use only finite values."""
     series = pl.Series("x", [None, np.nan, -np.inf, -2.0, 0.0, 2.0, np.inf])
 
-    assert _resolve_midpoint(series, mid_point) == pytest.approx(0.0)
+    assert _resolve_midpoint(series, midpoint) == pytest.approx(0.0)
 
 
 def test_resolve_midpoint_accepts_negative_value_within_range():
@@ -209,29 +209,29 @@ def test_resolve_midpoint_accepts_negative_value_within_range():
     assert _resolve_midpoint(series, -1.5) == -1.5
 
 
-@pytest.mark.parametrize("mid_point", [-3.0, 3.0])
-def test_resolve_midpoint_rejects_value_outside_range(mid_point):
+@pytest.mark.parametrize("midpoint", [-3.0, 3.0])
+def test_resolve_midpoint_rejects_value_outside_range(midpoint):
     """Numeric midpoints must fall within the finite data range."""
     series = pl.Series("x", [-2.0, 0.0, 2.0])
 
     with pytest.raises(ValueError, match="within the finite data range"):
-        _resolve_midpoint(series, mid_point)
+        _resolve_midpoint(series, midpoint)
 
 
-@pytest.mark.parametrize("mid_point", [np.nan, np.inf, -np.inf])
-def test_resolve_midpoint_rejects_nonfinite_value(mid_point):
+@pytest.mark.parametrize("midpoint", [np.nan, np.inf, -np.inf])
+def test_resolve_midpoint_rejects_nonfinite_value(midpoint):
     """Numeric midpoints must themselves be finite."""
     series = pl.Series("x", [-2.0, 0.0, 2.0])
 
     with pytest.raises(ValueError, match="must be finite"):
-        _resolve_midpoint(series, mid_point)
+        _resolve_midpoint(series, midpoint)
 
 
 def test_resolve_midpoint_rejects_boolean():
     """Booleans should not be interpreted as numeric midpoints."""
     series = pl.Series("x", [0.0, 1.0])
 
-    with pytest.raises(TypeError, match="mid_point"):
+    with pytest.raises(TypeError, match="midpoint"):
         _resolve_midpoint(series, True)
 
 

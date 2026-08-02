@@ -31,7 +31,7 @@ None.
 
 10. **`groups` accepted types differ** — accepted as intentional. Dimensional/umap/violin/etc. accept `Sequence[str] | str | None`; dotplot/heatmap/matrixplot/stacked_violin accept `Sequence[str] | None` and reject a bare string.
 
-11. **`mid_point` defaults differ by family** — accepted as intentional. The scatter family (`expression`/`umap`/etc.) defaults to `"median"`; the matrix family (`dotplot`/`heatmap`/`matrixplot`/`stacked_violin`/`spatial`) defaults to `"mid"`.
+11. **`midpoint` defaults differ by family** — accepted as intentional. The scatter family (`expression`/`umap`/etc.) defaults to `"median"`; the matrix family (`dotplot`/`heatmap`/`matrixplot`/`stacked_violin`/`spatial`) defaults to `"mid"`.
 
 12. **`group_by` is positional-required in `ridge`/`ridges`** — accepted as intentional because ridge plots require grouping. It remains keyword-optional in `violin`, `boxplot`, and `histogram`.
 

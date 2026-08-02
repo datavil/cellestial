@@ -57,7 +57,7 @@ def spatials(
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     # multi plot args
     share_labels: bool = False,
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
@@ -173,7 +173,7 @@ def spatials(
         falls back to a 2-color gradient between color_low and color_high.
     color_high : str, default='#377eb8'
         Color for high values in the continuous gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
     share_labels : bool, default=False
         If True, only show axis labels at the grid edges.
@@ -340,7 +340,7 @@ def spatials(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
-            mid_point=mid_point,
+            midpoint=midpoint,
             **point_kwargs,
         )
 

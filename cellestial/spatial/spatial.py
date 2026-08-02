@@ -78,7 +78,7 @@ def spatial(
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     **point_kwargs,
 ) -> PlotSpec:
     """
@@ -184,7 +184,7 @@ def spatial(
         falls back to a 2-color gradient between color_low and color_high.
     color_high : str, default='#377eb8'
         Color for high values in the continuous gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
     **point_kwargs
         Additional parameters forwarded to `geom_point`.
@@ -446,7 +446,7 @@ def spatial(
                     color_low=color_low,
                     color_mid=color_mid,
                     color_high=color_high,
-                    mid_point=mid_point,
+                    midpoint=midpoint,
                 )
     else:
         sptl += geom_point(
@@ -465,7 +465,7 @@ def spatial(
                     color_low=color_low,
                     color_mid=color_mid,
                     color_high=color_high,
-                    mid_point=mid_point,
+                    midpoint=midpoint,
                 )
 
     # Image rows grow downward in pixel space; reverse y so spots align with the image.

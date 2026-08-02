@@ -60,7 +60,7 @@ def dotplot(
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#D2042D",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
     percentage_key: str = "pct_exp",
@@ -121,7 +121,7 @@ def dotplot(
         Color for mid values in the gradient.
     color_high : str, default='#D2042D'
         Color for high values in the gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the color gradient.
     sort_by : str | Sequence[str] | None, default=None
         The column or columns to sort the results by.
@@ -409,7 +409,7 @@ def dotplot(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
-            mid_point=mid_point,
+            midpoint=midpoint,
         )
         + _size_scale
     )

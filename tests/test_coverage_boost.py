@@ -36,12 +36,12 @@ def test_dimensional_legend_ondata(adata, group_key):
 
 
 def test_dimensional_color_mid(adata):
-    plot = cl.umap(adata, "CD14", color_mid="yellow", mid_point="mean")
+    plot = cl.umap(adata, "CD14", color_mid="yellow", midpoint="mean")
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_color_mid_midpoint(adata):
-    plot = cl.umap(adata, "CD14", color_mid="yellow", mid_point="mid")
+    plot = cl.umap(adata, "CD14", color_mid="yellow", midpoint="mid")
     assert isinstance(plot, PlotSpec)
 
 

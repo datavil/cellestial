@@ -64,7 +64,7 @@ def stacked_violin(
     color_low: str = "#F5F5F5",
     color_mid: str | None = None,
     color_high: str = "#00008B",
-    mid_point: Literal["mean", "median", "mid"] | float = "mid",
+    midpoint: Literal["mean", "median", "mid"] | float = "mid",
     geom_fill: str | None = None,
     geom_color: str | None = "#1f1f1f",
     dendrogram: bool = False,
@@ -149,7 +149,7 @@ def stacked_violin(
         Color for mid values in the gradient.
     color_high : str, default='#00008B'
         Color for high values in the gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='mid'
+    midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the color gradient.
     geom_fill : str | None, default=None
         Static fill color for all violins. Overrides any fill aesthetic.
@@ -404,7 +404,7 @@ def stacked_violin(
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
-            mid_point=mid_point,
+            midpoint=midpoint,
         )
 
     # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits

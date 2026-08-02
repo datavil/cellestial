@@ -219,41 +219,41 @@ def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
 
 def _resolve_midpoint(
     series: pl.Series,
-    mid_point: Literal["mean", "median", "mid"] | float,
+    midpoint: Literal["mean", "median", "mid"] | float,
 ) -> float:
     """Resolve and validate the midpoint of a diverging color scale."""
     finite_series = series.filter(series.is_not_null() & series.is_finite())
     if finite_series.is_empty():
-        msg = "Cannot resolve `mid_point` without finite data values."
+        msg = "Cannot resolve `midpoint` without finite data values."
         raise ValueError(msg)
     data_min = cast("float", finite_series.min())
     data_max = cast("float", finite_series.max())
 
-    if isinstance(mid_point, bool):
-        msg = "`mid_point` must be a number or one of 'mean', 'median', or 'mid'."
+    if isinstance(midpoint, bool):
+        msg = "`midpoint` must be a number or one of 'mean', 'median', or 'mid'."
         raise TypeError(msg)
-    if isinstance(mid_point, Real):
-        mid_value = float(mid_point)
-    elif mid_point == "mean":
+    if isinstance(midpoint, Real):
+        mid_value = float(midpoint)
+    elif midpoint == "mean":
         mid_value = cast("float", finite_series.mean())
-    elif mid_point == "median":
+    elif midpoint == "median":
         mid_value = cast("float", finite_series.median())
-    elif mid_point == "mid":
+    elif midpoint == "mid":
         mid_value = (data_min + data_max) / 2
-    elif isinstance(mid_point, str):
-        msg = "`mid_point` must be one of 'mean', 'median', or 'mid', or a number."
+    elif isinstance(midpoint, str):
+        msg = "`midpoint` must be one of 'mean', 'median', or 'mid', or a number."
         raise ValueError(msg)
     else:
-        msg = "`mid_point` must be a number or one of 'mean', 'median', or 'mid'."
+        msg = "`midpoint` must be a number or one of 'mean', 'median', or 'mid'."
         raise TypeError(msg)
 
     if not isfinite(mid_value):
-        msg = "`mid_point` must be finite."
+        msg = "`midpoint` must be finite."
         raise ValueError(msg)
 
     if not data_min <= mid_value <= data_max:
         msg = (
-            f"`mid_point` ({mid_value}) must be within the finite data range "
+            f"`midpoint` ({mid_value}) must be within the finite data range "
             f"[{data_min}, {data_max}]."
         )
         raise ValueError(msg)
@@ -266,7 +266,7 @@ def _color_gradient(
     color_low=None,
     color_mid=None,
     color_high=None,
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    midpoint: Literal["mean", "median", "mid"] | float = "median",
 ) -> FeatureSpec:
     """
     Create a gradient color feature.
@@ -281,7 +281,7 @@ def _color_gradient(
        The color to use for the mid part of the color gradient.
     color_high : str
         The color to use for the high end of the color gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    midpoint : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         If 'mean', the midpoint is the mean of the data.
@@ -298,7 +298,7 @@ def _color_gradient(
     if color_mid is None:
         return scale_color_continuous(low=color_low, high=color_high)
     else:
-        mid_value = _resolve_midpoint(series, mid_point)
+        mid_value = _resolve_midpoint(series, midpoint)
 
         return scale_color_gradient2(
             low=color_low,
@@ -313,7 +313,7 @@ def _fill_gradient(
     color_low=None,
     color_mid=None,
     color_high=None,
-    mid_point: Literal["mean", "median", "mid"] | float = "median",
+    midpoint: Literal["mean", "median", "mid"] | float = "median",
 ) -> FeatureSpec:
     """
     Create a gradient color feature.
@@ -328,7 +328,7 @@ def _fill_gradient(
        The color to use for the mid part of the color gradient.
     color_high : str
         The color to use for the high end of the color gradient.
-    mid_point : {'mean', 'median', 'mid'} | float, default='median'
+    midpoint : {'mean', 'median', 'mid'} | float, default='median'
         The midpoint (in data value) of the color gradient.
         Can be 'mean', 'median' and 'mid' or a number (float or int).
         If 'mean', the midpoint is the mean of the data.
@@ -345,7 +345,7 @@ def _fill_gradient(
     if color_mid is None:
         return scale_fill_continuous(low=color_low, high=color_high)
     else:
-        mid_value = _resolve_midpoint(series, mid_point)
+        mid_value = _resolve_midpoint(series, midpoint)
 
         return scale_fill_gradient2(
             low=color_low,

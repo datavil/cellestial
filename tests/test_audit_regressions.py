@@ -197,19 +197,19 @@ def test_gradients_reject_unknown_midpoint_modes(gradient):
     """Invalid midpoint modes must raise a public input error, not UnboundLocalError."""
     series = pl.Series("value", [1.0, 2.0, 3.0])
 
-    with pytest.raises(ValueError, match="mid_point"):
+    with pytest.raises(ValueError, match="midpoint"):
         gradient(
             series,
             color_low="white",
             color_mid="gray",
             color_high="black",
-            mid_point="unsupported",
+            midpoint="unsupported",
         )
 
 
 @pytest.mark.parametrize("gradient", [_color_gradient, _fill_gradient])
-@pytest.mark.parametrize("mid_point", [0.0, 4.0])
-def test_gradients_reject_midpoints_outside_data_range(gradient, mid_point):
+@pytest.mark.parametrize("midpoint", [0.0, 4.0])
+def test_gradients_reject_midpoints_outside_data_range(gradient, midpoint):
     """A diverging scale midpoint must lie within its finite data range."""
     series = pl.Series("value", [1.0, 2.0, 3.0])
 
@@ -219,7 +219,7 @@ def test_gradients_reject_midpoints_outside_data_range(gradient, mid_point):
             color_low="white",
             color_mid="gray",
             color_high="black",
-            mid_point=mid_point,
+            midpoint=midpoint,
         )
 
 
