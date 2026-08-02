@@ -112,6 +112,31 @@ def test_plural_group_by(adata, fn, group_key):
     assert isinstance(plot, SupPlotsSpec)
 
 
+@pytest.mark.parametrize("fn", [cl.violins, cl.boxplots, cl.histograms])
+def test_plural_threshold_filters_each_panel(adata, fn):
+    keys = ["CD14", "MS4A1"]
+    plot = fn(adata, keys, threshold=0.1)
+
+    for panel, key in zip(plot.as_dict()["figures"], keys, strict=True):
+        assert panel["data"][key].min() >= 0.1
+
+
+@pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
+def test_plural_point_mapping_materializes_its_column(adata, fn):
+    plot = fn(
+        adata,
+        ["CD14", "MS4A1"],
+        point_mapping=aes(color="n_genes_by_counts"),
+    )
+
+    for panel in plot.as_dict()["figures"]:
+        assert "n_genes_by_counts" in panel["data"].columns
+        assert any(
+            layer.get("mapping", {}).get("color") == "n_genes_by_counts"
+            for layer in panel["layers"]
+        )
+
+
 # ---- ridge / ridges ----
 
 

@@ -33,6 +33,7 @@ def violins(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = None,
@@ -41,6 +42,7 @@ def violins(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_points: bool = True,
@@ -97,6 +99,8 @@ def violins(
         Fill aesthetic to split the violin plot (categorical).
         Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -115,6 +119,8 @@ def violins(
         Size for the points in the violin plot.
     point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
+    point_mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the points, the result of `aes()`.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default='Variable'
@@ -224,6 +230,14 @@ def violins(
         variable_keys=variable_keys,
         axis=axis,
     )
+    _collect_aes_columns(
+        data,
+        keys=[],
+        mapping=point_mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
     # Tooltips are shared across subplots; pull their fields into the shared
     # frame so each subplot's unpivot index can keep them.
     _resolve_tooltips(
@@ -258,6 +272,7 @@ def violins(
             axis=axis,
             color=color,
             fill=fill,
+            threshold=threshold,
             add_keys=add_keys,
             tooltips=tooltips,
             geom_fill=geom_fill,
@@ -266,6 +281,7 @@ def violins(
             point_alpha=point_alpha,
             point_size=point_size,
             point_geom=point_geom,
+            point_mapping=point_mapping,
             observations_name=observations_name,
             variables_name=variables_name,
             show_points=show_points,
@@ -317,6 +333,7 @@ def boxplots(
     axis: Literal[0, 1] | None = None,
     color: str | None = None,
     fill: str | None = None,
+    threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = None,
@@ -325,6 +342,7 @@ def boxplots(
     point_alpha: float = 0.7,
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
+    point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     show_points: bool = True,
@@ -381,6 +399,8 @@ def boxplots(
         Fill aesthetic to split the boxplot (categorical).
         Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -399,6 +419,8 @@ def boxplots(
         Size for the points in the boxplot.
     point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
+    point_mapping : FeatureSpec | None, default=None
+        Additional aesthetic mappings for the points, the result of `aes()`.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default='Variable'
@@ -507,6 +529,14 @@ def boxplots(
         variable_keys=variable_keys,
         axis=axis,
     )
+    _collect_aes_columns(
+        data,
+        keys=[],
+        mapping=point_mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
     # Tooltips are shared across subplots; pull their fields into the shared
     # frame so each subplot's unpivot index can keep them.
     _resolve_tooltips(
@@ -541,6 +571,7 @@ def boxplots(
             axis=axis,
             color=color,
             fill=fill,
+            threshold=threshold,
             add_keys=add_keys,
             tooltips=tooltips,
             geom_fill=geom_fill,
@@ -549,6 +580,7 @@ def boxplots(
             point_alpha=point_alpha,
             point_size=point_size,
             point_geom=point_geom,
+            point_mapping=point_mapping,
             observations_name=observations_name,
             variables_name=variables_name,
             show_points=show_points,
@@ -603,6 +635,7 @@ def histograms(
     fill: str | None = None,
     bins: int | None = None,
     binwidth: float | None = None,
+    threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = None,
@@ -663,6 +696,8 @@ def histograms(
         Number of bins. Overridden by `binwidth` if both are provided.
     binwidth : float | None, default=None
         Width of each bin. Takes precedence over `bins`.
+    threshold : float | None, default=None
+        If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
         Additional keys to include in the dataframe.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
@@ -808,6 +843,7 @@ def histograms(
             fill=fill,
             bins=bins,
             binwidth=binwidth,
+            threshold=threshold,
             add_keys=add_keys,
             tooltips=tooltips,
             geom_fill=geom_fill,

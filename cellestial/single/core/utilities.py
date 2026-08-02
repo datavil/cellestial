@@ -125,6 +125,14 @@ def _distribution(
         variable_keys=variable_keys,
         axis=axis,
     )
+    _collect_aes_columns(
+        data,
+        keys=[],
+        mapping=point_mapping,
+        metadata_columns=metadata_columns,
+        variable_keys=variable_keys,
+        axis=axis,
+    )
     # Resolve tooltips before the unpivot so tooltip fields reach both the frame
     # and the unpivot index; otherwise the unpivot drops tooltip-only columns.
     # for a single key the `variable` column just repeats the key name, so drop it
@@ -140,6 +148,14 @@ def _distribution(
     # Keep tooltip-referenced metadata columns through the unpivot.
     for column in metadata_columns:
         if column not in index and column not in keys:
+            index.append(column)
+    for column in point_mapping.as_dict().values():
+        if (
+            isinstance(column, str)
+            and column not in index
+            and column not in keys
+            and column not in {value_column, variable_column}
+        ):
             index.append(column)
     if frame is None:
         observation_column_name = None if tooltips == "none" else observations_name

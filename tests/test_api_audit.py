@@ -108,6 +108,16 @@ def test_share_ticks_defaults_false(fn):
     assert _param(fn, "share_ticks").default is False
 
 
+@pytest.mark.parametrize("fn", [cl.violins, cl.boxplots, cl.histograms])
+def test_plural_distributions_expose_threshold(fn):
+    assert _param(fn, "threshold").default is None
+
+
+@pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
+def test_plural_point_distributions_expose_point_mapping(fn):
+    assert _param(fn, "point_mapping").default is None
+
+
 # ---- #13: grid `widths`/`heights` annotated `list[float] | None` ----
 
 
