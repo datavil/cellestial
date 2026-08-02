@@ -115,11 +115,9 @@ def violins(
         Size for the points in the violin plot.
     point_geom : {'jitter','point','sina'}, default is 'jitter'
         Geom type of the points, default is geom_jitter.
-    trim : bool, default=False
-        Whether to trim the violin plot.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Gene'
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -154,10 +152,10 @@ def violins(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -403,7 +401,7 @@ def boxplots(
         Geom type of the points, default is geom_jitter.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Gene'
+    variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -437,10 +435,10 @@ def boxplots(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -709,10 +707,10 @@ def histograms(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. "geom" bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot "inner areas" layouting.

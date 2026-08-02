@@ -155,7 +155,7 @@ def stacked_violin(
         Static fill color for all violins. Overrides any fill aesthetic.
 
 
-    geom_color : str | None, default=None
+    geom_color : str | None, default='#1f1f1f'
         Border color for all violins.
     dendrogram : bool, default=False
         Whether to add a dendrogram for the `group_by` axis.

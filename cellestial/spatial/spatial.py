@@ -153,7 +153,7 @@ def spatial(
         Crop the plot to a region given as `(left, right, top, bottom)`.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`.
-    size : float | None, default=0.8
+    size : float | None, default=1.5
         Spot size.
     alpha : float, default=1.0
         Alpha (transparency) of the spots.

@@ -100,11 +100,11 @@ def volcano(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`. Merged on top of
         the default `aes(x=logfoldchange, y=neg_log_pvalue, color=significance)`.
-    color_up : str, default='#A83737'
+    color_up : str, default='#b22222'
         Color for significantly up-regulated points (brick red).
-    color_down : str, default='#6FA8DC'
+    color_down : str, default='#6495ed'
         Color for significantly down-regulated points (soft cornflower blue).
-    color_nonsignificant : str, default='#A6A6A6'
+    color_nonsignificant : str, default='#bebebe'
         Color for non-significant points (medium gray).
     size : float, default=2.0
         Default point size; can be overridden via `point_kwargs`.

@@ -114,8 +114,6 @@ def dimensionals(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -188,10 +186,10 @@ def dimensionals(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -446,8 +444,6 @@ def umaps(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -520,10 +516,10 @@ def umaps(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -777,8 +773,6 @@ def tsnes(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -850,10 +844,10 @@ def tsnes(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -1106,8 +1100,6 @@ def pcas(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -1179,10 +1171,10 @@ def pcas(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
@@ -1431,8 +1423,6 @@ def expressions(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    cluster_name : str, default='Cluster'
-        The name to overwrite the clustering key in the dataframe and the plot.
     observations_name : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
@@ -1504,10 +1494,10 @@ def expressions(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.

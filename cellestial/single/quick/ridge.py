@@ -341,10 +341,10 @@ def ridges(
         Cell horizontal spacing in px.
     vspace : float | None, default=None
         Cell vertical spacing in px.
-    fit : bool, default=True
+    fit : bool | None, default=None
         Whether to stretch each plot to match the aspect ratio of its cell (fit=True),
         or to preserve the original aspect ratio of plots (fit=False).
-    align : bool, default=False
+    align : bool | None, default=None
         If True, align inner areas (i.e. “geom” bounds) of plots.
         However, cells containing other (sub)grids are not participating
         in the plot “inner areas” layouting.
