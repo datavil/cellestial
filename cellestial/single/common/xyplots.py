@@ -148,7 +148,7 @@ def xyplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.xyplots(
             data,
@@ -169,7 +169,7 @@ def xyplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.xyplots(
             data,

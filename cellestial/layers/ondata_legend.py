@@ -121,7 +121,7 @@ def ondata_legend(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=1.5)
         umap

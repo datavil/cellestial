@@ -230,7 +230,7 @@ def dimensionals(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.dimensionals(
             data,
@@ -562,7 +562,7 @@ def umaps(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.umaps(
             data,
@@ -892,7 +892,7 @@ def tsnes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.tsnes(
             data,
@@ -1221,7 +1221,7 @@ def pcas(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.pcas(
             data,
@@ -1546,7 +1546,7 @@ def expressions(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.expressions(
             data,

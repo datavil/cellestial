@@ -273,7 +273,7 @@ def arrow_axis(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = cl.umap(data,"HBA2")
         umap
@@ -287,7 +287,7 @@ def arrow_axis(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = cl.umap(data,"HBA2")
         umap + cl.arrow_axis()
@@ -301,7 +301,7 @@ def arrow_axis(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = cl.umap(data,"HBA2")
         umap + cl.arrow_axis(length=0.20,color="dark_violet")

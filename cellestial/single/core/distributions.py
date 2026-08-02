@@ -200,7 +200,7 @@ def violins(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.violins(
             data,
@@ -483,7 +483,7 @@ def boxplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.boxplots(
             data,
@@ -748,7 +748,7 @@ def histograms(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.histograms(
             data,

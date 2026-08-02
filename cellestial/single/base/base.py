@@ -65,7 +65,7 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         p1 = (
             cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))
@@ -80,7 +80,7 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         p2 = (
             cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))

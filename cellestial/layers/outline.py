@@ -192,7 +192,7 @@ def cluster_outlines(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = (
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
@@ -209,7 +209,7 @@ def cluster_outlines(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = (
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
@@ -226,7 +226,7 @@ def cluster_outlines(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         umap = (
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)

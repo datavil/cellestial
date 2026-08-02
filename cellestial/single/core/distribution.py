@@ -144,7 +144,7 @@ def violin(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         violin = (
             cl.violin(
@@ -173,7 +173,7 @@ def violin(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         violin = (
             cl.violin(
@@ -203,7 +203,7 @@ def violin(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         violin = (
             cl.violin(
@@ -383,7 +383,7 @@ def boxplot(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         boxplot = (
             cl.boxplot(
@@ -410,7 +410,7 @@ def boxplot(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         boxplot = (
             cl.boxplot(
@@ -438,7 +438,7 @@ def boxplot(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         boxplot = (
             cl.boxplot(
@@ -596,7 +596,7 @@ def histogram(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         histogram = (
             cl.histogram(data, "n_genes_by_counts", bins=50)

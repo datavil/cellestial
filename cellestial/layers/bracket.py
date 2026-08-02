@@ -401,7 +401,7 @@ def bracket(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         violin = cl.violin(
             data,

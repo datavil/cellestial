@@ -73,7 +73,7 @@ def scatter(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.scatter(
             data,
@@ -91,7 +91,7 @@ def scatter(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
 
         cl.scatter(
@@ -109,7 +109,7 @@ def scatter(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
 
         cl.scatter(

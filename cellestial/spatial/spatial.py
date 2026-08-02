@@ -224,7 +224,7 @@ def spatial(
 
         import cellestial as cl
 
-        data = cl.datasets.human_lymph_node(cache_directory="data")
+        data = cl.datasets.human_lymph_node()
 
         cl.spatial(data,key="clusters",interactive=True)
 

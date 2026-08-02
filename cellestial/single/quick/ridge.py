@@ -120,7 +120,7 @@ def ridge(
 
         from lets_plot import *
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         ridge = (
             cl.ridge(
@@ -381,7 +381,7 @@ def ridges(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
         # get the top 8 genes with the highest mean expression
         gene_means = np.asarray(data.X.mean(axis=0)).flatten()
         top8_genes = data.var_names[np.argsort(gene_means)[::-1][:8]].tolist()

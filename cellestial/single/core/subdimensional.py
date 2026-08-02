@@ -159,7 +159,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.umap(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -172,7 +172,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -361,7 +361,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.tsne(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -374,7 +374,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -563,7 +563,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.pca(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -576,7 +576,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -765,7 +765,7 @@ def expression(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.expression(data,key="CD14",axis_type="arrow",color_high="red")
 

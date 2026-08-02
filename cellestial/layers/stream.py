@@ -138,7 +138,7 @@ def stream(
 
         import cellestial as cl
 
-        data = cl.datasets.pancreas(cache_directory="data")
+        data = cl.datasets.pancreas()
 
         plot = cl.umap(
             data,
@@ -162,7 +162,7 @@ def stream(
 
         import cellestial as cl
 
-        data = cl.datasets.pancreas(cache_directory="data")
+        data = cl.datasets.pancreas()
 
         plot = cl.umap(
             data,

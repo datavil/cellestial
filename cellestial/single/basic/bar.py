@@ -67,7 +67,7 @@ def bar(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         p1 = (
             cl.bar(data, mapping=aes('leiden', fill='predicted_doublet'))
@@ -84,7 +84,7 @@ def bar(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         p2 = (
             cl.bar(data, mapping=aes('cell_type_lvl1', fill='leiden'))

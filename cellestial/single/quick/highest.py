@@ -90,7 +90,7 @@ def highest_expressed_genes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.highest_expressed_genes(data,n=20)
 
@@ -103,7 +103,7 @@ def highest_expressed_genes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         cl.highest_expressed_genes(
             data,

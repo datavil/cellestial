@@ -210,7 +210,7 @@ def dotplot(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k(cache_directory="data")
+        data = cl.datasets.pbmc3k()
 
         markers = ["C1QA", "PSAP", "CD79A", "CD79B", "CST3", "LYZ"]
 
