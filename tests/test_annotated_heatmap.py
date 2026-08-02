@@ -1,5 +1,6 @@
 import polars as pl
 import pytest
+from lets_plot import geom_blank
 from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
@@ -128,3 +129,108 @@ def test_bin_observations_caps_rows():
 def test_bin_observations_noop_when_small():
     frame = pl.DataFrame({"value": [1.0, 2.0, 3.0]})
     assert _bin_observations(frame, group_by=None, max_rows=1000) is frame
+
+
+def test_annotated_heatmap_transpose_moves_tracks_and_group_lines(
+    adata, markers, group_key, cluster_key
+):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key],
+        transpose=True,
+        max_rows=20,
+    ).as_dict()
+
+    assert spec["layout"]["widths"] == [0.025, 1.0]
+    assert spec["layout"]["heights"] == [0.025, 1.0]
+    assert spec["figures"][0] is None
+    heatmap = spec["figures"][3]
+    assert heatmap["layers"][0]["mapping"] == {
+        "x": "position_y",
+        "y": "position_x",
+        "fill": "value",
+    }
+    assert heatmap["layers"][1]["mapping"] == {"x": "x", "xend": "x"}
+
+
+def test_annotated_heatmap_right_and_bottom_track_positions(
+    adata, markers, group_key, cluster_key
+):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key],
+        row_annotation_position="right",
+        column_annotation_position="bottom",
+        max_rows=20,
+    ).as_dict()
+
+    assert spec["layout"]["widths"] == [1.0, 0.025]
+    assert spec["layout"]["heights"] == [1.0, 0.025]
+    assert spec["figures"][3] is None
+    assert spec["figures"][0]["layers"][0]["mapping"] == {
+        "x": "position_x",
+        "y": "position_y",
+        "fill": "value",
+    }
+
+
+def test_annotated_heatmap_transpose_moves_dendrogram_above_heatmap(adata, markers, group_key):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        dendrogram=True,
+        transpose=True,
+        max_rows=20,
+    ).as_dict()
+
+    assert spec["layout"]["ncol"] == 1
+    assert spec["layout"]["nrow"] == 2
+    assert spec["figures"][0]["layers"][0]["geom"] == "path"
+    assert spec["figures"][1]["layers"][0]["geom"] == "raster"
+
+
+def test_annotated_heatmap_layers_and_layers_all_have_distinct_scope(
+    adata, markers, group_key, cluster_key
+):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key],
+        layers=geom_blank(),
+        layers_all=geom_blank(),
+        max_rows=20,
+    ).as_dict()
+    panels = [panel for panel in spec["figures"] if panel is not None]
+    blank_counts = [sum(layer["geom"] == "blank" for layer in panel["layers"]) for panel in panels]
+
+    assert sorted(blank_counts) == [1, 1, 2]
+
+
+def test_annotated_heatmap_raster_warns_and_removes_tooltips(adata, markers, group_key):
+    with pytest.warns(cl.util.errors.CellestialWarning, match="tooltips are not supported"):
+        plot = cl.annotated_heatmap(
+            adata,
+            keys=markers[:2],
+            group_by=group_key,
+            geom="raster",
+            tooltips=["value"],
+            max_rows=20,
+        )
+
+    heatmap_layer = next(
+        layer
+        for panel in plot.as_dict()["figures"]
+        if panel is not None
+        for layer in panel["layers"]
+        if layer["geom"] == "raster"
+    )
+    assert "tooltips" not in heatmap_layer

@@ -1,5 +1,5 @@
 import pytest
-from lets_plot import aes
+from lets_plot import aes, geom_vline
 from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.subplots import SupPlotsSpec
 
@@ -228,3 +228,76 @@ def test_plural_distribution_custom_metadata_tooltip(adata, fn, group_key):
     assert isinstance(plot, SupPlotsSpec)
     for panel in plot.as_dict()["figures"]:
         assert "n_genes_by_counts" in panel["data"].columns
+
+
+# ---- histogram / histograms ----
+
+
+def test_histogram_builds_expected_geom_and_filters_threshold(adata, group_key):
+    plot = cl.histogram(
+        adata,
+        "n_genes_by_counts",
+        fill=group_key,
+        bins=8,
+        binwidth=5,
+        threshold=100,
+        tooltips=["n_genes_by_counts"],
+    )
+    spec = plot.as_dict()
+    layer = spec["layers"][0]
+
+    assert layer["geom"] == "histogram"
+    assert layer["mapping"] == {"x": "n_genes_by_counts", "fill": group_key}
+    assert layer["bins"] == 8
+    assert layer["binwidth"] == 5
+    assert spec["data"]["n_genes_by_counts"].min() >= 100
+
+
+def test_histogram_group_filters_and_variable_axis(adata, group_key):
+    groups = sorted(adata.obs[group_key].dropna().unique())
+    kept = groups[:2]
+    dropped = groups[0]
+
+    grouped = cl.histogram(adata, "CD14", group_by=group_key, groups=kept)
+    without_group = cl.histogram(adata, "CD14", group_by=group_key, drop=dropped)
+    variable_axis = cl.histogram(adata, "means", axis=1)
+
+    assert set(grouped.as_dict()["data"][group_key].to_list()) == set(kept)
+    assert dropped not in without_group.as_dict()["data"][group_key].to_list()
+    assert variable_axis.as_dict()["data"].height == adata.n_vars
+
+
+def test_histograms_materialize_shared_columns_and_grid_options(adata, group_key):
+    grid = cl.histograms(
+        adata,
+        ["CD14", "MS4A1"],
+        fill=group_key,
+        bins=12,
+        add_keys="n_genes_by_counts",
+        tooltips=["n_genes_by_counts"],
+        layers=geom_vline(xintercept=0),
+        share_ticks=True,
+        share_axis=True,
+        interactive=True,
+        ncol=1,
+    )
+    spec = grid.as_dict()
+
+    assert spec["layout"]["ncol"] == 1
+    assert len(spec["figures"]) == 2
+    for panel, key in zip(spec["figures"], ["CD14", "MS4A1"], strict=True):
+        assert {group_key, "n_genes_by_counts", key} <= set(panel["data"].columns)
+        assert panel["layers"][0]["geom"] == "histogram"
+        assert panel["layers"][0]["bins"] == 12
+        assert any(layer["geom"] == "vline" for layer in panel["layers"])
+
+
+def test_histogram_validation_paths(adata):
+    with pytest.raises(TypeError):
+        cl.histogram("not anndata", "CD14")
+    with pytest.raises(ValueError, match="axis"):
+        cl.histogram(adata, "not_a_key")
+    with pytest.raises(ValueError, match="empty"):
+        cl.histograms(adata, [])
+    with pytest.raises(ValueError):
+        cl.histograms(adata, ["CD14", 1])

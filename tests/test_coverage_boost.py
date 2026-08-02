@@ -12,6 +12,7 @@ from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.layers import DeferredLayer
+from cellestial.util.errors import VariableNotFoundError
 
 # ===========================================================================
 # dimensional.py, uncovered: TypeError, use_key, legend_ondata, color_mid,
@@ -144,6 +145,40 @@ def test_boxplots_interactive_with_layers(adata, group_key):
         interactive=True,
     )
     assert isinstance(plot, SupPlotsSpec)
+
+
+@pytest.mark.parametrize(
+    "plotter",
+    [
+        lambda data: cl.umaps(data, []),
+        lambda data: cl.dimensionals(data, []),
+        lambda data: cl.expressions(data, []),
+        lambda data: cl.violins(data, []),
+        lambda data: cl.boxplots(data, []),
+        lambda data: cl.histograms(data, []),
+        lambda data: cl.ridges(data, [], group_by="cell_type_lvl1"),
+    ],
+)
+def test_plural_plotters_reject_empty_keys(adata, plotter):
+    with pytest.raises(ValueError, match="empty"):
+        plotter(adata)
+
+
+@pytest.mark.parametrize(
+    ("plotter", "error"),
+    [
+        (lambda data: cl.umaps(data, ["CD14", 1]), ValueError),
+        (lambda data: cl.dimensionals(data, ["CD14", 1]), ValueError),
+        (lambda data: cl.expressions(data, ["CD14", 1]), VariableNotFoundError),
+        (lambda data: cl.violins(data, ["CD14", 1]), ValueError),
+        (lambda data: cl.boxplots(data, ["CD14", 1]), ValueError),
+        (lambda data: cl.histograms(data, ["CD14", 1]), ValueError),
+        (lambda data: cl.ridges(data, ["CD14", 1], group_by="cell_type_lvl1"), ValueError),
+    ],
+)
+def test_plural_plotters_reject_non_string_keys(adata, plotter, error):
+    with pytest.raises(error):
+        plotter(adata)
 
 
 # ===========================================================================

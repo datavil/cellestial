@@ -4,6 +4,7 @@ import polars as pl
 import pytest
 from anndata import AnnData
 from scipy import sparse
+from spatialdata import SpatialData
 
 import cellestial as cl
 from cellestial.frames.build import anndata_observations_frame, anndata_variables_frame
@@ -95,6 +96,86 @@ def test_anndata_variables_frame_dimension_validation():
         anndata_variables_frame(data, include_dimensions="yes")
     with pytest.raises(Exception, match="Expected"):
         anndata_variables_frame("not adata")
+
+
+def test_frame_builders_select_metadata_dimensions_and_identifiers():
+    data = AnnData(
+        X=np.ones((3, 2)),
+        obs=pd.DataFrame({"keep": [1, 2, 3], "skip": [4, 5, 6]}, index=["a", "b", "c"]),
+        var=pd.DataFrame({"keep_var": [7, 8], "skip_var": [9, 10]}, index=["g1", "g2"]),
+    )
+    data.obsm["X_demo"] = np.ones((3, 2))
+    data.obsm["X_other"] = np.ones((3, 2))
+    data.varm["PCs"] = np.ones((2, 2))
+
+    observations = anndata_observations_frame(
+        data,
+        observations_name=None,
+        metadata_columns=["keep"],
+        include_dimensions=1,
+        dimension_keys=["x_DEMO"],
+    )
+    variables = anndata_variables_frame(
+        data,
+        variables_name=None,
+        metadata_columns=["keep_var"],
+        include_dimensions=True,
+        dimension_keys=["pcs"],
+    )
+
+    assert observations.columns == ["keep", "X_DEMO1"]
+    assert variables.columns == ["keep_var", "PCS1", "PCS2"]
+
+
+def test_frame_builders_allow_empty_embedding_selection():
+    data = AnnData(X=np.ones((2, 2)))
+    data.obsm["X_demo"] = np.ones((2, 2))
+    data.varm["PCs"] = np.ones((2, 2))
+
+    observations = anndata_observations_frame(
+        data,
+        metadata_columns=[],
+        include_dimensions=True,
+        dimension_keys=[],
+    )
+    variables = anndata_variables_frame(
+        data,
+        metadata_columns=[],
+        include_dimensions=True,
+        dimension_keys=[],
+    )
+
+    assert observations.columns == ["Barcode"]
+    assert variables.columns == ["Variable"]
+
+
+@pytest.mark.parametrize(
+    ("builder", "kwargs", "message"),
+    [
+        (anndata_observations_frame, {"metadata_columns": ["missing"]}, "observations"),
+        (anndata_variables_frame, {"metadata_columns": ["missing"]}, "variables"),
+        (
+            anndata_observations_frame,
+            {"include_dimensions": True, "dimension_keys": ["missing"]},
+            "embeddings",
+        ),
+        (
+            anndata_variables_frame,
+            {"include_dimensions": True, "dimension_keys": ["missing"]},
+            "embeddings",
+        ),
+    ],
+)
+def test_frame_builders_reject_unknown_selections(builder, kwargs, message):
+    data = AnnData(X=np.ones((2, 2)))
+
+    with pytest.raises(KeyError, match=message):
+        builder(data, **kwargs)
+
+
+def test_build_frame_rejects_spatialdata_without_tables():
+    with pytest.raises(ValueError, match="No annotation tables"):
+        cl.build_frame(SpatialData(), axis=0)
 
 
 def test_highest_expressed_genes_frame_dense_and_sparse():

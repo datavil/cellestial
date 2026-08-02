@@ -13,7 +13,7 @@ from cellestial.layers.arrow import _axis_arrow_layers
 from cellestial.layers.bracket import _compute_bracket_frame, _correct_pvalues, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util import retrieve
-from cellestial.util.errors import InvalidComparisonError
+from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
 
 
 def test_arrow_axis_returns_deferred(adata):
@@ -57,6 +57,15 @@ def test_arrow_axis_rejects_empty_coordinates():
             color="black",
             angle=10.0,
         )
+
+
+def test_arrow_axis_requires_each_coordinate_aesthetic():
+    frame = pl.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
+
+    with pytest.raises(MissingAestheticError, match="`x`"):
+        _ = (ggplot(frame) + geom_point(aes(y="y"))) + cl.arrow_axis()
+    with pytest.raises(MissingAestheticError, match="`y`"):
+        _ = (ggplot(frame) + geom_point(aes(x="x"))) + cl.arrow_axis()
 
 
 def test_ondata_legend_uses_group_median_positions():
@@ -187,6 +196,23 @@ def test_cluster_outlines_too_few_points_raises():
     plot = ggplot(frame) + geom_point(aes(x="x", y="y", color="group"))
     with pytest.raises(ValueError, match="No cluster outline could be computed"):
         _ = plot + cl.cluster_outlines(groups="a")
+
+
+def test_cluster_outlines_requires_coordinates_and_group_mapping():
+    frame = pl.DataFrame(
+        {
+            "x": [0.0, 1.0, 0.0, 1.0],
+            "y": [0.0, 0.0, 1.0, 1.0],
+            "group": ["a", "a", "a", "a"],
+        }
+    )
+
+    with pytest.raises(MissingAestheticError, match="`x`"):
+        _ = (ggplot(frame) + geom_point(aes(y="y", color="group"))) + cl.cluster_outlines("a")
+    with pytest.raises(MissingAestheticError, match="`y`"):
+        _ = (ggplot(frame) + geom_point(aes(x="x", color="group"))) + cl.cluster_outlines("a")
+    with pytest.raises(MissingAestheticError, match="`group_by`"):
+        _ = (ggplot(frame) + geom_point(aes(x="x", y="y"))) + cl.cluster_outlines("a")
 
 
 def test_bracket_too_few_observations_raises():

@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -672,18 +674,79 @@ def data_visium_hd_like():
     )
 
 
-def test_smart_cs_tiebreaker_prefers_image_only_cs(data_visium_hd_like):
-    """
-    When multiple CSes contain the chosen image+shapes, prefer the one
-    where the image is the only image. Mirrors Visium HD's _downscaled_lowres
-    pattern.
-    """
+def test_spatial_with_pinned_image_renders(data_visium_hd_like):
     plot = cl.spatial(
         data_visium_hd_like,
         key="score",
         image_name="lowres",
     )
     assert isinstance(plot, PlotSpec)
+
+
+def test_coordinate_system_tiebreaker_prefers_image_only_system(monkeypatch):
+    data = SimpleNamespace(
+        coordinate_systems=["shared", "lowres_cs"],
+        shapes={"cells": "cells"},
+        images={"hires": "hires", "lowres": "lowres"},
+    )
+    memberships = {
+        ("cells", "shared"),
+        ("cells", "lowres_cs"),
+        ("hires", "shared"),
+        ("lowres", "shared"),
+        ("lowres", "lowres_cs"),
+    }
+    monkeypatch.setitem(
+        _resolve_coordinate_system.__globals__,
+        "_element_in_coordinate_system",
+        lambda element, system: (element, system) in memberships,
+    )
+
+    resolved = _resolve_coordinate_system(
+        data,
+        None,
+        shapes_name="cells",
+        image_name="lowres",
+        want_image=True,
+    )
+
+    assert resolved == "lowres_cs"
+
+
+def test_coordinate_system_resolution_unique_and_ambiguous_candidates(monkeypatch):
+    data = SimpleNamespace(
+        coordinate_systems=["first", "second"],
+        shapes={"cells": "cells"},
+        images={"image": "image"},
+    )
+    memberships = {("cells", "second"), ("image", "second")}
+    monkeypatch.setitem(
+        _resolve_coordinate_system.__globals__,
+        "_element_in_coordinate_system",
+        lambda element, system: (element, system) in memberships,
+    )
+
+    assert (
+        _resolve_coordinate_system(
+            data,
+            None,
+            shapes_name="cells",
+            image_name=None,
+            want_image=True,
+        )
+        == "second"
+    )
+
+    memberships.add(("cells", "first"))
+    memberships.add(("image", "first"))
+    with pytest.raises(ValueError, match="Multiple coordinate systems"):
+        _resolve_coordinate_system(
+            data,
+            None,
+            shapes_name="cells",
+            image_name=None,
+            want_image=False,
+        )
 
 
 def test_smart_image_auto_resolves_from_coordinate_system(data_visium_hd_like):
@@ -754,3 +817,13 @@ def test_multipolygon_raises():
 def test_spatials_polygon_true_returns_subplots(data_polygons):
     plot = cl.spatials(data_polygons, ["cluster", "G1"], polygon=True)
     assert isinstance(plot, SupPlotsSpec)
+
+
+def test_spatials_rejects_empty_keys(data_minimal):
+    with pytest.raises(ValueError, match="empty"):
+        cl.spatials(data_minimal, [])
+
+
+def test_spatials_rejects_non_string_keys(data_minimal):
+    with pytest.raises(ValueError, match="not in data"):
+        cl.spatials(data_minimal, [1])

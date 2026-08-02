@@ -12,6 +12,7 @@ from cellestial.single.heatmap.utilities import (
     _resolve_rank_genes_groups_args,
     _resolve_rank_genes_groups_key,
 )
+from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
 
 
 @pytest.fixture
@@ -200,6 +201,85 @@ def test_build_markers_frame_missing_scores(ranked_adata):
         )
 
 
+def test_marker_gene_helpers_preserve_group_order_and_deduplicate(ranked_adata):
+    assert cl.marker_genes(ranked_adata, n_genes=2) == [
+        "gene_a",
+        "shared",
+        "gene_b",
+    ]
+    assert cl.marker_genes(ranked_adata, groups=["B", "A"], n_genes=2) == [
+        "gene_b",
+        "shared",
+        "gene_a",
+    ]
+    assert cl.marker_genes_dict(ranked_adata, groups=["B", "A"], n_genes=2) == {
+        "B": ["gene_b", "shared"],
+        "A": ["gene_a", "shared"],
+    }
+
+
+@pytest.mark.parametrize("helper", [cl.marker_genes, cl.marker_genes_dict])
+def test_marker_gene_helpers_accept_custom_ranking_key(ranked_adata, helper):
+    ranked_adata.uns["custom_ranking"] = ranked_adata.uns.pop("rank_genes_groups")
+
+    result = helper(ranked_adata, groups=["A"], key="custom_ranking", n_genes=1)
+
+    expected = ["gene_a"] if helper is cl.marker_genes else {"A": ["gene_a"]}
+    assert result == expected
+
+
+@pytest.mark.parametrize("helper", [cl.marker_genes, cl.marker_genes_dict])
+def test_marker_gene_helpers_validate_inputs(ranked_adata, helper):
+    with pytest.raises(TypeError, match="groups"):
+        helper(ranked_adata, groups="A")
+    with pytest.raises(ValueError, match=">= 1"):
+        helper(ranked_adata, n_genes=0)
+    with pytest.raises(ValueError, match="exceeds"):
+        helper(ranked_adata, n_genes=5)
+    with pytest.raises(TypeError):
+        helper(ranked_adata, n_genes=1.5)
+    with pytest.raises(KeyNotFoundError, match="Groups"):
+        helper(ranked_adata, groups=["missing"], n_genes=1)
+    with pytest.raises(UnsupportedDataTypeError, match="Expected"):
+        helper("not adata", n_genes=1)
+
+
+@pytest.mark.parametrize("helper", [cl.marker_genes, cl.marker_genes_dict])
+def test_marker_gene_helpers_validate_ranking_record(ranked_adata, helper):
+    with pytest.raises(KeyNotFoundError, match="not found"):
+        helper(ranked_adata, key="missing", n_genes=1)
+
+    del ranked_adata.uns["rank_genes_groups"]["names"]
+    with pytest.raises(KeyNotFoundError, match="missing 'names'"):
+        helper(ranked_adata, n_genes=1)
+
+
+def test_build_markers_frame_validation_paths(ranked_adata):
+    kwargs = {
+        "key": True,
+        "n_genes": 1,
+        "groups": None,
+        "variable_column": "gene",
+        "score_column": "score",
+        "rank_column": "rank",
+        "group_column": "group",
+    }
+
+    with pytest.raises(ValueError, match=">= 1"):
+        _build_markers_frame(ranked_adata, **(kwargs | {"n_genes": 0}))
+    with pytest.raises(ValueError, match="exceeds"):
+        _build_markers_frame(ranked_adata, **(kwargs | {"n_genes": 5}))
+    with pytest.raises(KeyNotFoundError, match="Groups"):
+        _build_markers_frame(ranked_adata, **(kwargs | {"groups": ["missing"]}))
+
+    del ranked_adata.uns["rank_genes_groups"]["params"]["groupby"]
+    with pytest.raises(KeyNotFoundError, match="missing 'groupby'"):
+        _build_markers_frame(ranked_adata, **kwargs)
+
+    with pytest.raises(UnsupportedDataTypeError, match="Expected"):
+        _build_markers_frame("not adata", **kwargs)
+
+
 def test_markers_plot_options(ranked_adata):
     plot = cl.markers(
         ranked_adata,
@@ -251,6 +331,50 @@ def test_build_volcano_frame_errors(ranked_adata):
 
     with pytest.raises(Exception, match="Expected"):
         _build_volcano_frame("not adata", "A")
+
+
+def test_build_volcano_frame_recomputes_missing_or_stale_ranking(ranked_adata, monkeypatch):
+    original_record = ranked_adata.uns.pop("rank_genes_groups")
+    calls = []
+
+    def fake_rank_genes_groups(data, *, groupby, key_added, **kwargs):
+        calls.append((groupby, key_added, kwargs))
+        data.uns[key_added] = original_record
+
+    monkeypatch.setattr("scanpy.tl.rank_genes_groups", fake_rank_genes_groups)
+
+    frame = _build_volcano_frame(
+        ranked_adata,
+        "A",
+        group_by="cluster",
+        rank_genes_kwargs={"method": "wilcoxon"},
+    )
+
+    assert frame.height > 0
+    assert calls == [("cluster", "rank_genes_groups", {"method": "wilcoxon"})]
+
+    ranked_adata.uns["rank_genes_groups"]["params"] = {
+        "groupby": "other",
+        "method": "wilcoxon",
+    }
+    _build_volcano_frame(
+        ranked_adata,
+        "A",
+        group_by="cluster",
+        rank_genes_kwargs={"method": "wilcoxon"},
+    )
+    assert len(calls) == 2
+
+
+def test_build_volcano_frame_reuses_matching_ranking(ranked_adata, monkeypatch):
+    def unexpected_recompute(*args, **kwargs):
+        pytest.fail("matching differential-expression results should be reused")
+
+    monkeypatch.setattr("scanpy.tl.rank_genes_groups", unexpected_recompute)
+
+    frame = _build_volcano_frame(ranked_adata, "A", group_by="cluster")
+
+    assert frame.height > 0
 
 
 def test_volcano_plot_options(ranked_adata):
@@ -309,3 +433,13 @@ def test_volcanos_plot_options(ranked_adata):
 def test_volcanos_rejects_invalid_groups(ranked_adata):
     with pytest.raises(TypeError, match="groups"):
         cl.volcanos(ranked_adata, "A")
+
+
+def test_volcanos_rejects_empty_groups(ranked_adata):
+    with pytest.raises(ValueError, match="empty"):
+        cl.volcanos(ranked_adata, [])
+
+
+def test_volcanos_rejects_non_string_groups(ranked_adata):
+    with pytest.raises(KeyError, match="Group"):
+        cl.volcanos(ranked_adata, [1])
