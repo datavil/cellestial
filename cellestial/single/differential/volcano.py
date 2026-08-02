@@ -205,6 +205,7 @@ def volcano(
         import cellestial as cl
 
         data = cl.datasets.pbmc3k()
+        data.raw = None # prevent using raw counts
 
         cl.volcano(
             data,
@@ -562,6 +563,7 @@ def volcanos(
         import cellestial as cl
 
         data = cl.datasets.pbmc3k()
+        data.raw = None # prevent using raw counts
 
         cl.volcanos(
             data,
