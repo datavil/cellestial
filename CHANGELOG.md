@@ -3,6 +3,38 @@
 All notable changes to cellestial are documented here. Breaking changes are
 called out explicitly so users can migrate between versions.
 
+## [0.59.0] - 2026-08-02
+
+### Breaking
+- Renamed `mid_point` to `midpoint` across all gradient-enabled plotting APIs,
+  including dimensional, heatmap, and spatial plot families.
+  - Migration: replace `mid_point=...` with `midpoint=...`.
+- Removed underscore-prefixed internal helpers from the `__all__` declarations of
+  `cellestial.frames`, `cellestial.layers`, `cellestial.themes`, and
+  `cellestial.util`. Explicit internal imports remain available, but wildcard
+  imports no longer expose private names.
+
+### Added
+- Added `threshold` to `violins`, `boxplots`, and `histograms`, matching their
+  singular counterparts.
+- Added `point_mapping` to `violins` and `boxplots`. Mapping-only columns are now
+  materialized correctly for both singular and plural distribution plots.
+- Added browser-rendering checks for generated plot HTML and expanded regression
+  coverage across plotting, frames, layers, spatial data, and edge cases.
+- Added `CITATION.cff` and citation information to the README.
+
+### Fixed
+- Plotting functions now consistently discard null, NaN, and infinite values before
+  aggregation or rendering, including dimensional, distribution, differential,
+  heatmap, ridge, spatial, outline, stream, and on-data legend paths.
+- `ridge` now drops observations with missing grouping values before plotting.
+- Arrow axes now reject empty coordinate data with a clear error instead of failing
+  while calculating bounds.
+- `layout` now validates flat and nested `widths` consistently, including uneven
+  plot rows and general sequence inputs.
+- Corrected stale parameter names, defaults, and descriptions in distribution,
+  subdimensional, volcano, stacked-violin, ridge, and spatial docstrings.
+
 ## [0.56.0] - 2026-06-27
 
 ### Breaking
