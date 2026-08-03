@@ -62,17 +62,11 @@ jobs:
       - name: Cache preprocessed pbmc3k fixture
         uses: actions/cache@v4
         with:
-          path: |
-            data/pbmc3k_pped.h5ad
-            ~/.cache/scverse_tutorials
-            ~/Library/Caches/scverse_tutorials
-            ~/AppData/Local/scverse_tutorials/Cache
-          key: pbmc3k-${{ runner.os }}-${{ hashFiles('test/get_data.py') }}
+          path: ~/.cache/cellestial/datasets/pbmc3k_pped.h5ad
+          key: pbmc3k-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
 
       - name: Prepare test fixture
-        run: |
-          mkdir -p data
-          poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
+        run: poetry run python -c "import cellestial as cl; cl.datasets.pbmc3k()"
 
       - name: Run tests with coverage
         run: poetry run pytest -m "not browser"
@@ -86,6 +80,8 @@ jobs:
   browser-test:
     name: Browser rendering (Chromium, py3.14)
     runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
     steps:
       - uses: actions/checkout@v4
 
@@ -109,7 +105,7 @@ jobs:
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
+          path: .cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
 
       - name: Install Chromium
@@ -118,15 +114,11 @@ jobs:
       - name: Cache preprocessed pbmc3k fixture
         uses: actions/cache@v4
         with:
-          path: |
-            data/pbmc3k_pped.h5ad
-            ~/.cache/scverse_tutorials
-          key: pbmc3k-browser-${{ hashFiles('test/get_data.py') }}
+          path: ~/.cache/cellestial/datasets/pbmc3k_pped.h5ad
+          key: pbmc3k-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
 
       - name: Prepare test fixture
-        run: |
-          mkdir -p data
-          poetry run python -c "import sys; sys.path.insert(0, 'test'); from get_data import get_pbmc3k; get_pbmc3k()"
+        run: poetry run python -c "import cellestial as cl; cl.datasets.pbmc3k()"
 
       - name: Run browser rendering tests
         run: poetry run pytest tests/test_browser_plots.py -m browser -n 2 --no-cov
