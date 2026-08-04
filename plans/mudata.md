@@ -306,9 +306,32 @@ group that also selects the data, because the whole computation is per-modality.
 Required when a MuData with more than one modality is passed, ignored entirely
 for AnnData.
 
-**Skipped.** `spatial`, `spatials`. SpatialData is the spatial container and
-MuData plus spatial is a separate design question. Reject with a message naming
-`mdata["rna"]`.
+**Skipped, and settled rather than deferred.** `spatial`, `spatials`.
+
+Spot coordinates live in `obsm["spatial"]` and the tissue image in
+`uns["spatial"][library_id]`. mudata pulls `obs` and `var` up to the container
+but **not** `obsm` and **not** `uns`, so a container has neither. Letting a
+container through therefore either fails on missing coordinates, or, once a user
+lifts coordinates up by hand, takes the "no image metadata" branch and returns
+`image=None` with **no error**. Silently dropping the tissue image is worse than
+refusing.
+
+The one capability native support would have added, colouring spots by a
+variable from another modality, already works by composition:
+
+```python
+cl.spatial(
+    mdata["rna"],
+    key="prot:CD3",
+    frame=cl.build_frame(mdata, variable_keys=["prot:CD3"]),
+)
+```
+
+Coordinates and image come from the modality, so nothing has to decide whose
+registration is authoritative; values come from the container frame, so they may
+belong to any modality. Nothing is lost by refusing, so this is a decision, not
+a gap. Covered by `test_spatial_colours_across_modalities_via_a_container_frame`,
+and the rejection message points at the composition.
 
 ## Implementation steps
 

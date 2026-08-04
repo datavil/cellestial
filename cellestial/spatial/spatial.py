@@ -273,8 +273,13 @@ def spatial(
 
     if isinstance(data, MuData):
         msg = (
-            "Spatial plots do not accept a multimodal object. "
-            "Pass a single modality instead, e.g. `data['rna']`."
+            "Spatial plots do not accept a multimodal object, because spot "
+            "coordinates and tissue images live in a modality rather than on the "
+            "container.\nPass a single modality instead, e.g. `data['rna']`.\n"
+            "To colour by a variable from another modality, pass that modality "
+            "together with a container frame:\n"
+            "    spatial(data['rna'], key='prot:CD3', "
+            "frame=build_frame(data, variable_keys=['prot:CD3']))"
         )
         raise UnsupportedDataTypeError(msg)
 

@@ -715,6 +715,39 @@ def test_spatial_rejects_a_container(mudata, call):
         call(mudata)
 
 
+def test_spatial_colours_across_modalities_via_a_container_frame():
+    """
+    The supported route for the one thing native support would have added.
+
+    Coordinates and the tissue image come from the modality, so there is no
+    question of whose registration wins, while the values come from a container
+    frame and so may belong to any modality.
+    """
+    rna = AnnData(np.arange(20, dtype="float32").reshape(5, 4))
+    rna.var_names = ["G1", "G2", "G3", "G4"]
+    rna.obs_names = list("vwxyz")
+    rna.obsm["spatial"] = np.array([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0], [4.0, 4.0]])
+    rna.uns["spatial"] = {
+        "lib1": {
+            "images": {"lowres": np.zeros((8, 8, 3), dtype="uint8")},
+            "scalefactors": {"tissue_lowres_scalef": 1.0, "spot_diameter_fullres": 1.0},
+        }
+    }
+    prot = AnnData(np.array([[1.0], [5.0], [9.0], [13.0], [17.0]], dtype="float32"))
+    prot.var_names = ["CD3"]
+    prot.obs_names = list("vwxyz")
+    container = MuData({"rna": rna, "prot": prot})
+
+    plot = cl.spatial(
+        container.mod["rna"],
+        key="prot:CD3",
+        frame=cl.build_frame(container, axis=0, variable_keys=["prot:CD3"]),
+    )
+    frame = cl.retrieve(plot)
+    assert frame["prot:CD3"].to_list() == [1.0, 5.0, 9.0, 13.0, 17.0]
+    assert {"spatial_x", "spatial_y"} <= set(frame.columns)
+
+
 # --- public surface --------------------------------------------------------
 
 

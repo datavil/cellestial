@@ -62,8 +62,11 @@ called out explicitly so users can migrate between versions.
   explicitly as `group_by` is now accepted too.
 
 ### Notes
-- Spatial plots do not accept a multimodal object and now say so explicitly,
-  naming the single-modality form.
+- Spatial plots do not accept a multimodal object, because spot coordinates and
+  tissue images live in a modality rather than on the container. The error names
+  the single-modality form, and the composition that colours spots by a variable
+  from another modality:
+  `spatial(data['rna'], key='prot:CD3', frame=build_frame(data, variable_keys=['prot:CD3']))`.
 - Only containers whose modalities share observations (`axis=0`) are supported.
 
 ## [0.59.0] - 2026-08-02
