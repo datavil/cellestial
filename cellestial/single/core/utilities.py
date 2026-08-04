@@ -27,6 +27,7 @@ from cellestial.util import (
     _determine_axis,
     _drop_nonfinite_rows,
     _resolve_tooltips,
+    _validate_aesthetic_columns,
     _validate_tooltips,
     _warn,
 )
@@ -168,6 +169,9 @@ def _distribution(
             variables_name=variable_column_name,
             metadata_columns=metadata_columns,
         )
+
+    # `color` / `fill` name columns; a literal color here is a common mix-up
+    _validate_aesthetic_columns(frame, color=mapping_color, fill=mapping_fill)
 
     if group_by is not None:
         frame = frame.filter(pl.col(group_by).is_not_null())

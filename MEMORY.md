@@ -29,6 +29,7 @@
 - [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under the current poetry version in repo-root `CHANGELOG.md` (`### Breaking` + migration note)
 - [Project: geom_raster aspect lock](project_letsplot_geom_raster_aspect.md) — lets-plot geom_raster forces square pixels; cl.heatmap rescales y, cl.annotated_heatmap (cellestial/complex) uses geom_tile + gggrid(align, guides)
 - [Project: annotated_heatmap overflow](project_annotated_heatmap_overflow.md) — cl.annotated_heatmap layout: dendrogram clip fixed (expand left margin), legend overflow fixed (bottom horizontal compact, set on subplots+grid); per-track brewer palettes; bar-end labels tried+reverted (leftmost row-label column clips). ggsize is not a fix.
+- [Project: Distribution aesthetic param naming](project_distribution_aesthetic_naming.md) — Keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by` (collides with live lets-plot passthrough)
 
 
 ---
@@ -805,3 +806,25 @@ the clip to whichever name is leftmost). A real fix needs the labels decoupled f
 the thin strip columns (e.g. one spanning label panel), not per-strip cells.
 
 See [[project_letsplot_geom_raster_aspect]].
+
+## Source: project_distribution_aesthetic_naming.md
+
+---
+name: project-distribution-aesthetic-naming
+description: "Distribution plots keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by`"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 08760f2e-c436-434e-a22a-0e5b0acedbba
+  modified: 2026-08-04T07:25:25.841Z
+---
+
+Decided 2026-08-04: cellestial's distribution plots (`violin`, `boxplot`, `histogram` and plurals) keep this parameter scheme, and it should not be renamed.
+
+- bare aesthetic name (`color`, `fill`) = name of a column to map
+- `<element>_<aesthetic>` (`geom_fill`, `geom_color`, `point_color`, `arrow_color`, `color_low`) = literal constant on a named layer
+- `<thing>_by` (`group_by`) = column to operate by
+
+**Why:** renaming the mappings to `color_by`/`fill_by` would collide with lets-plot's own `fill_by`/`color_by` layer parameters, which mean something completely different (which aesthetic channel the layer paints from: `'fill'`, `'color'`, `'paint_a'`, `'paint_b'`, `'paint_c'`). Those already work in cellestial today via `**geom_kwargs` passthrough, verified: `cl.violin(adata, "CD3E", color="leiden", fill_by="color")` emits `{'geom': 'violin', 'fill_by': 'color'}`. A rename would shadow a working feature. Separately, `color='leiden'` matches scanpy's convention, which is what the target audience already expects.
+
+**How to apply:** leave the names alone. The real confusion (a ggplot user writing `fill="red"`) is handled by `_validate_aesthetic_columns` in `cellestial/util/utilities.py`, called from `_distribution`, which raises `KeyNotFoundError` pointing at `geom_fill=`. See [[project-cellestial-patterns]] and [[project-letsplot-fill-vs-fill-by]].

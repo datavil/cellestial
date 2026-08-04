@@ -45,6 +45,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_blank_strip_theme` | Claude 4.8 |  |  |  |  |
 | `_as_layers` | Claude 4.8 |  |  |  |  |
 | `_apply_layers` | Claude 4.8 |  |  |  |  |
+| `_validate_aesthetic_columns` | Claude Opus 5 |  |  |  |  |
 
 ## Modified functions
 
@@ -75,7 +76,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `boxplot` | Claude 4.7 |  |
 | `violins` | Claude 4.7 |  |
 | `boxplots` | Claude 4.7 |  |
-| `_distribution` | Claude 4.7 and Claude 4.8 |  |
+| `_distribution` | Claude 4.7, Claude 4.8, and Claude Opus 5 |  |
 | `anndata_observations_frame` | Claude 4.7 and Claude 4.8 |  |
 | `anndata_variables_frame` | Claude 4.7 and Claude 4.8 |  |
 | `build_frame` | Claude 4.7 and Claude 4.8 |  |

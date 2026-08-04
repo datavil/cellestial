@@ -147,6 +147,22 @@ def _validate_tooltips(
         raise ValueError(msg)
 
 
+def _validate_aesthetic_columns(
+    frame: pl.DataFrame,
+    **aesthetics: str | None,
+) -> None:
+    """Raise KeyNotFoundError if an aesthetic argument does not name a column in `frame`."""
+    for aesthetic, column in aesthetics.items():
+        if column is None or column in frame.columns:
+            continue
+        msg = (
+            f"`{aesthetic}={column!r}` is not a column in the data.\n"
+            f"For a constant {aesthetic}, use `geom_{aesthetic}={column!r}`.\n"
+            f"Available columns: {frame.columns}"
+        )
+        raise KeyNotFoundError(msg)
+
+
 def _resolve_tooltips(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None,
     *,

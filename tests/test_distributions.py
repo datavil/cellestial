@@ -5,6 +5,7 @@ from lets_plot.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.util import retrieve
+from cellestial.util.errors import KeyNotFoundError
 
 # ---- violin / boxplot (singular) ----
 
@@ -61,6 +62,21 @@ def test_add_keys(adata, fn, group_key):
 def test_invalid_key(adata, fn):
     with pytest.raises(Exception):
         fn(adata, "NOT_A_REAL_KEY_xyz")
+
+
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot, cl.histogram])
+@pytest.mark.parametrize("aesthetic", ["fill", "color"])
+def test_literal_color_suggests_geom_variant(adata, fn, aesthetic):
+    # `fill`/`color` map a column; a literal color is a common mix-up coming from
+    # lets-plot, so the error points at `geom_fill`/`geom_color`.
+    with pytest.raises(KeyNotFoundError, match=f"use `geom_{aesthetic}='red'`"):
+        fn(adata, "CD14", **{aesthetic: "red"})
+
+
+@pytest.mark.parametrize("fn", [cl.violins, cl.boxplots, cl.histograms])
+def test_plural_literal_color_suggests_geom_variant(adata, fn):
+    with pytest.raises(KeyNotFoundError, match="use `geom_fill='red'`"):
+        fn(adata, ["CD14", "MS4A1"], fill="red")
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])

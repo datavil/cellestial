@@ -75,10 +75,12 @@ def violin(
         Color aesthetic to split the violin plot (categorical).
         Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
+        For a constant color on every geom, use `geom_color`.
     fill : str | None, default=None
         Fill aesthetic to split the violin plot (categorical).
         Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
+        For a constant fill on every geom, use `geom_fill`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
@@ -314,10 +316,12 @@ def boxplot(
         Color aesthetic to split the boxplot (categorical).
         Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
+        For a constant color on every geom, use `geom_color`.
     fill : str | None, default=None
         Fill aesthetic to split the boxplot (categorical).
         Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
+        For a constant fill on every geom, use `geom_fill`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
@@ -541,10 +545,12 @@ def histogram(
         Color aesthetic to split the histogram (categorical).
         Shortcut for mapping=aes(color=...)
         e,g., 'cell_type' or 'leiden'.
+        For a constant color on every geom, use `geom_color`.
     fill : str | None, default=None
         Fill aesthetic to split the histogram (categorical).
         Shortcut for mapping=aes(fill=...)
         e,g., 'cell_type' or 'leiden'.
+        For a constant fill on every geom, use `geom_fill`.
     bins : int | None, default=None
         Number of bins. Overridden by `binwidth` if both are provided.
     binwidth : float | None, default=None

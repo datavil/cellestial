@@ -23,6 +23,7 @@ from cellestial.util.utilities import (  # noqa: F401
     _share_labels,
     _share_ticks,
     _tooltip_fields,
+    _validate_aesthetic_columns,
     _validate_tooltips,
     _warn,
 )
