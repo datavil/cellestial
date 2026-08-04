@@ -18,6 +18,7 @@ from lets_plot import (
     scale_y_reverse,
 )
 from lets_plot.plot.core import FeatureSpec, PlotSpec
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.spatial.utilities import _resolve_instance_key, _spatial_components
@@ -32,7 +33,7 @@ from cellestial.util import (
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from typing import Literal
@@ -269,6 +270,13 @@ def spatial(
     """
     # HANDLE: data type
     from spatialdata import SpatialData
+
+    if isinstance(data, MuData):
+        msg = (
+            "Spatial plots do not accept a multimodal object. "
+            "Pass a single modality instead, e.g. `data['rna']`."
+        )
+        raise UnsupportedDataTypeError(msg)
 
     if not isinstance(data, (AnnData, SpatialData)):
         raise _unsupported_data_type(data, AnnData, SpatialData)

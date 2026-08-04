@@ -20,10 +20,11 @@ if TYPE_CHECKING:
 
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
+    from mudata import MuData
 
 
 def violins(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     group_by: str | None = None,
@@ -219,7 +220,11 @@ def violins(
     """
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = (
+        _determine_axis(data=data, keys=keys, companions=[group_by, fill, color])
+        if axis is None
+        else axis
+    )
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     variable_keys: list[str] = []
@@ -325,7 +330,7 @@ def violins(
 
 
 def boxplots(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     group_by: str | None = None,
@@ -520,7 +525,11 @@ def boxplots(
     """
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = (
+        _determine_axis(data=data, keys=keys, companions=[group_by, fill, color])
+        if axis is None
+        else axis
+    )
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     variable_keys: list[str] = []
@@ -627,7 +636,7 @@ def boxplots(
 
 
 def histograms(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     group_by: str | None = None,
@@ -800,7 +809,11 @@ def histograms(
     """
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = (
+        _determine_axis(data=data, keys=keys, companions=[group_by, fill, color])
+        if axis is None
+        else axis
+    )
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     variable_keys: list[str] = []

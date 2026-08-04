@@ -21,19 +21,22 @@ from lets_plot import (
     theme_bw,
 )
 from lets_plot.plot.core import FeatureSpec, LayerSpec
+from mudata import MuData
 
 from cellestial.single.differential.utilities import _build_markers_frame
 from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
 
 
 def markers(
-    data: AnnData,
+    data: AnnData | MuData,
     groups: Sequence[str] | None = None,
     *,
+    modality: str | None = None,
     key: str = "rank_genes_groups",
     n_genes: int = 20,
     mapping: FeatureSpec | None = None,
@@ -80,6 +83,10 @@ def markers(
     groups : Sequence[str] | None, default=None
         Subset of groups to plot, one panel per group. `None` keeps all
         groups in their stored order.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=20
@@ -203,8 +210,10 @@ def markers(
 
     """
     # HANDLE: Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
+    # Stored analysis results live inside a single modality.
+    data = _container(data).select_modality(modality)
 
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
         msg = "`groups` must be a Sequence of strings or None"

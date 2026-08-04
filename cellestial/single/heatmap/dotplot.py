@@ -18,6 +18,7 @@ from lets_plot import (
     theme,
 )
 from lets_plot.plot.core import FeatureSpec
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
@@ -38,6 +39,7 @@ from cellestial.util import (
     _warn,
 )
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _container_column, _modality_source
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -46,10 +48,11 @@ if TYPE_CHECKING:
 
 
 def dotplot(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
     group_by: str | None = None,
     *,
+    modality: str | None = None,
     markers: bool | str = False,
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
@@ -95,6 +98,10 @@ def dotplot(
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be
         `None` when `markers` is set.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use when `markers` or
+        `dendrogram` is enabled. Required for a multimodal object holding more
+        than one modality, and not accepted otherwise.
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
         when `markers` is set.
@@ -261,18 +268,20 @@ def dotplot(
 
     """
     # HANDLE: Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
 
     if markers:
+        results, local_group_by = _modality_source(data, modality, group_by)
         keys, group_by = _resolve_rank_genes_groups_args(
-            data,
+            results,
             rank_genes_groups=markers,
             n_genes=n_genes,
             groups=groups,
             keys=keys,
-            group_by=group_by,
+            group_by=local_group_by,
         )
+        group_by = _container_column(data, modality, group_by)
     elif keys is None or group_by is None:
         msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
         raise ValueError(msg)
@@ -347,7 +356,9 @@ def dotplot(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(data, group_by, use_key=dendrogram_key)
+        y_order_groups, paths = _get_dendrogram(
+            *_modality_source(data, modality, group_by), use_key=dendrogram_key
+        )
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()

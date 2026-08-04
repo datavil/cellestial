@@ -30,6 +30,7 @@
 - [Project: geom_raster aspect lock](project_letsplot_geom_raster_aspect.md) — lets-plot geom_raster forces square pixels; cl.heatmap rescales y, cl.annotated_heatmap (cellestial/complex) uses geom_tile + gggrid(align, guides)
 - [Project: annotated_heatmap overflow](project_annotated_heatmap_overflow.md) — cl.annotated_heatmap layout: dendrogram clip fixed (expand left margin), legend overflow fixed (bottom horizontal compact, set on subplots+grid); per-track brewer palettes; bar-end labels tried+reverted (leftmost row-label column clips). ggsize is not a fix.
 - [Project: Distribution aesthetic param naming](project_distribution_aesthetic_naming.md) — Keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by` (collides with live lets-plot passthrough)
+- [Project: MuData container](project_mudata_container.md) — MuData support routes through internal `_Container`/`_MuDataContainer`; dtype doubling, obsmap alignment, obsm masks, non-raising lookup, lazy import
 
 
 ---
@@ -828,3 +829,60 @@ Decided 2026-08-04: cellestial's distribution plots (`violin`, `boxplot`, `histo
 **Why:** renaming the mappings to `color_by`/`fill_by` would collide with lets-plot's own `fill_by`/`color_by` layer parameters, which mean something completely different (which aesthetic channel the layer paints from: `'fill'`, `'color'`, `'paint_a'`, `'paint_b'`, `'paint_c'`). Those already work in cellestial today via `**geom_kwargs` passthrough, verified: `cl.violin(adata, "CD3E", color="leiden", fill_by="color")` emits `{'geom': 'violin', 'fill_by': 'color'}`. A rename would shadow a working feature. Separately, `color='leiden'` matches scanpy's convention, which is what the target audience already expects.
 
 **How to apply:** leave the names alone. The real confusion (a ggplot user writing `fill="red"`) is handled by `_validate_aesthetic_columns` in `cellestial/util/utilities.py`, called from `_distribution`, which raises `KeyNotFoundError` pointing at `geom_fill=`. See [[project-cellestial-patterns]] and [[project-letsplot-fill-vs-fill-by]].
+
+## Source: project_mudata_container.md
+
+---
+name: project-mudata-container
+description: "MuData support runs through the internal _Container/_MuDataContainer in cellestial/frames/_container.py, plus the four non-obvious gotchas it exists to handle"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 41c50580-0061-4bc3-a70b-0782c4865902
+  modified: 2026-08-04T13:00:50.598Z
+---
+
+MuData support (added 2026-08-04) routes every backend-specific access through
+`cellestial/frames/_container.py`: `_Container` (works for AnnData, and for
+MuData wherever the two duck-type alike) and `_MuDataContainer`, which overrides
+only the methods that diverge. Build one with `_container(data)`. It is
+internal: underscore module and names, absent from every `__all__`, never in a
+public signature. `plans/mudata.md` is the design record.
+
+**Why a class when principles.md says "no additional classes":** that rule is
+about the user-facing API. `cellestial/layers/_deferred.py` already holds an
+internal class. Confirmed with the user.
+
+**Four things that look fine and are not:**
+
+1. **Fill dtype.** `np.full(n_obs, np.nan, dtype=float)` is float64 while `.X`
+   is float32 in nearly all single-cell data, so every fetched column doubles.
+   Use `np.promote_types(values.dtype, np.float32)`, which keeps float32 and
+   still widens int32/int64 (float32 cannot hold those exactly past 2**24).
+2. **Observation alignment.** `obsmap[modality]` holds 1-based positions with 0
+   meaning absent. It is dense in `minipbcite.h5mu`, so positional assignment
+   passes every test on the real fixture and corrupts any object where a
+   modality is missing cells. Test it synthetically.
+3. **`obsm`/`varm` masks.** A container keys one boolean membership mask per
+   modality alongside the real embeddings, so unfiltered they become junk
+   `RNA1`/`PROT1` columns in every frame. `_without_modality_masks` drops them.
+4. **Two lookups, not one.** `owns_variable` never raises (the `_is_*`/`_are_*`
+   predicates run in boolean context); `resolve_variable` raises. Collapsing
+   them makes `_is_variable_key(mdata, "rna:leiden")` raise instead of returning
+   False, breaking classification of the pulled-up metadata columns.
+
+**Prefix semantics differ by axis.** `modality:column` is mudata's own
+convention for obs/var *columns* (`mdata.obs` already carries `rna:leiden`).
+For var *names* it is ours: `mdata[:, "NKG7"]` works bare, `mdata[:, "rna:NKG7"]`
+raises `KeyError`, and on a real collision mudata silently returns *both*
+modalities with no warning. Hence `AmbiguousVariableError`.
+`_Container.modality_column` strips the prefix when handing a container column
+to a single modality (dendrograms).
+
+**Circular import.** `cellestial/util/utilities.py` must import `_container`
+lazily inside a function. `_container.py` imports `cellestial.util.errors`,
+which executes `cellestial/util/__init__.py`, which imports `utilities` while
+`_container` is still initialising.
+
+See [[feedback_isinstance_anndata_block]], [[project_cellestial_architecture]],
+[[project_polars_drop_null_gotcha]].

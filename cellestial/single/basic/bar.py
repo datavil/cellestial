@@ -12,10 +12,11 @@ if TYPE_CHECKING:
 
     from anndata import AnnData
     from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from mudata import MuData
 
 
 def bar(
-    data: AnnData,
+    data: AnnData | MuData,
     mapping: FeatureSpec,
     *,
     axis: Literal[0, 1] | None = None,

@@ -3,8 +3,10 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from anndata import AnnData
+from mudata import MuData
 
 from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
+from cellestial.util.utilities import _container
 
 
 def _marker_names_per_group(
@@ -77,9 +79,10 @@ def _marker_names_per_group(
 
 
 def marker_genes(
-    data: AnnData,
+    data: AnnData | MuData,
     groups: Sequence[str] | None = None,
     *,
+    modality: str | None = None,
     key: str = "rank_genes_groups",
     n_genes: int = 5,
 ) -> list[str]:
@@ -98,6 +101,10 @@ def marker_genes(
     groups : Sequence[str] | None, default=None
         Subset of groups to pull markers from, in order. `None` keeps all
         groups in their stored order.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=5
@@ -151,7 +158,9 @@ def marker_genes(
 
         cl.heatmap(data, keys=cl.marker_genes(data, n_genes=3), group_by="louvain")
     """
-    per_group = _marker_names_per_group(data, groups, key=key, n_genes=n_genes)
+    per_group = _marker_names_per_group(
+        _container(data).select_modality(modality), groups, key=key, n_genes=n_genes
+    )
 
     # Flatten group by group, dropping any gene already seen so the list can
     # feed `keys` without producing duplicate panels.
@@ -168,9 +177,10 @@ def marker_genes(
 
 
 def marker_genes_dict(
-    data: AnnData,
+    data: AnnData | MuData,
     groups: Sequence[str] | None = None,
     *,
+    modality: str | None = None,
     key: str = "rank_genes_groups",
     n_genes: int = 5,
 ) -> dict[str, list[str]]:
@@ -188,6 +198,10 @@ def marker_genes_dict(
     groups : Sequence[str] | None, default=None
         Subset of groups to pull markers from, in order. `None` keeps all
         groups in their stored order.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=5
@@ -230,4 +244,6 @@ def marker_genes_dict(
 
         cl.marker_genes_dict(data, n_genes=3)
     """
-    return _marker_names_per_group(data, groups, key=key, n_genes=n_genes)
+    return _marker_names_per_group(
+        _container(data).select_modality(modality), groups, key=key, n_genes=n_genes
+    )

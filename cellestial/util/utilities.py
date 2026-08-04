@@ -8,7 +8,7 @@ from functools import lru_cache
 from math import ceil, isfinite, log10
 from numbers import Real
 from pathlib import Path
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast, overload
 
 import polars as pl
 from anndata import AnnData
@@ -25,10 +25,70 @@ from lets_plot import (
 )
 from lets_plot.plot.core import FeatureSpec
 from lets_plot.plot.subplots import SupPlotsSpec
+from mudata import MuData
 
-from cellestial.util.errors import CellestialWarning, KeyNotFoundError, _unsupported_data_type
+from cellestial.util.errors import CellestialWarning, KeyNotFoundError
+
+if TYPE_CHECKING:
+    from cellestial.frames._container import _Container
 
 _PACKAGE_ROOT = str(Path(__file__).parents[1])
+
+
+def _container(data: AnnData | MuData) -> _Container:
+    """
+    Return the backend-agnostic container view for `data`.
+
+    Notes
+    -----
+    The underlying module is imported on call rather than at module level.
+    `cellestial.frames` imports `cellestial.util.errors`, which executes this
+    package's `__init__` and so imports this module while
+    `cellestial.frames._container` is still initialising.
+    """
+    from cellestial.frames._container import _container as _build_container
+
+    return _build_container(data)
+
+
+@overload
+def _modality_source(
+    data: AnnData | MuData, modality: str | None, group_by: str
+) -> tuple[AnnData, str]: ...
+
+
+@overload
+def _modality_source(
+    data: AnnData | MuData, modality: str | None, group_by: None = None
+) -> tuple[AnnData, None]: ...
+
+
+def _modality_source(
+    data: AnnData | MuData, modality: str | None, group_by: str | None = None
+) -> tuple[AnnData, str | None]:
+    """
+    Return the data object holding stored results, and `group_by` as it names it.
+
+    Stored results (rankings, dendrograms) live in a single modality, while
+    `group_by` names a container-level column, so the column is translated to
+    the name that modality uses.
+    """
+    container = _container(data)
+    holder = container.select_modality(modality)
+    if group_by is None:
+        return holder, None
+    return holder, container.modality_column(modality, group_by)
+
+
+def _container_column(data: AnnData | MuData, modality: str | None, group_by: str) -> str:
+    """
+    Return the container's name for a group column that came from a modality.
+
+    The inverse of `_modality_source`. A ranking stores the group column under
+    the modality's own name, but the plotted frame is built from the container,
+    where that column is qualified as `modality:column`.
+    """
+    return _container(data).container_column(modality, group_by)
 
 
 def _format_warning(message: Warning | str, category: type[Warning], *_args: object) -> str:
@@ -147,26 +207,50 @@ def _validate_tooltips(
         raise ValueError(msg)
 
 
+def _qualified_alternatives(data: AnnData | MuData | None, key: str) -> list[str]:
+    """
+    Return metadata columns that differ from `key` only by a modality prefix.
+
+    A modality's columns are carried on the container as `modality:column`, so a
+    bare name is a natural thing to reach for and a confusing thing to be told
+    does not exist.
+    """
+    if data is None:
+        return []
+    return [
+        name
+        for name in _container(data).observation_columns()
+        if name != key and name.partition(":")[2] == key
+    ]
+
+
 def _validate_aesthetic_columns(
     frame: pl.DataFrame,
+    *,
+    data: AnnData | MuData | None = None,
     **aesthetics: str | None,
 ) -> None:
     """Raise KeyNotFoundError if an aesthetic argument does not name a column in `frame`."""
     for aesthetic, column in aesthetics.items():
         if column is None or column in frame.columns:
             continue
-        msg = (
-            f"`{aesthetic}={column!r}` is not a column in the data.\n"
-            f"For a constant {aesthetic}, use `geom_{aesthetic}={column!r}`.\n"
-            f"Available columns: {frame.columns}"
-        )
-        raise KeyNotFoundError(msg)
+        lines = [f"`{aesthetic}={column!r}` is not a column in the data."]
+        if aesthetic in {"color", "fill"}:
+            lines.append(f"For a constant {aesthetic}, use `geom_{aesthetic}={column!r}`.")
+        alternatives = _qualified_alternatives(data, column)
+        if alternatives:
+            lines.append(
+                f"Did you mean one of {alternatives}? "
+                "Columns belonging to a modality carry its prefix."
+            )
+        lines.append(f"Available columns: {frame.columns}")
+        raise KeyNotFoundError("\n".join(lines))
 
 
 def _resolve_tooltips(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None,
     *,
-    data: AnnData,
+    data: AnnData | MuData,
     variable_keys: list[str],
     defaults: Sequence[str],
     metadata_columns: list[str] | None = None,
@@ -480,93 +564,61 @@ def _reject_sequence_key(key: object, *, singular: str, plural: str) -> None:
         raise TypeError(msg)
 
 
-def _require_feature_key(data: AnnData, key: str | None) -> None:
+def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
     """Validate that a provided color key resolves to a known column or variable."""
     if key is None:
         return
-    if isinstance(data, AnnData):
-        if key in data.obs.columns or key in data.var_names:
-            return
-        msg = f"Key `{key}` not found.\nLooked in observation metadata and variable (gene) names."
-        raise KeyNotFoundError(msg)
+    container = _container(data)
+    if key in container.observation_columns() or container.owns_variable(key):
+        return
+    msg = f"Key `{key}` not found.\nLooked in observation metadata and variable (gene) names."
+    raise KeyNotFoundError(msg)
 
 
-def _is_variable_key(data: AnnData, key: str | None) -> bool:
+def _is_variable_key(data: AnnData | MuData, key: str | None) -> bool:
     if key is None:
         return False
 
-    if isinstance(data, AnnData):
-        if key in data.var_names:
-            result = True
-        else:
-            result = False
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    return _container(data).owns_variable(key)
 
 
-def _are_variables(data: AnnData, keys: Sequence[str] | None) -> bool:
+def _are_variables(data: AnnData | MuData, keys: Sequence[str] | None) -> bool:
     if keys is None:
         return False
 
-    if isinstance(data, AnnData):
-        result = all(key in data.var_names for key in keys)
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    container = _container(data)
+    return all(container.owns_variable(key) for key in keys)
 
 
-def _is_observation_key(data: AnnData, key: str | None) -> bool:
+def _is_observation_key(data: AnnData | MuData, key: str | None) -> bool:
     if key is None:
         return False
 
-    if isinstance(data, AnnData):
-        if key in data.obs.columns:
-            result = True
-        else:
-            result = False
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    return key in _container(data).observation_columns()
 
 
-def _are_observations(data: AnnData, keys: Sequence[str] | None) -> bool:
+def _are_observations(data: AnnData | MuData, keys: Sequence[str] | None) -> bool:
     if keys is None:
         return False
 
-    if isinstance(data, AnnData):
-        result = all(key in data.obs.columns for key in keys)
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    columns = _container(data).observation_columns()
+    return all(key in columns for key in keys)
 
 
 def _select_variable_keys(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str] | None,
 ) -> list[str]:
     """From given keys, select only those that are variable keys."""
     if keys is None:
         return []
 
-    if isinstance(data, AnnData):
-        variable_keys = [key for key in keys if key in data.var_names]
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-    return variable_keys
+    container = _container(data)
+    return [key for key in keys if container.owns_variable(key)]
 
 
 def _collect_aes_columns(
-    data: AnnData,
+    data: AnnData | MuData,
     *,
     keys: Sequence[str | None],
     mapping: FeatureSpec | None,
@@ -582,7 +634,7 @@ def _collect_aes_columns(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object.
     keys : Sequence[str | None]
         Explicit string references (e.g., the color key, x/y keys).
@@ -599,89 +651,67 @@ def _collect_aes_columns(
     axis : {0, 1}, default=0
         The axis the frame is being built for.
     """
-    if isinstance(data, AnnData):
-        metadata_pool = set(data.obs.columns) if axis == 0 else set(data.var.columns)
-        candidates: list[str] = []
-        for key in keys:
-            if isinstance(key, str):
-                candidates.append(key)
-        if mapping is not None:
-            for value in mapping.as_dict().values():
-                if isinstance(value, str):
-                    candidates.append(value)
+    container = _container(data)
+    metadata_pool = (
+        set(container.observation_columns()) if axis == 0 else set(container.variable_columns())
+    )
+    candidates: list[str] = []
+    for key in keys:
+        if isinstance(key, str):
+            candidates.append(key)
+    if mapping is not None:
+        for value in mapping.as_dict().values():
+            if isinstance(value, str):
+                candidates.append(value)
 
-        for candidate in candidates:
-            if candidate in metadata_pool:
-                if candidate not in metadata_columns:
-                    metadata_columns.append(candidate)
-            elif axis == 0 and candidate in data.var_names and candidate not in variable_keys:
-                variable_keys.append(candidate)
+    # Metadata is tested first, so a modality-qualified metadata column such as
+    # `rna:leiden` resolves as a column and never reaches variable resolution.
+    for candidate in candidates:
+        if candidate in metadata_pool:
+            if candidate not in metadata_columns:
+                metadata_columns.append(candidate)
+        elif axis == 0 and container.owns_variable(candidate) and candidate not in variable_keys:
+            variable_keys.append(candidate)
 
 
-def _is_observation_feature(data: AnnData, key: str | None) -> bool:
+def _is_observation_feature(data: AnnData | MuData, key: str | None) -> bool:
     """Check whether the key is in observations axis (axis=0)."""
     if key is None:
         return False
 
-    if isinstance(data, AnnData):
-        if key in data.obs.columns or key in data.var_names:
-            result = True
-        else:
-            result = False
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    container = _container(data)
+    return key in container.observation_columns() or container.owns_variable(key)
 
 
-def _are_observation_features(data: AnnData, keys: Sequence[str] | None) -> bool:
+def _are_observation_features(data: AnnData | MuData, keys: Sequence[str] | None) -> bool:
     """Check whether all the keys are in observations axis (axis=0)."""
     if keys is None:
         return False
 
-    if isinstance(data, AnnData):
-        result = all((key in data.obs.columns or key in data.var_names) for key in keys)
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    container = _container(data)
+    columns = container.observation_columns()
+    return all((key in columns or container.owns_variable(key)) for key in keys)
 
 
-def _is_variable_feature(data: AnnData, key: str | None) -> bool:
+def _is_variable_feature(data: AnnData | MuData, key: str | None) -> bool:
     """Check whether the key is in variable axis (axis=1)."""
     if key is None:
         return False
 
-    if isinstance(data, AnnData):
-        if key in data.var.columns:
-            result = True
-        else:
-            result = False
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    return key in _container(data).variable_columns()
 
 
-def _are_variable_features(data: AnnData, keys: Sequence[str] | None) -> bool:
+def _are_variable_features(data: AnnData | MuData, keys: Sequence[str] | None) -> bool:
     """Check whether all the keys are in variable axis (axis=1)."""
     if keys is None:
         return False
 
-    if isinstance(data, AnnData):
-        result = all(key in data.var.columns for key in keys)
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
-
-    return result
+    columns = _container(data).variable_columns()
+    return all(key in columns for key in keys)
 
 
 def _resolve_embedding_key(
-    data: AnnData,
+    data: AnnData | MuData,
     dimensions: str,
     use_key: str | None,
     xy: Sequence[int],
@@ -691,7 +721,7 @@ def _resolve_embedding_key(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         Single-cell data object providing the embedding store.
     dimensions : str
         Embedding family, e.g. `"umap"`, `"pca"`, `"tsne"`.
@@ -732,11 +762,9 @@ def _resolve_embedding_key(
     if use_key is not None:
         return use_key.upper()
 
-    if isinstance(data, AnnData):
-        candidates = list(data.obsm.keys())
-        shapes = {key: data.obsm[key].shape[1] for key in candidates}
-    else:
-        raise _unsupported_data_type(data, AnnData)
+    embeddings = _container(data).observation_embeddings()
+    candidates = list(embeddings.keys())
+    shapes = {key: embeddings[key].shape[1] for key in candidates}
 
     target = f"X_{dimensions.upper()}"
     needed = max(xy)
@@ -772,22 +800,52 @@ def _resolve_embedding_key(
 
 
 def _determine_axis(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: str | Sequence[str],
+    companions: Sequence[str | None] = (),
 ) -> Literal[0, 1]:
-    """Determine the axis based on the given key or keys."""
+    """
+    Determine the axis based on the given key or keys.
+
+    Parameters
+    ----------
+    data : AnnData | MuData
+        The single-cell data object.
+    keys : str | Sequence[str]
+        The keys the axis is being determined for.
+    companions : Sequence[str | None], default=()
+        Other column references from the same call, such as the grouping and
+        aesthetic keys. Used only to break a tie. `None` entries are ignored.
+
+    Notes
+    -----
+    A name can sit on both axes: quality-control metrics like `total_counts`
+    are commonly stored per observation *and* per variable, so a key naming one
+    is genuinely ambiguous. When the same call also references a column that
+    belongs to only one axis, that settles it. With nothing to break the tie the
+    variables axis wins, as it always has.
+    """
     if isinstance(keys, str):
         keys = [keys]
-    if isinstance(data, AnnData):
-        if _are_variable_features(data, keys):
-            axis = 1
-        elif _are_observation_features(data, keys):
-            axis = 0
-        else:
-            msg = f"Could not determine the axis with given keys ({keys})."
-            raise ValueError(msg)
-    else:
-        msg = f"Unknown data type: {type(data)}."
-        raise TypeError(msg)
+    _container(data)  # reject unsupported data objects up front
+    on_variables = _are_variable_features(data, keys)
+    on_observations = _are_observation_features(data, keys)
 
-    return axis
+    if on_variables and on_observations:
+        hints = [companion for companion in companions if companion is not None]
+        if hints:
+            hints_on_variables = _are_variable_features(data, hints)
+            hints_on_observations = _are_observation_features(data, hints)
+            if hints_on_observations and not hints_on_variables:
+                return 0
+            if hints_on_variables and not hints_on_observations:
+                return 1
+        return 1
+
+    if on_variables:
+        return 1
+    if on_observations:
+        return 0
+
+    msg = f"Could not determine the axis with given keys ({keys})."
+    raise ValueError(msg)

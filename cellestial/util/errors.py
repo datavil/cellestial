@@ -44,6 +44,13 @@ class VariableNotFoundError(Exception):
         super().__init__(message)
 
 
+class AmbiguousVariableError(ValueError):
+    """Raised when a variable (gene / feature) name is present in more than one modality."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class DuplicateKeysError(ValueError):
     """Raised when grouped keys (e.g. heatmap key groups) contain the same key in multiple groups."""
 

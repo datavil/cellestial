@@ -13,6 +13,7 @@ from lets_plot import (
     scale_fill_hue,
 )
 from lets_plot.plot.core import FeatureSpec, LayerSpec
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.util import (
@@ -35,7 +36,7 @@ if TYPE_CHECKING:
 
 
 def ridge(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str,
     group_by: str,
     *,
@@ -150,8 +151,8 @@ def ridge(
         ridge
     """
     # Handling Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
 
     _reject_sequence_key(key, singular="ridge", plural="ridges")
 
@@ -168,7 +169,7 @@ def ridge(
         index.extend(add_keys)
 
     # DETERMINE: axis if not provided
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = _determine_axis(data=data, keys=keys, companions=[group_by]) if axis is None else axis
 
     # BUILD: the DataFrame (variable_keys is still needed for tooltip resolution)
     variable_keys: list[str] = []
@@ -254,7 +255,7 @@ def ridge(
 
 
 def ridges(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     group_by: str,
     *,
@@ -399,7 +400,7 @@ def ridges(
     """
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = _determine_axis(data=data, keys=keys, companions=[group_by]) if axis is None else axis
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     variable_keys: list[str] = []

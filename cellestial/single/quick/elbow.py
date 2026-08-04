@@ -13,19 +13,22 @@ from lets_plot import (
     xlab,
     ylab,
 )
+from mudata import MuData
 
 from cellestial.frames import _pca_variance_frame
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 
 def elbow(
-    data: AnnData,
+    data: AnnData | MuData,
     n_pcs: int | None = None,
     *,
+    modality: str | None = None,
     mapping: FeatureSpec | None = None,
     component_column: str = "Principal Component",
     variance_column: str = "Variance Ratio",
@@ -50,6 +53,10 @@ def elbow(
     n_pcs : int | None, default=None
         Number of principal components to display.
         If None, shows all available components.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     component_column : str, default='Principal Component'
@@ -119,8 +126,10 @@ def elbow(
         cl.elbow(data, n_pcs=20, color="#0f4f8f", size=4)
     """
     # Handling Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
+    # Stored analysis results live inside a single modality.
+    data = _container(data).select_modality(modality)
 
     # BUILD: variance ratio frame
     frame = _pca_variance_frame(

@@ -31,6 +31,12 @@ def adata():
 
 
 @pytest.fixture(scope="session")
+def mudata():
+    """Real CITE-seq container: 411 cells, `rna` (27) + `prot` (29) modalities."""
+    return cl.datasets.pbmc_cite()
+
+
+@pytest.fixture(scope="session")
 def markers():
     return list(MARKERS)
 

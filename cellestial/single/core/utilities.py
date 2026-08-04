@@ -19,6 +19,7 @@ from lets_plot import (
     position_jitterdodge,
 )
 from lets_plot.plot.core import FeatureSpec, PlotSpec
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_DIST
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 
 
 def _distribution(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | Sequence[str],
     *,
     frame: pl.DataFrame | None = None,
@@ -70,8 +71,8 @@ def _distribution(
     **geom_kwargs,
 ) -> PlotSpec:
     # Handling Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
 
     # HANDLE: mapping
     mapping = mapping or aes()
@@ -113,7 +114,11 @@ def _distribution(
         index.extend(add_keys)
 
     # DETERMINE: axis if not provided
-    axis = _determine_axis(data=data, keys=keys) if axis is None else axis
+    axis = (
+        _determine_axis(data=data, keys=keys, companions=[group_by, mapping_fill, mapping_color])
+        if axis is None
+        else axis
+    )
 
     # BUILD: the DataFrame (variable_keys is still needed for tooltip resolution)
     variable_keys: list[str] = []
@@ -171,7 +176,9 @@ def _distribution(
         )
 
     # `color` / `fill` name columns; a literal color here is a common mix-up
-    _validate_aesthetic_columns(frame, color=mapping_color, fill=mapping_fill)
+    _validate_aesthetic_columns(
+        frame, data=data, color=mapping_color, fill=mapping_fill, group_by=group_by
+    )
 
     if group_by is not None:
         frame = frame.filter(pl.col(group_by).is_not_null())

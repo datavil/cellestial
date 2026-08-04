@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
 from lets_plot.plot.core import FeatureSpec, PlotSpec
+from mudata import MuData
 
 from cellestial.single.core.utilities import _distribution
 
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def violin(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | Sequence[str],
     *,
     frame: DataFrame | None = None,
@@ -256,7 +257,7 @@ def violin(
 
 
 def boxplot(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | Sequence[str],
     *,
     frame: DataFrame | None = None,
@@ -491,7 +492,7 @@ def boxplot(
 
 
 def histogram(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | Sequence[str],
     *,
     frame: DataFrame | None = None,

@@ -20,14 +20,15 @@ from cellestial.util import (
 if TYPE_CHECKING:
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
+    from mudata import MuData
 
 
 def dimensionals(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
@@ -85,9 +86,9 @@ def dimensionals(
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensionality reduction method to use.
-        e.g., 'umap' or 'pca' or 'tsne'.
+    dimensions : str, default='umap'
+        The dimensionality reduction to plot, named without the `X_` prefix.
+        e.g., 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -357,7 +358,7 @@ def dimensionals(
 
 
 def umaps(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
@@ -686,7 +687,7 @@ def umaps(
 
 
 def tsnes(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
@@ -1013,7 +1014,7 @@ def tsnes(
 
 
 def pcas(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
@@ -1341,11 +1342,11 @@ def pcas(
 
 
 def expressions(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
@@ -1400,9 +1401,9 @@ def expressions(
         The keys (gene names) to color the points by.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensionality reduction method to use.
-        e.g., 'umap' or 'pca' or 'tsne'.
+    dimensions : str, default='umap'
+        The dimensionality reduction to plot, named without the `X_` prefix.
+        e.g., 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.

@@ -2,8 +2,10 @@ import re
 import shutil
 from os import PathLike
 from pathlib import Path
+from typing import cast
 
 from anndata import AnnData, read_h5ad
+from mudata import MuData
 
 _GLOBAL_CACHE = Path.home() / ".cache" / "cellestial" / "datasets"
 
@@ -81,11 +83,14 @@ def pbmc3k(
     OSError
         If the downloaded file size does not match the expected size.
     """
-    return from_url(
-        "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped.h5ad",
-        cache_directory=cache_directory,
-        use_cache=use_cache,
-        bring=bring,
+    return cast(
+        "AnnData",
+        from_url(
+            "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped.h5ad",
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+        ),
     )
 
 
@@ -120,12 +125,68 @@ def pancreas(
     OSError
         If the downloaded file size does not match the expected size.
     """
-    return from_url(
-        "https://huggingface.co/datasets/datavil/pancreas/resolve/main/endocrinogenesis_day15_pped.h5ad",
-        cache_directory=cache_directory,
-        use_cache=use_cache,
-        bring=bring,
+    return cast(
+        "AnnData",
+        from_url(
+            "https://huggingface.co/datasets/datavil/pancreas/resolve/main/endocrinogenesis_day15_pped.h5ad",
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+        ),
     )
+
+
+def pbmc_cite(
+    cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
+    *,
+    use_cache: bool = True,
+    bring: bool = True,
+) -> MuData:
+    """
+    Download and load a small multimodal CITE-seq PBMC dataset.
+
+    Parameters
+    ----------
+    cache_directory : str | Path | PathLike
+        Directory where the `.h5mu` file is cached.
+    use_cache : bool, default=True
+        If True, load from the cached file when present. If False, remove any
+        existing cached file and re-download.
+    bring : bool, default=True
+        If True and `cache_directory` is not the default global cache, copy the
+        file from the global cache when it already exists there. Set to False
+        to disable this behavior.
+
+    Returns
+    -------
+    MuData
+        411 cells with paired gene expression (`rna`) and surface protein
+        (`prot`) modalities, carrying joint WNN and MOFA embeddings.
+
+    Raises
+    ------
+    OSError
+        If the downloaded file size does not match the expected size.
+    """
+    return cast(
+        "MuData",
+        from_url(
+            "https://github.com/gtca/h5xx-datasets/raw/main/datasets/minipbcite.h5mu",
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+            extension=".h5mu",
+        ),
+    )
+
+
+def _read_dataset(path: Path) -> AnnData | MuData:
+    """Read a cached dataset, dispatching on the file extension."""
+    if path.suffix == ".h5mu":
+        from mudata import read_h5mu
+
+        return read_h5mu(path)
+    return read_h5ad(path)
 
 
 def from_url(
@@ -135,14 +196,15 @@ def from_url(
     cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
     use_cache: bool = True,
     bring: bool = True,
-) -> AnnData:
+    extension: str = ".h5ad",
+) -> AnnData | MuData:
     """
-    Download and load an `.h5ad` dataset from a direct HTTP(S) URL.
+    Download and load a dataset from a direct HTTP(S) URL.
 
     Parameters
     ----------
     url : str
-        Direct URL to a downloadable `.h5ad` file.
+        Direct URL to a downloadable `.h5ad` or `.h5mu` file.
     name : str, optional
         Name for the cached file (without extension). If omitted, the cache
         filename is derived from the URL's last path segment.
@@ -155,10 +217,13 @@ def from_url(
         If True and `cache_directory` is not the default global cache, copy the
         file from the global cache when it already exists there. Set to False
         to disable this behavior.
+    extension : str, default='.h5ad'
+        File extension used when `name` is given, and the format the downloaded
+        file is read as. Pass '.h5mu' for a multimodal dataset.
 
     Returns
     -------
-    AnnData
+    AnnData | MuData
         The downloaded dataset.
 
     Raises
@@ -170,7 +235,7 @@ def from_url(
 
     Notes
     -----
-    Generic loader for any host that serves an AnnData `.h5ad` file at a
+    Generic loader for any host that serves an `.h5ad` or `.h5mu` file at a
     stable URL (CELLxGENE, Zenodo, Figshare, S3 buckets, etc.).
     """
     from urllib.parse import urlparse
@@ -179,7 +244,7 @@ def from_url(
     from tqdm import tqdm
 
     if name is not None:
-        filename = f"{name}.h5ad"
+        filename = f"{name}{extension}"
     else:
         filename = Path(urlparse(url).path).name
         if not filename:
@@ -189,7 +254,7 @@ def from_url(
     cache_file = _resolve_cache_file(cache_directory, filename, use_cache=use_cache, bring=bring)
 
     if cache_file.exists():
-        return read_h5ad(cache_file)
+        return _read_dataset(cache_file)
 
     print(f"No cache at {cache_file} !")
     print(f"Downloading from {url} ...")
@@ -227,7 +292,7 @@ def from_url(
 
     print(f"Saved to {cache_file}")
 
-    return read_h5ad(cache_file)
+    return _read_dataset(cache_file)
 
 
 def from_cellxgene(
@@ -291,12 +356,15 @@ def from_cellxgene(
         else f"https://datasets.cellxgene.cziscience.com/{uuid}.h5ad"
     )
 
-    return from_url(
-        url,
-        name=name or uuid,
-        cache_directory=cache_directory,
-        use_cache=use_cache,
-        bring=bring,
+    return cast(
+        "AnnData",
+        from_url(
+            url,
+            name=name or uuid,
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+        ),
     )
 
 
@@ -375,9 +443,12 @@ def human_lymph_node(
     OSError
         If the downloaded file size does not match the expected size.
     """
-    return from_url(
-        "https://huggingface.co/datasets/datavil/human_lymph_node/resolve/main/V1_Human_Lymph_Node_pped.h5ad",
-        cache_directory=cache_directory,
-        use_cache=use_cache,
-        bring=bring,
+    return cast(
+        "AnnData",
+        from_url(
+            "https://huggingface.co/datasets/datavil/human_lymph_node/resolve/main/V1_Human_Lymph_Node_pped.h5ad",
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+        ),
     )

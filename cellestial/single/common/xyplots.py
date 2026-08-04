@@ -20,10 +20,11 @@ if TYPE_CHECKING:
 
     from anndata import AnnData
     from lets_plot.plot.subplots import SupPlotsSpec
+    from mudata import MuData
 
 
 def xyplots(
-    data: AnnData,
+    data: AnnData | MuData,
     x: str | Sequence[str],
     y: str | Sequence[str],
     *,

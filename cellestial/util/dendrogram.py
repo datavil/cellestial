@@ -4,6 +4,8 @@ import numpy as np
 import polars as pl
 from anndata import AnnData
 
+from cellestial.util.errors import KeyNotFoundError
+
 
 def _get_dendrogram(
     data: AnnData,
@@ -15,6 +17,15 @@ def _get_dendrogram(
     if isinstance(data, AnnData):
         key = use_key if use_key is not None else f"dendrogram_{group_by}"
         if key not in data.uns:
+            if group_by not in data.obs.columns:
+                # Reached when a multimodal object groups by a container-level
+                # column that the selected modality does not carry.
+                msg = (
+                    f"Cannot compute a dendrogram for `{group_by}`: it is not an "
+                    "observation column of the data the dendrogram is computed from.\n"
+                    "Precompute the dendrogram, or group by a column that data carries."
+                )
+                raise KeyNotFoundError(msg)
             import scanpy as sc
 
             sc.tl.dendrogram(data, groupby=group_by, key_added=key)

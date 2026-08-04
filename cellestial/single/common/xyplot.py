@@ -11,6 +11,7 @@ from lets_plot import (
     labs,
 )
 from lets_plot.plot.core import FeatureSpec
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.themes import _THEME_SCATTER
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
 
 
 def xyplot(
-    data: AnnData,
+    data: AnnData | MuData,
     x: str,
     y: str,
     *,
@@ -158,8 +159,8 @@ def xyplot(
 
     """
     # Handling Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
 
     # HANDLE: mapping
     _mapping = aes(x=x, y=y)

@@ -11,11 +11,12 @@ if TYPE_CHECKING:
 
     from anndata import AnnData
     from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from mudata import MuData
     from polars import DataFrame
 
 
 def umap(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | None = None,
     *,
     frame: DataFrame | None = None,
@@ -217,7 +218,7 @@ def umap(
 
 
 def tsne(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | None = None,
     *,
     frame: DataFrame | None = None,
@@ -419,7 +420,7 @@ def tsne(
 
 
 def pca(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str | None = None,
     *,
     frame: DataFrame | None = None,
@@ -621,12 +622,12 @@ def pca(
 
 
 def expression(
-    data: AnnData,
+    data: AnnData | MuData,
     key: str,
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    dimensions: Literal["umap", "pca", "tsne"] = "umap",
+    dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
@@ -669,9 +670,9 @@ def expression(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    dimensions : {'umap', 'pca', 'tsne'}, default='umap'
-        The dimensionality reduction method to use.
-        e.g., 'umap' or 'pca' or 'tsne'.
+    dimensions : str, default='umap'
+        The dimensionality reduction to plot, named without the `X_` prefix.
+        e.g., 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
     use_key : str, default=None
         The specific key to use for the desired dimensions.
         e.g., 'X_umap_2d' or 'X_pca_2d'.

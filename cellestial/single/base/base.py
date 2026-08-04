@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
 from lets_plot import ggplot
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.util import _determine_axis
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 
 
 def plot(
-    data: AnnData,
+    data: AnnData | MuData,
     mapping: FeatureSpec | None = None,
     *,
     axis: Literal[0, 1] | None = None,
@@ -92,8 +93,8 @@ def plot(
 
     """
     # Handling Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
 
     # BUILD: the dataframe
     if mapping is not None:

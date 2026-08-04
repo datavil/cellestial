@@ -20,11 +20,13 @@ from lets_plot import (
     scale_color_manual,
 )
 from lets_plot.plot.core import FeatureSpec, LayerSpec
+from mudata import MuData
 
 from cellestial.single.differential.utilities import _build_volcano_frame
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _container
 
 # Default volcano palette (matches the conventional EnhancedVolcano-style look):
 # brick-red for up, soft cornflower-blue for down, medium-gray for non-significant.
@@ -35,9 +37,10 @@ if TYPE_CHECKING:
 
 
 def volcano(
-    data: AnnData,
+    data: AnnData | MuData,
     group: str,
     *,
+    modality: str | None = None,
     group_by: str | None = None,
     key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
@@ -84,6 +87,10 @@ def volcano(
     group : str
         Which level of `group_by` to plot the differential-expression
         ranking for, e.g. "B Cells" vs the rest.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     group_by : str | None, default=None
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
@@ -214,8 +221,10 @@ def volcano(
         )
     """
     # HANDLE: Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
+    # Stored analysis results live inside a single modality.
+    data = _container(data).select_modality(modality)
 
     # BUILD: dataframe via the helper
     frame = _build_volcano_frame(
@@ -369,9 +378,10 @@ def volcano(
 
 
 def volcanos(
-    data: AnnData,
+    data: AnnData | MuData,
     groups: Sequence[str],
     *,
+    modality: str | None = None,
     group_by: str | None = None,
     key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
@@ -433,6 +443,10 @@ def volcanos(
     groups : Sequence[str]
         Which levels of `group_by` to plot, one subplot per group. Each
         shows that group's ranking, e.g. "B Cells" vs the rest.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     group_by : str | None, default=None
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
@@ -581,6 +595,7 @@ def volcanos(
         plot = volcano(
             data=data,
             group=group,
+            modality=modality,
             group_by=group_by,
             key=key,
             use_adjusted_pvalue=use_adjusted_pvalue,

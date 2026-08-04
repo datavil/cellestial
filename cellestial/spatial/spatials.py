@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from anndata import AnnData
 from lets_plot import gggrid, ggtb
 from lets_plot.plot.core import FeatureSpec, LayerSpec
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.spatial.spatial import spatial
@@ -16,6 +17,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _share_labels,
 )
+from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
     from lets_plot.plot.subplots import SupPlotsSpec
@@ -240,6 +242,13 @@ def spatials(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be a Sequence of strings"
         raise TypeError(msg)
+
+    if isinstance(data, MuData):
+        msg = (
+            "Spatial plots do not accept a multimodal object. "
+            "Pass a single modality instead, e.g. `data['rna']`."
+        )
+        raise UnsupportedDataTypeError(msg)
 
     # Resolve the annotation table once (mirrors `spatial`); SpatialData needs extraction
     # for the variable-key check below, while `build_frame` accepts either type.

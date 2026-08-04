@@ -9,20 +9,23 @@ from lets_plot import (
     geom_boxplot,
     ggplot,
 )
+from mudata import MuData
 
 from cellestial.frames import _highest_expressed_genes_frame
 from cellestial.themes import _THEME_HIGHEST
 from cellestial.util import _drop_nonfinite_rows
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
     from lets_plot.plot.core import FeatureSpec, PlotSpec
 
 
 def highest_expressed_genes(
-    data: AnnData,
+    data: AnnData | MuData,
     n: int = 20,
     *,
+    modality: str | None = None,
     mapping: FeatureSpec | None = None,
     threshold: float | None = None,
     observations_name: str = "Barcode",
@@ -44,6 +47,10 @@ def highest_expressed_genes(
         The AnnData object of the single cell data.
     n : int, default=20
         Number of top expressed genes to display, ranked by mean percentage across all cells.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use. Required for a
+        multimodal object holding more than one modality, and not accepted
+        otherwise.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
     threshold : float | None, default=None
@@ -115,8 +122,10 @@ def highest_expressed_genes(
 
     """
     # Handling Data types
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
+    # Stored analysis results live inside a single modality.
+    data = _container(data).select_modality(modality)
 
     # HANDLE: mapping
     defaults = aes(x=variable_column, y=value_column, fill=variable_column).as_dict()

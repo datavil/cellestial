@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-import numpy as np
-import pandas as pd
 import polars as pl
 from anndata import AnnData
-from scipy.sparse import issparse
+from mudata import MuData
 
-from cellestial.util.errors import VariableNotFoundError, _unsupported_data_type
+from cellestial.frames._container import _container
+from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -18,7 +17,7 @@ if TYPE_CHECKING:
 
 
 def anndata_variable_columns(
-    data: AnnData, column_names: list[str], keys: str | Sequence[str]
+    data: AnnData | MuData, column_names: list[str], keys: str | Sequence[str]
 ) -> list[pl.Series]:
     """
     Return a list of variable columns as Polars `Series`.
@@ -26,34 +25,20 @@ def anndata_variable_columns(
     Raises
     ------
     VariableNotFoundError
-        If any key is not present in `data.var_names`.
+        If any key is not present in the variable names.
+    AmbiguousVariableError
+        If a bare key is present in more than one modality.
     """
-    columns = []
     if isinstance(keys, str):
         keys = [keys]
     # remove keys that are already in column_names to avoid repeats
     keys = [key for key in keys if key not in column_names]
-    # check that all keys are in data.var_names
-    available_names = set(data.var_names)
-    missing = [key for key in keys if key not in available_names]
-    if missing:
-        msg = f"Keys not found in data.var_names: {missing}"
-        raise VariableNotFoundError(msg)
 
-    # subset X
-    X = data[:, keys].X
-
-    if issparse(X):
-        X = X.toarray()  # ty:ignore[unresolved-attribute]
-    else:
-        X = np.asarray(X)
-    columns = [pl.Series(key, X[:, i]) for i, key in enumerate(keys)]
-
-    return columns
+    return _container(data).fetch_variable_columns(keys)
 
 
 def anndata_observations_frame(
-    data: AnnData,
+    data: AnnData | MuData,
     /,
     variable_keys: str | Sequence[str] | None = None,
     *,
@@ -67,8 +52,8 @@ def anndata_observations_frame(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object containing the observations.
+    data : AnnData | MuData
+        The data object containing the observations.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     observations_name : str | None, optional
@@ -93,28 +78,25 @@ def anndata_observations_frame(
     Raises
     ------
     UnsupportedDataTypeError
-        If `data` is not an AnnData object.
+        If `data` is not a supported data object.
     VariableNotFoundError
         If any `variable_keys` entry is not present in the variable names.
+    AmbiguousVariableError
+        If a bare `variable_keys` entry is present in more than one modality.
     KeyError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
     ValueError
         If `include_dimensions` is a negative integer.
     """
-    # Check if data is an AnnData object
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
-    if not isinstance(data.obs, pd.DataFrame):  # in case of Dataset2D
-        part = data.obs.to_memory()
-    else:
-        part = data.obs
-    partm = data.obsm
+    container = _container(data)
+    part = container.observation_metadata()
+    partm = container.observation_embeddings()
     # PART 1: INITIALIZE
     if observations_name is None:
         columns = []
     else:
-        columns = [pl.Series(observations_name, data.obs_names)]
+        columns = [pl.Series(observations_name, container.observation_names())]
     # PART 2: ADD AnnData.obs
     if metadata_columns is None:
         selected_columns = list(part.columns)
@@ -167,7 +149,7 @@ def anndata_observations_frame(
 
 
 def anndata_variables_frame(
-    data: AnnData,
+    data: AnnData | MuData,
     *,
     variables_name: str | None = "Variable",
     include_dimensions: bool | int = False,
@@ -179,8 +161,8 @@ def anndata_variables_frame(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object containing the variables.
+    data : AnnData | MuData
+        The data object containing the variables.
     variables_name : str | None
         Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
@@ -203,7 +185,7 @@ def anndata_variables_frame(
     Raises
     ------
     UnsupportedDataTypeError
-        If `data` is not an AnnData object.
+        If `data` is not a supported data object.
     KeyError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
@@ -211,18 +193,14 @@ def anndata_variables_frame(
         If `include_dimensions` is a negative integer.
     """
     # PART 1: INITIALIZE
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
-    if not isinstance(data.var, pd.DataFrame):  # in case of Dataset2D
-        part = data.var.to_memory()
-    else:
-        part = data.var
-    partm = data.varm
+    container = _container(data)
+    part = container.variable_metadata()
+    partm = container.variable_embeddings()
     # PART1: initalize columns
     if variables_name is None:
         columns = []
     else:
-        columns = [pl.Series(variables_name, data.var_names)]
+        columns = [pl.Series(variables_name, container.variable_names())]
     # PART 3: ADD AnnData.var
     if metadata_columns is None:
         selected_columns = list(part.columns)
@@ -287,7 +265,7 @@ def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> 
 
 
 def build_frame(
-    data: AnnData | SpatialData,
+    data: AnnData | SpatialData | MuData,
     *,
     variable_keys: str | Sequence[str] | None = None,
     axis: Literal[0, 1] | None = None,
@@ -302,8 +280,8 @@ def build_frame(
 
     Parameters
     ----------
-    data : AnnData | SpatialData
-        The AnnData or SpatialData object containing the variables.
+    data : AnnData | SpatialData | MuData
+        The data object containing the variables.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : {0,1} | None
@@ -335,11 +313,22 @@ def build_frame(
         If `data` is not a supported data object.
     VariableNotFoundError
         If any `variable_keys` entry is not present in variable names.
+    AmbiguousVariableError
+        If a bare `variable_keys` entry is present in more than one modality.
     KeyError
         If any `metadata_columns` or `dimension_keys` entry is unknown.
     ValueError
-        If `axis` cannot be inferred, or the data object does not resolve to
-        exactly one annotation table.
+        If `axis` cannot be inferred, the data object does not resolve to
+        exactly one annotation table, or a multimodal object does not share
+        observations across its modalities.
+
+    Notes
+    -----
+    For a multimodal object, metadata and embeddings are read at the container
+    level. Modality-level columns are already available there, prefixed as
+    `modality:column`. Variables resolve to the modality owning them: a bare
+    name works when it is unique across modalities, and `modality:name`
+    disambiguates otherwise.
 
     Examples
     --------
@@ -385,7 +374,19 @@ def build_frame(
             )
             raise ValueError(msg)
 
-    if isinstance(data, AnnData):
+    if isinstance(data, MuData) and data.axis != 0:
+        # Only shared observations keep the observations-frame contract; the
+        # other layouts concatenate observations, so identifiers can repeat.
+        msg = (
+            "Only multimodal objects whose modalities share observations are supported "
+            f"(`axis=0`), but this object has `axis={data.axis}`. "
+            "Pass a single modality instead, e.g. `data['rna']`."
+        )
+        raise ValueError(msg)
+
+    if isinstance(data, (AnnData, MuData)):
+        # A tuple is correct here: the backend-specific work lives one level
+        # down in the container, so both types take an identical path.
         # infer the axis if not provided
         if axis is None and variable_keys is not None:
             axis = 0
@@ -411,6 +412,6 @@ def build_frame(
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
             raise ValueError(msg)
     else:
-        raise _unsupported_data_type(data, AnnData, SpatialData)
+        raise _unsupported_data_type(data, AnnData, SpatialData, MuData)
 
     return frame

@@ -26,12 +26,14 @@ from lets_plot import (
     scale_y_continuous,
     theme,
 )
+from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import _scale_values
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _fill_gradient, _get_dendrogram, _warn
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _modality_source
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -330,10 +332,11 @@ def _dendrogram_panel(
 
 
 def annotated_heatmap(
-    data: AnnData,
+    data: AnnData | MuData,
     keys: Sequence[str],
     group_by: str | None = None,
     *,
+    modality: str | None = None,
     column_annotations: str | Sequence[str] | None = None,
     row_annotations: str | Sequence[str] | None = None,
     annotation_colors: Mapping[str, AnnotationColors] | None = None,
@@ -377,6 +380,10 @@ def annotated_heatmap(
         The AnnData object of the single cell data.
     keys : Sequence[str]
         Variable keys to include, placed on the x-axis.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use when `markers` or
+        `dendrogram` is enabled. Required for a multimodal object holding more
+        than one modality, and not accepted otherwise.
     group_by : str | None, default=None
         The observation key to group the rows by. When `None`, rows keep their
         original order and no group separators are drawn.
@@ -507,8 +514,8 @@ def annotated_heatmap(
             scale_axis=0,
         )
     """
-    if not isinstance(data, AnnData):
-        raise _unsupported_data_type(data, AnnData)
+    if not isinstance(data, (AnnData, MuData)):
+        raise _unsupported_data_type(data, AnnData, MuData)
 
     keys = list(keys)
     column_annotations = _as_list(column_annotations)
@@ -524,7 +531,7 @@ def annotated_heatmap(
     if dendrogram:
         assert group_by is not None  # guaranteed by the guard above
         dendrogram_order, dendrogram_paths = _get_dendrogram(
-            data, group_by, use_key=dendrogram_key
+            *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
     else:
         dendrogram_order, dendrogram_paths = None, None
