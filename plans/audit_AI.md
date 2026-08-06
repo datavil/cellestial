@@ -76,6 +76,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_as_array` | Claude Opus 5 |  |  |  |  |
 | `_qualified_alternatives` | Claude Opus 5 |  |  |  |  |
 | `_Container._require_unique_variables` | Claude Opus 5 |  |  |  |  |
+| `_resolve_pvalue_column` | Claude Opus 5 |  |  |  |  |
 
 ## Modified functions
 
@@ -87,7 +88,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `cluster_outlines` | Mixed |  |
-| `stream` | Claude 4.7 and Claude 4.8 |  |
+| `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `arrow_axis` | Claude 4.7 |  |
 | `ondata_legend` | Claude 4.7 |  |
 | `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 |  |
@@ -140,3 +141,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `volcano` | Claude Opus 5 |  |
 | `marker_genes` | Claude Opus 5 |  |
 | `marker_genes_dict` | Claude Opus 5 |  |
+| `_build_volcano_frame` | Claude Opus 5 |  |
+| `_range_inclusive` | Claude Opus 5 |  |

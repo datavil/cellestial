@@ -5,7 +5,7 @@ import re
 import warnings
 from collections.abc import Sequence
 from functools import lru_cache
-from math import ceil, isfinite, log10
+from math import ceil, floor, isfinite, log10
 from numbers import Real
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, cast, overload
@@ -300,21 +300,22 @@ def _resolve_tooltips(
 
 def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     """Return a list of rounded numbers between start and stop, inclusive."""
-    decimals = 0
-    if stop - start < 1:
-        if stop - start == 0:
-            return [start]
-        decimals = -round(log10(stop - start)) + 1
+    if step < 1:
+        msg = f"`step` must be >= 1, but received {step}."
+        raise ValueError(msg)
+    span = abs(stop - start)
+    if span == 0:
+        return [start]
+    if step == 1:
+        return [stop]
 
-    diff = round(stop - start, decimals)
-    increment = round(diff / (step - 1), decimals + 1)
-    inc_list = []
-
-    for i in range(step):
-        inc_list.append(round(start + increment * i, decimals + 2))
-    # make unique
-    inc_list = list(set(inc_list))
-    return sorted(inc_list)
+    # Interpolate from the endpoints so both of them are always hit, and round
+    # to enough decimals to keep neighbouring values distinct.
+    decimals = max(0, -floor(log10(span / (step - 1))) + 1)
+    values = {
+        round(start + (stop - start) * index / (step - 1), decimals) for index in range(step)
+    }
+    return sorted(values)
 
 
 def _resolve_midpoint(

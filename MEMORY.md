@@ -26,11 +26,12 @@
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
 - [Project: Deferred layers read the built frame](project_deferred_layers_read_frame.md) — Don't narrow embeddings in plot functions; `cl.stream()` reads velocity embeddings from the frame after the plot call
-- [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under the current poetry version in repo-root `CHANGELOG.md` (`### Breaking` + migration note)
+- [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under a new `## [Unreleased]` in repo-root `CHANGELOG.md` (`### Breaking` + migration note); never edit a published dated section
 - [Project: geom_raster aspect lock](project_letsplot_geom_raster_aspect.md) — lets-plot geom_raster forces square pixels; cl.heatmap rescales y, cl.annotated_heatmap (cellestial/complex) uses geom_tile + gggrid(align, guides)
 - [Project: annotated_heatmap overflow](project_annotated_heatmap_overflow.md) — cl.annotated_heatmap layout: dendrogram clip fixed (expand left margin), legend overflow fixed (bottom horizontal compact, set on subplots+grid); per-track brewer palettes; bar-end labels tried+reverted (leftmost row-label column clips). ggsize is not a fix.
 - [Project: Distribution aesthetic param naming](project_distribution_aesthetic_naming.md) — Keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by` (collides with live lets-plot passthrough)
 - [Project: MuData container](project_mudata_container.md) — MuData support routes through internal `_Container`/`_MuDataContainer`; dtype doubling, obsmap alignment, obsm masks, non-raising lookup, lazy import
+- [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 
 
 ---
@@ -701,7 +702,11 @@ does not need this since dropping nulls there is acceptable.
 ---
 name: feedback_changelog_breaking_changes
 description: Record breaking API changes in CHANGELOG.md under the current poetry version
-type: feedback
+metadata: 
+  node_type: memory
+  type: feedback
+  originSessionId: 57b2d5d0-1108-4eee-846f-2d405d724e6e
+  modified: 2026-08-06T12:06:37.778Z
 ---
 
 When making a breaking API change (renaming/removing/repurposing a public
@@ -712,12 +717,15 @@ parameter or function), record it in the repo-root `CHANGELOG.md` under a
 **Why:** The user tracks breaking changes by version so users can migrate; this
 matters more as the project approaches v1.0.
 
-**How to apply:** Run `poetry version` to get the current version and date the
-section `## [X.Y.Z] - YYYY-MM-DD`. If the version hasn't been bumped yet, put
-entries under `## [Unreleased]` and rename the heading once bumped. Related:
-feedback_audit_ai_tracking.
-
----
+**How to apply:** Add a new `## [Unreleased]` section at the top and write there.
+Do not append to the topmost dated section just because it matches
+`poetry version`: that version is usually already published, and editing it
+rewrites shipped release notes (corrected on 2026-08-06, when entries went into
+a published `## [0.60.0] - 2026-08-06`). `poetry version` matching a dated
+section is evidence the release happened, not that it is pending. Only write
+into a dated section when the user says that release is still open. The user
+renames `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` at release time, where
+`release.sh` reads `poetry version -s`. Related: [[feedback_audit_ai_tracking]].
 
 ## Source: project_letsplot_geom_raster_aspect.md
 
@@ -886,3 +894,42 @@ which executes `cellestial/util/__init__.py`, which imports `utilities` while
 
 See [[feedback_isinstance_anndata_block]], [[project_cellestial_architecture]],
 [[project_polars_drop_null_gotcha]].
+
+## Source: project_math_audit_open_findings.md
+
+---
+name: project-math-audit-open-findings
+description: "Open findings from the 2026-08-05 audit of mathematical transformations (volcano, bracket, KDE, spatial); fixed items and what remains"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: ff149c3a-3b9e-4b34-9a20-283ec90472fa
+  modified: 2026-08-06T12:03:34.496Z
+---
+
+A full audit of every math-bearing plot and layer ran on 2026-08-05. Four defects
+were fixed on 2026-08-06 (see `CHANGELOG.md` 0.60.0 and
+`tests/test_audit_regressions.py`): volcano label ties, volcano adjusted-p naming,
+`_range_inclusive`, and the `cl.stream()` arrow index.
+
+Verified mathematically correct, no need to re-derive: `_correct_pvalues`
+(matches statsmodels for bonferroni and fdr_bh including ties), star thresholds,
+`stacked_violin` scale=area/count/width (matches ggplot2), the `cluster_outlines`
+KDE grid orientation, dendrogram icoord/dcoord normalization and leaf interpolation,
+`_highest_expressed_genes_frame`'s matvec identity, `_bin_within_groups`, and the
+dotplot mean/percent-expressed aggregation.
+
+Still open, reported to the user and not yet acted on:
+- `bracket(test="ttest")` is Student's (`equal_var=True`); no way to request Welch
+  because `**geom_kwargs` goes to the geom.
+- Brackets test the plot's *filtered* frame, so `violin(threshold=0.1) + bracket()`
+  silently tests only expressing cells. Undocumented.
+- `p = 0` renders as `"p = 0"` under `prefix_style="="`.
+- Volcano inherits scanpy's logFC pseudocount artifact: 88% of features called
+  "down" on pbmc3k B Cells, most expressed in under 1% of cells. No expression prefilter.
+- `spatial(scale_axis=...)` is typed `Literal[0, 1]` but both values do the same
+  global min-max, unlike heatmap's `scale_axis`.
+- `_polygon_vertex_frame` concatenates interior rings onto the exterior, so a
+  Polygon with a hole draws as one bogus path.
+
+Related: [[project-cellestial-architecture]], [[feedback-changelog-breaking-changes]]

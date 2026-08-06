@@ -271,7 +271,15 @@ def stream(
             (
                 frame_streams.group_by("group")
                 .agg(pl.col("x"), pl.col("y"))
-                .with_columns(mid=pl.col("x").list.len() // 2)
+                # a path of `n` vertices holds segments 0..n-2, so the middle
+                # vertex is clamped to n-2 to keep `mid + 1` a valid index.
+                .filter(pl.col("x").list.len() >= 2)
+                .with_columns(
+                    mid=pl.min_horizontal(
+                        pl.col("x").list.len() // 2,
+                        pl.col("x").list.len() - 2,
+                    )
+                )
             )
             .with_columns(
                 pl.col("x").list.get(pl.col("mid")).alias("x"),
@@ -280,6 +288,9 @@ def stream(
                 pl.col("y").list.get(pl.col("mid").add(1)).alias("yend"),
             )
             .drop("mid")
+            # streamplot repeats vertices at path joins; a zero-length segment
+            # has no direction to point an arrowhead along.
+            .filter((pl.col("x") != pl.col("xend")) | (pl.col("y") != pl.col("yend")))
             .sort("group")
         )
 

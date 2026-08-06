@@ -3,6 +3,34 @@
 All notable changes to cellestial are documented here. Breaking changes are
 called out explicitly so users can migrate between versions.
 
+## [Unreleased]
+
+### Breaking
+- `volcano` and `volcanos` now name their p-value column after the values it
+  holds. With the default `use_adjusted_pvalue=True` the column, the tooltip
+  entry, and the y-axis title read `pvalue_adj` and `-log10(Padj)` instead of
+  `pvalue` and `-log10(Pvalue)`; raw p-values are unaffected. The frame reported
+  an FDR under a name that claimed it was a raw p-value.
+  - Migration: pass `pvalue_column="pvalue"` to keep the old column name, which
+    also restores it for `tooltips=["pvalue"]`.
+
+### Fixed
+- `volcano` and `volcanos` now break gene-label ties by absolute log fold
+  change. Every feature whose p-value underflows to zero shares the same capped
+  `-log10(pvalue)`, and the top-N pick among them fell to the sort's arbitrary
+  tie order, so the labels were neither the strongest features nor stable
+  between builds. On pbmc3k this affected 3485 of 23427 features.
+- `stream` no longer fails on a two-vertex streamline. The arrow was placed at
+  the vertex after the path midpoint, which is out of bounds for a path that
+  short and raised a polars `ComputeError`. Streamlines whose midpoint vertex is
+  repeated are also dropped now, since a zero-length segment has no direction to
+  point an arrowhead along.
+- `_range_inclusive` now reaches both endpoints and stays within them. Rounding
+  the increment before accumulating it dropped the stop value from most ranges
+  (`(0, 10, 4)` ended at 9.9) and overshot it in others (`(0, 7, 5)` ended at
+  7.2). A stop below the start is accepted rather than raising from `log10` of a
+  negative span.
+
 ## [0.60.0] - 2026-08-06
 
 ### Added

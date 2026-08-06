@@ -22,7 +22,10 @@ from lets_plot import (
 from lets_plot.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
-from cellestial.single.differential.utilities import _build_volcano_frame
+from cellestial.single.differential.utilities import (
+    _build_volcano_frame,
+    _resolve_pvalue_column,
+)
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import _unsupported_data_type
@@ -65,7 +68,7 @@ def volcano(
     nonsignificant_subsample: int | None = 2000,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
-    pvalue_column: str = "pvalue",
+    pvalue_column: str | None = None,
     neg_log_pvalue_column: str = "neg_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
@@ -129,8 +132,10 @@ def volcano(
         Additional parameters passed to the threshold `geom_hline` and
         `geom_vline` layers.
     top_n : int | None, default=10
-        Number of top up- and top down-regulated genes (by `-log10(pvalue)`)
-        to label. Set to `None` or `0` to disable labels.
+        Number of top up- and top down-regulated genes to label, ranked by
+        `-log10(pvalue)` and then by absolute log fold change. The second key
+        breaks the ties among features whose p-value underflowed to zero.
+        Set to `None` or `0` to disable labels.
     label_color : str, default='#1f1f1f'
         Color of the gene labels.
     label_size : float, default=4.0
@@ -150,8 +155,10 @@ def volcano(
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
         Output column name for the log fold changes.
-    pvalue_column : str, default='pvalue'
-        Output column name for the p-values.
+    pvalue_column : str | None, default=None
+        Output column name for the p-values. Defaults to `pvalue_adj` when
+        `use_adjusted_pvalue` is True and `pvalue` otherwise, so the tooltip
+        names the quantity it shows.
     neg_log_pvalue_column : str, default='neg_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
@@ -225,6 +232,9 @@ def volcano(
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+
+    # NAME: the p-value column after the values it holds
+    pvalue_column = _resolve_pvalue_column(pvalue_column, use_adjusted_pvalue=use_adjusted_pvalue)
 
     # BUILD: dataframe via the helper
     frame = _build_volcano_frame(
@@ -320,15 +330,19 @@ def volcano(
 
     # ADD: top-N gene labels
     if top_n:
+        # Every feature whose p-value underflowed to zero shares the capped
+        # `-log10(pvalue)`, so absolute log fold change breaks those ties
+        # instead of leaving the pick to the sort's arbitrary tie order.
+        label_ranking = [pl.col(neg_log_pvalue_column), pl.col(logfoldchange_column).abs()]
         significant = frame.filter(pl.col(significance_column) != nonsignificant_label)
         top_up = (
             significant.filter(pl.col(significance_column) == up_label)
-            .sort(neg_log_pvalue_column, descending=True)
+            .sort(label_ranking, descending=True)
             .head(top_n)
         )
         top_down = (
             significant.filter(pl.col(significance_column) == down_label)
-            .sort(neg_log_pvalue_column, descending=True)
+            .sort(label_ranking, descending=True)
             .head(top_n)
         )
         label_frame = pl.concat([top_up, top_down])
@@ -356,7 +370,7 @@ def volcano(
     # ADD: labels and theme
     vlcn += labs(
         x="logFC",
-        y="-log10(Pvalue)",
+        y="-log10(Padj)" if use_adjusted_pvalue else "-log10(Pvalue)",
         color=significance_column,
     )
     vlcn += (
@@ -406,7 +420,7 @@ def volcanos(
     nonsignificant_subsample: int | None = 2000,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
-    pvalue_column: str = "pvalue",
+    pvalue_column: str | None = None,
     neg_log_pvalue_column: str = "neg_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
@@ -482,8 +496,9 @@ def volcanos(
     threshold_kwargs : dict | None, default=None
         Additional parameters passed to the threshold `geom_hline` and `geom_vline` layers.
     top_n : int | None, default=10
-        Number of top up- and top down-regulated genes (by `-log10(pvalue)`)
-        to label per subplot. Set to `None` or `0` to disable labels.
+        Number of top up- and top down-regulated genes to label per subplot,
+        ranked by `-log10(pvalue)` and then by absolute log fold change.
+        Set to `None` or `0` to disable labels.
     label_color : str, default='#1f1f1f'
         Color of the gene labels.
     label_size : float, default=4.0
@@ -503,8 +518,9 @@ def volcanos(
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
         Output column name for the log fold changes.
-    pvalue_column : str, default='pvalue'
-        Output column name for the p-values.
+    pvalue_column : str | None, default=None
+        Output column name for the p-values. Defaults to `pvalue_adj` when
+        `use_adjusted_pvalue` is True and `pvalue` otherwise.
     neg_log_pvalue_column : str, default='neg_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
