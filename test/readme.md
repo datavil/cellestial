@@ -1,1 +1,1 @@
-Test for the functions.
+Quick testing ground for the functions.
