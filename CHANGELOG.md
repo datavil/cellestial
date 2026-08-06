@@ -3,7 +3,7 @@
 All notable changes to cellestial are documented here. Breaking changes are
 called out explicitly so users can migrate between versions.
 
-## [Unreleased]
+## [0.60.0] - 2026-08-06
 
 ### Added
 - Added multimodal (`MuData`) support. Frames and the dimensional, distribution,
