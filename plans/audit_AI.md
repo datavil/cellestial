@@ -143,3 +143,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `marker_genes_dict` | Claude Opus 5 |  |
 | `_build_volcano_frame` | Claude Opus 5 |  |
 | `_range_inclusive` | Claude Opus 5 |  |
+| `bracket` | Claude Opus 5 |  |
+| `_compute_bracket_frame` | Claude Opus 5 |  |

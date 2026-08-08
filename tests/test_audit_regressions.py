@@ -44,7 +44,7 @@ def _axis_probe_data() -> AnnData:
 
 
 def _compute_single_bracket(frame: pl.DataFrame) -> pl.DataFrame:
-    """Compute one uncorrected two-sided t-test bracket."""
+    """Compute one uncorrected two-sided Welch t-test bracket."""
     return _compute_bracket_frame(
         frame,
         x="group",
@@ -75,7 +75,7 @@ def test_bracket_omits_nonfinite_observations(nonfinite_value):
         },
         schema={"group": pl.String, "value": pl.Float64},
     )
-    expected = ttest_ind([1.0, 2.0], [10.0, 11.0, 12.0])
+    expected = ttest_ind([1.0, 2.0], [10.0, 11.0, 12.0], equal_var=False)
 
     brackets = _compute_single_bracket(frame)
 
@@ -415,3 +415,59 @@ def test_stream_arrows_survive_short_and_degenerate_paths():
     assert arrows["group"].to_list() == [1, 2]
     assert arrows["xend"].null_count() == 0
     assert arrows["yend"].null_count() == 0
+
+
+def _unequal_variance_frame() -> pl.DataFrame:
+    """Two groups whose sizes and variances both differ, as cell types do."""
+    rng = np.random.default_rng(0)
+    return pl.DataFrame(
+        {
+            "group": ["a"] * 60 + ["b"] * 12,
+            "value": np.concatenate([rng.normal(0.0, 1.0, 60), rng.normal(0.6, 0.1, 12)]),
+        }
+    )
+
+
+def _bracket_pvalue(frame: pl.DataFrame, test: str) -> float:
+    """Run one uncorrected pairwise bracket and return its p-value."""
+    brackets = _compute_bracket_frame(
+        frame,
+        x="group",
+        y="value",
+        comparisons=[("a", "b")],
+        test=test,
+        alternative="two-sided",
+        correction="none",
+        label="stars",
+        label_format=".3g",
+        prefix="",
+        prefix_style="=",
+        separator=" ",
+        threshold=None,
+        y_position=None,
+        y_step=None,
+        y_padding=0.1,
+    )
+    return brackets["pvalue"][0]
+
+
+def test_bracket_ttest_does_not_assume_equal_variances():
+    """`ttest` must be Welch's, matching R's `t.test` and scanpy's own ranking."""
+    frame = _unequal_variance_frame()
+    values_a = frame.filter(pl.col("group") == "a")["value"].to_numpy()
+    values_b = frame.filter(pl.col("group") == "b")["value"].to_numpy()
+    welch = ttest_ind(values_a, values_b, equal_var=False)
+
+    assert _bracket_pvalue(frame, "ttest") == pytest.approx(welch.pvalue)
+
+
+def test_bracket_student_keeps_the_pooled_variance_test():
+    """The pooled-variance test stays reachable under its own name."""
+    frame = _unequal_variance_frame()
+    values_a = frame.filter(pl.col("group") == "a")["value"].to_numpy()
+    values_b = frame.filter(pl.col("group") == "b")["value"].to_numpy()
+    student = ttest_ind(values_a, values_b, equal_var=True)
+
+    assert _bracket_pvalue(frame, "student") == pytest.approx(student.pvalue)
+    # the assumption matters: the two tests disagree on this data
+    assert _bracket_pvalue(frame, "ttest") != pytest.approx(student.pvalue)

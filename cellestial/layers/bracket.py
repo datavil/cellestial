@@ -121,7 +121,7 @@ def _compute_bracket_frame(
     x: str,
     y: str,
     comparisons: Sequence[Sequence[str]] | None,
-    test: Literal["mannwhitney", "ttest"],
+    test: Literal["mannwhitney", "ttest", "student"],
     alternative: Literal["two-sided", "less", "greater"],
     correction: Literal["none", "bonferroni", "fdr_bh"],
     label: Literal["stars", "pvalue", "padj"] | Sequence[Literal["stars", "pvalue", "padj"]],
@@ -151,7 +151,9 @@ def _compute_bracket_frame(
     # run the pairwise test
     test_functions = {
         "mannwhitney": lambda a, b: mannwhitneyu(a, b, alternative=alternative),
-        "ttest": lambda a, b: ttest_ind(a, b, alternative=alternative),
+        # Welch's, matching `t.test()` in R and scanpy's own `t-test` ranking.
+        "ttest": lambda a, b: ttest_ind(a, b, alternative=alternative, equal_var=False),
+        "student": lambda a, b: ttest_ind(a, b, alternative=alternative, equal_var=True),
     }
     if test not in test_functions:
         msg = f"`test` must be one of {list(test_functions)}. Received: {test!r}"
@@ -265,7 +267,7 @@ def bracket(
     *,
     plot: PlotSpec | None = None,
     comparisons: Sequence[Sequence[str]] | None = None,
-    test: Literal["mannwhitney", "ttest"] = "mannwhitney",
+    test: Literal["mannwhitney", "ttest", "student"] = "mannwhitney",
     alternative: Literal["two-sided", "less", "greater"] = "two-sided",
     correction: Literal["none", "bonferroni", "fdr_bh"] = "fdr_bh",
     label: Literal["stars", "pvalue", "padj"]
@@ -301,10 +303,12 @@ def bracket(
         If None, every pair of groups present in the plot is compared.
         `"*"` on either side expands to all other groups, so
         `[("A", "*")]` compares `A` against every remaining group.
-    test : {'mannwhitney', 'ttest'}, default='mannwhitney'
+    test : {'mannwhitney', 'ttest', 'student'}, default='mannwhitney'
         Statistical test used for each pairwise comparison.
         'mannwhitney' is non-parametric and recommended for expression data.
-        'ttest' is an independent two-sample t-test (assumes normality).
+        'ttest' is Welch's independent two-sample t-test (assumes normality).
+        'student' is the pooled-variance variant, which also assumes both
+        groups share a variance.
     alternative : {'two-sided', 'less', 'greater'}, default='two-sided'
         The alternative hypothesis passed to the underlying test.
     correction : {'none', 'bonferroni', 'fdr_bh'}, default='fdr_bh'
@@ -390,6 +394,9 @@ def bracket(
     Pairwise tests are computed from the plot's retrieved DataFrame using the `x`
     aesthetic as the grouping column and the `y` aesthetic as the value column.
 
+    Rows the plot dropped are absent from the test too, so a plot built with
+    `threshold` compares only the observations above it.
+
     Examples
     --------
     Annotate a violin plot (or boxplot) with pairwise significance stars.
@@ -410,6 +417,9 @@ def bracket(
             threshold=0.1,
         )
         violin + cl.bracket(y_padding=0.2)
+
+    The `threshold` narrows the comparison too: these p-values cover only the
+    cells above `0.1`.
 
     Restrict the comparisons and show adjusted p-values instead of stars.
 

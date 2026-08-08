@@ -6,6 +6,13 @@ called out explicitly so users can migrate between versions.
 ## [Unreleased]
 
 ### Breaking
+- `bracket(test="ttest")` is now Welch's t-test rather than the pooled-variance
+  one, so its p-values change. R's `t.test()` (and so ggpubr) and scanpy's
+  `rank_genes_groups` `t-test` both use Welch's; scipy's `ttest_ind` defaults
+  the other way and that default had leaked through. Cell types differ in both
+  size and variance, which breaks the pooled assumption: on pbmc3k CD3D the two
+  tests disagree by up to two orders of magnitude in either direction.
+  - Migration: pass `test="student"`, a new option, for the previous behaviour.
 - `volcano` and `volcanos` now name their p-value column after the values it
   holds. With the default `use_adjusted_pvalue=True` the column, the tooltip
   entry, and the y-axis title read `pvalue_adj` and `-log10(Padj)` instead of
@@ -30,6 +37,12 @@ called out explicitly so users can migrate between versions.
   (`(0, 10, 4)` ended at 9.9) and overshot it in others (`(0, 7, 5)` ended at
   7.2). A stop below the start is accepted rather than raising from `log10` of a
   negative span.
+
+### Notes
+- `bracket` now documents that it tests the rows the plot draws, so a plot built
+  with `threshold` restricts the comparison to the observations above it. On
+  pbmc3k, `violin(key="CD3D", threshold=0.1)` tests 6027 of 15274 cells.
+  Behaviour unchanged.
 
 ## [0.60.0] - 2026-08-06
 
