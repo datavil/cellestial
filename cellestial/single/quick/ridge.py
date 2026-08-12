@@ -328,10 +328,10 @@ def ridges(
         Additional layers to add to the plot.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : str | None, default=None
+    sharex, sharey : bool, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all` - share limits between all subplots.
-        `none` - do not share limits between subplots.
+        `all`/True - share limits between all subplots.
+        `none`/False - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None
