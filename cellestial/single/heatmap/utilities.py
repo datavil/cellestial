@@ -40,6 +40,8 @@ def _bin_within_groups(
     """
     Collapse observations into at most `max_rows` virtual rows, within each group.
 
+    Notes
+    -----
     Cells within a group are sorted by observation id and chunked into contiguous
     bins; each bin's expression value is the per-variable mean of its members.
     Group boundaries are preserved, so group bars/lines remain meaningful.
@@ -365,6 +367,8 @@ def _label_size_y_units(groups: dict[str, list[str]], *, span: float, scale: flo
     """
     Label size in y-axis units (used with `geom_text(size_unit='y')`).
 
+    Notes
+    -----
     Scales with `span` so the rendered visual size stays roughly constant
     across plots with different y-axis spans. Long labels are shrunk slightly
     to keep the bracket area from dominating the plot.
@@ -388,6 +392,8 @@ def _resolve_padding(
     """
     Compute y-axis padding (in data units) for the bracket area.
 
+    Notes
+    -----
     `padding` overrides the auto value when given. `scale` is a per-plot
     multiplier applied to the auto padding (use `<1` for a more compact
     bracket area). `size_unit` selects the sizing mode (`None` for the
@@ -436,6 +442,8 @@ def _build_key_groups_frame(
     """
     Build the `geom_bracket` data frame spanning column groups on the variable axis.
 
+    Notes
+    -----
     `width` is the bracket width for a singleton group in column units. For a
     group of `N >= 2` keys at column indices `first..last`, the bracket
     extends `width / 2` past the first and last key center on each side.
@@ -484,6 +492,8 @@ def _key_groups_layers(
     """
     Build the layers that annotate column groups above the plot.
 
+    Notes
+    -----
     Each bracket is one connected `geom_path` (left tip down, top bar across,
     right tip down) so the corners join cleanly with no sub-pixel gap. A
     vertical label is centered on each bracket as a separate `geom_text`.
@@ -705,6 +715,8 @@ def _resolve_rank_genes_groups_args(
     """
     Validate caller inputs and return the resolved `keys` and `group_by`.
 
+    Notes
+    -----
     Raises if `keys` is also supplied, or if a caller-provided `group_by`
     disagrees with the value stored in `adata.uns[...]['params']['groupby']`.
     """
@@ -757,6 +769,8 @@ def _compute_violin_polygons(
     """
     Build a polygon-vertex frame for one violin per (variable, group) cell.
 
+    Notes
+    -----
     Each violin is centered at `(x=variable_index, y=group_index)` with value
     mapped to local y inside the row band and density mapped to local x around
     the column position.

@@ -112,6 +112,8 @@ def _order_observations(
     """
     Sort rows into contiguous `group_by` blocks.
 
+    Notes
+    -----
     Returns the sorted frame and the group order (first group ends up at the
     top of the heatmap). When `group_by` is `None` the frame is returned in its
     original order with no group order. An explicit `group_order` (e.g. from a
@@ -138,6 +140,8 @@ def _bin_observations(
     """
     Collapse rows into at most ~`max_rows` virtual rows.
 
+    Notes
+    -----
     Bins are allocated per group proportionally to group size (at least one bin
     per group), mirroring the heatmap's `_bin_within_groups`, so group
     boundaries are preserved and the total stays near `max_rows`. Numeric columns
@@ -213,6 +217,8 @@ def _annotation_scale(
     """
     Resolve the fill scale for one annotation track.
 
+    Notes
+    -----
     `colors` may be a category -> color mapping, a list of colors, or `None`.
     Numeric tracks default to a gray gradient; categorical tracks default to the
     track's assigned ColorBrewer `palette`.
@@ -261,6 +267,8 @@ def _annotation_strip(
     """
     Build a single one-row (or one-column) annotation track.
 
+    Notes
+    -----
     `horizontal` strips vary along x (column annotations); vertical strips vary
     along y (row annotations). `position_limits` pin the varying axis so the
     track aligns with the heatmap panel. `palette` is the ColorBrewer palette used
@@ -301,6 +309,8 @@ def _dendrogram_panel(
     """
     Build the group dendrogram as a panel on one `side` of the heatmap.
 
+    Notes
+    -----
     Leaves sit at the group centers (height 0, next to the tracks); the root
     extends away from the heatmap toward `side`. `position_limits` match the
     heatmap observation axis so leaves line up with the group blocks. On a

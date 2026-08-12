@@ -76,9 +76,6 @@ def layout(
     """
     Arrange plots into a grid of rows, where each inner list is one row.
 
-    Unlike a uniform grid, rows may hold different numbers of plots. Each row is
-    sized independently, so cells in different rows do not share column boundaries.
-
     Parameters
     ----------
     plots : Sequence[Sequence[PlotSpec | SupPlotsSpec] | PlotSpec | SupPlotsSpec]
@@ -107,6 +104,11 @@ def layout(
         If `plots` is not a nested sequence or `widths` is of an unexpected type.
     ValueError
         If any row is empty, or `widths`/`heights` lengths do not match the layout.
+
+    Notes
+    -----
+    Unlike a uniform grid, rows may hold different numbers of plots. Each row is
+    sized independently, so cells in different rows do not share column boundaries.
 
     Examples
     --------

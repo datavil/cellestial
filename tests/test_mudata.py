@@ -715,7 +715,7 @@ def test_spatial_rejects_a_container(mudata, call):
         call(mudata)
 
 
-def test_spatial_colours_across_modalities_via_a_container_frame():
+def test_spatial_colors_across_modalities_via_a_container_frame():
     """
     The supported route for the one thing native support would have added.
 

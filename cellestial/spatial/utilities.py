@@ -166,6 +166,8 @@ def _image_to_yxc(elem) -> NDArray:
     """
     Convert a SpatialData image element to a (y, x[, c]) NumPy array.
 
+    Notes
+    -----
     Accepts either an `xarray.DataArray` or a multiscale `DataTree`.
     """
     from xarray import DataArray
@@ -192,6 +194,8 @@ def _polygon_vertex_frame(shapes_geo) -> pl.DataFrame:
     """
     Long-format vertex frame for `geom_polygon`.
 
+    Notes
+    -----
     Columns: `instance_id`, `polygon_x`, `polygon_y`.
     """
     import shapely
@@ -322,6 +326,8 @@ def _spatial_components(
     """
     Extract image, geometry, and the annotation table.
 
+    Notes
+    -----
     Returns `(image, point_coords, polygon_frame, table)`. Exactly one of
     `point_coords` and `polygon_frame` is non-None. For AnnData input
     the table is the input itself; for SpatialData it is the resolved table.

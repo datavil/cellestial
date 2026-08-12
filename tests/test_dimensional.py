@@ -161,7 +161,7 @@ def test_dimensionals_drop_propagates(adata, group_key):
 
 def test_dimensionals_custom_metadata_tooltip(adata, group_key):
     # Regression: the shared frame built for the grid must contain custom
-    # tooltip columns, even though they are not the colour key or in `mapping`.
+    # tooltip columns, even though they are not the color key or in `mapping`.
     obs_column = "n_genes_by_counts"
     plot = cl.dimensionals(adata, keys=[group_key, "CD3D"], tooltips=[obs_column])
     assert isinstance(plot, SupPlotsSpec)

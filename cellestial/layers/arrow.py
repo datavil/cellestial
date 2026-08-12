@@ -42,10 +42,6 @@ def _axis_arrow_layers(
     """
     Build the arrow-axis as an L-shaped path plus two arrowhead tip segments.
 
-    The semi-square L is one continuous `geom_path` that stops short of each
-    open end so the corner joins cleanly with no overlap. Each tip is completed
-    by a `geom_segment` carrying the arrowhead, meeting the path end-to-end.
-
     Parameters
     ----------
     frame : `polars.DataFrame`
@@ -69,6 +65,12 @@ def _axis_arrow_layers(
     -------
     `FeatureSpecArray`
         The path and tip-segment layers.
+
+    Notes
+    -----
+    The semi-square L is one continuous `geom_path` that stops short of each
+    open end so the corner joins cleanly with no overlap. Each tip is completed
+    by a `geom_segment` carrying the arrowhead, meeting the path end-to-end.
     """
     arrow_kwargs = arrow_kwargs or {}
 

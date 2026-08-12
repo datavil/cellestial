@@ -247,7 +247,7 @@ def dimensional(
     elif isinstance(variable_keys, Sequence):
         variable_keys = list(variable_keys)
 
-    # Collect the frame columns from the colour key, aes refs, and `add_keys`.
+    # Collect the frame columns from the color key, aes refs, and `add_keys`.
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     metadata_columns: list[str] = []

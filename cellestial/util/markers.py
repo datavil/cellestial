@@ -19,6 +19,8 @@ def _marker_names_per_group(
     """
     Read the top-`n_genes` gene names per group from a precomputed ranking.
 
+    Notes
+    -----
     Shared core for `marker_genes` and `marker_genes_dict`: validates inputs
     and returns one full top-N list per selected group, in group order, with
     no cross-group de-duplication.
@@ -89,10 +91,6 @@ def marker_genes(
     """
     Select the top-ranked marker gene names from a precomputed ranking.
 
-    The returned list is meant to be passed straight into the `keys` argument
-    of the dimensional and distribution plots (e.g. `umaps`, `violins`), so
-    each marker becomes one panel.
-
     Parameters
     ----------
     data : AnnData | MuData
@@ -130,6 +128,10 @@ def marker_genes(
 
     Notes
     -----
+    The returned list is meant to be passed straight into the `keys` argument
+    of the dimensional and distribution plots (e.g. `umaps`, `violins`), so
+    each marker becomes one panel.
+
     Reads only the gene names, not their scores; use `markers` to plot the
     ranking itself. Use `marker_genes_dict` to keep the per-group grouping.
 
@@ -187,9 +189,6 @@ def marker_genes_dict(
     """
     Select the top-ranked marker gene names per group from a precomputed ranking.
 
-    Like `marker_genes`, but keeps the grouping: each group maps to its own
-    full top-`n_genes` list.
-
     Parameters
     ----------
     data : AnnData | MuData
@@ -227,6 +226,9 @@ def marker_genes_dict(
 
     Notes
     -----
+    Like `marker_genes`, but keeps the grouping: each group maps to its own
+    full top-`n_genes` list.
+
     Reads only the gene names, not their scores; use `markers` to plot the
     ranking itself. Use `marker_genes` for a flat, de-duplicated list.
 

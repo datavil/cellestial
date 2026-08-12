@@ -26,6 +26,8 @@ def _resolve_cache_file(
     """
     Prepare the cache directory and return the target cache file path.
 
+    Notes
+    -----
     Creates `cache_directory` if missing. When `bring` is True and the user
     points at a non-default directory that doesn't yet contain `filename`,
     copies the file from `_GLOBAL_CACHE` if it exists there. When `use_cache`

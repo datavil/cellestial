@@ -69,6 +69,8 @@ def _modality_source(
     """
     Return the data object holding stored results, and `group_by` as it names it.
 
+    Notes
+    -----
     Stored results (rankings, dendrograms) live in a single modality, while
     `group_by` names a container-level column, so the column is translated to
     the name that modality uses.
@@ -84,6 +86,8 @@ def _container_column(data: AnnData | MuData, modality: str | None, group_by: st
     """
     Return the container's name for a group column that came from a modality.
 
+    Notes
+    -----
     The inverse of `_modality_source`. A ranking stores the group column under
     the modality's own name, but the plotted frame is built from the container,
     where that column is qualified as `modality:column`.
@@ -175,6 +179,8 @@ def _tooltip_fields(spec: FeatureSpec) -> list[str]:
     """
     Extract data variable names referenced by a `layer_tooltips` FeatureSpec.
 
+    Notes
+    -----
     Aesthetic references (`^aes`) are skipped because they are not data columns.
     """
     spec_dict = spec.as_dict()
@@ -211,6 +217,8 @@ def _qualified_alternatives(data: AnnData | MuData | None, key: str) -> list[str
     """
     Return metadata columns that differ from `key` only by a modality prefix.
 
+    Notes
+    -----
     A modality's columns are carried on the container as `modality:column`, so a
     bare name is a natural thing to reach for and a confusing thing to be told
     does not exist.
@@ -259,6 +267,8 @@ def _resolve_tooltips(
     """
     Resolve tooltips. `defaults` apply only when tooltips is None.
 
+    Notes
+    -----
     Extends `variable_keys` in place with any tooltip fields that are variable
     names. When `metadata_columns` is provided, the tooltip fields are routed
     onto the requested `axis` (observation metadata for axis 0, variable
@@ -630,9 +640,6 @@ def _collect_aes_columns(
     """
     Route `keys` and `mapping` references into metadata vs variable buckets.
 
-    Mutates both `metadata_columns` and `variable_keys` in place so callers
-    can pass them directly to `build_frame` for a minimal materialised frame.
-
     Parameters
     ----------
     data : AnnData | MuData
@@ -651,6 +658,11 @@ def _collect_aes_columns(
         are appended. Only relevant for axis=0; ignored for axis=1.
     axis : {0, 1}, default=0
         The axis the frame is being built for.
+
+    Notes
+    -----
+    Mutates both `metadata_columns` and `variable_keys` in place so callers
+    can pass them directly to `build_frame` for a minimal materialised frame.
     """
     container = _container(data)
     metadata_pool = (
