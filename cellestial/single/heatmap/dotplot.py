@@ -288,7 +288,7 @@ def dotplot(
 
     mapping = mapping or aes()
 
-    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: dataframe. Only `group_by` is needed from the observation metadata;
@@ -470,7 +470,7 @@ def dotplot(
         expand=[0, 0],
     )
 
-    # KEY-GROUP brackets above the data area when ``keys`` was a mapping.
+    # KEY-GROUP brackets above the data area when `keys` was a mapping.
     if key_labels and key_groups is not None:
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)

@@ -38,13 +38,12 @@ def _bin_within_groups(
     max_rows: int,
 ) -> pl.DataFrame:
     """
-    Collapse observations into at most ``max_rows`` virtual rows, within each group.
+    Collapse observations into at most `max_rows` virtual rows, within each group.
 
     Cells within a group are sorted by observation id and chunked into contiguous
     bins; each bin's expression value is the per-variable mean of its members.
     Group boundaries are preserved, so group bars/lines remain meaningful.
-    Returns ``frame`` unchanged when the unique observation count fits in
-    ``max_rows``.
+    Returns `frame` unchanged when the unique observation count fits in `max_rows`.
     """
     group_key = "_group_key"
     frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
@@ -270,8 +269,8 @@ _LABEL_GAP_FRACTION = 0.012
 #   span using the original heuristic.
 #
 # - "y" (used by dotplot and stacked_violin): label_size is in y-axis units
-#   via ``geom_text(size_unit="y")``. This bypasses the silent shrinkage that
-#   ``scale_size(range=[...])`` applies to ``geom_text`` size constants in
+#   via `geom_text(size_unit="y")`. This bypasses the silent shrinkage that
+#   `scale_size(range=[...])` applies to `geom_text` size constants in
 #   plots that map a size aesthetic. Padding is computed directly from the
 #   rotated text extent in y-axis units.
 
@@ -290,7 +289,7 @@ _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
 # y-unit mode (dotplot, stacked_violin).
 # Empirically calibrated: cap height ~ 22 px on a typical 6-inch panel when
 # size = 0.037 * total_span y units. Each rotated character occupies roughly
-# ``_Y_CHAR_WIDTH_PER_SIZE * label_size`` y units along the y axis.
+# `_Y_CHAR_WIDTH_PER_SIZE * label_size` y units along the y axis.
 _Y_LABEL_VISUAL_CAP_FRACTION = 0.037
 _Y_LABEL_LONG_THRESHOLD = 12
 _Y_LABEL_LONG_MIN_FRACTION = 0.6

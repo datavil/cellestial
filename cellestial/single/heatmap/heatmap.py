@@ -352,7 +352,7 @@ def heatmap(
         )
         geom_kwargs.pop("tooltips")
 
-    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: long-form dataframe.
@@ -404,7 +404,7 @@ def heatmap(
         )
         paths = None
 
-    # BIN: collapse cells into at most ``max_rows`` virtual rows (within group)
+    # BIN: collapse cells into at most `max_rows` virtual rows (within group)
     if not aggregate and max_rows is not None:
         frame = _bin_within_groups(
             frame,
@@ -535,7 +535,7 @@ def heatmap(
         midpoint=midpoint,
     )
 
-    # KEY-GROUP brackets above the plot when ``keys`` was a mapping.
+    # KEY-GROUP brackets above the plot when `keys` was a mapping.
     if key_labels and key_groups is not None:
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
