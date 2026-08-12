@@ -120,22 +120,24 @@ def anndata_observations_frame(
     if include_dimensions:
         selected_embeddings = _select_embedding_keys(partm, dimension_keys)
         for X in selected_embeddings:
-            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
+            total_columns = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
-                    col_count = min(include_dimensions, total_cols)
+                    column_count = min(include_dimensions, total_columns)
                 else:
                     msg = "Number of dimensions cannot be a negative number."
                     raise ValueError(msg)
             elif isinstance(include_dimensions, bool):
-                col_count = total_cols
+                column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
                 raise TypeError(msg)
 
-            for col in range(col_count):
-                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
+            for column_index in range(column_count):
+                columns.append(
+                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                )
 
     # PART 4: ADD keys if provided
     # Empty list short-circuits: data[:, []].X still triggers a full sparse slice.
@@ -224,22 +226,24 @@ def anndata_variables_frame(
     if include_dimensions:
         selected_embeddings = _select_embedding_keys(partm, dimension_keys)
         for X in selected_embeddings:
-            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
+            total_columns = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
-                    col_count = min(include_dimensions, total_cols)
+                    column_count = min(include_dimensions, total_columns)
                 else:
                     msg = "Number of dimensions cannot be a negative number."
                     raise ValueError(msg)
             elif isinstance(include_dimensions, bool):
-                col_count = total_cols
+                column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
                 raise TypeError(msg)
 
-            for col in range(col_count):
-                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
+            for column_index in range(column_count):
+                columns.append(
+                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                )
 
     return pl.DataFrame(columns)
 

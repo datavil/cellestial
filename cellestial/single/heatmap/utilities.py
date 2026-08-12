@@ -155,18 +155,20 @@ def _assign_positions(
         Y center of each group, in `y_order_groups` order.
     """
     n_x = len(x_keys)
-    x_pos = {k: i for i, k in enumerate(x_keys)}
+    x_positions = {k: i for i, k in enumerate(x_keys)}
     frame = frame.with_columns(
-        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("position_x")
+        pl.col(variable_column)
+        .replace_strict(x_positions, return_dtype=pl.Float64)
+        .alias("position_x")
     )
 
     if aggregate:
         n_y = len(y_order_groups)
-        y_pos = {g: i for i, g in enumerate(y_order_groups)}
+        y_positions = {g: i for i, g in enumerate(y_order_groups)}
         frame = frame.with_columns(
             pl.col(group_by)
             .cast(pl.String)
-            .replace_strict(y_pos, return_dtype=pl.Float64)
+            .replace_strict(y_positions, return_dtype=pl.Float64)
             .alias("position_y"),
         )
         return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
@@ -822,7 +824,7 @@ def _compute_violin_polygons(
                 continue
             grid = np.linspace(var_min, var_max, n_points)
             density = kde(grid)
-            agg_value = (
+            aggregated_value = (
                 float(np.median(group_values))
                 if aggregate == "median"
                 else float(group_values.mean())
@@ -832,7 +834,7 @@ def _compute_violin_polygons(
                 grid,
                 density,
                 len(group_values),
-                agg_value,
+                aggregated_value,
             )
 
         if not kde_results:
@@ -850,9 +852,15 @@ def _compute_violin_polygons(
             msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
             raise ValueError(msg)
 
-        for group_key, (y_index, grid, density, n_obs, agg_value) in kde_results.items():
+        for group_key, (
+            y_index,
+            grid,
+            density,
+            n_observations,
+            aggregated_value,
+        ) in kde_results.items():
             if scale == "count":
-                density = density * n_obs
+                density = density * n_observations
             normalizer = normalizers[group_key]
             if normalizer <= 0:
                 continue
@@ -872,7 +880,7 @@ def _compute_violin_polygons(
                         "y": py,
                         variable_column: var_key,
                         group_by: group_key,
-                        aggregate_key: agg_value,
+                        aggregate_key: aggregated_value,
                     }
                 )
             polygon_id += 1

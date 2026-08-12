@@ -472,13 +472,13 @@ def _grid_places(total: int, ncol: int | None) -> tuple[frozenset[int], frozense
     if ncol is None:
         ncol = total
     nrow = ceil(total / ncol)
-    left_places = {idx for idx in range(total) if idx % ncol == 0}
-    bottom_places = {idx for idx in range(total) if idx >= ncol * (nrow - 1)}
+    left_places = {index for index in range(total) if index % ncol == 0}
+    bottom_places = {index for index in range(total) if index >= ncol * (nrow - 1)}
     # the last grid row may be incomplete; for the columns it does not cover,
     # the bottom-most plot lives in the penultimate row.
     last_row_count = total - ncol * (nrow - 1)
     if nrow >= 2 and last_row_count < ncol:
-        bottom_places.update(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
+        bottom_places.update(ncol * (nrow - 2) + column for column in range(last_row_count, ncol))
     return frozenset(left_places), frozenset(bottom_places)
 
 

@@ -487,10 +487,10 @@ def spatial(
             msg = "crop must be a sequence of 4 integers (left, right, top, bottom)"
             raise ValueError(msg)
         left, right, top, bottom = crop
-        coord = coord_fixed(xlim=[left, right], ylim=[top, bottom])
+        coordinates = coord_fixed(xlim=[left, right], ylim=[top, bottom])
     else:
-        coord = coord_fixed()
-    sptl += scale_y_reverse() + coord + _THEME_SPATIAL
+        coordinates = coord_fixed()
+    sptl += scale_y_reverse() + coordinates + _THEME_SPATIAL
 
     if interactive:
         sptl += ggtb(size_zoomin=-1)

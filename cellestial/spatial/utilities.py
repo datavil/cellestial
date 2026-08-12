@@ -34,11 +34,11 @@ def _select_one(name: str | None, available: list[str], kind: str) -> str:
     raise ValueError(msg)
 
 
-def _element_in_coordinate_system(elem, coordinate_system: str) -> bool:
-    """True when `elem` has a transformation registered for `coordinate_system`."""
+def _element_in_coordinate_system(element, coordinate_system: str) -> bool:
+    """True when `element` has a transformation registered for `coordinate_system`."""
     from spatialdata.transformations import get_transformation
 
-    return coordinate_system in get_transformation(elem, get_all=True)
+    return coordinate_system in get_transformation(element, get_all=True)
 
 
 def _resolve_shapes_name(data: SpatialData, shapes_name: str | None, table: AnnData) -> str:
@@ -89,7 +89,7 @@ def _resolve_coordinate_system(
     if "global" in systems:
         return "global"
 
-    shapes_elem = data.shapes[shapes_name]
+    shapes_element = data.shapes[shapes_name]
 
     def _has_image(cs: str) -> bool:
         if not want_image:
@@ -99,7 +99,9 @@ def _resolve_coordinate_system(
         return any(_element_in_coordinate_system(img, cs) for img in data.images.values())
 
     candidates = [
-        cs for cs in systems if _element_in_coordinate_system(shapes_elem, cs) and _has_image(cs)
+        cs
+        for cs in systems
+        if _element_in_coordinate_system(shapes_element, cs) and _has_image(cs)
     ]
     if len(candidates) == 1:
         return candidates[0]
@@ -162,7 +164,7 @@ def _resolve_table(data: SpatialData, table_name: str | None) -> AnnData:
     return data.tables[name]
 
 
-def _image_to_yxc(elem) -> NDArray:
+def _image_to_yxc(element) -> NDArray:
     """
     Convert a SpatialData image element to a (y, x[, c]) NumPy array.
 
@@ -172,19 +174,19 @@ def _image_to_yxc(elem) -> NDArray:
     """
     from xarray import DataArray
 
-    if isinstance(elem, DataArray):
-        array = np.asarray(elem.values)
-        dims = elem.dims
+    if isinstance(element, DataArray):
+        array = np.asarray(element.values)
+        dimensions = element.dims
     else:
-        head_name = next(iter(elem.children.keys()))
-        head = elem[head_name]
-        data_var = next(iter(head.data_vars))
-        array = np.asarray(head[data_var].values)
-        dims = head[data_var].dims
+        head_name = next(iter(element.children.keys()))
+        head = element[head_name]
+        data_variable = next(iter(head.data_vars))
+        array = np.asarray(head[data_variable].values)
+        dimensions = head[data_variable].dims
 
-    if "c" in dims:
-        c_axis = dims.index("c")
-        array = np.moveaxis(array, c_axis, -1)
+    if "c" in dimensions:
+        channel_axis = dimensions.index("c")
+        array = np.moveaxis(array, channel_axis, -1)
         if array.shape[-1] == 1:
             array = array[..., 0]
     return array
@@ -201,7 +203,7 @@ def _polygon_vertex_frame(shapes_geo) -> pl.DataFrame:
     import shapely
 
     geoms = shapes_geo.geometry.values
-    coords = shapely.get_coordinates(geoms)
+    coordinates = shapely.get_coordinates(geoms)
     per_geom_counts = np.fromiter(
         (shapely.count_coordinates(g) for g in geoms),
         dtype=np.int64,
@@ -211,8 +213,8 @@ def _polygon_vertex_frame(shapes_geo) -> pl.DataFrame:
     return pl.DataFrame(
         {
             "instance_id": instance_ids,
-            "polygon_x": coords[:, 0],
-            "polygon_y": coords[:, 1],
+            "polygon_x": coordinates[:, 0],
+            "polygon_y": coordinates[:, 1],
         }
     )
 
@@ -304,8 +306,8 @@ def _spatialdata_components(
 
     image_array = None
     if image and chosen_image_name is not None:
-        image_elem = data.transform_element_to_coordinate_system(chosen_image_name, target_cs)
-        image_array = _image_to_yxc(image_elem)
+        image_element = data.transform_element_to_coordinate_system(chosen_image_name, target_cs)
+        image_array = _image_to_yxc(image_element)
 
     return image_array, spot_coordinates, polygon_frame, table
 

@@ -41,12 +41,12 @@ def _highest_expressed_genes_frame(
         # full normalized matrix. Identity: mean(X / row_sums * 100, axis=0)
         # equals (inv_rows @ X) / n_cells, but uses O(n_vars) memory instead of O(n_obs * n_vars).
         mean_percent = np.asarray(inv_rows @ X).ravel() / X.shape[0]
-        top_idx = np.argsort(mean_percent)[::-1][:n]
-        genes = data.var_names[top_idx].tolist()
+        top_indices = np.argsort(mean_percent)[::-1][:n]
+        genes = data.var_names[top_indices].tolist()
 
         # EXTRACT: normalize only the top n columns (small n_obs * n slice),
         # skipping the full n_obs * n_vars materialization the naive path would do.
-        X_top = X[:, top_idx]
+        X_top = X[:, top_indices]
         if issparse(X_top):
             X_top = X_top.toarray()
         X_top_normalized = X_top * inv_rows[:, np.newaxis]

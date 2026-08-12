@@ -247,8 +247,8 @@ def stream(
         )
 
         # mock build streamplot to extract line segment coordinates
-        ax = Figure().add_subplot(1, 1, 1)
-        _stream = ax.streamplot(
+        axes = Figure().add_subplot(1, 1, 1)
+        _stream = axes.streamplot(
             X_grid[0],
             X_grid[1],
             V_grid[0],
