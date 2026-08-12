@@ -92,8 +92,8 @@ def dotplot(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be

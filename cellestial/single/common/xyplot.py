@@ -53,8 +53,8 @@ def xyplot(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     x : str
         The key for the x-axis.
     y : str

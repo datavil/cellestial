@@ -47,7 +47,7 @@ def elbow(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object.
         Must have PCA results computed beforehand.
     n_pcs : int | None, default=None

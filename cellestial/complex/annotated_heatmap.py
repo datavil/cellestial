@@ -376,8 +376,8 @@ def annotated_heatmap(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str]
         Variable keys to include, placed on the x-axis.
     modality : str | None, default=None

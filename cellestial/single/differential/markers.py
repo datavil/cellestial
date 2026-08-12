@@ -77,7 +77,7 @@ def markers(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding the precomputed differential
         expression ranking.
     groups : Sequence[str] | None, default=None

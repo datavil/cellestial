@@ -99,8 +99,8 @@ def stacked_violin(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys laid out along the x-axis, one column of violins per
         key. A mapping assigns keys to group labels (no key in more than one

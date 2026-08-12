@@ -59,8 +59,8 @@ def ridge(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str
         The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
@@ -290,8 +290,8 @@ def ridges(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
@@ -328,10 +328,10 @@ def ridges(
         Additional layers to add to the plot.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None

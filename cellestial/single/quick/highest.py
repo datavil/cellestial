@@ -43,8 +43,8 @@ def highest_expressed_genes(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     n : int, default=20
         Number of top expressed genes to display, ranked by mean percentage across all cells.
     modality : str | None, default=None

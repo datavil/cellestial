@@ -51,8 +51,8 @@ def violin(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
@@ -292,8 +292,8 @@ def boxplot(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.
@@ -522,8 +522,8 @@ def histogram(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str | Sequence[str]
         The key(s) to get the values (numerical).
         e.g., 'total_counts' or a gene name.

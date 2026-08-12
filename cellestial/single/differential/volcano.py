@@ -84,7 +84,7 @@ def volcano(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding a precomputed differential
         expression ranking.
     group : str
@@ -451,7 +451,7 @@ def volcanos(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding a precomputed differential
         expression ranking.
     groups : Sequence[str]

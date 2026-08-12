@@ -79,8 +79,8 @@ def dimensionals(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -173,10 +173,10 @@ def dimensionals(
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None
@@ -412,8 +412,8 @@ def umaps(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -503,10 +503,10 @@ def umaps(
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None
@@ -741,8 +741,8 @@ def tsnes(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -831,10 +831,10 @@ def tsnes(
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None
@@ -1068,8 +1068,8 @@ def pcas(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -1158,10 +1158,10 @@ def pcas(
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None
@@ -1395,8 +1395,8 @@ def expressions(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (gene names) to color the points by.
     mapping : FeatureSpec | None, default=None
@@ -1481,10 +1481,10 @@ def expressions(
         Layers to add to all the plots in the grid.
     ncol : int, default=None
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
-    sharex, sharey : bool, default=None
+    sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        `all`/True - share limits between all subplots.
-        `none`/False - do not share limits between subplots.
+        `all` - share limits between all subplots.
+        `none` - do not share limits between subplots.
         `row` - share limits between subplots in the same row.
         `col` - share limits between subplots in the same column.
     widths : list[float], default=None

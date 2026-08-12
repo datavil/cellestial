@@ -95,7 +95,7 @@ def marker_genes(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding the precomputed differential
         expression ranking.
     groups : Sequence[str] | None, default=None
@@ -192,7 +192,7 @@ def marker_genes_dict(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding the precomputed differential
         expression ranking.
     groups : Sequence[str] | None, default=None
