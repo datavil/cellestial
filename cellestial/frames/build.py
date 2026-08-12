@@ -196,7 +196,7 @@ def anndata_variables_frame(
     container = _container(data)
     part = container.variable_metadata()
     partm = container.variable_embeddings()
-    # PART1: initalize columns
+    # PART 2: initalize columns
     if variables_name is None:
         columns = []
     else:
