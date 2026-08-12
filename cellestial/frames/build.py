@@ -385,8 +385,6 @@ def build_frame(
         raise ValueError(msg)
 
     if isinstance(data, (AnnData, MuData)):
-        # A tuple is correct here: the backend-specific work lives one level
-        # down in the container, so both types take an identical path.
         # infer the axis if not provided
         if axis is None and variable_keys is not None:
             axis = 0
