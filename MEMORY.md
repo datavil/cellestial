@@ -927,9 +927,18 @@ Still open, reported to the user and not yet acted on:
 - `p = 0` renders as `"p = 0"` under `prefix_style="="`.
 - Volcano inherits scanpy's logFC pseudocount artifact: 88% of features called
   "down" on pbmc3k B Cells, most expressed in under 1% of cells. No expression prefilter.
-- `spatial(scale_axis=...)` is typed `Literal[0, 1]` but both values do the same
-  global min-max, unlike heatmap's `scale_axis`.
 - `_polygon_vertex_frame` concatenates interior rings onto the exterior, so a
   Polygon with a hole draws as one bogus path.
+
+Resolved 2026-08-16: `scale_axis` was removed from `spatial`/`spatials` rather
+than renamed to `scale: bool`. Standardization needs a shared colour scale across
+several partitions to mean anything, which only the matrix plots have; a spatial
+plot maps one value column onto one unbounded gradient that stretches to the data
+range, so min-max scaling first was a visual no-op (verified: identical specs)
+that only relabelled the colour bar and leaked normalized values into tooltips.
+`dimensional` never had it, and scanpy puts `standard_scale` on heatmap/dotplot/
+matrixplot/stacked_violin/tracksplot only, giving `sc.pl.spatial` vmin/vmax/
+vcenter/norm instead. Old calls now fall into `**point_kwargs`, which lets-plot
+ignores, so they render the same plot rather than erroring.
 
 Related: [[project-cellestial-architecture]], [[feedback-changelog-breaking-changes]]

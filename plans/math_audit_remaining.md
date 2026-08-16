@@ -10,8 +10,8 @@
 > scanpy). The proposed APIs were checked to exist before being written down.
 
 Ordered by impact: 7 changes what half of all bracket labels say, 10 draws wrong
-geometry silently, 9 is an API that ignores its own argument, 8 needs a product
-decision before any code.
+geometry silently, 8 needs a product decision before any code. 9 is resolved,
+kept below for the reasoning.
 
 ---
 
@@ -141,33 +141,39 @@ ranking lacks `pts`. Recommend shipping `None` first and revisiting.
 
 ---
 
-## 9. `spatial(scale_axis=...)` ignores which axis it was given
+## 9. `spatial(scale_axis=...)` ignores which axis it was given — RESOLVED
 
-**Problem.** The parameter is typed `Literal[0, 1] | None`, but both values do
-the same thing. `cellestial/spatial/spatial.py:409` min-max scales the single
-`key` column globally; there is no partition to choose, because a spatial plot
-has one value column per plot. Contrast `heatmap`, where `scale_axis` genuinely
-selects the partition key. Same in `spatials`.
+**Resolution.** The parameter was removed from `spatial` and `spatials` rather
+than renamed to a boolean. Changelog entry under `### Breaking` in
+`## [Unreleased]`.
 
-Nothing is computed wrongly. The API just documents a choice it does not honour.
+**Problem.** The parameter was typed `Literal[0, 1] | None`, but both values did
+the same thing: min-max scale the single `key` column globally. There was no
+partition to choose, because a spatial plot has one value column per plot.
 
-**Fix (recommended).** Replace it with a boolean, since only one axis exists:
+**Why removed and not renamed.** Standardization needs a shared colour scale
+spanning several partitions to mean anything. A heatmap has that: one gradient
+covers the whole matrix, so rescaling one gene's row changes how it renders next
+to every other row. A spatial plot maps one value column onto one continuous
+scale with no fixed limits, so the scale stretches to whatever range the column
+has and min-max scaling it first is absorbed. Verified: the plot specs with and
+without `scale_axis` were identical apart from the `data` column, and a
+`color_mid` gradient's midpoint landed at the same relative position either way.
 
-```python
-scale: bool = False
-```
+The scaled values also overwrote the frame column, so tooltips reported
+normalized values, and tooltips are resolved before the scaling step, so callers
+could not opt out.
 
-Breaking. Migration: `scale_axis=0` or `scale_axis=1` becomes `scale=True`. No
-collision, `spatial` currently has `greyscale` and `norm` but no `scale`.
+Two precedents agree: `dimensional` never offered it, and scanpy puts
+`standard_scale` on `heatmap`/`dotplot`/`matrixplot`/`stacked_violin`/
+`tracksplot` only, giving `sc.pl.spatial` and `sc.pl.embedding` `vmin`/`vmax`/
+`vcenter`/`norm` instead.
 
-**Alternative, lower churn.** Keep the name and reject the meaningless value:
-type it `Literal[0] | None` and raise on `1`. This preserves `scale_axis=0` for
-existing callers and keeps the vocabulary aligned with `heatmap`, at the cost of
-an odd-looking single-member `Literal`.
-
-**Scope.** `cellestial/spatial/spatial.py`, `cellestial/spatial/spatials.py`.
-Changelog under `### Breaking` either way, since `scale_axis=1` stops being
-accepted.
+**Follow-up, not done.** The knob that would genuinely change a spatial render
+is bounded colour limits: clip outliers, or pin shared limits across `spatials`
+panels so colours compare between them. scanpy's form is `vmin='p99'`, accepting
+a percentile string or a callable. `vmin`/`vmax` are already taken here by
+greyscale image luminance, so this needs its own name.
 
 ---
 

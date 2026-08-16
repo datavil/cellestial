@@ -69,7 +69,7 @@ def volcano(
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
     pvalue_column: str | None = None,
-    neg_log_pvalue_column: str = "neg_log_pvalue",
+    negative_log_pvalue_column: str = "negative_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
     down_label: str = "down",
@@ -109,7 +109,7 @@ def volcano(
         P-value threshold used to label significance.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`. Merged on top of
-        the default `aes(x=logfoldchange, y=neg_log_pvalue, color=significance)`.
+        the default `aes(x=logfoldchange, y=negative_log_pvalue, color=significance)`.
     color_up : str, default='#b22222'
         Color for significantly up-regulated points (brick red).
     color_down : str, default='#6495ed'
@@ -159,7 +159,7 @@ def volcano(
         Output column name for the p-values. Defaults to `pvalue_adj` when
         `use_adjusted_pvalue` is True and `pvalue` otherwise, so the tooltip
         names the quantity it shows.
-    neg_log_pvalue_column : str, default='neg_log_pvalue'
+    negative_log_pvalue_column : str, default='negative_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
@@ -248,7 +248,7 @@ def volcano(
         variable_column=variable_column,
         logfoldchange_column=logfoldchange_column,
         pvalue_column=pvalue_column,
-        neg_log_pvalue_column=neg_log_pvalue_column,
+        negative_log_pvalue_column=negative_log_pvalue_column,
         significance_column=significance_column,
         up_label=up_label,
         down_label=down_label,
@@ -258,15 +258,15 @@ def volcano(
     # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
     # Dropping them would silently hide the most significant features (and their labels).
     # Push them just above the densest finite cluster instead.
-    finite_max = frame.filter(pl.col(neg_log_pvalue_column).is_finite())[
-        neg_log_pvalue_column
+    finite_max = frame.filter(pl.col(negative_log_pvalue_column).is_finite())[
+        negative_log_pvalue_column
     ].max()
     cap = (finite_max or 0.0) * 1.05 + 1.0
     frame = frame.with_columns(
-        pl.when(pl.col(neg_log_pvalue_column).is_finite())
-        .then(pl.col(neg_log_pvalue_column))
+        pl.when(pl.col(negative_log_pvalue_column).is_finite())
+        .then(pl.col(negative_log_pvalue_column))
         .otherwise(cap)
-        .alias(neg_log_pvalue_column)
+        .alias(negative_log_pvalue_column)
     )
     # SUBSAMPLE: cap non-significant points to keep the embedded data small.
     # The non-significant cloud overplots itself heavily, so dropping most of
@@ -302,7 +302,7 @@ def volcano(
     # DEFINE: mapping with defaults
     _mapping = {
         "x": logfoldchange_column,
-        "y": neg_log_pvalue_column,
+        "y": negative_log_pvalue_column,
         "color": significance_column,
     }
     if mapping is not None:
@@ -333,7 +333,7 @@ def volcano(
         # Every feature whose p-value underflowed to zero shares the capped
         # `-log10(pvalue)`, so absolute log fold change breaks those ties
         # instead of leaving the pick to the sort's arbitrary tie order.
-        label_ranking = [pl.col(neg_log_pvalue_column), pl.col(logfoldchange_column).abs()]
+        label_ranking = [pl.col(negative_log_pvalue_column), pl.col(logfoldchange_column).abs()]
         significant = frame.filter(pl.col(significance_column) != nonsignificant_label)
         top_up = (
             significant.filter(pl.col(significance_column) == up_label)
@@ -360,7 +360,7 @@ def volcano(
                 data=label_frame,
                 mapping=aes(
                     x=logfoldchange_column,
-                    y=neg_log_pvalue_column,
+                    y=negative_log_pvalue_column,
                     label=variable_column,
                 ),
                 inherit_aes=False,
@@ -421,7 +421,7 @@ def volcanos(
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
     pvalue_column: str | None = None,
-    neg_log_pvalue_column: str = "neg_log_pvalue",
+    negative_log_pvalue_column: str = "negative_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
     down_label: str = "down",
@@ -521,7 +521,7 @@ def volcanos(
     pvalue_column : str | None, default=None
         Output column name for the p-values. Defaults to `pvalue_adj` when
         `use_adjusted_pvalue` is True and `pvalue` otherwise.
-    neg_log_pvalue_column : str, default='neg_log_pvalue'
+    negative_log_pvalue_column : str, default='negative_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
@@ -637,7 +637,7 @@ def volcanos(
             variable_column=variable_column,
             logfoldchange_column=logfoldchange_column,
             pvalue_column=pvalue_column,
-            neg_log_pvalue_column=neg_log_pvalue_column,
+            negative_log_pvalue_column=negative_log_pvalue_column,
             significance_column=significance_column,
             up_label=up_label,
             down_label=down_label,

@@ -17,6 +17,24 @@ change. Versions absent from the list were never released.
   Under the default `use_adjusted_pvalue=True` the column, tooltip entry and
   y-axis title read `pvalue_adj` and `-log10(Padj)`; raw p-values are unaffected.
   - Migration: pass `pvalue_column="pvalue"` to keep the old column name.
+- `volcano` and `volcanos` spell out the negative log p-value parameter and the
+  column it names: `neg_log_pvalue_column` is now `negative_log_pvalue_column`,
+  and its default changes from `neg_log_pvalue` to `negative_log_pvalue`. The
+  contraction was the only one left in the public API, next to fully spelled
+  neighbours like `pvalue_column` and `nonsignificant_label`.
+  - Migration: rename the keyword. Code reading the output column by name, or
+    naming it in `mapping`/`tooltips`, needs the new spelling too, or pass
+    `negative_log_pvalue_column="neg_log_pvalue"` to keep the old column name.
+- `spatial` and `spatials` no longer accept `scale_axis`. Standardization needs
+  a matrix with two directions to partition along, which a spatial plot does not
+  have: it maps one value column onto one continuous colour scale, so min-max
+  scaling it was absorbed by that scale and left the rendered plot unchanged.
+  It also leaked normalized values into the tooltips. The parameter is dropped
+  rather than renamed, matching `dimensional`, which never offered it, and
+  scanpy, which puts `standard_scale` on the matrix plots only.
+  - Migration: remove the argument. Plots render identically without it. Only
+    the colour bar labels change, from 0-1 back to the values' own units, and a
+    numeric `midpoint` is now given in those units.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so

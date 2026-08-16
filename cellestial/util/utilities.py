@@ -543,9 +543,7 @@ def _key_style(data: AnnData, key: str) -> str:
 '''
 
 
-def _wrap_legend(
-    frame: pl.DataFrame, fill: str | None, color: str | None, nrow: int = 5
-) -> FeatureSpec:
+def _wrap_legend(frame: pl.DataFrame, fill: str | None, color: str | None) -> FeatureSpec:
     legend = guides()
     # CASE1: LEGEND IS SEPARATED BY FILL
     if fill is not None:

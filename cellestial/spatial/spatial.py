@@ -57,7 +57,6 @@ def spatial(
     norm: bool | None = None,
     vmin: float | None = None,
     vmax: float | None = None,
-    scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
     table_name: str | None = None,
     image_name: str | None = None,
@@ -121,10 +120,6 @@ def spatial(
         Lower bound for greyscale luminance normalization.
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
-    scale_axis : {0, 1} | None, default=None
-        Whether to standardize `key` values between 0 and 1 with min-max
-        scaling. Constant values are set to 0.
-        Only applied when `key` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs (coordinates come from the chosen
@@ -213,6 +208,8 @@ def spatial(
     -----
     If no tissue image metadata is present, the plot falls back to a plain
     spatial scatter using the raw coordinates.
+
+    `cmap`, `norm`, `vmin` and `vmax` are passed to `geom_imshow`.
 
     Examples
     --------
@@ -404,19 +401,6 @@ def spatial(
         else:
             msg = f"key `{key}` is not categorical, `drop` filter ignored"
             _warn(msg)
-
-    # HANDLE: standard scaling (numeric keys only)
-    if scale_axis is not None and key is not None and frame[key].dtype.is_numeric():
-        value = pl.col(key)
-        value_min = value.min()
-        value_max = value.max()
-        value_range = value_max - value_min
-        frame = frame.with_columns(
-            pl.when(value_range == 0)
-            .then(0.0)
-            .otherwise((value - value_min) / value_range)
-            .alias(key)
-        )
 
     # BUILD: plot
     sptl = ggplot(data=frame)

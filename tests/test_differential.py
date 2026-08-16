@@ -62,7 +62,7 @@ def test_volcano_frame_drops_nonfinite_values_but_keeps_zero_pvalue(ranked_adata
     frame = _build_volcano_frame(ranked_adata, "A")
 
     assert frame["variable"].to_list() == ["gene_a", "gene_c"]
-    assert np.isinf(frame["neg_log_pvalue"][0])
+    assert np.isinf(frame["negative_log_pvalue"][0])
 
 
 def test_resolve_rank_genes_groups_key_invalid():
@@ -319,7 +319,7 @@ def test_build_volcano_frame_uses_raw_pvalues(ranked_adata):
     )
 
     assert frame["significance"].cast(str).to_list()[:3] == ["up", "down", "ns"]
-    assert frame["neg_log_pvalue"].to_list()[0] == 3.0
+    assert frame["negative_log_pvalue"].to_list()[0] == 3.0
 
 
 def test_build_volcano_frame_errors(ranked_adata):

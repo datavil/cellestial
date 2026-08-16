@@ -37,7 +37,6 @@ def spatials(
     norm: bool | None = None,
     vmin: float | None = None,
     vmax: float | None = None,
-    scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
     table_name: str | None = None,
     image_name: str | None = None,
@@ -112,10 +111,6 @@ def spatials(
         Lower bound for greyscale luminance normalization.
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
-    scale_axis : {0, 1} | None, default=None
-        Whether to standardize `key` values between 0 and 1 (subtracts the
-        minimum and divides by the maximum).
-        Only applied when `key` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs.
@@ -207,6 +202,8 @@ def spatials(
     -----
     If no tissue image metadata is present, the plot falls back to a plain
     spatial scatter using the raw coordinates.
+
+    `cmap`, `norm`, `vmin` and `vmax` are passed to `geom_imshow`.
 
     Examples
     --------
@@ -333,7 +330,6 @@ def spatials(
             norm=norm,
             vmin=vmin,
             vmax=vmax,
-            scale_axis=scale_axis,
             spatial_key=spatial_key,
             table_name=table_name,
             image_name=image_name,

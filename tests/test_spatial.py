@@ -327,23 +327,6 @@ def test_spatial_anndata_generic_no_uns():
     assert isinstance(plot, PlotSpec)
 
 
-def test_spatial_scale_axis_constant_key_returns_zero():
-    """Constant numeric spatial keys should not scale to NaN."""
-    n = 5
-    rng = np.random.default_rng(12)
-    data = AnnData(
-        X=rng.random((n, 2)).astype("float32"),
-        obs=pd.DataFrame(
-            {"score": [3.0] * n},
-            index=[f"c{i}" for i in range(n)],
-        ),
-        var=pd.DataFrame(index=["G1", "G2"]),
-    )
-    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
-    plot = cl.spatial(data, key="score", scale_axis=0)
-    assert plot.as_dict()["data"]["score"].to_list() == [0.0] * n
-
-
 def test_spatial_drop_filters_out_groups():
     """`drop` removes rows whose categorical `key` matches the given groups."""
     n = 6
@@ -426,7 +409,6 @@ def test_spatial_anndata_visium_metadata_paths():
         image_alpha=0.5,
         groups=["a"],
         crop=[0, 10, 0, 10],
-        scale_axis=0,
         interactive=True,
     )
 
