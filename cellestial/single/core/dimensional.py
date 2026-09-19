@@ -26,6 +26,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _color_gradient,
     _drop_nonfinite_rows,
+    _filter_groups,
     _reject_sequence_key,
     _require_feature_key,
     _resolve_embedding_key,
@@ -284,28 +285,13 @@ def dimensional(
             include_dimensions=max(xy),
             metadata_columns=metadata_columns,
         )
+
+    # HANDLE: groups / drop filters (categorical-only)
+    if key is not None:
+        frame = _filter_groups(frame, column=key, groups=groups, drop=drop, column_parameter="key")
+
     frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)
-
-    # HANDLE: groups filter (categorical-only)
-    if groups is not None and key is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(key).is_in(list(groups)))
-        else:
-            msg = f"key `{key}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only)
-    if drop is not None and key is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(key).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"key `{key}` is not categorical, `drop` filter ignored"
-            _warn(msg)
 
     # BUILD: scatter plot
     if "size" in mapping.as_dict():

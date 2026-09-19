@@ -77,6 +77,8 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_qualified_alternatives` | Claude Opus 5 |  |  |  |  |
 | `_Container._require_unique_variables` | Claude Opus 5 |  |  |  |  |
 | `_resolve_pvalue_column` | Claude Opus 5 |  |  |  |  |
+| `_filter_groups` | Claude Opus 5 |  |  |  |  |
+| `_require_categories` | Claude Opus 5 |  |  |  |  |
 
 ## Modified functions
 

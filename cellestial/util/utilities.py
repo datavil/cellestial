@@ -145,6 +145,90 @@ def _drop_nonfinite_rows(frame: pl.DataFrame, columns: Sequence[str]) -> pl.Data
     )
 
 
+def _filter_groups(
+    frame: pl.DataFrame,
+    *,
+    column: str,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
+    column_parameter: str = "group_by",
+) -> pl.DataFrame:
+    """
+    Keep `groups` and remove `drop` from a categorical `column`.
+
+    Parameters
+    ----------
+    frame : pl.DataFrame
+        Frame to filter.
+    column : str
+        Column holding the category labels.
+    groups : Sequence[str] | str | None, default=None
+        Categories to keep. `None` keeps every category.
+    drop : Sequence[str] | str | None, default=None
+        Categories to remove. `None` removes none.
+    column_parameter : str, default='group_by'
+        Name of the parameter that supplied `column`, used in messages.
+
+    Returns
+    -------
+    pl.DataFrame
+        The filtered frame.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If a requested category is absent from `column`.
+
+    Notes
+    -----
+    A `column` that is not `Categorical` is returned unfiltered with a warning.
+    Call this before any other row filter, so a category whose rows another
+    filter would remove is still recognised.
+    """
+    if groups is None and drop is None:
+        return frame
+
+    if frame[column].dtype != pl.Categorical:
+        if groups is not None:
+            _warn(f"{column_parameter} `{column}` is not categorical, `groups` filter ignored")
+        if drop is not None:
+            _warn(f"{column_parameter} `{column}` is not categorical, `drop` filter ignored")
+        return frame
+
+    available = frame[column].unique().drop_nulls().to_list()
+    if groups is not None:
+        groups = [groups] if isinstance(groups, str) else list(groups)
+        _require_categories(
+            groups, available, parameter="groups", column=column, column_parameter=column_parameter
+        )
+        frame = frame.filter(pl.col(column).is_in(groups))
+    if drop is not None:
+        drop = [drop] if isinstance(drop, str) else list(drop)
+        _require_categories(
+            drop, available, parameter="drop", column=column, column_parameter=column_parameter
+        )
+        frame = frame.filter(~pl.col(column).is_in(drop).fill_null(False))
+    return frame
+
+
+def _require_categories(
+    values: Sequence[str],
+    available: Sequence[str],
+    *,
+    parameter: str,
+    column: str,
+    column_parameter: str,
+) -> None:
+    """Raise `KeyNotFoundError` naming the `values` missing from `available`."""
+    unknown = [value for value in values if value not in available]
+    if unknown:
+        msg = (
+            f"`{parameter}` {unknown!r} not found in {column_parameter} `{column}`. "
+            f"Available: {sorted(available)!r}."
+        )
+        raise KeyNotFoundError(msg)
+
+
 def _build_tooltips(
     *,
     tooltips: list[str] | str,

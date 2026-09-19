@@ -20,10 +20,10 @@ from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
     _drop_nonfinite_rows,
+    _filter_groups,
     _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
-    _warn,
 )
 from cellestial.util.errors import _unsupported_data_type
 
@@ -203,31 +203,14 @@ def ridge(
             metadata_columns=metadata_columns,
         )
 
+    # HANDLE: groups / drop filters (categorical-only) on the grouping column
+    frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
+
     # FILTER: keep finite values and apply threshold
     frame = _drop_nonfinite_rows(frame, [key]).filter(pl.col(group_by).is_not_null())
     frame = frame.filter(
         pl.col(key) >= threshold if threshold is not None else True,
     )
-
-    # HANDLE: groups filter (categorical-only) on the grouping column
-    if groups is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(group_by).is_in(list(groups)))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only) on the grouping column
-    if drop is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(group_by).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `drop` filter ignored"
-            _warn(msg)
 
     # VALIDATE: tooltips were resolved before the frame build above.
     _validate_tooltips(tooltips, frame)

@@ -25,6 +25,15 @@ change. Versions absent from the list were never released.
   - Migration: rename the keyword. Code reading the output column by name, or
     naming it in `mapping`/`tooltips`, needs the new spelling too, or pass
     `negative_log_pvalue_column="neg_log_pvalue"` to keep the old column name.
+- `groups` and `drop` raise `KeyNotFoundError` when given a category the
+  grouping column does not have, rather than filtering to nothing. A name that
+  matched nothing was silently ignored, so a typo produced a blank panel, and a
+  typo among valid names produced a plausible figure quietly missing that
+  condition. The error names the unknown values and lists the available ones,
+  matching what `marker_genes` already did.
+  - Migration: correct the name, or drop it from the list. To tolerate names
+    that may be absent across datasets, intersect with the column's categories
+    before the call.
 - `spatial` and `spatials` no longer accept `scale_axis`. Standardization needs
   a matrix with two directions to partition along, which a spatial plot does not
   have: it maps one value column onto one continuous colour scale, so min-max

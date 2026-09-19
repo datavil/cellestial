@@ -28,10 +28,10 @@ from cellestial.util import (
     _color_gradient,
     _drop_nonfinite_rows,
     _fill_gradient,
+    _filter_groups,
     _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
-    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
 
@@ -369,6 +369,10 @@ def spatial(
             pl.Series("spatial_y", spot_coordinates[:, 1]),
         )
 
+    # HANDLE: groups / drop filters (categorical-only)
+    if key is not None:
+        frame = _filter_groups(frame, column=key, groups=groups, drop=drop, column_parameter="key")
+
     if is_polygon:
         finite_vertex = pl.all_horizontal(
             pl.col("polygon_x").is_not_null(),
@@ -381,26 +385,6 @@ def spatial(
         frame = _drop_nonfinite_rows(frame, ["spatial_x", "spatial_y"])
 
     _validate_tooltips(tooltips, frame)
-
-    # HANDLE: groups filter (categorical-only)
-    if groups is not None and key is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(key).is_in(list(groups)))
-        else:
-            msg = f"key `{key}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only)
-    if drop is not None and key is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(key).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"key `{key}` is not categorical, `drop` filter ignored"
-            _warn(msg)
 
     # BUILD: plot
     sptl = ggplot(data=frame)

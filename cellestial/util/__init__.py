@@ -11,6 +11,7 @@ from cellestial.util.utilities import (  # noqa: F401
     _determine_axis,
     _drop_nonfinite_rows,
     _fill_gradient,
+    _filter_groups,
     _is_observation_key,
     _is_variable_key,
     _range_inclusive,

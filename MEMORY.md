@@ -32,6 +32,7 @@
 - [Project: Distribution aesthetic param naming](project_distribution_aesthetic_naming.md) — Keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by` (collides with live lets-plot passthrough)
 - [Project: MuData container](project_mudata_container.md) — MuData support routes through internal `_Container`/`_MuDataContainer`; dtype doubling, obsmap alignment, obsm masks, non-raising lookup, lazy import
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
+- [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 
 
 ---
@@ -942,3 +943,20 @@ vcenter/norm instead. Old calls now fall into `**point_kwargs`, which lets-plot
 ignores, so they render the same plot rather than erroring.
 
 Related: [[project-cellestial-architecture]], [[feedback-changelog-breaking-changes]]
+
+---
+
+## Source: feedback_refactor_preserves_behavior.md
+
+---
+name: feedback-refactor-preserves-behavior
+description: Refactors and helper extractions must not change function behavior unless fixing a bug; features/strictness go in separate, explicitly requested changes
+metadata:
+  type: feedback
+---
+
+A refactor (e.g. extracting duplicated blocks into a helper) must reproduce the old behavior exactly: same rows, same dtype handling, same warning and error text. Behavior changes are allowed only when they fix a bug.
+
+**Why:** An agent extracted the four copied `groups`/`drop` filter blocks into `_filter_groups` and, in the same diff, added a `KeyNotFoundError` for unknown names, String/Enum/Boolean filtering via a cast, and moved ridge's filter before its threshold. The user found it neither clean nor surgical, and said: "functions do not change behavior unless there is a bug."
+
+**How to apply:** When deduplicating, extract first and keep behavior identical, even keeping parameters that exist only to reproduce old messages. Check by comparing old and new side by side before reporting. Propose new behavior (stricter validation, wider dtype support) separately, and ask before doing it. Related: [[feedback-changelog-breaking-changes]], [[feedback-dont-overengineer-resolvers]].

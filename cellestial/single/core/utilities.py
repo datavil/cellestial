@@ -27,6 +27,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
     _drop_nonfinite_rows,
+    _filter_groups,
     _resolve_tooltips,
     _validate_aesthetic_columns,
     _validate_tooltips,
@@ -183,25 +184,9 @@ def _distribution(
     if group_by is not None:
         frame = frame.filter(pl.col(group_by).is_not_null())
 
-    # HANDLE: groups filter (categorical-only) on the grouping column
-    if groups is not None and group_by is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(group_by).is_in(list(groups)))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only) on the grouping column
-    if drop is not None and group_by is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(group_by).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `drop` filter ignored"
-            _warn(msg)
+    # HANDLE: groups / drop filters (categorical-only) on the grouping column
+    if group_by is not None:
+        frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
 
     frame = frame.unpivot(
         on=keys, index=index, value_name=value_column, variable_name=variable_column
