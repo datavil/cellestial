@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "numpy"]
+
 from typing import TYPE_CHECKING
 
 import numpy as np

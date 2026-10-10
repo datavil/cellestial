@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "numpy"]
+
 import numpy as np
 import polars as pl
 from anndata import AnnData

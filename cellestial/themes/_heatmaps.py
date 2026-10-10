@@ -1,3 +1,5 @@
+__lazy_modules__ = ["lets_plot"]
+
 from lets_plot import element_blank, element_text, theme
 
 _THEME_HEATMAP = theme(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "mudata", "numpy", "pandas", "scipy.sparse"]
+
 from typing import TYPE_CHECKING, cast
 
 import numpy as np

@@ -1,3 +1,5 @@
+__lazy_modules__ = ["anndata", "mudata"]
+
 import re
 import shutil
 from os import PathLike

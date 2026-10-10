@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "lets_plot", "mudata", "numpy"]
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal
 

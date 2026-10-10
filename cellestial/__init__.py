@@ -1,3 +1,5 @@
+__lazy_modules__ = ["lets_plot"]
+
 from lets_plot import LetsPlot
 
 from cellestial import datasets

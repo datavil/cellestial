@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot", "lets_plot.plot.core"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 

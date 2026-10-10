@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot"]
+
 import re
 from typing import TYPE_CHECKING, Literal
 

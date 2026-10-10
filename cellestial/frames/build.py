@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl

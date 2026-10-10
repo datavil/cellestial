@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = [
+    "anndata",
+    "lets_plot",
+    "lets_plot.plot.core",
+    "lets_plot.plot.subplots",
+    "mudata",
+]
+
 import inspect
 import re
 import warnings

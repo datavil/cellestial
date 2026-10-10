@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "mudata"]
+
 from collections.abc import Sequence
 
 from anndata import AnnData

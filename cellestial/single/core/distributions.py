@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot", "lets_plot.plot.core"]
+
 from typing import TYPE_CHECKING, Any, Literal
 
 from lets_plot import gggrid, ggtb

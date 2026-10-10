@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot"]
+
 from typing import TYPE_CHECKING
 
 from lets_plot import element_rect, theme

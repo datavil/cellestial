@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot", "numpy", "scipy.stats"]
+
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np

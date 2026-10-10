@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData

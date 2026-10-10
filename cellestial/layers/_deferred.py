@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot.plot.core"]
+
 from typing import TYPE_CHECKING
 
 from lets_plot.plot.core import FeatureSpec, PlotSpec

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["lets_plot"]
+
 from typing import TYPE_CHECKING
 
 import polars as pl
