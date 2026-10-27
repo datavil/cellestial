@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     coord_fixed,
     geom_imshow,
@@ -19,7 +19,7 @@ from lets_plot import (
     scale_fill_brewer,
     scale_y_reverse,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -40,7 +40,7 @@ from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_t
 if TYPE_CHECKING:
     from typing import Literal
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
     from polars import DataFrame
     from spatialdata import SpatialData
 
@@ -220,7 +220,7 @@ def spatial(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

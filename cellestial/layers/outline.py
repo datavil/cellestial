@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot", "numpy", "scipy.stats"]
+__lazy_modules__ = ["ggrust", "numpy", "scipy.stats"]
 
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import polars as pl
-from lets_plot import aes, geom_path
+from ggrust import aes, geom_path
 from scipy.stats import gaussian_kde
 
 from cellestial.layers._deferred import DeferredLayer
@@ -16,7 +16,7 @@ from cellestial.util.errors import MissingAestheticError
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, LayerSpec, PlotSpec
     from polars import DataFrame
 
 
@@ -168,7 +168,7 @@ def cluster_outlines(
     **geom_kwargs
         Additional parameters for the `geom_path` layer.
         For more information on geom_path parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_path.html
 
     Returns
     -------
@@ -192,7 +192,7 @@ def cluster_outlines(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -209,7 +209,7 @@ def cluster_outlines(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -226,7 +226,7 @@ def cluster_outlines(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 

@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
 from typing import TYPE_CHECKING
 
 import polars as pl
-from lets_plot import aes, geom_label, geom_label_repel, geom_text, geom_text_repel, theme
+from ggrust import aes, geom_label, geom_label_repel, geom_text, geom_text_repel, theme
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
     from polars import DataFrame
 
 
@@ -92,13 +92,13 @@ def ondata_legend(
     **geom_kwargs
         Additional parameters for the underlying geom layer.
         For `geom_text` parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_text.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_text.html
         For `geom_label` parameters (when `label=True`), see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_label.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_label.html
         For `geom_text_repel` parameters (when `repel=True`), see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_text_repel.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_text_repel.html
         For `geom_label_repel` parameters (when `label=True` and `repel=True`), see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_label_repel.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_label_repel.html
 
 
     Returns
@@ -121,7 +121,7 @@ def ondata_legend(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 

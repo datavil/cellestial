@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from anndata import AnnData
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from mudata import MuData
     from polars import DataFrame
 
@@ -142,7 +142,7 @@ def umap(
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
 
     Returns
     -------
@@ -156,7 +156,7 @@ def umap(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -169,7 +169,7 @@ def umap(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -344,7 +344,7 @@ def tsne(
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
 
     Returns
     -------
@@ -358,7 +358,7 @@ def tsne(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -371,7 +371,7 @@ def tsne(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -546,7 +546,7 @@ def pca(
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
 
     Returns
     -------
@@ -560,7 +560,7 @@ def pca(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -573,7 +573,7 @@ def pca(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -743,7 +743,7 @@ def expression(
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
 
     Returns
     -------
@@ -762,7 +762,7 @@ def expression(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
-from lets_plot import aes
-from lets_plot.plot.core import PlotSpec
+from ggrust import aes
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.single.heatmap.heatmap import _scale_values
@@ -381,7 +381,7 @@ def test_dotplot_sort_by_avg_exp(adata, markers, group_key):
 
 
 def test_dotplot_fill_mapping(adata, markers, group_key):
-    from lets_plot import aes
+    from ggrust import aes
 
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(fill="avg_exp"))
     assert isinstance(plot, PlotSpec)
@@ -474,7 +474,7 @@ def test_dotplot_tooltips_missing_column(adata, markers, group_key):
 
 
 def test_dotplot_tooltips_feature_spec(adata, markers, group_key):
-    from lets_plot import layer_tooltips
+    from ggrust import layer_tooltips
 
     plot = cl.dotplot(
         adata,

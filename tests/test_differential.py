@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 from anndata import AnnData
-from lets_plot import aes, geom_point, layer_tooltips
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes, geom_point, layer_tooltips
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.single.differential.utilities import _build_markers_frame, _build_volcano_frame

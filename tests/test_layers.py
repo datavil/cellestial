@@ -4,8 +4,8 @@ import types
 import numpy as np
 import polars as pl
 import pytest
-from lets_plot import aes, geom_point, ggplot
-from lets_plot.plot.core import PlotSpec
+from ggrust import aes, geom_point, ggplot
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.layers import DeferredLayer

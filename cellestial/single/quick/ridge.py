@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_area_ridges,
     gggrid,
@@ -14,7 +14,7 @@ from lets_plot import (
     ggtb,
     scale_fill_hue,
 )
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -32,8 +32,8 @@ from cellestial.util.errors import _unsupported_data_type
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.core import PlotSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from polars import DataFrame
 
 
@@ -101,7 +101,7 @@ def ridge(
     **geom_kwargs
         Additional parameters for the `geom_area_ridges` layer.
         For more information on geom_area_ridges parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_area_ridges.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_area_ridges.html
 
     Returns
     -------
@@ -121,7 +121,7 @@ def ridge(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -346,11 +346,11 @@ def ridges(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
     **geom_kwargs
         Additional parameters for the `geom_area_ridges` layer.
         For more information on geom_area_ridges parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_area_ridges.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_area_ridges.html
 
     Returns
     -------

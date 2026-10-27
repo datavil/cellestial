@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
-from lets_plot import gggrid, ggtb
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust import gggrid, ggtb
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -22,7 +22,7 @@ from cellestial.util import (
 from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from spatialdata import SpatialData
 
 
@@ -214,7 +214,7 @@ def spatials(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

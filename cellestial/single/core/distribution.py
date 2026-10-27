@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust.plot.core", "mudata"]
 
 from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.single.core.utilities import _distribution
@@ -13,7 +13,7 @@ from cellestial.single.core.utilities import _distribution
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
     from polars import DataFrame
 
 
@@ -121,11 +121,11 @@ def violin(
     point_kwargs : dict[str, Any] | None, default=None
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
     **geom_kwargs
         Additional parameters for the `geom_violin` layer.
         For more information on geom_violin parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_violin.html
 
     Returns
     -------
@@ -147,7 +147,7 @@ def violin(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -176,7 +176,7 @@ def violin(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -206,7 +206,7 @@ def violin(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -362,11 +362,11 @@ def boxplot(
     point_kwargs : dict[str, Any] | None, default=None
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
     **geom_kwargs
         Additional parameters for the `geom_boxplot` layer.
         For more information on geom_boxplot parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_boxplot.html
 
     Returns
     -------
@@ -388,7 +388,7 @@ def boxplot(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -415,7 +415,7 @@ def boxplot(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -443,7 +443,7 @@ def boxplot(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -583,7 +583,7 @@ def histogram(
     **geom_kwargs
         Additional parameters for the `geom_histogram` layer.
         For more information on geom_histogram parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_histogram.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_histogram.html
 
     Returns
     -------
@@ -603,7 +603,7 @@ def histogram(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 

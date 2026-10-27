@@ -10,7 +10,7 @@ import pandas as pd
 import polars as pl
 import pytest
 from anndata import AnnData
-from lets_plot import aes
+from ggrust import aes
 from scipy.stats import ttest_ind
 
 import cellestial as cl

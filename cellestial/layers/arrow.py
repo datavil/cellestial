@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
-from lets_plot import (
+from ggrust import (
     aes,
     arrow,
     element_blank,
@@ -21,11 +21,11 @@ from cellestial.util import get_mapping
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpecArray, PlotSpec
     from polars import DataFrame
 
 # fraction of each axis arm drawn as the arrowhead-bearing tip segment;
-# lets_plot caps the arrowhead to ~half the segment length, so the tip must be
+# ggrust caps the arrowhead to ~half the segment length, so the tip must be
 # long enough to render a full-size head
 _TIP_FRACTION = 0.3
 
@@ -179,7 +179,7 @@ def _modify_axis(
         Theme feature specification.
 
     for more information on the arrow parameters, see:
-    https://lets-plot.org/python/pages/api/lets_plot.arrow.html
+    https://lets-plot.org/python/pages/api/ggrust.arrow.html
     """
     if axis_type is None:
         return theme(
@@ -251,7 +251,7 @@ def arrow_axis(
     **arrow_kwargs
         Additional parameters for the `arrow` layer.
         For more information on arrow parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.arrow.html
+        https://lets-plot.org/python/pages/api/ggrust.arrow.html
 
     Returns
     -------
@@ -273,7 +273,7 @@ def arrow_axis(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -287,7 +287,7 @@ def arrow_axis(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -301,7 +301,7 @@ def arrow_axis(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

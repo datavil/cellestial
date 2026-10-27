@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from anndata import AnnData
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from shapely.geometry import MultiPolygon, Point
 from spatialdata import SpatialData
 from spatialdata.models import Image2DModel, ShapesModel, TableModel
@@ -249,7 +249,7 @@ def test_spatials_sdata_with_selection_kwargs(data_multi):
 
 
 def test_spatials_with_layers_share_labels_and_interactive(data_minimal):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.spatials(
         data_minimal,

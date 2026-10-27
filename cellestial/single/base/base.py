@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
-from lets_plot import ggplot
+from ggrust import ggplot
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -15,7 +15,7 @@ from cellestial.util.errors import _unsupported_data_type
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def plot(
@@ -63,7 +63,7 @@ def plot(
     --------
     .. jupyter-execute::
 
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
         import scanpy as sc
@@ -78,7 +78,7 @@ def plot(
 
     .. jupyter-execute::
 
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
         import scanpy as sc

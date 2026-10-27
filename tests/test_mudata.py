@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from anndata import AnnData
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 from scipy.sparse import csr_matrix
 

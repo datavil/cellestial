@@ -1,6 +1,6 @@
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
-from lets_plot import (
+from ggrust import (
     element_blank,
     element_text,
     scale_color_brewer,

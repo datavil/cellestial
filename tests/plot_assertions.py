@@ -6,8 +6,8 @@ from functools import lru_cache
 from importlib.resources import files
 from typing import TYPE_CHECKING
 
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from playwright.sync_api import Page
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
@@ -29,7 +29,7 @@ _VISIBLE_ERROR_PATTERN = re.compile(
 def _lets_plot_javascript() -> str:
     """Read the JavaScript bundle matching the installed Lets-Plot package."""
     return (
-        files("lets_plot").joinpath("package_data", "lets-plot.min.js").read_text(encoding="utf-8")
+        files("ggrust").joinpath("package_data", "lets-plot.min.js").read_text(encoding="utf-8")
     )
 
 

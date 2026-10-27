@@ -2,9 +2,9 @@ from collections.abc import Callable
 
 import pytest
 from anndata import AnnData
-from lets_plot import aes
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from playwright.sync_api import Page
 from plot_assertions import assert_html_renders, assert_plot_renders, assert_point_tooltip
 

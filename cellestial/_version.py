@@ -20,7 +20,7 @@ def versions():
     """
     packages = [
         "cellestial",
-        "lets-plot",
+        "ggrust",
         "scanpy",
         "anndata",
         "polars",

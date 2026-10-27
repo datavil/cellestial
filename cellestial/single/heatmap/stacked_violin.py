@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     element_line,
     geom_path,
@@ -18,7 +18,7 @@ from lets_plot import (
     scale_y_continuous,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec
+from ggrust.plot.core import FeatureSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -45,7 +45,7 @@ from cellestial.util.utilities import _container_column, _modality_source
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
 
 
 def stacked_violin(
@@ -220,7 +220,7 @@ def stacked_violin(
     **geom_kwargs
         Additional parameters for the `geom_polygon` layer.
         For further detail on geom_polygon.
-        https://lets-plot.org/python/pages/api/lets_plot.geom_polygon.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_polygon.html
 
     Returns
     -------
@@ -254,7 +254,7 @@ def stacked_violin(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

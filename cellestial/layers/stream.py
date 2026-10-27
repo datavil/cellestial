@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
 import re
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
-from lets_plot import (
+from ggrust import (
     aes,
     arrow,
     geom_path,
@@ -18,7 +18,7 @@ from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
 
 def stream(
@@ -99,15 +99,15 @@ def stream(
     arrows : FeatureSpec | None, default=None
         The result of `arrow()`, used to specify arrow aesthetics. If None, defaults to arrow().
         For more information on arrow parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.arrow.html
+        https://lets-plot.org/python/pages/api/ggrust.arrow.html
     arrow_kwargs : dict | None, default=None
         Additional keyword arguments for the arrows to be passed to geom_segment. E.g {"linestyle": "dashed"}.
         For more information on arrow parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_segment.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_segment.html
     **geom_kwargs
         Additional parameters for the `geom_path` layer.
         For more information on geom_path parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_path.html
 
     Returns
     -------
@@ -136,7 +136,7 @@ def stream(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -160,7 +160,7 @@ def stream(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

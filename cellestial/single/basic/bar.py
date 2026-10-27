@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import geom_bar, ggtb
+from ggrust import geom_bar, ggtb
 
 from cellestial.single.base import plot as baseplot
 from cellestial.util import _determine_axis, _select_variable_keys
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from anndata import AnnData
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from mudata import MuData
 
 
@@ -54,7 +54,7 @@ def bar(
     **geom_kwargs
         Additional parameters for the `geom_bar` layer.
         For more information on geom_bar parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_bar.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_bar.html
 
     Returns
     -------
@@ -65,7 +65,7 @@ def bar(
     --------
     .. jupyter-execute::
 
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
         import scanpy as sc
@@ -82,7 +82,7 @@ def bar(
 
     .. jupyter-execute::
 
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
         import scanpy as sc

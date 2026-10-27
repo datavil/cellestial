@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_boxplot,
     geom_histogram,
@@ -20,7 +20,7 @@ from lets_plot import (
     position_dodge,
     position_jitterdodge,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -38,7 +38,7 @@ from cellestial.util import (
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
 
 
 def _distribution(

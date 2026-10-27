@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_label,
     geom_line,
@@ -23,7 +23,7 @@ from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def elbow(
@@ -85,7 +85,7 @@ def elbow(
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
 
     Returns
     -------
@@ -112,7 +112,7 @@ def elbow(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

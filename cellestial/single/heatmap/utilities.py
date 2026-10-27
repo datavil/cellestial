@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "numpy", "scipy.stats"]
+__lazy_modules__ = ["anndata", "ggrust", "numpy", "scipy.stats"]
 
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal, cast
@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal, cast
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from lets_plot import aes, geom_path, geom_text
+from ggrust import aes, geom_path, geom_text
 from scipy.stats import gaussian_kde
 
 from cellestial.util import _warn
@@ -17,7 +17,7 @@ from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupp
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec
+    from ggrust.plot.core import FeatureSpec
 
 
 # ---------------------------------------------------------------------------

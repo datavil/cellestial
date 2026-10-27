@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
 from typing import TYPE_CHECKING, Literal
 
 # Data retrieval
-from lets_plot import (
+from ggrust import (
     geom_point,
     ggtb,
 )
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from anndata import AnnData
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from mudata import MuData
 
 
@@ -58,7 +58,7 @@ def scatter(
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
+        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
 
     Returns
     -------
@@ -72,7 +72,7 @@ def scatter(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -90,7 +90,7 @@ def scatter(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -108,7 +108,7 @@ def scatter(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

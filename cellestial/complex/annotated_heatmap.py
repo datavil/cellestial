@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "mudata", "numpy"]
+__lazy_modules__ = ["anndata", "ggrust", "mudata", "numpy"]
 
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal
@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     coord_cartesian,
     element_blank,
@@ -40,8 +40,8 @@ from cellestial.util.utilities import _modality_source
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.subplots import SupPlotsSpec
 
     AnnotationColors = Mapping[str, str] | Sequence[str]
 

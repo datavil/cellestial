@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot", "lets_plot.plot.core", "lets_plot.plot.subplots"]
+__lazy_modules__ = ["ggrust", "ggrust.plot.core", "ggrust.plot.subplots"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, cast
 
-from lets_plot import gggrid
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import gggrid
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 if TYPE_CHECKING:
     from polars import DataFrame
@@ -119,7 +119,7 @@ def layout(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -198,7 +198,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -241,7 +241,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
         The indices of the figures to include. Negative indices are supported.
     **kwargs : dict[str, Any]
         Additional arguments forwarded to `gggrid`.
-        see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
+        see: https://lets-plot.org/python/pages/api/ggrust.gggrid.html
 
     Returns
     -------
@@ -262,7 +262,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -317,7 +317,7 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -361,7 +361,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

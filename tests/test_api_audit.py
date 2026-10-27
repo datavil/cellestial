@@ -13,8 +13,8 @@ import inspect
 import numpy as np
 import pytest
 from anndata import AnnData
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 import cellestial.frames as frames
