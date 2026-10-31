@@ -123,7 +123,7 @@ def test_dimensional_tooltip_works_in_browser(
 def test_browser_assertion_detects_javascript_errors(page: Page) -> None:
     """The browser helper must fail for uncaught JavaScript exceptions."""
     broken_html = """
-    <svg class="plt-container" width="100" height="100"></svg>
+    <div class="ggrust-plot"><svg width="100" height="100"></svg></div>
     <script>throw new Error("browser canary");</script>
     """
 
