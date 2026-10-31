@@ -71,3 +71,6 @@ benchmarks/results/runs
 
 figures/
 .zed/
+
+# pytest-cov data file
+tests/.coverage
