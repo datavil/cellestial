@@ -220,7 +220,7 @@ def stacked_violin(
     **geom_kwargs
         Additional parameters for the `geom_polygon` layer.
         For further detail on geom_polygon.
-        https://lets-plot.org/python/pages/api/ggrust.geom_polygon.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_polygon.html
 
     Returns
     -------

@@ -168,7 +168,7 @@ def cluster_outlines(
     **geom_kwargs
         Additional parameters for the `geom_path` layer.
         For more information on geom_path parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_path.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
 
     Returns
     -------

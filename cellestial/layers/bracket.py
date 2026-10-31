@@ -372,7 +372,7 @@ def bracket(
     **geom_kwargs
         Additional parameters for the `geom_bracket` layer.
         For more information on geom_bracket parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_bracket.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_bracket.html
 
     Returns
     -------

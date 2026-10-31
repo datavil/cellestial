@@ -208,12 +208,12 @@ def dimensionals(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
 
     Returns
     -------
@@ -538,12 +538,12 @@ def umaps(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
 
     Returns
     -------
@@ -866,12 +866,12 @@ def tsnes(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
 
     Returns
     -------
@@ -1193,12 +1193,12 @@ def pcas(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
 
     Returns
     -------
@@ -1516,12 +1516,12 @@ def expressions(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
 
     Returns
     -------

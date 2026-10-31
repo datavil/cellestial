@@ -70,7 +70,7 @@ def save(
     -----
     Supported formats: PNG, SVG, PDF, HTML.
     Wraps `ggsave`; docstrings adapted from the ggrust ggsave function.
-    See https://lets-plot.org/python/pages/api/ggrust.ggsave.html.
+    See https://lets-plot.org/python/pages/api/lets_plot.ggsave.html.
     """
     return ggsave(
         plot=plot,

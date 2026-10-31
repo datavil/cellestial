@@ -179,7 +179,7 @@ def _modify_axis(
         Theme feature specification.
 
     for more information on the arrow parameters, see:
-    https://lets-plot.org/python/pages/api/ggrust.arrow.html
+    https://lets-plot.org/python/pages/api/lets_plot.arrow.html
     """
     if axis_type is None:
         return theme(
@@ -251,7 +251,7 @@ def arrow_axis(
     **arrow_kwargs
         Additional parameters for the `arrow` layer.
         For more information on arrow parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.arrow.html
+        https://lets-plot.org/python/pages/api/lets_plot.arrow.html
 
     Returns
     -------

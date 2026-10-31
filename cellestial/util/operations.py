@@ -241,7 +241,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
         The indices of the figures to include. Negative indices are supported.
     **kwargs : dict[str, Any]
         Additional arguments forwarded to `gggrid`.
-        see: https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        see: https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
     Returns
     -------

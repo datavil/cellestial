@@ -175,7 +175,7 @@ def dimensional(
     **point_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
 
     Returns
     -------

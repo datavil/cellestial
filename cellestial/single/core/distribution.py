@@ -121,11 +121,11 @@ def violin(
     point_kwargs : dict[str, Any] | None, default=None
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
     **geom_kwargs
         Additional parameters for the `geom_violin` layer.
         For more information on geom_violin parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_violin.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_violin.html
 
     Returns
     -------
@@ -362,11 +362,11 @@ def boxplot(
     point_kwargs : dict[str, Any] | None, default=None
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_point.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
     **geom_kwargs
         Additional parameters for the `geom_boxplot` layer.
         For more information on geom_boxplot parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_boxplot.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
 
     Returns
     -------
@@ -583,7 +583,7 @@ def histogram(
     **geom_kwargs
         Additional parameters for the `geom_histogram` layer.
         For more information on geom_histogram parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_histogram.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_histogram.html
 
     Returns
     -------

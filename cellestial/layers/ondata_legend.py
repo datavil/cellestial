@@ -92,13 +92,13 @@ def ondata_legend(
     **geom_kwargs
         Additional parameters for the underlying geom layer.
         For `geom_text` parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_text.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_text.html
         For `geom_label` parameters (when `label=True`), see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_label.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_label.html
         For `geom_text_repel` parameters (when `repel=True`), see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_text_repel.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_text_repel.html
         For `geom_label_repel` parameters (when `label=True` and `repel=True`), see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_label_repel.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_label_repel.html
 
 
     Returns

@@ -76,7 +76,7 @@ def highest_expressed_genes(
     **geom_kwargs
         Additional parameters for the `geom_boxplot` layer.
         For more information on geom_boxplot parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_boxplot.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_boxplot.html
 
     Returns
     -------

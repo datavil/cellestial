@@ -101,7 +101,7 @@ def ridge(
     **geom_kwargs
         Additional parameters for the `geom_area_ridges` layer.
         For more information on geom_area_ridges parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_area_ridges.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_area_ridges.html
 
     Returns
     -------
@@ -346,11 +346,11 @@ def ridges(
         For colorbars: title, domain limits, breaks, and color gradient.
 
         For more information on gggrid parameters:
-        https://lets-plot.org/python/pages/api/ggrust.gggrid.html
+        https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
     **geom_kwargs
         Additional parameters for the `geom_area_ridges` layer.
         For more information on geom_area_ridges parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_area_ridges.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_area_ridges.html
 
     Returns
     -------

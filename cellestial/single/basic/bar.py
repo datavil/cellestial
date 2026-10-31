@@ -54,7 +54,7 @@ def bar(
     **geom_kwargs
         Additional parameters for the `geom_bar` layer.
         For more information on geom_bar parameters, see:
-        https://lets-plot.org/python/pages/api/ggrust.geom_bar.html
+        https://lets-plot.org/python/pages/api/lets_plot.geom_bar.html
 
     Returns
     -------
