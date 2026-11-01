@@ -295,7 +295,7 @@ def _annotation_strip(
     else:
         plot += scale_x_continuous(expand=[0, 0])
         plot += scale_y_continuous(limits=list(position_limits), expand=[0, 0])
-    plot += _blank_strip_theme(legend=legend)
+    plot += _blank_strip_theme(legend=legend) + theme(plot_margin=0)
     if horizontal:
         plot += labs(y=value) + theme(axis_title_y=element_text(angle=0))
     else:
