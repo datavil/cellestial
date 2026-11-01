@@ -20,6 +20,7 @@ from ggrust import (
     gggrid,
     ggplot,
     ggtb,
+    labs,
     scale_fill_brewer,
     scale_fill_gradient,
     scale_fill_gradientn,
@@ -274,7 +275,8 @@ def _annotation_strip(
     `horizontal` strips vary along x (column annotations); vertical strips vary
     along y (row annotations). `position_limits` pin the varying axis so the
     track aligns with the heatmap panel. `palette` is the ColorBrewer palette used
-    for a categorical track when `colors` is not given.
+    for a categorical track when `colors` is not given. The track is titled with
+    `value`: below a vertical strip (rotated), left of a horizontal strip.
     """
     constant = "_strip"
     frame = frame.with_columns(pl.lit(0).alias(constant))
@@ -294,6 +296,10 @@ def _annotation_strip(
         plot += scale_x_continuous(expand=[0, 0])
         plot += scale_y_continuous(limits=list(position_limits), expand=[0, 0])
     plot += _blank_strip_theme(legend=legend)
+    if horizontal:
+        plot += labs(y=value) + theme(axis_title_y=element_text(angle=0))
+    else:
+        plot += labs(x=value) + theme(axis_title_x=element_text(angle=90))
     return plot
 
 

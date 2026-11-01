@@ -139,6 +139,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_get_dendrogram` | Claude Opus 5 |  |
 | `from_url` | Claude Opus 5 |  |
 | `annotated_heatmap` | Claude Opus 5 |  |
+| `_annotation_strip` | Claude Opus 5.5 |  |
 | `markers` | Claude Opus 5 |  |
 | `volcano` | Claude Opus 5 |  |
 | `marker_genes` | Claude Opus 5 |  |
