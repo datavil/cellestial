@@ -63,9 +63,9 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_Container.variable_embeddings` | Claude Opus 5 |  |  |  |  |
 | `_Container.owns_variable` | Claude Opus 5 |  |  |  |  |
 | `_Container.resolve_variable` | Claude Opus 5 |  |  |  |  |
-| `_Container.fetch_variable_columns` | Claude Opus 5 |  |  |  |  |
+| `_Container.fetch_variable_columns` | Claude Opus 5 and Claude Opus 5.5 |  |  |  |  |
 | `_MuDataContainer._without_modality_masks` | Claude Opus 5 |  |  |  |  |
-| `_MuDataContainer._variable_column` | Claude Opus 5 |  |  |  |  |
+| `_MuDataContainer._variable_column` | Claude Opus 5 and Claude Opus 5.5 |  |  |  |  |
 | `_dendrogram_source` | Claude Opus 5 |  |  |  |  |
 | `_read_dataset` | Claude Opus 5 |  |  |  |  |
 | `pbmc_cite` | Claude Opus 5 |  |  |  |  |
@@ -79,6 +79,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_resolve_pvalue_column` | Claude Opus 5 |  |  |  |  |
 | `_filter_groups` | Claude Opus 5 |  |  |  |  |
 | `_require_categories` | Claude Opus 5 |  |  |  |  |
+| `_is_spatialdata` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 

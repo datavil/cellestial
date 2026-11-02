@@ -218,7 +218,9 @@ class _Container:
             raise VariableNotFoundError(msg)
         self._require_unique_variables(self._data.var_names, keys, "the data")
 
-        matrix = self._data[:, keys].X
+        # Index `X` directly: an AnnData view also slices `.raw`, copying all of it.
+        positions = self._data.var_names.get_indexer_for(keys)
+        matrix = self._data.X[:, positions]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         else:
@@ -392,7 +394,7 @@ class _MuDataContainer(_Container):
         modality, name = self.resolve_variable(key)
         part = self._data.mod[modality]
         self._require_unique_variables(part.var_names, [name], f"modality `{modality}`")
-        matrix = part[:, name].X
+        matrix = part.X[:, part.var_names.get_indexer_for([name])]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         values = np.asarray(matrix).reshape(-1)
