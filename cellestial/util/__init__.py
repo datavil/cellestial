@@ -13,6 +13,7 @@ from cellestial.util.utilities import (  # noqa: F401
     _fill_gradient,
     _filter_groups,
     _is_observation_key,
+    _is_spatialdata,
     _is_variable_key,
     _range_inclusive,
     _reject_sequence_key,

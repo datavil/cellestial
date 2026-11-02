@@ -10,6 +10,7 @@ __lazy_modules__ = [
 
 import inspect
 import re
+import sys
 import warnings
 from collections.abc import Sequence
 from functools import lru_cache
@@ -57,6 +58,20 @@ def _container(data: AnnData | MuData) -> _Container:
     from cellestial.frames._container import _container as _build_container
 
     return _build_container(data)
+
+
+def _is_spatialdata(data: object) -> bool:
+    """
+    Return whether `data` is a SpatialData object.
+
+    Notes
+    -----
+    Importing spatialdata costs ~200 ms (dask, geopandas). A SpatialData object
+    cannot exist unless its module is already imported, so the check reads
+    `sys.modules` instead of importing it.
+    """
+    module = sys.modules.get("spatialdata")
+    return module is not None and isinstance(data, module.SpatialData)
 
 
 @overload

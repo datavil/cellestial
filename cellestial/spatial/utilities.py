@@ -9,7 +9,7 @@ import numpy as np
 import polars as pl
 from anndata import AnnData
 
-from cellestial.util import _warn
+from cellestial.util import _is_spatialdata, _warn
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
@@ -336,9 +336,7 @@ def _spatial_components(
     `point_coords` and `polygon_frame` is non-None. For AnnData input
     the table is the input itself; for SpatialData it is the resolved table.
     """
-    from spatialdata import SpatialData
-
-    if isinstance(data, SpatialData):
+    if _is_spatialdata(data):
         return _spatialdata_components(
             data,
             table_name=table_name,
@@ -413,5 +411,7 @@ def _spatial_components(
             if image_array is None:
                 _warn(f"no images found for library `{library_id}`")
         return image_array, spot_coordinates, None, data
+
+    from spatialdata import SpatialData
 
     raise _unsupported_data_type(data, AnnData, SpatialData)

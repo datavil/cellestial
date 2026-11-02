@@ -31,6 +31,7 @@ from cellestial.util import (
     _drop_nonfinite_rows,
     _fill_gradient,
     _filter_groups,
+    _is_spatialdata,
     _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
@@ -268,8 +269,6 @@ def spatial(
         cl.spatial(data_hne,key="cluster", groups=["Hippocampus", "Hypothalamus_1", "Striatum"], interactive=True)
     """
     # HANDLE: data type
-    from spatialdata import SpatialData
-
     if isinstance(data, MuData):
         msg = (
             "Spatial plots do not accept a multimodal object, because spot "
@@ -282,7 +281,9 @@ def spatial(
         )
         raise UnsupportedDataTypeError(msg)
 
-    if not isinstance(data, (AnnData, SpatialData)):
+    if not isinstance(data, AnnData) and not _is_spatialdata(data):
+        from spatialdata import SpatialData
+
         raise _unsupported_data_type(data, AnnData, SpatialData)
 
     _reject_sequence_key(key, singular="spatial", plural="spatials")

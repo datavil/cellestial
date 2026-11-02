@@ -10,6 +10,7 @@ from mudata import MuData
 
 from cellestial.frames._container import _container
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _is_spatialdata
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -362,9 +363,7 @@ def build_frame(
         frame.head()
 
     """
-    from spatialdata import SpatialData
-
-    if isinstance(data, SpatialData):
+    if _is_spatialdata(data):
         tables = list(data.tables.keys())
         if len(tables) == 1:
             # retrieve an anndata
@@ -416,6 +415,8 @@ def build_frame(
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
             raise ValueError(msg)
     else:
+        from spatialdata import SpatialData
+
         raise _unsupported_data_type(data, AnnData, SpatialData, MuData)
 
     return frame
