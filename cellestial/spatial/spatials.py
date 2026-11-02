@@ -75,7 +75,7 @@ def spatials(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of spatial plots.
@@ -192,7 +192,7 @@ def spatials(
         Whether to align inner geom areas.
     guides : str, default='auto'
         How guides (legends, colorbars) are collected by `gggrid`.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
     Returns
@@ -353,7 +353,7 @@ def spatials(
             color_mid=color_mid,
             color_high=color_high,
             midpoint=midpoint,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         if layers is not None:

@@ -72,7 +72,7 @@ def markers(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **text_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of ranked genes per group.
@@ -154,7 +154,7 @@ def markers(
     guides : str, default='auto'
         How guides (legends/colorbars) should be treated in the layout.
         See :func:`ggrust.gggrid`.
-    **text_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_text` layer of each panel.
 
     Returns
@@ -269,7 +269,7 @@ def markers(
             fontface=fontface,
             angle=angle,
             **_text_color,
-            **text_kwargs,
+            **geom_kwargs,
         )
         if rank_color:
             # rank 0 (best) is pure red, fading toward light gray for the rest.

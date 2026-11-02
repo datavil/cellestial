@@ -89,8 +89,8 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | Function | Source | Line-by-line |
 | --- | --- | --- |
 | `_spatial_components` | Claude 4.7 |  |
-| `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
+| `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `cluster_outlines` | Mixed |  |
 | `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `arrow_axis` | Claude 4.7 |  |
@@ -99,14 +99,14 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `ridge` | Claude 4.7 and Claude Opus 5 |  |
 | `ridges` | Claude 4.7 |  |
-| `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `umap` | Claude 4.7 |  |
-| `tsne` | Claude 4.7 |  |
-| `pca` | Claude 4.7 |  |
-| `dimensionals` | Claude 4.7 |  |
-| `umaps` | Claude 4.7 |  |
-| `tsnes` | Claude 4.7 |  |
-| `pcas` | Claude 4.7 |  |
+| `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `umap` | Claude 4.7 and Claude Opus 5.5 |  |
+| `tsne` | Claude 4.7 and Claude Opus 5.5 |  |
+| `pca` | Claude 4.7 and Claude Opus 5.5 |  |
+| `dimensionals` | Claude 4.7 and Claude Opus 5.5 |  |
+| `umaps` | Claude 4.7 and Claude Opus 5.5 |  |
+| `tsnes` | Claude 4.7 and Claude Opus 5.5 |  |
+| `pcas` | Claude 4.7 and Claude Opus 5.5 |  |
 | `violin` | Claude 4.7 |  |
 | `boxplot` | Claude 4.7 |  |
 | `violins` | Claude 4.7 |  |
@@ -116,12 +116,12 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `anndata_variables_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `build_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `_resolve_tooltips` | Claude 4.7 |  |
-| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `xyplots` | Claude 4.7 and Claude 4.8 |  |
-| `expressions` | Claude 4.7 |  |
+| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `xyplots` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 |  |
+| `expressions` | Claude 4.7 and Claude Opus 5.5 |  |
 | `stacked_violin` | Claude 4.7 and Claude Opus 5 |  |
-| `expression` | Claude 4.7 and Claude 4.8 |  |
-| `volcanos` | Claude 4.8 and Claude Opus 5 |  |
+| `expression` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 |  |
+| `volcanos` | Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `highest_expressed_genes` | Claude 4.8 and Claude Opus 5 |  |
 | `elbow` | Claude 4.8 and Claude Opus 5 |  |
 | `anndata_variable_columns` | Claude Opus 5 |  |
@@ -141,8 +141,8 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_get_dendrogram` | Claude Opus 5 |  |
 | `from_url` | Claude Opus 5 |  |
 | `annotated_heatmap` | Claude Opus 5 |  |
-| `markers` | Claude Opus 5 |  |
-| `volcano` | Claude Opus 5 |  |
+| `markers` | Claude Opus 5 and Claude Opus 5.5 |  |
+| `volcano` | Claude Opus 5 and Claude Opus 5.5 |  |
 | `marker_genes` | Claude Opus 5 |  |
 | `marker_genes_dict` | Claude Opus 5 |  |
 | `_build_volcano_frame` | Claude Opus 5 |  |

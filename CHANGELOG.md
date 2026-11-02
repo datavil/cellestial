@@ -50,6 +50,14 @@ change. Versions absent from the list were never released.
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
 
+### Changed
+- Extra keyword arguments forwarded to the underlying geom are documented as
+  `**geom_kwargs` everywhere. `dimensional`, `umap`, `pca`, `tsne`,
+  `expression`, `xyplot`, `spatial`, `volcano` (and their plurals) used
+  `**point_kwargs`, and `markers` used `**text_kwargs`, which clashed with the
+  `point_kwargs` dict parameter of `violin` and `boxplot`. Calls are unaffected,
+  since keyword arguments land in the catch-all whatever its name.
+
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
   the labels picked among p-values that underflow to zero are the strongest

@@ -48,7 +48,7 @@ def xyplot(
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
     include_dimensions: bool | int = False,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Scatter Plot.
@@ -84,7 +84,7 @@ def xyplot(
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -234,7 +234,7 @@ def xyplot(
         + geom_point(
             mapping=mapping,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         + labs(x=x, y=y)
         + _THEME_SCATTER
