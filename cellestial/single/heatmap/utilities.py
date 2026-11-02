@@ -34,8 +34,7 @@ def _bin_within_groups(
     *,
     observations_name: str,
     group_by: str,
-    variable_column: str,
-    value_column: str,
+    keys: list[str],
     y_order_groups: list[str],
     max_rows: int,
 ) -> pl.DataFrame:
@@ -44,6 +43,7 @@ def _bin_within_groups(
 
     Notes
     -----
+    `frame` is wide, one row per observation and one column per key.
     Cells within a group are sorted by observation id and chunked into contiguous
     bins; each bin's expression value is the per-variable mean of its members.
     Group boundaries are preserved, so group bars/lines remain meaningful.
@@ -102,8 +102,8 @@ def _bin_within_groups(
         frame.join(obs_frame, on=observations_name)
         .drop(observations_name)
         .rename({"_binned_obs": observations_name})
-        .group_by(observations_name, group_by, variable_column, maintain_order=False)
-        .agg(pl.col(value_column).mean())
+        .group_by(observations_name, group_by, maintain_order=False)
+        .agg(pl.col(keys).mean())
     )
 
 
@@ -119,6 +119,30 @@ def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str)
         .otherwise((value - value_min) / value_range)
         .alias(value_column)
     )
+
+
+def _scale_wide_values(frame: pl.DataFrame, *, keys: list[str], scale_axis: int) -> pl.DataFrame:
+    """Min-max scale `keys` per column (`scale_axis=0`) or per row (`scale_axis=1`)."""
+    row_bounds = ["__cellestial_row_min", "__cellestial_row_max"]
+    if scale_axis == 1:
+        frame = frame.with_columns(
+            pl.min_horizontal(keys).alias(row_bounds[0]),
+            pl.max_horizontal(keys).alias(row_bounds[1]),
+        )
+    scaled = []
+    for key in keys:
+        value = pl.col(key)
+        value_min = value.min() if scale_axis == 0 else pl.col(row_bounds[0])
+        value_max = value.max() if scale_axis == 0 else pl.col(row_bounds[1])
+        value_range = value_max - value_min
+        # Nulls stay null so they are dropped after unpivoting.
+        scaled.append(
+            pl.when(value.is_not_null() & (value_range == 0))
+            .then(0.0)
+            .otherwise((value - value_min) / value_range)
+            .alias(key)
+        )
+    return frame.with_columns(scaled).drop(row_bounds, strict=False)
 
 
 def _group_bar_gap(n_x: int) -> float:

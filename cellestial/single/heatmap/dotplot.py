@@ -313,29 +313,28 @@ def dotplot(
         )
     # DROP: rows with null group_by to avoid null labels downstream
     frame = frame.filter(pl.col(group_by).is_not_null())
-    index_columns = [x for x in frame.columns if x not in keys]
 
     # CRITICAL PARTS: Dataframe Operations
-    # DataFrame to LazyFrame
-    frame = frame.lazy()
-    # 1. Unpivot frame
-    value_name: str = "value"
-    frame = frame.unpivot(
-        on=keys,
-        index=index_columns,
-        variable_name=variable_column,
-        value_name=value_name,
-    )
-    frame = frame.filter(pl.col(value_name).is_not_null() & pl.col(value_name).is_finite())
-    # 2. Aggregate and compute stats
-    frame = frame.group_by([group_by, variable_column]).agg(
-        [
-            pl.col(value_name).mean().alias(mean_key),
-            (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
+    # 1. Aggregate per group while wide, so the unpivoted frame holds
+    # groups x keys rows instead of cells x keys.
+    # Cast to the dtype unpivot would supercast the keys to.
+    value_dtype = frame.head(0).select(keys).unpivot(value_name=mean_key).schema[mean_key]
+    finite_values = [pl.col(key).cast(value_dtype).filter(pl.col(key).is_finite()) for key in keys]
+    percentage_names = [f"__cellestial_percentage_{index}" for index in range(len(keys))]
+    frame = frame.group_by(group_by).agg(
+        [values.mean().alias(key) for values, key in zip(finite_values, keys, strict=True)]
+        + [
+            (values > threshold).mean().mul(100).alias(name)
+            for values, name in zip(finite_values, percentage_names, strict=True)
         ]
     )
-    # LazyFrame to DataFrame
-    frame = frame.collect()
+    # 2. Unpivot means and percentages; both unpivots keep the same row order.
+    means = frame.unpivot(
+        on=keys, index=group_by, variable_name=variable_column, value_name=mean_key
+    )
+    percentages = frame.unpivot(on=percentage_names, index=group_by, value_name=percentage_key)
+    # Keys with no finite value in a group get no row.
+    frame = means.with_columns(percentages[percentage_key]).filter(pl.col(mean_key).is_not_null())
     # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
     numeric_group_by = "__cellestial_group_by_numeric"
     frame = frame.with_columns(

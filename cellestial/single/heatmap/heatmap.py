@@ -35,6 +35,7 @@ from cellestial.single.heatmap.utilities import (
     _resolve_padding,
     _resolve_rank_genes_groups_args,
     _scale_values,
+    _scale_wide_values,
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import (
@@ -375,48 +376,75 @@ def heatmap(
         metadata_columns=metadata_columns,
     )
     row_identifier = variables_name if axis == 1 else observations_name
-    index_columns = [group_by] if aggregate else [row_identifier, group_by]
-    frame = frame.unpivot(
-        on=keys,
-        index=index_columns,
-        variable_name=variable_column,
-        value_name=value_column,
-    )
+    # Aggregate, scale and bin while wide, so the unpivoted frame never holds
+    # cells x keys rows. Cast to the dtype unpivot would supercast the keys to.
+    value_dtype = frame.head(0).select(keys).unpivot(value_name=value_column).schema[value_column]
+    frame = frame.with_columns(pl.col(keys).cast(value_dtype))
     if aggregate:
-        frame = frame.group_by(group_by, variable_column).agg(
-            pl.col(value_column).filter(pl.col(value_column).is_finite()).mean()
+        frame = frame.group_by(group_by).agg(
+            pl.col(key).filter(pl.col(key).is_finite()).mean() for key in keys
         )
-    frame = frame.drop_nulls()
-
-    # HANDLE: standard scaling
-    if scale_axis is not None:
-        partition_key = (
-            variable_column if scale_axis == 0 else (group_by if aggregate else row_identifier)
+        frame = frame.unpivot(
+            on=keys,
+            index=group_by,
+            variable_name=variable_column,
+            value_name=value_column,
+        ).drop_nulls()
+        # HANDLE: standard scaling
+        if scale_axis is not None:
+            partition_key = variable_column if scale_axis == 0 else group_by
+            frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
+    else:
+        # DROP: what nulls in the unpivoted frame would remove
+        frame = frame.filter(
+            pl.col(row_identifier).is_not_null()
+            & pl.col(group_by).is_not_null()
+            & pl.any_horizontal(pl.col(keys).is_not_null())
         )
-        frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
+        # HANDLE: standard scaling
+        if scale_axis is not None:
+            frame = _scale_wide_values(frame, keys=keys, scale_axis=scale_axis)
 
     # DETERMINE: y order of groups
     if dendrogram:
         y_order_groups, paths = _get_dendrogram(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
-    else:
+    elif aggregate:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
         paths = None
-
-    # BIN: collapse cells into at most `max_rows` virtual rows (within group)
-    if not aggregate and max_rows is not None:
-        frame = _bin_within_groups(
-            frame,
-            observations_name=row_identifier,
-            group_by=group_by,
-            variable_column=variable_column,
-            value_column=value_column,
-            y_order_groups=y_order_groups,
-            max_rows=max_rows,
+    else:
+        # First appearance in key-major order, as in the unpivoted frame.
+        y_order_groups = (
+            pl.concat(
+                frame.lazy().filter(pl.col(key).is_not_null()).select(group_by) for key in keys
+            )
+            .unique(maintain_order=True)
+            .collect()[group_by]
+            .cast(pl.String)
+            .to_list()
         )
+        paths = None
+
+    if not aggregate:
+        # BIN: collapse cells into at most `max_rows` virtual rows (within group)
+        if max_rows is not None:
+            frame = _bin_within_groups(
+                frame,
+                observations_name=row_identifier,
+                group_by=group_by,
+                keys=keys,
+                y_order_groups=y_order_groups,
+                max_rows=max_rows,
+            )
+        frame = frame.unpivot(
+            on=keys,
+            index=[row_identifier, group_by],
+            variable_name=variable_column,
+            value_name=value_column,
+        ).drop_nulls()
 
     # ASSIGN: _x / _y positions and layout metadata
     x_keys = list(keys)

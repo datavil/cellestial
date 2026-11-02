@@ -13,7 +13,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `bracket` | Claude 4.7 | ✓ | ✓ |  |  |
 | `matrixplot` | Claude 4.7 | ✓ | ✓ |  |  |
 | `stacked_violin` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_bin_within_groups` | Claude 4.7 |  |  |  |  |
+| `_bin_within_groups` | Claude 4.7 and Claude Opus 5.5 |  |  |  |  |
 | `volcano` | Claude 4.7 | ✓ | ✓ |  |  |
 | `volcanos` | Claude 4.7 | ✓ | ✓ |  |  |
 | `_build_volcano_frame` | Claude 4.7 | ✓ | ✓ |  |  |
@@ -80,6 +80,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_filter_groups` | Claude Opus 5 |  |  |  |  |
 | `_require_categories` | Claude Opus 5 |  |  |  |  |
 | `_is_spatialdata` | Claude Opus 5.5 |  |  |  |  |
+| `_scale_wide_values` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -94,8 +95,8 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `arrow_axis` | Claude 4.7 |  |
 | `ondata_legend` | Claude 4.7 |  |
-| `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 |  |
-| `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 |  |
+| `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `ridge` | Claude 4.7 and Claude Opus 5 |  |
 | `ridges` | Claude 4.7 |  |
 | `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
