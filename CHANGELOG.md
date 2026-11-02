@@ -49,6 +49,13 @@ change. Versions absent from the list were never released.
   - Migration: remove the argument. Plots render identically without it. Only
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
+- `stacked_violin` renames `color_by` to `fill_statistic`. The parameter picks
+  what drives the fill aesthetic, not color, and its old name shadowed the
+  plotting backend's own `color_by` layer parameter, which could not be passed
+  through `**geom_kwargs`.
+  - Migration: rename the keyword, e.g. `color_by="group"` becomes
+    `fill_statistic="group"`. A `color_by` argument now reaches the violin
+    layer instead.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
