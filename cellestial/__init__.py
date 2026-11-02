@@ -1,6 +1,6 @@
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
-from lets_plot import LetsPlot
+from ggrust import LetsPlot
 
 from cellestial import datasets
 from cellestial._version import __version__, versions
@@ -138,7 +138,7 @@ try:
     from IPython.core.interactiveshell import InteractiveShell
 
     if InteractiveShell.initialized():
-        from lets_plot import LetsPlot
+        from ggrust import LetsPlot
 
         LetsPlot.setup_html()
 except ImportError:

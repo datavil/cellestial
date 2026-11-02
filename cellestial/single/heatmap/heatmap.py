@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     element_blank,
     geom_path,
@@ -49,7 +49,7 @@ from cellestial.util.utilities import _container_column, _modality_source
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def heatmap(
@@ -243,7 +243,7 @@ def heatmap(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -711,7 +711,7 @@ def matrixplot(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

@@ -1,7 +1,7 @@
 import pytest
-from lets_plot import aes, geom_vline
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes, geom_vline
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.util import retrieve

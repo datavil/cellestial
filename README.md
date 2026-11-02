@@ -38,7 +38,7 @@ poetry add cellestial
 Cellestial accepts a standard `AnnData` directly. The same function plots a categorical column or a gene, and everything composes through `+` like ggplot.
 
 ```python
-from lets_plot import *
+from ggrust import *
 import cellestial as cl
 
 data = cl.datasets.pbmc3k(cache_directory="data")

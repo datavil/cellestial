@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
@@ -10,7 +10,7 @@ import polars as pl
 from anndata import AnnData
 
 # Data retrieval
-from lets_plot import (
+from ggrust import (
     aes,
     geom_point,
     ggplot,
@@ -18,7 +18,7 @@ from lets_plot import (
     labs,
     scale_color_brewer,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -39,7 +39,7 @@ from cellestial.util import (
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
     from polars import DataFrame
 
 
@@ -200,7 +200,7 @@ def dimensional(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -213,7 +213,7 @@ def dimensional(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

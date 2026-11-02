@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import polars as pl
 import pytest
-from lets_plot.plot.core import FeatureSpec
+from ggrust.plot.core import FeatureSpec
 
 from cellestial.util.errors import (
     CellestialWarning,

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 __lazy_modules__ = [
     "anndata",
-    "lets_plot",
-    "lets_plot.plot.core",
-    "lets_plot.plot.subplots",
+    "ggrust",
+    "ggrust.plot.core",
+    "ggrust.plot.subplots",
     "mudata",
 ]
 
@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Literal, cast, overload
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     element_blank,
     guide_legend,
     guides,
@@ -31,8 +31,8 @@ from lets_plot import (
     scale_fill_gradient2,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import FeatureSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 
 from cellestial.util.errors import CellestialWarning, KeyNotFoundError
@@ -738,7 +738,7 @@ def _collect_aes_columns(
         Explicit string references (e.g., the color key, x/y keys).
         `None` entries are skipped.
     mapping : FeatureSpec | None
-        A `lets_plot.aes(...)` result. Any string value in its dict is
+        A `ggrust.aes(...)` result. Any string value in its dict is
         treated as a column reference; non-string values are skipped.
     metadata_columns : list[str]
         Mutated in place: references that match observation metadata columns

@@ -10,6 +10,11 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- Plots are built and rendered with ggrust instead of lets-plot. ggrust keeps
+  the lets-plot API, but cellestial now returns ggrust plot objects, which do
+  not combine with layers or themes made by `lets_plot`.
+  - Migration: replace `from lets_plot import ...` with `from ggrust import ...`
+    in code that adds layers, scales or themes to cellestial plots.
 - `bracket(test="ttest")` is now Welch's t-test rather than the pooled-variance
   one, matching R's `t.test()` and scanpy. P-values change.
   - Migration: pass `test="student"`, a new option, for the previous behaviour.

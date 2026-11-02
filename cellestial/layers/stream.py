@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot"]
+__lazy_modules__ = ["ggrust"]
 
 import re
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
-from lets_plot import (
+from ggrust import (
     aes,
     arrow,
     geom_path,
@@ -18,7 +18,7 @@ from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
 
 def stream(
@@ -136,7 +136,7 @@ def stream(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -160,7 +160,7 @@ def stream(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "lets_plot", "lets_plot.plot.core", "mudata", "numpy"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata", "numpy"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_hline,
     geom_point,
@@ -21,7 +21,7 @@ from lets_plot import (
     layer_tooltips,
     scale_color_manual,
 )
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.single.differential.utilities import (
@@ -37,8 +37,8 @@ from cellestial.util.utilities import _container
 # brick-red for up, soft cornflower-blue for down, medium-gray for non-significant.
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.core import PlotSpec
+    from ggrust.plot.subplots import SupPlotsSpec
 
 
 def volcano(
@@ -552,7 +552,7 @@ def volcanos(
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        See :func:`lets_plot.gggrid`.
+        See :func:`ggrust.gggrid`.
     widths : list[float], default=None
         Relative width of each column of the grid.
     heights : list[float], default=None
@@ -565,7 +565,7 @@ def volcanos(
         Whether to align inner areas of plots.
     guides : str, default='auto'
         How guides (legends/colorbars) should be treated in the layout.
-        See :func:`lets_plot.gggrid`.
+        See :func:`ggrust.gggrid`.
     **point_kwargs
         Additional parameters for the `geom_point` layer of each subplot.
 

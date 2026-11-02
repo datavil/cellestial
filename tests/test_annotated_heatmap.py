@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
-from lets_plot import geom_blank
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import geom_blank
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.complex.annotated_heatmap import _bin_observations

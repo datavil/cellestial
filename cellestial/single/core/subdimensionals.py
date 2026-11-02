@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot", "lets_plot.plot.core"]
+__lazy_modules__ = ["ggrust", "ggrust.plot.core"]
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import gggrid, ggtb
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust import gggrid, ggtb
+from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
 from cellestial.single.core.dimensional import dimensional
@@ -21,7 +21,7 @@ from cellestial.util import (
 
 if TYPE_CHECKING:
     from anndata import AnnData
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from mudata import MuData
 
 
@@ -227,7 +227,7 @@ def dimensionals(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -557,7 +557,7 @@ def umaps(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -885,7 +885,7 @@ def tsnes(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -1212,7 +1212,7 @@ def pcas(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -1535,7 +1535,7 @@ def expressions(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

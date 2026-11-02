@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["lets_plot.plot.core"]
+__lazy_modules__ = ["ggrust.plot.core"]
 
 from typing import TYPE_CHECKING
 
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lets_plot.plot.core import FeatureSpecArray, LayerSpec
+    from ggrust.plot.core import FeatureSpecArray, LayerSpec
 
 
 class DeferredLayer(PlotSpec):
