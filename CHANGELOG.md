@@ -49,6 +49,14 @@ change. Versions absent from the list were never released.
   - Migration: remove the argument. Plots render identically without it. Only
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
+- `observations_name` and `variables_name` are renamed to
+  `observation_id_column` and `variable_id_column` across the public API
+  (`build_frame`, the frame helpers and every plot that takes them). They name
+  the identifier column of the observations or variables frame, and the old
+  names were easy to confuse with `variable_column`, the unpivot name column.
+  Defaults (`"Barcode"`, `"Variable"`) and behaviour are unchanged.
+  - Migration: rename the keywords, e.g. `observations_name="Cell"` becomes
+    `observation_id_column="Cell"`.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so

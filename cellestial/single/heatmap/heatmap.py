@@ -91,8 +91,8 @@ def heatmap(
     color_high: str = "#ff0000",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     axis: Literal[0, 1] | None = 0,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
     max_rows: int | None = 1000,
@@ -195,9 +195,9 @@ def heatmap(
         Midpoint for the color gradient.
     axis : {0,1} | None, default=0
         Axis of the data, 0 for observations and 1 for variables.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -362,7 +362,7 @@ def heatmap(
     # `group_by` (and the cell identifier, when not aggregating) are needed from
     # the observation metadata. On the variable axis `keys` are metadata columns
     # rather than genes pulled from X, so they must be materialised explicitly.
-    observation_column_name = None if aggregate else observations_name
+    observation_column_name = None if aggregate else observation_id_column
     metadata_columns = [group_by] if group_by is not None else []
     if axis == 1:
         metadata_columns = list(dict.fromkeys([*keys, *metadata_columns]))
@@ -370,12 +370,12 @@ def heatmap(
         data=data,
         variable_keys=keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variables_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
-    row_identifier = variables_name if axis == 1 else observations_name
+    row_identifier = variable_id_column if axis == 1 else observation_id_column
     # Aggregate, scale and bin while wide, so the unpivoted frame never holds
     # cells x keys rows. Cast to the dtype unpivot would supercast the keys to.
     value_dtype = frame.head(0).select(keys).unpivot(value_name=value_column).schema[value_column]
@@ -433,7 +433,7 @@ def heatmap(
         if max_rows is not None:
             frame = _bin_within_groups(
                 frame,
-                observations_name=row_identifier,
+                observation_id_column=row_identifier,
                 group_by=group_by,
                 keys=keys,
                 y_order_groups=y_order_groups,
@@ -452,7 +452,7 @@ def heatmap(
         frame,
         aggregate=aggregate,
         group_by=group_by,
-        observations_name=row_identifier,
+        observation_id_column=row_identifier,
         variable_column=variable_column,
         x_keys=x_keys,
         y_order_groups=y_order_groups,
@@ -620,8 +620,8 @@ def matrixplot(
     color_high: str = "#ff0000",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     axis: Literal[0, 1] | None = 0,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
     **geom_kwargs,
@@ -706,9 +706,9 @@ def matrixplot(
         Midpoint for the color gradient.
     axis : {0,1} | None, default=0
         Axis of the data, 0 for observations and 1 for variables.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -805,8 +805,8 @@ def matrixplot(
         color_high=color_high,
         midpoint=midpoint,
         axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
         interactive=interactive,
         **geom_kwargs,

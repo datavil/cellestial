@@ -48,7 +48,7 @@ Plot functions must NOT narrow which embeddings get materialised into the frame 
 
 **Why:** Deferred layers added after the plot call (notably `cl.stream()`, the velocity layer in `cellestial/layers/stream.py`) read columns from the *already-built* frame via `retrieve(plot)`. `cl.stream()` needs a *different* embedding than the plotted one — e.g. plotting `X_umap` but reading `velocity_umap` -> `VELOCITY_UMAP1/2`. Since `cl.stream()` lets users name velocity columns arbitrarily (`velocity_key=` / `velocity_prefix=`), the plot call cannot predict which embeddings a later layer will need. Narrowing `dimension_keys=[prefix]` caused `KeyError: Velocity columns not found`.
 
-**How to apply:** When optimizing frame builds, narrow `metadata_columns` (unused obs/var columns) and skip the identifier column (`observations_name=None`) freely, but leave embeddings alone. Embeddings are cheap anyway (each capped at `max(xy)` columns). The other deferred layers (`arrow_axis`, `ondata_legend`, `cluster_outlines`, `bracket`) only read `x`/`y`/`color`, which are the plot's own aesthetics and always present, so `metadata_columns` narrowing is safe for them. See plans/frame_overhead_narrowing.md.
+**How to apply:** When optimizing frame builds, narrow `metadata_columns` (unused obs/var columns) and skip the identifier column (`observation_id_column=None`) freely, but leave embeddings alone. Embeddings are cheap anyway (each capped at `max(xy)` columns). The other deferred layers (`arrow_axis`, `ondata_legend`, `cluster_outlines`, `bracket`) only read `x`/`y`/`color`, which are the plot's own aesthetics and always present, so `metadata_columns` narrowing is safe for them. See plans/frame_overhead_narrowing.md.
 
 ## Source: feedback_sync_repo_memory.md
 
@@ -483,7 +483,7 @@ type: project
 
 ## complex/annotated_heatmap.py
 
-- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observations_name` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. Excludes `group_bars*`/`aggregate`/`key_labels*`/`geom`/`markers` (contradict the composite). All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
+- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observation_id_column` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. Excludes `group_bars*`/`aggregate`/`key_labels*`/`geom`/`markers` (contradict the composite). All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
 - `_order_observations(frame, group_by, group_order=None)` — sorts rows into contiguous group blocks (explicit group_order e.g. from dendrogram, else first-appearance; group_by=None -> unchanged); returns (frame, group_order|None)
 - `_bin_observations(frame, group_by, max_rows)` — caps rows; reuses heatmap's `_bin_within_groups` proportional per-group allocation formula (not shared code); numeric->mean, categorical->mode
 - `_assign_position_y(frame)` — adds `position_y`, first row at top
@@ -564,8 +564,8 @@ interactive: bool = False
 
 ### Default naming parameters
 ```python
-observations_name: str = "Barcode"   # cell identifier column
-variables_name: str = "Variable"      # gene identifier column
+observation_id_column: str = "Barcode"   # cell identifier column
+variable_id_column: str = "Variable"      # gene identifier column
 ```
 
 ## Type annotation style

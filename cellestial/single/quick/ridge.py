@@ -51,8 +51,8 @@ def ridge(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     **geom_kwargs,
 ) -> PlotSpec:
@@ -92,9 +92,9 @@ def ridge(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -194,14 +194,14 @@ def ridge(
         axis=axis,
     )
     if frame is None:
-        observation_column_name = None if tooltips == "none" else observations_name
-        variable_column_name = None if tooltips == "none" else variables_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
+        variable_column_name = None if tooltips == "none" else variable_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observation_column_name,
-            variables_name=variable_column_name,
+            observation_id_column=observation_column_name,
+            variable_id_column=variable_column_name,
             metadata_columns=metadata_columns,
         )
 
@@ -252,8 +252,8 @@ def ridges(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     # multi plot args
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
@@ -303,9 +303,9 @@ def ridges(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -408,14 +408,14 @@ def ridges(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -434,8 +434,8 @@ def ridges(
             threshold=threshold,
             add_keys=add_keys,
             tooltips=tooltips,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
             interactive=interactive,
             **geom_kwargs,
         )

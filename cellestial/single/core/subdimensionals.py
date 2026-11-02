@@ -40,7 +40,7 @@ def dimensionals(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -117,7 +117,7 @@ def dimensionals(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -277,12 +277,12 @@ def dimensionals(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -303,7 +303,7 @@ def dimensionals(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -373,7 +373,7 @@ def umaps(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -447,7 +447,7 @@ def umaps(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -607,12 +607,12 @@ def umaps(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -632,7 +632,7 @@ def umaps(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -702,7 +702,7 @@ def tsnes(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -776,7 +776,7 @@ def tsnes(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -935,12 +935,12 @@ def tsnes(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -960,7 +960,7 @@ def tsnes(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1029,7 +1029,7 @@ def pcas(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -1103,7 +1103,7 @@ def pcas(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1262,12 +1262,12 @@ def pcas(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -1287,7 +1287,7 @@ def pcas(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1356,7 +1356,7 @@ def expressions(
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -1426,7 +1426,7 @@ def expressions(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1584,12 +1584,12 @@ def expressions(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -1608,7 +1608,7 @@ def expressions(
             variable_keys=variable_keys,
             add_keys=add_keys,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,

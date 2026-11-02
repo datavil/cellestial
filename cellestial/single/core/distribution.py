@@ -39,8 +39,8 @@ def violin(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
@@ -106,9 +106,9 @@ def violin(
         Geom type of the points, default is geom_jitter.
     point_mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the points, the result of `aes()`.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -247,8 +247,8 @@ def violin(
         point_size=point_size,
         point_geom=point_geom,
         point_mapping=point_mapping,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         show_points=show_points,
         interactive=interactive,
         value_column=value_column,
@@ -280,8 +280,8 @@ def boxplot(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
@@ -347,9 +347,9 @@ def boxplot(
         Geom type of the points, default is geom_jitter.
     point_mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the points, the result of `aes()`.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -482,8 +482,8 @@ def boxplot(
         point_size=point_size,
         point_geom=point_geom,
         point_mapping=point_mapping,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         show_points=show_points,
         interactive=interactive,
         value_column=value_column,
@@ -512,8 +512,8 @@ def histogram(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = None,
     geom_color: str | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -570,9 +570,9 @@ def histogram(
         Fill color for all bars in the histogram.
     geom_color : str | None, default=None
         Border color for all bars in the histogram.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -646,8 +646,8 @@ def histogram(
         tooltips=tooltips,
         geom_fill=geom_fill,
         geom_color=geom_color,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         show_points=False,
         interactive=interactive,
         value_column=value_column,

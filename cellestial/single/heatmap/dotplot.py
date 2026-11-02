@@ -299,7 +299,7 @@ def dotplot(
         data=data,
         axis=0,
         variable_keys=keys,
-        observations_name=None,
+        observation_id_column=None,
         metadata_columns=[group_by],
     )
     # WARN: negative expression makes the percent-expressed (dot size) misleading

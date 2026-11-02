@@ -24,8 +24,8 @@ def plot(
     *,
     axis: Literal[0, 1] | None = None,
     variable_keys: Sequence[str] | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
 ) -> PlotSpec:
     """
@@ -41,9 +41,9 @@ def plot(
         axis of the data, 0 for observations and 1 for variables.
     variable_keys : Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -106,8 +106,8 @@ def plot(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
     )
 

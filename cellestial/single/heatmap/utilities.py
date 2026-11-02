@@ -32,7 +32,7 @@ _GROUP_BAR_GAP_MIN = 0.15
 def _bin_within_groups(
     frame: pl.DataFrame,
     *,
-    observations_name: str,
+    observation_id_column: str,
     group_by: str,
     keys: list[str],
     y_order_groups: list[str],
@@ -52,7 +52,7 @@ def _bin_within_groups(
     group_key = "_group_key"
     frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
     obs_per_group = (
-        frame_with_key.select(observations_name, group_key)
+        frame_with_key.select(observation_id_column, group_key)
         .unique()
         .group_by(group_key, maintain_order=False)
         .agg(pl.len().alias("_n_cells"))
@@ -82,10 +82,10 @@ def _bin_within_groups(
     )
 
     obs_frame = (
-        frame_with_key.select(observations_name, group_key)
+        frame_with_key.select(observation_id_column, group_key)
         .unique(maintain_order=True)
         .join(offsets_frame, on=group_key)
-        .sort(["_group_index", observations_name])
+        .sort(["_group_index", observation_id_column])
         .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
         .with_columns(
             (
@@ -95,14 +95,14 @@ def _bin_within_groups(
             .cast(pl.String)
             .alias("_binned_obs")
         )
-        .select(observations_name, "_binned_obs")
+        .select(observation_id_column, "_binned_obs")
     )
 
     return (
-        frame.join(obs_frame, on=observations_name)
-        .drop(observations_name)
-        .rename({"_binned_obs": observations_name})
-        .group_by(observations_name, group_by, maintain_order=False)
+        frame.join(obs_frame, on=observation_id_column)
+        .drop(observation_id_column)
+        .rename({"_binned_obs": observation_id_column})
+        .group_by(observation_id_column, group_by, maintain_order=False)
         .agg(pl.col(keys).mean())
     )
 
@@ -161,7 +161,7 @@ def _assign_positions(
     *,
     aggregate: bool,
     group_by: str,
-    observations_name: str,
+    observation_id_column: str,
     variable_column: str,
     x_keys: list[str],
     y_order_groups: list[str],
@@ -202,7 +202,7 @@ def _assign_positions(
     # Nonaggregate: use a width-comparable y span for a square-ish aspect.
     group_index = {g: i for i, g in enumerate(y_order_groups)}
     cell_frame = (
-        frame.select(observations_name, group_by)
+        frame.select(observation_id_column, group_by)
         .unique()
         .with_columns(
             pl.col(group_by)
@@ -210,14 +210,16 @@ def _assign_positions(
             .replace_strict(group_index, return_dtype=pl.Int64)
             .alias("_group_index")
         )
-        .sort(["_group_index", observations_name])
+        .sort(["_group_index", observation_id_column])
     )
     n_y = cell_frame.height
     y_step = _nonaggregate_y_step(n_x, n_y)
     cell_frame = cell_frame.with_columns(
         (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
     )
-    frame = frame.join(cell_frame.select(observations_name, "position_y"), on=observations_name)
+    frame = frame.join(
+        cell_frame.select(observation_id_column, "position_y"), on=observation_id_column
+    )
     centers_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
         .agg(pl.col("position_y").mean().alias("_center"), pl.col("_group_index").first())

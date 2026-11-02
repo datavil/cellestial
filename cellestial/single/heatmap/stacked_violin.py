@@ -90,8 +90,8 @@ def stacked_violin(
     aggregate_key: str = "expression",
     value_column: str = "value",
     variable_column: str = "variable",
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -207,9 +207,9 @@ def stacked_violin(
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
         Name for the variable column after unpivoting.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     tooltips : {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
@@ -329,8 +329,8 @@ def stacked_violin(
         data=data,
         axis=0,
         variable_keys=keys_list,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         metadata_columns=[group_by],
     )
     # DROP: rows with null group_by to avoid null labels downstream
@@ -340,7 +340,7 @@ def stacked_violin(
     # 1. Unpivot to long format
     frame = frame.unpivot(
         on=keys_list,
-        index=[observations_name, group_by],
+        index=[observation_id_column, group_by],
         variable_name=variable_column,
         value_name=value_column,
     )

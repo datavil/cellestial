@@ -139,7 +139,7 @@ costs almost nothing, and it keeps all deferred layers working. The
 users, but no internal caller uses it.
 
 The big wins all come from `metadata_columns` narrowing (skipping unused obs
-columns), the `observations_name=None` Barcode skip, and the
+columns), the `observation_id_column=None` Barcode skip, and the
 `if variable_keys:` sparse-slice bug fix — none of which touch embeddings.
 
 Audited the other deferred layers (`arrow_axis`, `ondata_legend`,

@@ -59,7 +59,7 @@ def dimensional(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -125,7 +125,7 @@ def dimensional(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -268,7 +268,7 @@ def dimensional(
         tooltips,
         data=data,
         variable_keys=variable_keys,
-        defaults=[observations_name, *([key] if key is not None else [])],
+        defaults=[observation_id_column, *([key] if key is not None else [])],
         metadata_columns=metadata_columns,
         axis=0,
     )
@@ -278,12 +278,12 @@ def dimensional(
     # layers like `stream` can read velocity embeddings from the frame.
     if frame is None:
         # Skip the observation identifier column when no tooltip can reference it.
-        observation_column_name = None if tooltips == "none" else observations_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=0,
-            observations_name=observation_column_name,
+            observation_id_column=observation_column_name,
             include_dimensions=max(xy),
             metadata_columns=metadata_columns,
         )

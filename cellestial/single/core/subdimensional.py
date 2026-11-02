@@ -30,7 +30,7 @@ def umap(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -92,7 +92,7 @@ def umap(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -194,7 +194,7 @@ def umap(
         drop=drop,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -232,7 +232,7 @@ def tsne(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -294,7 +294,7 @@ def tsne(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -396,7 +396,7 @@ def tsne(
         drop=drop,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -434,7 +434,7 @@ def pca(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -496,7 +496,7 @@ def pca(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -598,7 +598,7 @@ def pca(
         drop=drop,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -635,7 +635,7 @@ def expression(
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -693,7 +693,7 @@ def expression(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -788,7 +788,7 @@ def expression(
         add_keys=add_keys,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,

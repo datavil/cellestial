@@ -30,7 +30,7 @@ def highest_expressed_genes(
     modality: str | None = None,
     mapping: FeatureSpec | None = None,
     threshold: float | None = None,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     value_column: str = "value",
     variable_column: str = "variable",
     color: str = "#1f1f1f",
@@ -57,7 +57,7 @@ def highest_expressed_genes(
         Additional aesthetic mappings for the plot, the result of `aes()`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     value_column : str, default='value'
         The name to give to the value column after unpivoting.

@@ -64,8 +64,8 @@ def _distribution(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
@@ -167,14 +167,14 @@ def _distribution(
         ):
             index.append(column)
     if frame is None:
-        observation_column_name = None if tooltips == "none" else observations_name
-        variable_column_name = None if tooltips == "none" else variables_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
+        variable_column_name = None if tooltips == "none" else variable_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observation_column_name,
-            variables_name=variable_column_name,
+            observation_id_column=observation_column_name,
+            variable_id_column=variable_column_name,
             metadata_columns=metadata_columns,
         )
 

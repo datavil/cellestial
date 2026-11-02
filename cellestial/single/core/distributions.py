@@ -46,8 +46,8 @@ def violins(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
@@ -126,9 +126,9 @@ def violins(
         Geom type of the points, default is geom_jitter.
     point_mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the points, the result of `aes()`.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -257,14 +257,14 @@ def violins(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -291,8 +291,8 @@ def violins(
             point_size=point_size,
             point_geom=point_geom,
             point_mapping=point_mapping,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
             show_points=show_points,
             value_column=value_column,
             variable_column=variable_column,
@@ -352,8 +352,8 @@ def boxplots(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     show_points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
@@ -432,9 +432,9 @@ def boxplots(
         Geom type of the points, default is geom_jitter.
     point_mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the points, the result of `aes()`.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     show_points : bool, default=True
         Whether to show points.
@@ -562,14 +562,14 @@ def boxplots(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -596,8 +596,8 @@ def boxplots(
             point_size=point_size,
             point_geom=point_geom,
             point_mapping=point_mapping,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
             show_points=show_points,
             value_column=value_column,
             variable_column=variable_column,
@@ -655,8 +655,8 @@ def histograms(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = None,
     geom_color: str | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -725,9 +725,9 @@ def histograms(
         Fill color for all bars in the histogram.
     geom_color : str | None, default=None
         Border color for all bars in the histogram.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -838,14 +838,14 @@ def histograms(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -869,8 +869,8 @@ def histograms(
             tooltips=tooltips,
             geom_fill=geom_fill,
             geom_color=geom_color,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
             value_column=value_column,
             variable_column=variable_column,
             **geom_kwargs,

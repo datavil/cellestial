@@ -549,7 +549,7 @@ def test_heatmap_variable_axis_nonaggregate(adata):
         group_by="mt",
         axis=1,
         aggregate=False,
-        variables_name="Feature",
+        variable_id_column="Feature",
         max_rows=None,
     )
 
@@ -570,7 +570,7 @@ def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
         group_by="test_group",
         axis=1,
         aggregate=False,
-        variables_name="Feature",
+        variable_id_column="Feature",
         max_rows=None,
     )
 
@@ -605,7 +605,7 @@ def test_heatmap_variable_axis_nonaggregate_row_operations(adata, scale_axis, ma
         group_by="mt",
         axis=1,
         aggregate=False,
-        variables_name="Feature",
+        variable_id_column="Feature",
         scale_axis=scale_axis,
         max_rows=max_rows,
     )
