@@ -190,9 +190,11 @@ def _distribution(
     if group_by is not None:
         frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
 
+    # unpivot into a temporary name: for a single key `value_column` equals the key,
+    # which polars >= 1.44 rejects as a duplicate column
     frame = frame.unpivot(
-        on=keys, index=index, value_name=value_column, variable_name=variable_column
-    )
+        on=keys, index=index, value_name="__value__", variable_name=variable_column
+    ).rename({"__value__": value_column})
     frame = _drop_nonfinite_rows(frame, [value_column])
     if threshold is not None:
         frame = frame.filter(pl.col(value_column) >= threshold)

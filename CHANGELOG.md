@@ -58,6 +58,10 @@ change. Versions absent from the list were never released.
   whose midpoint vertex is repeated.
 - `_range_inclusive` reaches both endpoints without overshooting them, and
   accepts a stop below the start.
+- Single-key `violin`, `boxplot`, `histogram` and their plural variants no
+  longer raise `DuplicateError: duplicate column name` with polars 1.44 and
+  newer. The value column took the key's name during the unpivot, which newer
+  polars rejects.
 
 ### Notes
 - `bracket` tests the rows the plot draws, so a plot built with `threshold`
