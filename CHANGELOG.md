@@ -49,6 +49,14 @@ change. Versions absent from the list were never released.
   - Migration: remove the argument. Plots render identically without it. Only
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
+- On/off toggle parameters drop their `show_` prefix, matching the bare-noun
+  toggles elsewhere (`dendrogram`, `rectangle`, `legend`, `line`).
+  `violin`, `violins`, `boxplot` and `boxplots` take `points` instead of
+  `show_points`, and `volcano` and `volcanos` take `threshold_lines` instead of
+  `show_threshold_lines`.
+  - Migration: rename the keyword. The old names are no longer recognized and
+    are passed through to the geom like any other extra keyword, so they no
+    longer hide the points or threshold lines.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so

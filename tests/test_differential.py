@@ -383,7 +383,7 @@ def test_volcano_plot_options(ranked_adata):
         "A",
         use_adjusted_pvalue=True,
         mapping=aes(shape="significance"),
-        show_threshold_lines=True,
+        threshold_lines=True,
         threshold_kwargs={"alpha": 0.4},
         top_n=1,
         label_kwargs={"color": "blue"},
@@ -405,7 +405,7 @@ def test_volcano_without_thresholds_or_labels(ranked_adata):
     plot = cl.volcano(
         ranked_adata,
         "A",
-        show_threshold_lines=False,
+        threshold_lines=False,
         top_n=0,
         tooltips="none",
         nonsignificant_subsample=None,
@@ -418,7 +418,7 @@ def test_volcanos_plot_options(ranked_adata):
     plot = cl.volcanos(
         ranked_adata,
         ["A", "B"],
-        show_threshold_lines=False,
+        threshold_lines=False,
         top_n=None,
         share_labels=True,
         share_axis=True,

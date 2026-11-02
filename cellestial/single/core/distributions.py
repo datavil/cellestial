@@ -48,7 +48,7 @@ def violins(
     point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    show_points: bool = True,
+    points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -130,7 +130,7 @@ def violins(
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
-    show_points : bool, default=True
+    points : bool, default=True
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -293,7 +293,7 @@ def violins(
             point_mapping=point_mapping,
             observations_name=observations_name,
             variables_name=variables_name,
-            show_points=show_points,
+            points=points,
             value_column=value_column,
             variable_column=variable_column,
             point_kwargs=point_kwargs,
@@ -354,7 +354,7 @@ def boxplots(
     point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    show_points: bool = True,
+    points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -436,7 +436,7 @@ def boxplots(
         The name to give to barcode (or index) column in the dataframe.
     variables_name : str, default='Variable'
         The name to give to variable index column in the dataframe.
-    show_points : bool, default=True
+    points : bool, default=True
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -598,7 +598,7 @@ def boxplots(
             point_mapping=point_mapping,
             observations_name=observations_name,
             variables_name=variables_name,
-            show_points=show_points,
+            points=points,
             value_column=value_column,
             variable_column=variable_column,
             point_kwargs=point_kwargs,
