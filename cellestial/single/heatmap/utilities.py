@@ -791,7 +791,7 @@ def _compute_violin_polygons(
     width_scale: float,
     height_scale: float,
     aggregate: Literal["mean", "median"],
-    aggregate_key: str,
+    aggregate_column: str,
     kde_max_samples: int | None = None,
 ) -> pl.DataFrame:
     """
@@ -906,7 +906,7 @@ def _compute_violin_polygons(
                         "y": py,
                         variable_column: var_key,
                         group_by: group_key,
-                        aggregate_key: aggregated_value,
+                        aggregate_column: aggregated_value,
                     }
                 )
             polygon_id += 1
@@ -918,7 +918,7 @@ def _compute_violin_polygons(
             "y": pl.Float64,
             variable_column: pl.String,
             group_by: pl.String,
-            aggregate_key: pl.Float64,
+            aggregate_column: pl.Float64,
         }
         return pl.DataFrame(schema=schema)
     return pl.DataFrame(rows)

@@ -212,7 +212,7 @@ def test_compute_violin_polygons_edge_paths():
         width_scale=0.8,
         height_scale=0.8,
         aggregate="mean",
-        aggregate_key="expression",
+        aggregate_column="expression",
     )
     empty = _compute_violin_polygons(
         frame,
@@ -226,7 +226,7 @@ def test_compute_violin_polygons_edge_paths():
         width_scale=0.8,
         height_scale=0.8,
         aggregate="median",
-        aggregate_key="expression",
+        aggregate_column="expression",
     )
 
     assert polygons.height > 0
@@ -244,7 +244,7 @@ def test_compute_violin_polygons_edge_paths():
             width_scale=0.8,
             height_scale=0.8,
             aggregate="median",
-            aggregate_key="expression",
+            aggregate_column="expression",
         )
 
 

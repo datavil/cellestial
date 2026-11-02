@@ -119,7 +119,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `xyplots` | Claude 4.7 and Claude 4.8 |  |
 | `expressions` | Claude 4.7 |  |
-| `stacked_violin` | Claude 4.7 and Claude Opus 5 |  |
+| `stacked_violin` | Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `expression` | Claude 4.7 and Claude 4.8 |  |
 | `volcanos` | Claude 4.8 and Claude Opus 5 |  |
 | `highest_expressed_genes` | Claude 4.8 and Claude Opus 5 |  |
@@ -149,3 +149,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_range_inclusive` | Claude Opus 5 |  |
 | `bracket` | Claude Opus 5 |  |
 | `_compute_bracket_frame` | Claude Opus 5 |  |
+| `_compute_violin_polygons` | Claude Opus 5.5 |  |

@@ -87,7 +87,7 @@ def stacked_violin(
     key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
-    aggregate_key: str = "expression",
+    aggregate_column: str = "expression",
     value_column: str = "value",
     variable_column: str = "variable",
     observations_name: str = "Barcode",
@@ -200,7 +200,7 @@ def stacked_violin(
     key_labels_width : float, default=0.6
         Bracket width (in column units) for a singleton group. Multi-key groups
         extend `key_labels_width / 2` past the first and last key on each side.
-    aggregate_key : str, default='expression'
+    aggregate_column : str, default='expression'
         Name of the per-(variable, group) aggregate column attached to each violin
         (median or mean, selected by `color_by`).
     value_column : str, default='value'
@@ -377,7 +377,7 @@ def stacked_violin(
         width_scale=width_scale,
         height_scale=height_scale,
         aggregate="mean" if color_by == "mean" else "median",
-        aggregate_key=aggregate_key,
+        aggregate_column=aggregate_column,
         kde_max_samples=kde_max_samples,
     )
 
@@ -386,14 +386,14 @@ def stacked_violin(
         tooltips,
         data=data,
         variable_keys=[],
-        defaults=[variable_column, group_by, aggregate_key],
+        defaults=[variable_column, group_by, aggregate_column],
     )
     _validate_tooltips(tooltips, poly_frame)
 
     # DEFINE: mapping with defaults
     _mapping = {"x": "x", "y": "y", "group": "polygon_id"}
     if color_by in ("mean", "median"):
-        _mapping["fill"] = aggregate_key
+        _mapping["fill"] = aggregate_column
     elif color_by == "group":
         _mapping["fill"] = group_by
     elif color_by == "variable":
@@ -413,7 +413,7 @@ def stacked_violin(
     # ADD: continuous fill gradient when coloring by mean/median expression
     if color_by in ("mean", "median") and poly_frame.height > 0:
         plot += _fill_gradient(
-            poly_frame[aggregate_key],
+            poly_frame[aggregate_column],
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,

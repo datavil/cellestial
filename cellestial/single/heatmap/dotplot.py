@@ -68,8 +68,8 @@ def dotplot(
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
-    percentage_key: str = "pct_exp",
-    mean_key: str = "avg_exp",
+    percentage_column: str = "pct_exp",
+    mean_column: str = "avg_exp",
     rectangle: bool = True,
     dendrogram: bool = False,
     dendrogram_color: str = "black",
@@ -136,9 +136,9 @@ def dotplot(
         The column or columns to sort the results by.
     sort_order : str, default='descending'
         The sort order, either 'ascending' or 'descending'.
-    percentage_key : str, default='pct_exp'
+    percentage_column : str, default='pct_exp'
         The name of the percentage column.
-    mean_key : str, default='avg_exp'
+    mean_column : str, default='avg_exp'
         The name of the mean expression column.
     rectangle : bool, default=True
         Whether to add a rectangle border around the data area
@@ -318,7 +318,7 @@ def dotplot(
     # 1. Aggregate per group while wide, so the unpivoted frame holds
     # groups x keys rows instead of cells x keys.
     # Cast to the dtype unpivot would supercast the keys to.
-    value_dtype = frame.head(0).select(keys).unpivot(value_name=mean_key).schema[mean_key]
+    value_dtype = frame.head(0).select(keys).unpivot(value_name=mean_column).schema[mean_column]
     finite_values = [pl.col(key).cast(value_dtype).filter(pl.col(key).is_finite()) for key in keys]
     percentage_names = [f"__cellestial_percentage_{index}" for index in range(len(keys))]
     frame = frame.group_by(group_by).agg(
@@ -330,11 +330,11 @@ def dotplot(
     )
     # 2. Unpivot means and percentages; both unpivots keep the same row order.
     means = frame.unpivot(
-        on=keys, index=group_by, variable_name=variable_column, value_name=mean_key
+        on=keys, index=group_by, variable_name=variable_column, value_name=mean_column
     )
-    percentages = frame.unpivot(on=percentage_names, index=group_by, value_name=percentage_key)
+    percentages = frame.unpivot(on=percentage_names, index=group_by, value_name=percentage_column)
     # Keys with no finite value in a group get no row.
-    frame = means.with_columns(percentages[percentage_key]).filter(pl.col(mean_key).is_not_null())
+    frame = means.with_columns(percentages[percentage_column]).filter(pl.col(mean_column).is_not_null())
     # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
     numeric_group_by = "__cellestial_group_by_numeric"
     frame = frame.with_columns(
@@ -386,7 +386,7 @@ def dotplot(
         tooltips,
         data=data,
         variable_keys=[],
-        defaults=[group_by, variable_column, mean_key, percentage_key],
+        defaults=[group_by, variable_column, mean_column, percentage_column],
     )
     _validate_tooltips(tooltips, frame)
 
@@ -399,8 +399,8 @@ def dotplot(
     _mapping = {
         "x": "position_x",
         "y": "position_y",
-        "size": percentage_key,
-        color_or_fill: mean_key,
+        "size": percentage_column,
+        color_or_fill: mean_column,
     }
     _mapping.update(mapping.as_dict())
 
@@ -417,7 +417,7 @@ def dotplot(
             **geom_kwargs,
         )
         + _gradient(
-            frame[mean_key],
+            frame[mean_column],
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
