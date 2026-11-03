@@ -88,6 +88,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 
 | Function | Source | Line-by-line |
 | --- | --- | --- |
+| `_unsupported_data_type` | Claude Opus 5.5 |  |
 | `_spatial_components` | Claude 4.7 |  |
 | `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |

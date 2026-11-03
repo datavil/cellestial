@@ -412,6 +412,4 @@ def _spatial_components(
                 _warn(f"no images found for library `{library_id}`")
         return image_array, spot_coordinates, None, data
 
-    from spatialdata import SpatialData
-
-    raise _unsupported_data_type(data, AnnData, SpatialData)
+    raise _unsupported_data_type(data, AnnData, "SpatialData")

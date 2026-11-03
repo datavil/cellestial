@@ -37,7 +37,6 @@ dependencies = [
     "polars[pyarrow]>=1.30.0,<2.0.0",
     "scikit-image>=0.23.1,<1.0",
     "scipy>=1.12,<2",
-    "spatialdata>=0.7,<1.0",
     "tqdm>=4,<5",
     "mudata (>=0.3.8,<0.4.0)",
 ]
@@ -49,6 +48,9 @@ Repository = "https://github.com/DataVil/Cellestial"
 Issues = "https://github.com/DataVil/Cellestial/issues"
 
 [project.optional-dependencies]
+spatial = [
+    "spatialdata>=0.7,<1.0",
+]
 extras = [
     "matplotlib>=3.9,<4.0",
     "scanpy[leiden]>=1.10.4,<2.0.0",
@@ -73,6 +75,7 @@ pytest-cov = "^7.1.0"
 nbstripout = "^0.9.1"
 pytest-xdist = "^3.8.0"
 pytest-playwright = "^0.8.0"
+spatialdata = ">=0.7,<1.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.0.0"

@@ -282,9 +282,7 @@ def spatial(
         raise UnsupportedDataTypeError(msg)
 
     if not isinstance(data, AnnData) and not _is_spatialdata(data):
-        from spatialdata import SpatialData
-
-        raise _unsupported_data_type(data, AnnData, SpatialData)
+        raise _unsupported_data_type(data, AnnData, "SpatialData")
 
     _reject_sequence_key(key, singular="spatial", plural="spatials")
 

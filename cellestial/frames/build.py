@@ -415,8 +415,6 @@ def build_frame(
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
             raise ValueError(msg)
     else:
-        from spatialdata import SpatialData
-
-        raise _unsupported_data_type(data, AnnData, SpatialData, MuData)
+        raise _unsupported_data_type(data, AnnData, "SpatialData", MuData)
 
     return frame

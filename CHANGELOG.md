@@ -10,6 +10,12 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- `spatialdata` is no longer installed by default. It is only needed to plot
+  `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
+  inputs, spatial ones included, work without it. Dropping it from the core
+  install keeps its dask and geopandas stack out of environments that do not
+  use it.
+  - Migration: install the `spatial` extra, `pip install "cellestial[spatial]"`.
 - Plots are built and rendered with ggrust instead of lets-plot. ggrust keeps
   the lets-plot API, but cellestial now returns ggrust plot objects, which do
   not combine with layers or themes made by `lets_plot`.
