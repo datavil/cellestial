@@ -78,7 +78,7 @@ def dimensional(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Dimensionality reduction plot.
@@ -172,7 +172,7 @@ def dimensional(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -304,7 +304,7 @@ def dimensional(
             mapping=aes(x=x, y=y, color=key, **mapping.as_dict()),
             size=size,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         + _THEME_DIMENSION
     )

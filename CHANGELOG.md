@@ -76,6 +76,20 @@ change. Versions absent from the list were never released.
   - Migration: rename the keyword. The old names are no longer recognized and
     are passed through to the geom like any other extra keyword, so they no
     longer hide the points or threshold lines.
+- `arrow_axis` takes arrowhead options through an `arrow_kwargs` dict, and
+  its extra keyword arguments now go to the axis line layers (`geom_path`
+  and `geom_segment`) as `**geom_kwargs`. They used to be forwarded to
+  `arrow()`, so a geom option like `linetype` had no way in.
+  - Migration: `arrow_axis(type="closed")` becomes
+    `arrow_axis(arrow_kwargs={"type": "closed"})`.
+
+### Changed
+- Extra keyword arguments forwarded to the underlying geom are documented as
+  `**geom_kwargs` everywhere. `dimensional`, `umap`, `pca`, `tsne`,
+  `expression`, `xyplot`, `spatial`, `volcano` (and their plurals) used
+  `**point_kwargs`, and `markers` used `**text_kwargs`, which clashed with the
+  `point_kwargs` dict parameter of `violin` and `boxplot`. Calls are unaffected,
+  since keyword arguments land in the catch-all whatever its name.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so

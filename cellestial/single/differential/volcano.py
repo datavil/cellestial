@@ -79,7 +79,7 @@ def volcano(
     rank_genes_kwargs: dict | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Volcano plot.
@@ -119,9 +119,9 @@ def volcano(
     color_nonsignificant : str, default='#bebebe'
         Color for non-significant points (medium gray).
     size : float, default=2.0
-        Default point size; can be overridden via `point_kwargs`.
+        Default point size; can be overridden via `**geom_kwargs`.
     alpha : float, default=0.8
-        Default point alpha; can be overridden via `point_kwargs`.
+        Default point alpha; can be overridden via `**geom_kwargs`.
     threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
@@ -181,7 +181,7 @@ def volcano(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
 
     Returns
@@ -316,7 +316,7 @@ def volcano(
         tooltips=tooltips_spec,
         size=size,
         alpha=alpha,
-        **point_kwargs,
+        **geom_kwargs,
     )
 
     # ADD: threshold lines
@@ -446,7 +446,7 @@ def volcanos(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of volcano plots, one per group.
@@ -484,9 +484,9 @@ def volcanos(
     color_nonsignificant : str, default='#bebebe'
         Color for non-significant points.
     size : float, default=2.0
-        Default point size; can be overridden via `point_kwargs`.
+        Default point size; can be overridden via `**geom_kwargs`.
     alpha : float, default=0.8
-        Default point alpha; can be overridden via `point_kwargs`.
+        Default point alpha; can be overridden via `**geom_kwargs`.
     threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
@@ -566,7 +566,7 @@ def volcanos(
     guides : str, default='auto'
         How guides (legends/colorbars) should be treated in the layout.
         See :func:`ggrust.gggrid`.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer of each subplot.
 
     Returns
@@ -646,7 +646,7 @@ def volcanos(
             nonsignificant_label=nonsignificant_label,
             rank_genes_kwargs=rank_genes_kwargs,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers

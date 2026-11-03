@@ -74,7 +74,7 @@ def dimensionals(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -210,7 +210,7 @@ def dimensionals(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -322,7 +322,7 @@ def dimensionals(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -407,7 +407,7 @@ def umaps(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -540,7 +540,7 @@ def umaps(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -651,7 +651,7 @@ def umaps(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -736,7 +736,7 @@ def tsnes(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -868,7 +868,7 @@ def tsnes(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -978,7 +978,7 @@ def tsnes(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -1063,7 +1063,7 @@ def pcas(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -1195,7 +1195,7 @@ def pcas(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -1306,7 +1306,7 @@ def pcas(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -1390,7 +1390,7 @@ def expressions(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
@@ -1518,7 +1518,7 @@ def expressions(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -1627,7 +1627,7 @@ def expressions(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers

@@ -51,7 +51,7 @@ def xyplots(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Scatter Plots.
@@ -123,7 +123,7 @@ def xyplots(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -268,7 +268,7 @@ def xyplots(
             observations_name=observations_name,
             variables_name=variables_name,
             include_dimensions=include_dimensions,
-            **point_kwargs,
+            **geom_kwargs,
         )
         # handle the layers
         if layers is not None:

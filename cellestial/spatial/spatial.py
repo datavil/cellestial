@@ -82,7 +82,7 @@ def spatial(
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Spatial plot.
@@ -185,7 +185,7 @@ def spatial(
         Color for high values in the continuous gradient.
     midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
     Returns
@@ -417,7 +417,7 @@ def spatial(
             size=size,
             alpha=alpha,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         if key is not None:
             if frame[key].dtype == pl.Categorical:
@@ -436,7 +436,7 @@ def spatial(
             size=size,
             alpha=alpha,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         if key is not None:
             if frame[key].dtype == pl.Categorical:

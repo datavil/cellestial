@@ -43,6 +43,17 @@ def test_arrow_axis_explicit_plot_kwarg(adata):
     assert isinstance(combined, PlotSpec)
 
 
+def test_arrow_axis_forwards_arrow_and_geom_kwargs(adata):
+    umap = cl.umap(adata, "CD14")
+    combined = umap + cl.arrow_axis(arrow_kwargs={"type": "closed"}, linetype="dashed")
+    layers = [
+        layer for layer in combined.as_dict()["layers"] if layer["geom"] in ("path", "segment")
+    ]
+    assert [layer["geom"] for layer in layers] == ["path", "segment", "segment"]
+    assert all(layer["linetype"] == "dashed" for layer in layers)
+    assert all(layer["arrow"]["type"] == "closed" for layer in layers[1:])
+
+
 def test_arrow_axis_rejects_empty_coordinates():
     """Empty coordinates should raise a clear validation error."""
     frame = pl.DataFrame(schema={"x": pl.Float64, "y": pl.Float64})
