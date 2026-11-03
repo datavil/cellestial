@@ -79,6 +79,12 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_resolve_pvalue_column` | Claude Opus 5 |  |  |  |  |
 | `_filter_groups` | Claude Opus 5 |  |  |  |  |
 | `_require_categories` | Claude Opus 5 |  |  |  |  |
+| `_legend_overrides` | Claude Opus 5.5 |  |  |  |  |
+| `_aggregate_observations` | Claude Opus 5.5 |  |  |  |  |
+| `_bin_variables` | Claude Opus 5.5 |  |  |  |  |
+| `_bin_name` | Claude Opus 5.5 |  |  |  |  |
+| `_run_outlines` | Claude Opus 5.5 |  |  |  |  |
+| `_arrow_theme` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -91,7 +97,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `cluster_outlines` | Mixed |  |
 | `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `arrow_axis` | Claude 4.7 |  |
+| `arrow_axis` | Claude 4.7 and Claude Opus 5.5 |  |
 | `ondata_legend` | Claude 4.7 |  |
 | `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 |  |
 | `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 |  |
@@ -138,7 +144,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_determine_axis` | Claude Opus 5 |  |
 | `_get_dendrogram` | Claude Opus 5 |  |
 | `from_url` | Claude Opus 5 |  |
-| `annotated_heatmap` | Claude Opus 5 |  |
+| `annotated_heatmap` | Claude Opus 5 and Claude Opus 5.5 |  |
 | `_annotation_strip` | Claude Opus 5.5 |  |
 | `markers` | Claude Opus 5 |  |
 | `volcano` | Claude Opus 5 |  |
@@ -148,3 +154,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_range_inclusive` | Claude Opus 5 |  |
 | `bracket` | Claude Opus 5 |  |
 | `_compute_bracket_frame` | Claude Opus 5 |  |
+| `_modify_axis` | Claude Opus 5.5 |  |
+| `_assign_position_y` | Claude Opus 5.5 |  |
+| `_bin_observations` | Claude Opus 5.5 |  |
+| `_aggregations` | Claude Opus 5.5 |  |

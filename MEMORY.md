@@ -454,8 +454,8 @@ type: project
 
 ## layers/
 
-- `arrow_axis(plot, size, length, angle, color, ...)` — Replaces standard axes with custom arrows; extracts data/mapping from existing plot
-- `_modify_axis()` — Internal: removes std axis elements, draws geom_segment arrows at data min/max
+- `arrow_axis(size, length, angle, color, ...)` — Theme drawing the axis lines as arrows (ggrust `element_line(arrow=, extent=)`); no data access, `length` is a panel fraction
+- `_modify_axis()` — Internal: removes std axis elements; `axis_type="arrow"` returns the same arrow theme as `arrow_axis`
 - `stream(plot, velocity_prefix, ...)` — Velocity field visualization; requires scvelo; computes streamlines on grid; returns FeatureSpecArray
 - `cluster_outlines(plot, groups, padding, level, grid_size, ...)` — KDE + contour extraction (scipy + skimage) → geom_path outlines around clusters
 
@@ -483,7 +483,7 @@ type: project
 
 ## complex/annotated_heatmap.py
 
-- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observations_name` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. Excludes `group_bars*`/`aggregate`/`key_labels*`/`geom`/`markers` (contradict the composite). All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
+- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observations_name` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. `aggregate` (mean/median pseudobulk per group), `max_columns` (variable bins kept inside categorical column-annotation blocks), `annotation_outline`, `annotation_spacing` (also zeroes `plot_inset`). Excludes `group_bars*`/`key_labels*`/`markers` (contradict the composite). Collected legends take ONE subplot's theme in ggrust, so `layers` legend_* styling is copied to the tracks. All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
 - `_order_observations(frame, group_by, group_order=None)` — sorts rows into contiguous group blocks (explicit group_order e.g. from dendrogram, else first-appearance; group_by=None -> unchanged); returns (frame, group_order|None)
 - `_bin_observations(frame, group_by, max_rows)` — caps rows; reuses heatmap's `_bin_within_groups` proportional per-group allocation formula (not shared code); numeric->mean, categorical->mode
 - `_assign_position_y(frame)` — adds `position_y`, first row at top

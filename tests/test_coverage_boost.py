@@ -7,11 +7,10 @@ arrow, legends, operations, xyplot, xyplots, ridge, highest, heatmap.
 
 import pytest
 from ggrust import aes, layer_tooltips
-from ggrust.plot.core import PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
-from cellestial.layers import DeferredLayer
 from cellestial.util.errors import VariableNotFoundError
 
 # ===========================================================================
@@ -320,7 +319,7 @@ def test_dimensional_axis_type_none(adata):
 def test_arrow_axis_default(adata):
     umap = cl.umap(adata, "CD14")
     arrow = cl.arrow_axis()
-    assert isinstance(arrow, DeferredLayer)
+    assert isinstance(arrow, FeatureSpec)
     combined = umap + arrow
     assert isinstance(combined, PlotSpec)
 

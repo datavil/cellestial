@@ -44,8 +44,28 @@ change. Versions absent from the list were never released.
   - Migration: remove the argument. Plots render identically without it. Only
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
+- `arrow_axis` and `axis_type="arrow"` draw the arrows as the plot's own axis
+  lines (ggrust `element_line(arrow=, extent=)`) instead of data-space
+  `geom_path`/`geom_segment` layers. `arrow_axis` returns a theme rather than a
+  `DeferredLayer` and drops its `plot` parameter, since it no longer reads the
+  data. `length` is a fraction of the panel, not of the data range, and must lie
+  in (0, 1]. Axis titles now sit next to the arrows.
+  - Migration: remove `plot=`; `umap + cl.arrow_axis()` is unchanged.
+
+### Added
+- `annotated_heatmap` gains `annotation_outline` / `annotation_outline_size`
+  (borders around each block of equal values in the tracks),
+  `annotation_spacing` (gap between panels, with the panel insets dropped),
+  `aggregate` (`"mean"` or `"median"`, one pseudobulk row per `group_by`
+  group) and `max_columns` (averages contiguous keys into bins that never
+  cross a categorical column-annotation block).
 
 ### Fixed
+- `annotated_heatmap(transpose=True)` puts the first group on the left and the
+  first key at the top; both were reversed.
+- `annotated_heatmap` legend styling passed through `layers` (such as
+  `legend_text` sizes) now applies to the collected legends, which ggrust
+  styles with a single subplot's theme.
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
   the labels picked among p-values that underflow to zero are the strongest
   features and stable between builds.

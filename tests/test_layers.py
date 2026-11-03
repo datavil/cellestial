@@ -5,67 +5,64 @@ import numpy as np
 import polars as pl
 import pytest
 from ggrust import aes, geom_point, ggplot
-from ggrust.plot.core import PlotSpec
+from ggrust.errors import SpecError
+from ggrust.plot.core import FeatureSpec, PlotSpec
 
 import cellestial as cl
-from cellestial.layers import DeferredLayer
-from cellestial.layers.arrow import _axis_arrow_layers
 from cellestial.layers.bracket import _compute_bracket_frame, _correct_pvalues, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util import retrieve
 from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
 
 
-def test_arrow_axis_returns_deferred(adata):
+def _assert_arrow_axes(theme_spec: dict, *, extent: float, color: str) -> None:
+    for axis in ("x", "y"):
+        line = theme_spec[f"axis_line_{axis}"]
+        assert line["extent"] == extent
+        assert line["color"] == color
+        assert line["arrow"]["name"] == "arrow"
+        assert theme_spec[f"axis_title_{axis}"]["hjust"] == 0
+        assert theme_spec[f"axis_text_{axis}"]["blank"] is True
+        assert theme_spec[f"axis_ticks_{axis}"]["blank"] is True
+
+
+def test_arrow_axis_draws_native_axis_line_arrows(adata):
     umap = cl.umap(adata, "CD14")
     arrow = cl.arrow_axis()
-    assert isinstance(arrow, DeferredLayer)
-    # Addition should succeed
-    combined = umap + arrow
+    assert isinstance(arrow, FeatureSpec)
+    assert arrow.kind == "theme"
+    _assert_arrow_axes(arrow.as_dict(), extent=0.25, color="#3f3f3f")
+
+    combined = (umap + arrow).as_dict()
+    _assert_arrow_axes(combined["theme"], extent=0.25, color="#3f3f3f")
+    # The arrows are axis lines, not data-space layers.
+    assert [layer["geom"] for layer in combined["layers"]] == ["point"]
+
+
+def test_arrow_axis_customization():
+    arrow = cl.arrow_axis(length=0.20, color="dark_violet", size=2, angle=20, type="closed")
+    spec = arrow.as_dict()
+    _assert_arrow_axes(spec, extent=0.20, color="dark_violet")
+    assert spec["axis_line_x"]["size"] == 2
+    assert spec["axis_line_x"]["arrow"]["angle"] == 20
+    assert spec["axis_line_x"]["arrow"]["type"] == "closed"
+
+
+def test_arrow_axis_needs_no_data():
+    combined = ggplot() + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
 
 
-def test_arrow_axis_customization(adata):
-    umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(length=0.20, color="dark_violet")
-    assert isinstance(arrow, DeferredLayer)
-    combined = umap + arrow
-    assert isinstance(combined, PlotSpec)
+@pytest.mark.parametrize("length", [0, 1.5])
+def test_arrow_axis_rejects_length_outside_the_panel(length):
+    with pytest.raises(SpecError, match=r"0 < extent <= 1"):
+        cl.arrow_axis(length=length)
 
 
-def test_arrow_axis_explicit_plot_kwarg(adata):
-    # Explicit `plot=` pins the data source regardless of the receiving plot.
-    umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(plot=umap, length=0.20)
-    assert isinstance(arrow, DeferredLayer)
-    # Even when added to an empty ggplot, the data source stays `umap`.
-    combined = ggplot() + arrow
-    assert isinstance(combined, PlotSpec)
-
-
-def test_arrow_axis_rejects_empty_coordinates():
-    """Empty coordinates should raise a clear validation error."""
-    frame = pl.DataFrame(schema={"x": pl.Float64, "y": pl.Float64})
-
-    with pytest.raises(ValueError, match="coordinate"):
-        _axis_arrow_layers(
-            frame,
-            x="x",
-            y="y",
-            length=0.25,
-            size=1.0,
-            color="black",
-            angle=10.0,
-        )
-
-
-def test_arrow_axis_requires_each_coordinate_aesthetic():
-    frame = pl.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
-
-    with pytest.raises(MissingAestheticError, match="`x`"):
-        _ = (ggplot(frame) + geom_point(aes(y="y"))) + cl.arrow_axis()
-    with pytest.raises(MissingAestheticError, match="`y`"):
-        _ = (ggplot(frame) + geom_point(aes(x="x"))) + cl.arrow_axis()
+def test_dimensional_arrow_axis_type_uses_axis_line_arrows(adata):
+    spec = cl.umap(adata, "CD14", axis_type="arrow", arrow_length=0.3, arrow_color="red").as_dict()
+    _assert_arrow_axes(spec["theme"], extent=0.3, color="red")
+    assert [layer["geom"] for layer in spec["layers"]] == ["point"]
 
 
 def test_ondata_legend_uses_group_median_positions():

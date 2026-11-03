@@ -15,6 +15,7 @@ from ggrust import (
     element_text,
     geom_path,
     geom_raster,
+    geom_rect,
     geom_segment,
     geom_tile,
     gggrid,
@@ -29,6 +30,7 @@ from ggrust import (
     scale_y_continuous,
     theme,
 )
+from ggrust.plot.core import FeatureSpecArray
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -109,6 +111,46 @@ def _apply_layers(plot: PlotSpec, layers: Sequence[FeatureSpec]) -> PlotSpec:
     return plot
 
 
+def _legend_overrides(layers: Sequence[FeatureSpec]) -> FeatureSpec | None:
+    """
+    Collect the legend styling (`legend_*` theme entries) set in `layers`.
+
+    Notes
+    -----
+    Collected grid legends are all styled by one subplot's theme, which need not
+    be the heatmap, so legend styling passed for the heatmap must reach every
+    subplot. `legend_position` is left out: it is per-plot visibility, not style.
+    Returns `None` when `layers` set no legend styling.
+    """
+    legend: dict = {}
+    for layer in layers:
+        specs = layer.elements() if isinstance(layer, FeatureSpecArray) else [layer]
+        for spec in specs:
+            if spec.kind == "theme":
+                legend.update(
+                    {
+                        name: element
+                        for name, element in spec.as_dict().items()
+                        if name.startswith("legend_") and name != "legend_position"
+                    }
+                )
+    return theme(**legend) if legend else None
+
+
+def _aggregations(
+    frame: pl.DataFrame, columns: list[str], *, numeric: Literal["mean", "median"] = "mean"
+) -> list[pl.Expr]:
+    """Per-column aggregations: `numeric` for numeric columns, the mode otherwise."""
+    return [
+        (
+            getattr(pl.col(column), numeric)()
+            if frame.schema[column].is_numeric()
+            else pl.col(column).mode().first()
+        ).alias(column)
+        for column in columns
+    ]
+
+
 def _order_observations(
     frame: pl.DataFrame, *, group_by: str | None, group_order: list[str] | None = None
 ) -> tuple[pl.DataFrame, list[str] | None]:
@@ -155,22 +197,12 @@ def _bin_observations(
     if max_rows is None or n_rows <= max_rows:
         return frame
 
-    def _aggregations(columns: list[str]) -> list[pl.Expr]:
-        return [
-            (
-                pl.col(column).mean()
-                if frame.schema[column].is_numeric()
-                else pl.col(column).mode().first()
-            ).alias(column)
-            for column in columns
-        ]
-
     if group_by is None:
         return (
             frame.with_row_index("_rank")
             .with_columns((pl.col("_rank") * max_rows // n_rows).alias("_bin"))
             .group_by("_bin", maintain_order=True)
-            .agg(_aggregations(frame.columns))
+            .agg(_aggregations(frame, frame.columns))
             .sort("_bin")
             .drop("_bin")
         )
@@ -198,19 +230,100 @@ def _bin_observations(
             ).alias("_bin")
         )
         .group_by("_bin", group_by, maintain_order=True)
-        .agg(_aggregations(value_columns))
+        .agg(_aggregations(frame, value_columns))
         .sort("_bin")
         .drop("_bin")
     )
 
 
-def _assign_position_y(frame: pl.DataFrame) -> pl.DataFrame:
-    """Attach `position_y`, placing the first row at the top of the heatmap."""
+def _aggregate_observations(
+    frame: pl.DataFrame, *, group_by: str, aggregate: Literal["mean", "median"]
+) -> pl.DataFrame:
+    """
+    Collapse each `group_by` group into one row (pseudobulk).
+
+    Notes
+    -----
+    Numeric columns are summarized with `aggregate`; categorical columns take
+    their most frequent value per group. Groups keep their current order.
+    """
+    value_columns = [column for column in frame.columns if column != group_by]
+    return frame.group_by(group_by, maintain_order=True).agg(
+        _aggregations(frame, value_columns, numeric=aggregate)
+    )
+
+
+def _bin_variables(
+    keys: list[str], *, blocks: list[tuple] | None, max_columns: int | None
+) -> list[list[str]] | None:
+    """
+    Partition `keys` into at most ~`max_columns` contiguous bins.
+
+    Notes
+    -----
+    `blocks` holds one block label per key (e.g. its categorical annotation
+    values); bins never cross a change of label, and each contiguous block gets
+    bins proportionally to its size (at least one), like `_bin_observations`.
+    Returns `None` when the keys already fit in `max_columns`.
+    """
+    n_keys = len(keys)
+    if max_columns is None or n_keys <= max_columns:
+        return None
+    labels = blocks if blocks is not None else [()] * n_keys
+    runs: list[list[str]] = []
+    for index, key in enumerate(keys):
+        if index == 0 or labels[index] != labels[index - 1]:
+            runs.append([])
+        runs[-1].append(key)
+    bins: list[list[str]] = []
+    for run in runs:
+        n_bins = max(1, round(len(run) * max_columns / n_keys))
+        run_bins: list[list[str]] = [[] for _ in range(n_bins)]
+        for rank, key in enumerate(run):
+            run_bins[rank * n_bins // len(run)].append(key)
+        bins.extend(run_bins)
+    return bins
+
+
+def _bin_name(keys: list[str]) -> str:
+    """Name a variable bin after its first and last key."""
+    return keys[0] if len(keys) == 1 else f"{keys[0]}..{keys[-1]}"
+
+
+def _assign_position_y(frame: pl.DataFrame, *, descending: bool) -> pl.DataFrame:
+    """
+    Attach `position_y`, the observation index of each row.
+
+    Notes
+    -----
+    `descending` places the first row at the highest position (the top of an
+    upright heatmap); otherwise the first row sits at position 0 (the left of a
+    transposed heatmap).
+    """
     n_rows = frame.height
+    position = n_rows - 1 - pl.col("_row") if descending else pl.col("_row")
+    return frame.with_row_index("_row").with_columns(position.alias("position_y")).drop("_row")
+
+
+def _run_outlines(frame: pl.DataFrame, *, position: str, value: str) -> pl.DataFrame:
+    """
+    Extent of each run of equal `value` along `position`, as `start` / `end`.
+
+    Notes
+    -----
+    A run is a contiguous block of the same category (or numeric value); a
+    track whose neighbors all differ yields one run per cell.
+    """
+    ordered = frame.sort(position)
+    run = ordered[value].ne_missing(ordered[value].shift(1)).fill_null(True).cum_sum()
     return (
-        frame.with_row_index("_row")
-        .with_columns((n_rows - 1 - pl.col("_row")).alias("position_y"))
-        .drop("_row")
+        ordered.with_columns(run.alias("_run"))
+        .group_by("_run", maintain_order=True)
+        .agg(
+            (pl.col(position).min() - 0.5).alias("start"),
+            (pl.col(position).max() + 0.5).alias("end"),
+        )
+        .drop("_run")
     )
 
 
@@ -266,6 +379,8 @@ def _annotation_strip(
     colors: AnnotationColors | None,
     palette: str,
     position_limits: tuple[float, float],
+    outline: str | None,
+    outline_size: float,
 ) -> PlotSpec:
     """
     Build a single one-row (or one-column) annotation track.
@@ -276,7 +391,9 @@ def _annotation_strip(
     along y (row annotations). `position_limits` pin the varying axis so the
     track aligns with the heatmap panel. `palette` is the ColorBrewer palette used
     for a categorical track when `colors` is not given. The track is titled with
-    `value`: below a vertical strip (rotated), left of a horizontal strip.
+    `value`: below a vertical strip (rotated), left of a horizontal strip. A
+    non-`None` `outline` color draws a border of `outline_size` around each run
+    of equal values (see `_run_outlines`).
     """
     constant = "_strip"
     frame = frame.with_columns(pl.lit(0).alias(constant))
@@ -286,6 +403,23 @@ def _annotation_strip(
         else aes(x=constant, y=position, fill=value)
     )
     plot = ggplot(frame) + geom_tile(mapping)
+    if outline is not None:
+        runs = _run_outlines(frame, position=position, value=value)
+        if horizontal:
+            bounds = aes(xmin="start", xmax="end")
+            across = {"ymin": -0.5, "ymax": 0.5}
+        else:
+            bounds = aes(ymin="start", ymax="end")
+            across = {"xmin": -0.5, "xmax": 0.5}
+        plot += geom_rect(
+            bounds,
+            data=runs,
+            fill="rgba(0,0,0,0)",
+            color=outline,
+            size=outline_size,
+            inherit_aes=False,
+            **across,
+        )
     scale = _annotation_scale(frame[value], colors, palette)
     if scale is not None:
         plot += scale
@@ -358,6 +492,9 @@ def annotated_heatmap(
     column_annotations: str | Sequence[str] | None = None,
     row_annotations: str | Sequence[str] | None = None,
     annotation_colors: Mapping[str, AnnotationColors] | None = None,
+    annotation_outline: str | None = None,
+    annotation_outline_size: float = 0.5,
+    annotation_spacing: float | None = None,
     mapping: FeatureSpec | None = None,
     geom: Literal["raster", "tile"] = "raster",
     layers: FeatureSpec | Sequence[FeatureSpec] | None = None,
@@ -382,6 +519,8 @@ def annotated_heatmap(
     color_high: str = "#ff0000",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     max_rows: int | None = 1000,
+    max_columns: int | None = None,
+    aggregate: Literal["mean", "median"] | None = None,
     value_column: str = "value",
     variable_column: str = "variable",
     variables_name: str = "Variable",
@@ -413,6 +552,15 @@ def annotated_heatmap(
         Per-track color overrides, keyed by annotation name. The value is either a
         category -> color mapping, or a list of colors (two colors define a
         gradient for numeric tracks). Tracks without an entry use the defaults.
+    annotation_outline : str | None, default=None
+        Color of a border drawn around each contiguous block of equal values in
+        every annotation track (a block per cell where neighbors differ). `None`
+        draws no borders.
+    annotation_outline_size : float, default=0.5
+        Line width of the annotation borders.
+    annotation_spacing : float | None, default=None
+        Gap in pixels between stacked panels (tracks, dendrogram, and heatmap).
+        `None` keeps the default spacing; 0 packs them flush.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the heatmap, the result of `aes()`.
     geom : {'raster', 'tile'}, default='raster'
@@ -477,7 +625,16 @@ def annotated_heatmap(
         Cap the number of plotted rows by averaging contiguous observations
         (within each group) into virtual bins. Numeric annotations are averaged
         and categorical annotations take their most frequent value per bin. Set
-        to `None` to plot every observation.
+        to `None` to plot every observation. Ignored when `aggregate` is set.
+    max_columns : int | None, default=None
+        Cap the number of plotted variable columns by averaging contiguous `keys`
+        into bins named after their first and last key. Bins never cross a
+        change in the categorical column annotations, so those blocks stay
+        intact. `None` plots every key.
+    aggregate : {'mean', 'median'} | None, default=None
+        Plot one row per `group_by` group (pseudobulk), summarizing its
+        observations with this statistic; categorical annotations take their
+        most frequent value per group. `None` plots individual observations.
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -501,7 +658,7 @@ def annotated_heatmap(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     ValueError
-        If `dendrogram` is set without `group_by`.
+        If `dendrogram` or `aggregate` is set without `group_by`.
 
     Notes
     -----
@@ -544,6 +701,12 @@ def annotated_heatmap(
     if dendrogram and group_by is None:
         msg = "`group_by` is required when `dendrogram` is set."
         raise ValueError(msg)
+    if aggregate not in (None, "mean", "median"):
+        msg = f"`aggregate` must be 'mean', 'median', or None, but received {aggregate!r}."
+        raise ValueError(msg)
+    if aggregate is not None and group_by is None:
+        msg = "`group_by` is required when `aggregate` is set."
+        raise ValueError(msg)
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
     if dendrogram:
@@ -553,6 +716,36 @@ def annotated_heatmap(
         )
     else:
         dendrogram_order, dendrogram_paths = None, None
+
+    # BUILD: variable metadata in `keys` order; its categorical tracks delimit the
+    # blocks that variable bins must not cross.
+    variables = None
+    blocks = None
+    if column_annotations:
+        variables = (
+            build_frame(
+                data=data,
+                axis=1,
+                variables_name=variables_name,
+                metadata_columns=column_annotations,
+            )
+            .filter(pl.col(variables_name).is_in(keys))
+            .sort(
+                pl.col(variables_name).replace_strict(
+                    {key: index for index, key in enumerate(keys)}
+                )
+            )
+        )
+        categorical = [
+            annotation
+            for annotation in column_annotations
+            if not variables.schema[annotation].is_numeric()
+        ]
+        block_of = {
+            row[0]: row[1:] for row in variables.select(variables_name, *categorical).iter_rows()
+        }
+        blocks = [block_of.get(key, ()) for key in keys]
+    variable_bins = _bin_variables(keys, blocks=blocks, max_columns=max_columns)
 
     # BUILD: observation frame with expression and row metadata, order, then bin.
     metadata = [group_by, *row_annotations] if group_by is not None else list(row_annotations)
@@ -566,11 +759,45 @@ def annotated_heatmap(
     observations, group_order = _order_observations(
         observations, group_by=group_by, group_order=dendrogram_order
     )
-    observations = _bin_observations(observations, group_by=group_by, max_rows=max_rows)
-    observations = _assign_position_y(observations)
+    if aggregate is not None:
+        assert group_by is not None  # guaranteed by the guard above
+        observations = _aggregate_observations(
+            observations, group_by=group_by, aggregate=aggregate
+        )
+    else:
+        observations = _bin_observations(observations, group_by=group_by, max_rows=max_rows)
+    # Transposed, the first observation sits at the left; upright, at the top.
+    observations = _assign_position_y(observations, descending=not transpose)
 
-    # BUILD: long-form heatmap frame on shared x / y positions.
-    position_x = {key: index for index, key in enumerate(keys)}
+    # BIN variables: average each bin's keys, which the bin names then replace.
+    if variable_bins is not None:
+        bin_names = [_bin_name(variable_bin) for variable_bin in variable_bins]
+        observations = observations.select(
+            pl.exclude(keys),
+            *[
+                pl.mean_horizontal(variable_bin).alias(name)
+                for variable_bin, name in zip(variable_bins, bin_names, strict=True)
+            ],
+        )
+        if variables is not None:
+            bin_of = {
+                key: name
+                for variable_bin, name in zip(variable_bins, bin_names, strict=True)
+                for key in variable_bin
+            }
+            variables = (
+                variables.with_columns(pl.col(variables_name).replace_strict(bin_of))
+                .group_by(variables_name, maintain_order=True)
+                .agg(_aggregations(variables, column_annotations))
+            )
+        keys = bin_names
+
+    # BUILD: long-form heatmap frame on shared x / y positions. Transposed, the
+    # first key sits at the top; upright, at the left.
+    n_keys = len(keys)
+    position_x = {
+        key: (n_keys - 1 - index if transpose else index) for index, key in enumerate(keys)
+    }
     frame = (
         observations.unpivot(
             on=keys,
@@ -585,7 +812,6 @@ def annotated_heatmap(
         partition_key = variable_column if scale_axis == 0 else "position_y"
         frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
 
-    n_keys = len(keys)
     n_observations = observations.height
     key_limits = (-0.5, n_keys - 0.5)
     observation_limits = (-0.5, n_observations - 0.5)
@@ -604,14 +830,20 @@ def annotated_heatmap(
     if transpose:
         heatmap_x, heatmap_y = "position_y", "position_x"
         key_scale = scale_y_continuous(
-            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+            breaks=[position_x[key] for key in keys],
+            labels=keys,
+            limits=list(key_limits),
+            expand=[0, 0],
         )
         observation_scale = scale_x_continuous(limits=list(observation_limits), expand=[0, 0])
         blank_observation_axis = theme(axis_text_x=element_blank(), axis_ticks_x=element_blank())
     else:
         heatmap_x, heatmap_y = "position_x", "position_y"
         key_scale = scale_x_continuous(
-            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+            breaks=[position_x[key] for key in keys],
+            labels=keys,
+            limits=list(key_limits),
+            expand=[0, 0],
         )
         observation_scale = scale_y_continuous(limits=list(observation_limits), expand=[0, 0])
         blank_observation_axis = theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
@@ -650,7 +882,15 @@ def annotated_heatmap(
     # Extra user layers for the heatmap, a single spec or a sequence. A `scale_fill_*`
     # here overrides the default value gradient (lets-plot keeps the last scale).
     htmp = _apply_layers(htmp, _as_layers(layers))
-    htmp = _apply_layers(htmp, shared_layers)
+    # Tight spacing also drops each panel's inset, which otherwise pads every gap.
+    inset_layers = [theme(plot_inset=0)] if annotation_spacing is not None else []
+    htmp = _apply_layers(htmp, [*inset_layers, *shared_layers])
+    # Collected legends take one subplot's theme, so the heatmap's legend styling
+    # from `layers` must reach the tracks too (after their own `_LEGEND_THEME`).
+    legend_override = _legend_overrides(_as_layers(layers))
+    strip_layers = [legend_override] if legend_override is not None else []
+    strip_layers.extend(inset_layers)
+    strip_layers.extend(shared_layers)
 
     # GROUP separator lines between contiguous blocks, spanning the variable axis.
     if group_lines and group_order is not None and len(group_order) > 1:
@@ -659,7 +899,7 @@ def annotated_heatmap(
         running = 0
         for size in sizes[:-1]:
             running += size
-            boundaries.append(n_observations - running - 0.5)
+            boundaries.append(running - 0.5 if transpose else n_observations - running - 0.5)
         if transpose:
             lines = pl.DataFrame({"x": boundaries})
             htmp += geom_segment(
@@ -706,13 +946,7 @@ def annotated_heatmap(
 
     # COLUMN annotation tracks (variable metadata), drawn along the variable axis.
     column_strips: list[PlotSpec] = []
-    if column_annotations:
-        variables = build_frame(
-            data=data,
-            axis=1,
-            variables_name=variables_name,
-            metadata_columns=column_annotations,
-        ).filter(pl.col(variables_name).is_in(keys))
+    if variables is not None:
         variables = variables.with_columns(
             pl.col(variables_name).replace_strict(position_x).alias("position_x")
         )
@@ -726,8 +960,10 @@ def annotated_heatmap(
                 colors=annotation_colors.get(annotation),
                 palette=palette_of[annotation],
                 position_limits=key_limits,
+                outline=annotation_outline,
+                outline_size=annotation_outline_size,
             )
-            column_strips.append(_apply_layers(strip, shared_layers))
+            column_strips.append(_apply_layers(strip, strip_layers))
 
     # ROW annotation tracks (observation metadata), drawn along the observation axis.
     row_strips: list[PlotSpec] = []
@@ -741,8 +977,10 @@ def annotated_heatmap(
             colors=annotation_colors.get(annotation),
             palette=palette_of[annotation],
             position_limits=observation_limits,
+            outline=annotation_outline,
+            outline_size=annotation_outline_size,
         )
-        row_strips.append(_apply_layers(strip, shared_layers))
+        row_strips.append(_apply_layers(strip, strip_layers))
 
     # DENDROGRAM panel (group clustering), drawn alongside the observation axis.
     dendrogram_panel = None
@@ -766,7 +1004,7 @@ def annotated_heatmap(
                 side=observation_side,
                 kwargs=dendrogram_kwargs or {},
             ),
-            shared_layers,
+            [*inset_layers, *shared_layers],
         )
 
     # COMPOSE: the observation group (dendrogram outermost, then observation
@@ -850,6 +1088,8 @@ def annotated_heatmap(
         ncol=n_columns,
         widths=widths,
         heights=heights,
+        hspace=annotation_spacing,
+        vspace=annotation_spacing,
         align=True,
         guides="collect" if legend else None,  # ty:ignore[invalid-argument-type]
     )
