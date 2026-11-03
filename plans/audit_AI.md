@@ -112,7 +112,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `boxplot` | Claude 4.7 |  |
 | `violins` | Claude 4.7 |  |
 | `boxplots` | Claude 4.7 |  |
-| `_distribution` | Claude 4.7, Claude 4.8, and Claude Opus 5 |  |
+| `_distribution` | Claude 4.7, Claude 4.8, Claude Opus 5, and Claude Opus 5.5 |  |
 | `anndata_observations_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `anndata_variables_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `build_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |

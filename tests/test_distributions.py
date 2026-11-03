@@ -58,6 +58,15 @@ def test_add_keys(adata, fn, group_key):
     assert isinstance(plot, PlotSpec)
 
 
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot, cl.histogram])
+def test_single_key_value_column_named_after_key(adata, fn, group_key):
+    # polars >= 1.44 rejects an unpivot whose value_name equals an unpivoted column
+    plot = fn(adata, "CD14", group_by=group_key)
+    columns = plot.as_dict()["data"].columns
+    assert "CD14" in columns
+    assert "value" not in columns
+
+
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_invalid_key(adata, fn):
     with pytest.raises(Exception):
