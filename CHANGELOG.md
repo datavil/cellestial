@@ -56,6 +56,13 @@ change. Versions absent from the list were never released.
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
 
+- `dotplot` and `stacked_violin` name the parameters for their output frame
+  columns with a `_column` suffix, matching `value_column` and
+  `variable_column`: `percentage_key` is now `percentage_column`, `mean_key` is
+  now `mean_column`, and `aggregate_key` is now `aggregate_column`. Defaults
+  are unchanged.
+  - Migration: rename the keywords.
+
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
   the labels picked among p-values that underflow to zero are the strongest
