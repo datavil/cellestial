@@ -40,6 +40,7 @@ def _axis_arrow_layers(
     color: str,
     angle: float,
     arrow_kwargs: dict | None = None,
+    geom_kwargs: dict | None = None,
 ) -> FeatureSpecArray:
     """
     Build the arrow-axis as an L-shaped path plus two arrowhead tip segments.
@@ -62,6 +63,8 @@ def _axis_arrow_layers(
         Angle of the arrowhead in degrees.
     arrow_kwargs : dict | None
         Additional parameters for the `arrow` layer.
+    geom_kwargs : dict | None
+        Additional parameters for the `geom_path` and `geom_segment` layers.
 
     Returns
     -------
@@ -75,6 +78,7 @@ def _axis_arrow_layers(
     by a `geom_segment` carrying the arrowhead, meeting the path end-to-end.
     """
     arrow_kwargs = arrow_kwargs or {}
+    geom_kwargs = geom_kwargs or {}
 
     bounds = frame.select(
         pl.col(x).min().alias("x_min"),
@@ -116,6 +120,7 @@ def _axis_arrow_layers(
         mapping=aes(x="x", y="y"),
         color=color,
         size=size,
+        **geom_kwargs,
     )
     # X axis tip
     layers += geom_segment(
@@ -126,6 +131,7 @@ def _axis_arrow_layers(
         color=color,
         size=size,
         arrow=arrow(angle, **arrow_kwargs),
+        **geom_kwargs,
     )
     # Y axis tip
     layers += geom_segment(
@@ -136,6 +142,7 @@ def _axis_arrow_layers(
         color=color,
         size=size,
         arrow=arrow(angle, **arrow_kwargs),
+        **geom_kwargs,
     )
     return layers
 
@@ -229,7 +236,8 @@ def arrow_axis(
     length: float = 0.25,
     angle: float = 10,
     color: str = "#3f3f3f",
-    **arrow_kwargs,
+    arrow_kwargs: dict | None = None,
+    **geom_kwargs,
 ) -> DeferredLayer:
     """
     Layer of arrows as the X and Y axis to the plot.
@@ -248,10 +256,14 @@ def arrow_axis(
         Angle of the arrow head in degrees.
     length : float
         Span of each axis line as a fraction of its data range (0.25 covers 25%).
-    **arrow_kwargs
-        Additional parameters for the `arrow` layer.
+    arrow_kwargs : dict | None, default=None
+        Additional parameters for the `arrow` layer. E.g {"type": "closed"}.
         For more information on arrow parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.arrow.html
+    **geom_kwargs
+        Additional parameters for the `geom_path` and `geom_segment` layers.
+        For more information on geom_path parameters, see:
+        https://lets-plot.org/python/pages/api/lets_plot.geom_path.html
 
     Returns
     -------
@@ -345,6 +357,7 @@ def arrow_axis(
             color=color,
             angle=angle,
             arrow_kwargs=arrow_kwargs,
+            geom_kwargs=geom_kwargs,
         )
         return new_layer
 

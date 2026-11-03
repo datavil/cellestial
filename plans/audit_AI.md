@@ -93,7 +93,8 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `cluster_outlines` | Mixed |  |
 | `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `arrow_axis` | Claude 4.7 |  |
+| `arrow_axis` | Claude 4.7 and Claude Opus 5.5 |  |
+| `_axis_arrow_layers` | Claude Opus 5.5 |  |
 | `ondata_legend` | Claude 4.7 |  |
 | `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |

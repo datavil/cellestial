@@ -49,6 +49,12 @@ change. Versions absent from the list were never released.
   - Migration: remove the argument. Plots render identically without it. Only
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
+- `arrow_axis` takes arrowhead options through an `arrow_kwargs` dict, and
+  its extra keyword arguments now go to the axis line layers (`geom_path`
+  and `geom_segment`) as `**geom_kwargs`. They used to be forwarded to
+  `arrow()`, so a geom option like `linetype` had no way in.
+  - Migration: `arrow_axis(type="closed")` becomes
+    `arrow_axis(arrow_kwargs={"type": "closed"})`.
 
 ### Changed
 - Extra keyword arguments forwarded to the underlying geom are documented as
