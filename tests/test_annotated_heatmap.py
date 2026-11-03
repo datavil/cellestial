@@ -9,7 +9,7 @@ from cellestial.complex.annotated_heatmap import (
     _bin_variables,
     _run_outlines,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
 
 
 def test_annotated_heatmap_default(adata, markers, group_key):
@@ -463,3 +463,59 @@ def test_annotated_heatmap_layers_legend_theme_reaches_collected_legends(
     # Visibility stays per panel: only the heatmap's legend is hidden.
     assert heatmap["theme"]["legend_position"] == "none"
     assert strip["theme"]["legend_position"] == "bottom"
+
+
+def test_annotated_heatmap_outline_by_outlines_every_row_track_by_one_annotation(
+    adata, markers, group_key, cluster_key
+):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=cluster_key,
+        column_annotations="highly_variable",
+        row_annotations=[group_key, cluster_key],
+        aggregate="mean",
+        transpose=True,
+        annotation_outline="black",
+        annotation_outline_by=group_key,
+    ).as_dict()
+    track_of = {
+        panel["layers"][0]["mapping"]["fill"]: panel
+        for panel in spec["figures"]
+        if panel is not None and panel["layers"][0]["geom"] == "tile"
+    }
+    group_strip, cluster_strip = track_of[group_key], track_of[cluster_key]
+    group_runs = _layers_of(group_strip, "rect")[0]["data"]
+    cluster_runs = _layers_of(cluster_strip, "rect")[0]["data"]
+    # The cluster track follows the cell-type blocks, not one border per cluster.
+    assert cluster_runs.equals(group_runs)
+    assert cluster_runs.height < adata.obs[cluster_key].nunique()
+    # Column tracks keep their own blocks.
+    column_strip = track_of["highly_variable"]
+    expected = _run_outlines(column_strip["data"], position="position_x", value="highly_variable")
+    assert _layers_of(column_strip, "rect")[0]["data"].equals(expected)
+
+
+def test_annotated_heatmap_outline_by_rejects_unknown_annotation(
+    adata, markers, group_key, cluster_key
+):
+    with pytest.raises(KeyNotFoundError, match=r"Did you mean 'leiden'\?"):
+        cl.annotated_heatmap(
+            adata,
+            keys=markers[:2],
+            group_by=group_key,
+            row_annotations=[group_key, cluster_key],
+            annotation_outline="black",
+            annotation_outline_by="leidn",
+        )
+
+
+def test_annotated_heatmap_outline_by_requires_outline(adata, markers, group_key):
+    with pytest.raises(ValueError, match="`annotation_outline` is required"):
+        cl.annotated_heatmap(
+            adata,
+            keys=markers[:2],
+            group_by=group_key,
+            row_annotations=group_key,
+            annotation_outline_by=group_key,
+        )

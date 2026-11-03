@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "ggrust", "mudata", "numpy"]
 
 from collections.abc import Mapping
+from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -37,7 +38,7 @@ from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import _scale_values
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _fill_gradient, _get_dendrogram, _warn
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
 from cellestial.util.utilities import _modality_source
 
 if TYPE_CHECKING:
@@ -381,6 +382,7 @@ def _annotation_strip(
     position_limits: tuple[float, float],
     outline: str | None,
     outline_size: float,
+    outline_by: str | None,
 ) -> PlotSpec:
     """
     Build a single one-row (or one-column) annotation track.
@@ -393,7 +395,8 @@ def _annotation_strip(
     for a categorical track when `colors` is not given. The track is titled with
     `value`: below a vertical strip (rotated), left of a horizontal strip. A
     non-`None` `outline` color draws a border of `outline_size` around each run
-    of equal values (see `_run_outlines`).
+    of equal values (see `_run_outlines`), of `outline_by` when given (a column
+    of `frame`) and of `value` otherwise.
     """
     constant = "_strip"
     frame = frame.with_columns(pl.lit(0).alias(constant))
@@ -404,7 +407,7 @@ def _annotation_strip(
     )
     plot = ggplot(frame) + geom_tile(mapping)
     if outline is not None:
-        runs = _run_outlines(frame, position=position, value=value)
+        runs = _run_outlines(frame, position=position, value=outline_by or value)
         if horizontal:
             bounds = aes(xmin="start", xmax="end")
             across = {"ymin": -0.5, "ymax": 0.5}
@@ -494,6 +497,7 @@ def annotated_heatmap(
     annotation_colors: Mapping[str, AnnotationColors] | None = None,
     annotation_outline: str | None = None,
     annotation_outline_size: float = 0.5,
+    annotation_outline_by: str | None = None,
     annotation_spacing: float | None = None,
     mapping: FeatureSpec | None = None,
     geom: Literal["raster", "tile"] = "raster",
@@ -558,6 +562,10 @@ def annotated_heatmap(
         draws no borders.
     annotation_outline_size : float, default=0.5
         Line width of the annotation borders.
+    annotation_outline_by : str | None, default=None
+        Name of one row or column annotation whose contiguous blocks outline
+        every track on its axis, instead of each track's own blocks. Tracks on
+        the other axis keep their own blocks. Requires `annotation_outline`.
     annotation_spacing : float | None, default=None
         Gap in pixels between stacked panels (tracks, dendrogram, and heatmap).
         `None` keeps the default spacing; 0 packs them flush.
@@ -658,7 +666,10 @@ def annotated_heatmap(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     ValueError
-        If `dendrogram` or `aggregate` is set without `group_by`.
+        If `dendrogram` or `aggregate` is set without `group_by`, or
+        `annotation_outline_by` without `annotation_outline`.
+    KeyNotFoundError
+        If `annotation_outline_by` names neither a row nor a column annotation.
 
     Notes
     -----
@@ -707,6 +718,25 @@ def annotated_heatmap(
     if aggregate is not None and group_by is None:
         msg = "`group_by` is required when `aggregate` is set."
         raise ValueError(msg)
+    if annotation_outline_by is not None:
+        if annotation_outline is None:
+            msg = "`annotation_outline` is required when `annotation_outline_by` is set."
+            raise ValueError(msg)
+        annotation_names = [*row_annotations, *column_annotations]
+        if annotation_outline_by not in annotation_names:
+            lines = [
+                f"`annotation_outline_by={annotation_outline_by!r}` is neither a row "
+                "nor a column annotation."
+            ]
+            close = get_close_matches(annotation_outline_by, annotation_names, n=1)
+            if close:
+                lines.append(f"Did you mean {close[0]!r}?")
+            lines.append(f"Available annotations: {annotation_names}")
+            raise KeyNotFoundError("\n".join(lines))
+    row_outline_by = annotation_outline_by if annotation_outline_by in row_annotations else None
+    column_outline_by = (
+        annotation_outline_by if annotation_outline_by in column_annotations else None
+    )
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
     if dendrogram:
@@ -952,7 +982,11 @@ def annotated_heatmap(
         )
         for annotation in column_annotations:
             strip = _annotation_strip(
-                variables.select("position_x", annotation),
+                variables.select(
+                    list(
+                        dict.fromkeys(["position_x", annotation, column_outline_by or annotation])
+                    )
+                ),
                 position="position_x",
                 value=annotation,
                 horizontal=variable_side in ("top", "bottom"),
@@ -962,6 +996,7 @@ def annotated_heatmap(
                 position_limits=key_limits,
                 outline=annotation_outline,
                 outline_size=annotation_outline_size,
+                outline_by=column_outline_by,
             )
             column_strips.append(_apply_layers(strip, strip_layers))
 
@@ -969,7 +1004,9 @@ def annotated_heatmap(
     row_strips: list[PlotSpec] = []
     for annotation in row_annotations:
         strip = _annotation_strip(
-            observations.select("position_y", annotation),
+            observations.select(
+                list(dict.fromkeys(["position_y", annotation, row_outline_by or annotation]))
+            ),
             position="position_y",
             value=annotation,
             horizontal=observation_side in ("top", "bottom"),
@@ -979,6 +1016,7 @@ def annotated_heatmap(
             position_limits=observation_limits,
             outline=annotation_outline,
             outline_size=annotation_outline_size,
+            outline_by=row_outline_by,
         )
         row_strips.append(_apply_layers(strip, strip_layers))
 

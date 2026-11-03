@@ -55,6 +55,8 @@ change. Versions absent from the list were never released.
 ### Added
 - `annotated_heatmap` gains `annotation_outline` / `annotation_outline_size`
   (borders around each block of equal values in the tracks),
+  `annotation_outline_by` (outline every track on an axis by one annotation's
+  blocks, e.g. cell type),
   `annotation_spacing` (gap between panels, with the panel insets dropped),
   `aggregate` (`"mean"` or `"median"`, one pseudobulk row per `group_by`
   group) and `max_columns` (averages contiguous keys into bins that never
