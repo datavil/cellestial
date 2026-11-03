@@ -378,7 +378,7 @@ def annotated_heatmap(
     max_rows: int | None = 1000,
     value_column: str = "value",
     variable_column: str = "variable",
-    variables_name: str = "Variable",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     legend: bool = True,
     **geom_kwargs,
@@ -476,7 +476,7 @@ def annotated_heatmap(
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
         Name for the variable column after unpivoting.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables identifier column.
     interactive : bool, default=False
         Whether to make the heatmap panel interactive (zoom and pan).
@@ -554,7 +554,7 @@ def annotated_heatmap(
         data=data,
         variable_keys=keys,
         axis=0,
-        observations_name=None,
+        observation_id_column=None,
         metadata_columns=list(dict.fromkeys(metadata)),
     )
     observations, group_order = _order_observations(
@@ -704,11 +704,11 @@ def annotated_heatmap(
         variables = build_frame(
             data=data,
             axis=1,
-            variables_name=variables_name,
+            variable_id_column=variable_id_column,
             metadata_columns=column_annotations,
-        ).filter(pl.col(variables_name).is_in(keys))
+        ).filter(pl.col(variable_id_column).is_in(keys))
         variables = variables.with_columns(
-            pl.col(variables_name).replace_strict(position_x).alias("position_x")
+            pl.col(variable_id_column).replace_strict(position_x).alias("position_x")
         )
         for annotation in column_annotations:
             strip = _annotation_strip(

@@ -56,7 +56,7 @@ def spatials(
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -163,7 +163,7 @@ def spatials(
         mapped keys; 'none' disables tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give the barcode column in the DataFrame.
     color_low : str, default='#f6f6f6'
         Color for low values in the continuous gradient.
@@ -307,12 +307,12 @@ def spatials(
     instance_key = _resolve_instance_key(table)
     if polygon and instance_key is not None and instance_key not in metadata_columns:
         metadata_columns.append(instance_key)
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=table,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
@@ -348,7 +348,7 @@ def spatials(
             add_keys=add_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,

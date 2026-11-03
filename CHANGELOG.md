@@ -82,6 +82,14 @@ change. Versions absent from the list were never released.
   `arrow()`, so a geom option like `linetype` had no way in.
   - Migration: `arrow_axis(type="closed")` becomes
     `arrow_axis(arrow_kwargs={"type": "closed"})`.
+- `observations_name` and `variables_name` are renamed to
+  `observation_id_column` and `variable_id_column` across the public API
+  (`build_frame`, the frame helpers and every plot that takes them). They name
+  the identifier column of the observations or variables frame, and the old
+  names were easy to confuse with `variable_column`, the unpivot name column.
+  Defaults (`"Barcode"`, `"Variable"`) and behaviour are unchanged.
+  - Migration: rename the keywords, e.g. `observations_name="Cell"` becomes
+    `observation_id_column="Cell"`.
 
 ### Changed
 - Extra keyword arguments forwarded to the underlying geom are documented as

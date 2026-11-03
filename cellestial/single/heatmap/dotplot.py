@@ -299,7 +299,7 @@ def dotplot(
         data=data,
         axis=0,
         variable_keys=keys,
-        observations_name=None,
+        observation_id_column=None,
         metadata_columns=[group_by],
     )
     # WARN: negative expression makes the percent-expressed (dot size) misleading
@@ -334,7 +334,9 @@ def dotplot(
     )
     percentages = frame.unpivot(on=percentage_names, index=group_by, value_name=percentage_column)
     # Keys with no finite value in a group get no row.
-    frame = means.with_columns(percentages[percentage_column]).filter(pl.col(mean_column).is_not_null())
+    frame = means.with_columns(percentages[percentage_column]).filter(
+        pl.col(mean_column).is_not_null()
+    )
     # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
     numeric_group_by = "__cellestial_group_by_numeric"
     frame = frame.with_columns(

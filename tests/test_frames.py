@@ -110,14 +110,14 @@ def test_frame_builders_select_metadata_dimensions_and_identifiers():
 
     observations = anndata_observations_frame(
         data,
-        observations_name=None,
+        observation_id_column=None,
         metadata_columns=["keep"],
         include_dimensions=1,
         dimension_keys=["x_DEMO"],
     )
     variables = anndata_variables_frame(
         data,
-        variables_name=None,
+        variable_id_column=None,
         metadata_columns=["keep_var"],
         include_dimensions=True,
         dimension_keys=["pcs"],

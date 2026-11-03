@@ -45,7 +45,7 @@ def anndata_observations_frame(
     /,
     variable_keys: str | Sequence[str] | None = None,
     *,
-    observations_name: str | None = "Barcode",
+    observation_id_column: str | None = "Barcode",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -59,7 +59,7 @@ def anndata_observations_frame(
         The data object containing the observations.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str | None, optional
+    observation_id_column : str | None, optional
         The name of the observation identifier column, default is 'Barcode'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
@@ -96,10 +96,10 @@ def anndata_observations_frame(
     part = container.observation_metadata()
     partm = container.observation_embeddings()
     # PART 1: INITIALIZE
-    if observations_name is None:
+    if observation_id_column is None:
         columns = []
     else:
-        columns = [pl.Series(observations_name, container.observation_names())]
+        columns = [pl.Series(observation_id_column, container.observation_names())]
     # PART 2: ADD AnnData.obs
     if metadata_columns is None:
         selected_columns = list(part.columns)
@@ -156,7 +156,7 @@ def anndata_observations_frame(
 def anndata_variables_frame(
     data: AnnData | MuData,
     *,
-    variables_name: str | None = "Variable",
+    variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -168,7 +168,7 @@ def anndata_variables_frame(
     ----------
     data : AnnData | MuData
         The data object containing the variables.
-    variables_name : str | None
+    variable_id_column : str | None
         Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
@@ -202,10 +202,10 @@ def anndata_variables_frame(
     part = container.variable_metadata()
     partm = container.variable_embeddings()
     # PART 2: initalize columns
-    if variables_name is None:
+    if variable_id_column is None:
         columns = []
     else:
-        columns = [pl.Series(variables_name, container.variable_names())]
+        columns = [pl.Series(variable_id_column, container.variable_names())]
     # PART 3: ADD AnnData.var
     if metadata_columns is None:
         selected_columns = list(part.columns)
@@ -276,8 +276,8 @@ def build_frame(
     *,
     variable_keys: str | Sequence[str] | None = None,
     axis: Literal[0, 1] | None = None,
-    observations_name: str | None = "Barcode",
-    variables_name: str | None = "Variable",
+    observation_id_column: str | None = "Barcode",
+    variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -293,10 +293,10 @@ def build_frame(
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : {0,1} | None
         The axis to build the frame for. 0 for observations, 1 for variables.
-    observations_name : str | None
+    observation_id_column : str | None
         The name of the observation identifier column, default is 'Barcode'.
         Pass `None` to omit the identifier column entirely.
-    variables_name : str | None
+    variable_id_column : str | None
         Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
@@ -398,7 +398,7 @@ def build_frame(
             frame = anndata_observations_frame(
                 data,
                 variable_keys=variable_keys,
-                observations_name=observations_name,
+                observation_id_column=observation_id_column,
                 include_dimensions=include_dimensions,
                 metadata_columns=metadata_columns,
                 dimension_keys=dimension_keys,
@@ -406,7 +406,7 @@ def build_frame(
         elif axis == 1:
             frame = anndata_variables_frame(
                 data,
-                variables_name=variables_name,
+                variable_id_column=variable_id_column,
                 include_dimensions=include_dimensions,
                 metadata_columns=metadata_columns,
                 dimension_keys=dimension_keys,
