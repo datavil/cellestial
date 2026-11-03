@@ -151,3 +151,10 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `bracket` | Claude Opus 5 |  |
 | `_compute_bracket_frame` | Claude Opus 5 |  |
 | `_compute_violin_polygons` | Claude Opus 5.5 |  |
+| `violin` | Claude Opus 5.5 |  |
+| `violins` | Claude Opus 5.5 |  |
+| `boxplot` | Claude Opus 5.5 |  |
+| `boxplots` | Claude Opus 5.5 |  |
+| `_distribution` | Claude Opus 5.5 |  |
+| `volcano` | Claude Opus 5.5 |  |
+| `volcanos` | Claude Opus 5.5 |  |

@@ -62,13 +62,20 @@ change. Versions absent from the list were never released.
   - Migration: rename the keyword, e.g. `color_by="group"` becomes
     `fill_statistic="group"`. A `color_by` argument now reaches the violin
     layer instead.
-
 - `dotplot` and `stacked_violin` name the parameters for their output frame
   columns with a `_column` suffix, matching `value_column` and
   `variable_column`: `percentage_key` is now `percentage_column`, `mean_key` is
   now `mean_column`, and `aggregate_key` is now `aggregate_column`. Defaults
   are unchanged.
   - Migration: rename the keywords.
+- On/off toggle parameters drop their `show_` prefix, matching the bare-noun
+  toggles elsewhere (`dendrogram`, `rectangle`, `legend`, `line`).
+  `violin`, `violins`, `boxplot` and `boxplots` take `points` instead of
+  `show_points`, and `volcano` and `volcanos` take `threshold_lines` instead of
+  `show_threshold_lines`.
+  - Migration: rename the keyword. The old names are no longer recognized and
+    are passed through to the geom like any other extra keyword, so they no
+    longer hide the points or threshold lines.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so

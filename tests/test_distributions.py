@@ -41,8 +41,8 @@ def test_threshold(adata, fn, group_key):
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
-def test_show_points_false(adata, fn, group_key):
-    plot = fn(adata, "CD14", fill=group_key, show_points=False)
+def test_points_false(adata, fn, group_key):
+    plot = fn(adata, "CD14", fill=group_key, points=False)
     assert isinstance(plot, PlotSpec)
 
 

@@ -66,7 +66,7 @@ def _distribution(
     point_mapping: FeatureSpec | None = None,
     observations_name: str = "Barcode",
     variables_name: str = "Variable",
-    show_points: bool = True,
+    points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -259,7 +259,7 @@ def _distribution(
         )
 
     # handle the points (jitter,point,sina)
-    if show_points:
+    if points:
         if point_geom in ["jitter", "point", "sina"]:
             geom_functions = {
                 "jitter": geom_jitter,

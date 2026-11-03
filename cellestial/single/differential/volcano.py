@@ -57,7 +57,7 @@ def volcano(
     color_nonsignificant: str = "#bebebe",
     size: float = 2.0,
     alpha: float = 0.8,
-    show_threshold_lines: bool = True,
+    threshold_lines: bool = True,
     threshold_color: str = "#3f3f3f",
     threshold_size: float = 0.4,
     threshold_linetype: str = "dashed",
@@ -122,7 +122,7 @@ def volcano(
         Default point size; can be overridden via `point_kwargs`.
     alpha : float, default=0.8
         Default point alpha; can be overridden via `point_kwargs`.
-    show_threshold_lines : bool, default=True
+    threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
         Color of the threshold lines.
@@ -320,7 +320,7 @@ def volcano(
     )
 
     # ADD: threshold lines
-    if show_threshold_lines:
+    if threshold_lines:
         _threshold_kwargs = {
             "color": threshold_color,
             "size": threshold_size,
@@ -409,7 +409,7 @@ def volcanos(
     color_nonsignificant: str = "#bebebe",
     size: float = 2.0,
     alpha: float = 0.8,
-    show_threshold_lines: bool = True,
+    threshold_lines: bool = True,
     threshold_color: str = "#3f3f3f",
     threshold_size: float = 0.4,
     threshold_linetype: str = "dashed",
@@ -487,7 +487,7 @@ def volcanos(
         Default point size; can be overridden via `point_kwargs`.
     alpha : float, default=0.8
         Default point alpha; can be overridden via `point_kwargs`.
-    show_threshold_lines : bool, default=True
+    threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
         Color of the threshold lines.
@@ -625,7 +625,7 @@ def volcanos(
             color_nonsignificant=color_nonsignificant,
             size=size,
             alpha=alpha,
-            show_threshold_lines=show_threshold_lines,
+            threshold_lines=threshold_lines,
             threshold_color=threshold_color,
             threshold_size=threshold_size,
             threshold_linetype=threshold_linetype,
