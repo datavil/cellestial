@@ -64,7 +64,7 @@ def stacked_violin(
     height_scale: float = 0.85,
     n_points: int = 64,
     kde_max_samples: int | None = 1200,
-    color_by: Literal["median", "mean", "group", "variable"] | None = "median",
+    fill_statistic: Literal["median", "mean", "group", "variable"] | None = "median",
     size: float = 0.2,
     color_low: str = "#F5F5F5",
     color_mid: str | None = None,
@@ -143,7 +143,7 @@ def stacked_violin(
         before fitting the KDE. Color values (mean/median) and the "count"
         scale use the full sample size. Sampling is deterministic. `None`
         fits the KDE on every cell (slower at scale, no shape approximation).
-    color_by : {'median', 'mean', 'group', 'variable'} | None, default='median'
+    fill_statistic : {'median', 'mean', 'group', 'variable'} | None, default='median'
         Which value drives the fill aesthetic of each violin.
         `'median'` colors by median expression per (variable, group).
         `'mean'` colors by mean expression per (variable, group).
@@ -153,7 +153,7 @@ def stacked_violin(
     size : float, default=0.2
         Stroke size (edge width) of the violins.
     color_low : str, default='#F5F5F5'
-        Color for low values in the gradient (used when `color_by='mean'`).
+        Color for low values in the gradient (used when `fill_statistic='mean'`).
     color_mid : str | None, default=None
         Color for mid values in the gradient.
     color_high : str, default='#00008B'
@@ -202,7 +202,7 @@ def stacked_violin(
         extend `key_labels_width / 2` past the first and last key on each side.
     aggregate_column : str, default='expression'
         Name of the per-(variable, group) aggregate column attached to each violin
-        (median or mean, selected by `color_by`).
+        (median or mean, selected by `fill_statistic`).
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
@@ -289,7 +289,7 @@ def stacked_violin(
             data,
             keys=markers,
             group_by="cell_type_lvl1",
-            color_by="group",
+            fill_statistic="group",
         )
 
     Plot the top genes from a precomputed ranking:
@@ -376,7 +376,7 @@ def stacked_violin(
         scale=scale,
         width_scale=width_scale,
         height_scale=height_scale,
-        aggregate="mean" if color_by == "mean" else "median",
+        aggregate="mean" if fill_statistic == "mean" else "median",
         aggregate_column=aggregate_column,
         kde_max_samples=kde_max_samples,
     )
@@ -392,11 +392,11 @@ def stacked_violin(
 
     # DEFINE: mapping with defaults
     _mapping = {"x": "x", "y": "y", "group": "polygon_id"}
-    if color_by in ("mean", "median"):
+    if fill_statistic in ("mean", "median"):
         _mapping["fill"] = aggregate_column
-    elif color_by == "group":
+    elif fill_statistic == "group":
         _mapping["fill"] = group_by
-    elif color_by == "variable":
+    elif fill_statistic == "variable":
         _mapping["fill"] = variable_column
     _mapping.update(mapping.as_dict())
 
@@ -411,7 +411,7 @@ def stacked_violin(
     )
 
     # ADD: continuous fill gradient when coloring by mean/median expression
-    if color_by in ("mean", "median") and poly_frame.height > 0:
+    if fill_statistic in ("mean", "median") and poly_frame.height > 0:
         plot += _fill_gradient(
             poly_frame[aggregate_column],
             color_low=color_low,

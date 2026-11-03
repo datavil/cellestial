@@ -160,7 +160,7 @@ def test_stacked_violin_options(adata, group_key):
         mapping=aes(alpha="expression"),
         threshold=0.0,
         scale="count",
-        color_by="group",
+        fill_statistic="group",
         geom_fill=None,
         rectangle=False,
         key_labels=False,
@@ -176,7 +176,7 @@ def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
         sub,
         group_by=group_key,
         keys=(markers := ["CD79A", "MS4A1"]),
-        color_by="variable",
+        fill_statistic="variable",
         rectangle_kwargs={"alpha": 0.5},
         n_points=16,
     )
