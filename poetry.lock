@@ -1526,22 +1526,6 @@ unicode = ["unicodedata2 (>=17.0.0) ; python_version <= \"3.14\""]
 woff = ["brotli (>=1.0.1) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; platform_python_implementation != \"CPython\"", "zopfli (>=0.1.4)"]
 
 [[package]]
-name = "framex"
-version = "1.0.3"
-description = "dataframe operations"
-optional = false
-python-versions = "<4.0,>=3.8"
-groups = ["main"]
-files = [
-    {file = "framex-1.0.3-py3-none-any.whl", hash = "sha256:568ed2d5ca4dd749648e7a94f86af1ac1f9bd19432e57ef21b9e25b43744bff7"},
-    {file = "framex-1.0.3.tar.gz", hash = "sha256:a11731ca1e77a45cbe3f7db3399771579d401bc5b4ed8fd2d783c69032ef7d27"},
-]
-
-[package.dependencies]
-polars = ">=1.7.1,<2.0.0"
-rich-argparse = ">=1.7.0,<2.0.0"
-
-[[package]]
 name = "frozenlist"
 version = "1.8.0"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -1773,23 +1757,22 @@ dev = ["codecov", "pre-commit", "pytest (>=3.1.0)", "pytest-cov", "pytest-xdist"
 
 [[package]]
 name = "ggrust"
-version = "0.1.0"
+version = "0.3.0"
 description = "Grammar-of-graphics plotting engine in Rust with a lets_plot-compatible Python API"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "ggrust-0.1.0-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:7f69dcaf1f4c7a50d5ef8109296697216e6443bd71afcd7901f41f5f151cb7bd"},
-    {file = "ggrust-0.1.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:6107f233ada127f526523591949df8a279e6502a7ccc5f9aa7dfca89082db7ab"},
-    {file = "ggrust-0.1.0-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:6aeb2feb42ff9d469ae0fb8613abbbfe8639294ecab32bbba26105bde35dfbc2"},
-    {file = "ggrust-0.1.0-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:826db5b1ab5867f23fd066468f7aa3763630a62e05caf04c218b6e18ba06769f"},
-    {file = "ggrust-0.1.0-cp311-abi3-win_amd64.whl", hash = "sha256:ce655ad0eb861fdde62b4d9149f810a45447419e25c4b8499d7999a9cb189780"},
-    {file = "ggrust-0.1.0-cp311-abi3-win_arm64.whl", hash = "sha256:98581d4c95af323efe6c8268eb925cc5b5529089abd7ca8f991730909c308a2f"},
-    {file = "ggrust-0.1.0.tar.gz", hash = "sha256:254b11caa3000c0695c1efdb66ebbc784239d256cff8f296358e157702ca41a3"},
+    {file = "ggrust-0.3.0-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:c034d5a539e1bc60de8e5dbc0f360341fd9514c6ec36cccb209883913fa99bc2"},
+    {file = "ggrust-0.3.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:f2bb40834bb5929f3431bf0ea0e765706f70beac390aa5084e0c5fbb3e841354"},
+    {file = "ggrust-0.3.0-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:81775c0079ec576604fc2de772fd29d80994cc34be08c8ae449d8476f3159a6a"},
+    {file = "ggrust-0.3.0-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:b18f0bfa70480d3dc631b3f0eff6b1c8248f71a13f9261659448771abb7eaa7a"},
+    {file = "ggrust-0.3.0-cp311-abi3-win_amd64.whl", hash = "sha256:62d9415bb3f2dc88aa795dd1cdc38ecbf80f66831c90bee2d47da36deeec88c5"},
+    {file = "ggrust-0.3.0-cp311-abi3-win_arm64.whl", hash = "sha256:55db7f3454373d067611b6e361a45dbaefbf1de41816418f13fef29d1826baa7"},
+    {file = "ggrust-0.3.0.tar.gz", hash = "sha256:3e0e8a2b4f4a1466ee7f4151225690b89b6aedff52143dc76513c782f4231f88"},
 ]
 
 [package.dependencies]
-framex = ">=1.0.3"
 ipykernel = ">=7.4.0"
 polars = ">=1.30"
 
@@ -2856,6 +2839,7 @@ files = [
     {file = "markdown_it_py-4.2.0-py3-none-any.whl", hash = "sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a"},
     {file = "markdown_it_py-4.2.0.tar.gz", hash = "sha256:04a21681d6fbb623de53f6f364d352309d4094dd4194040a10fd51833e418d49"},
 ]
+markers = {main = "extra == \"spatial\""}
 
 [package.dependencies]
 mdurl = ">=0.1,<1.0"
@@ -3093,6 +3077,7 @@ files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
+markers = {main = "extra == \"spatial\""}
 
 [[package]]
 name = "mistune"
@@ -5416,6 +5401,7 @@ files = [
     {file = "rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"},
     {file = "rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"},
 ]
+markers = {main = "extra == \"spatial\""}
 
 [package.dependencies]
 markdown-it-py = ">=2.2.0"
@@ -5423,21 +5409,6 @@ pygments = ">=2.13.0,<3.0.0"
 
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<9)"]
-
-[[package]]
-name = "rich-argparse"
-version = "1.8.0"
-description = "Rich help formatters for argparse and optparse"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "rich_argparse-1.8.0-py3-none-any.whl", hash = "sha256:d2a3ce7854654e2253c578763ab0a32f05016f23a55fadba7b9a91b6c0e92142"},
-    {file = "rich_argparse-1.8.0.tar.gz", hash = "sha256:679df3d832fa94ad6e4bdb07ded088cd7ea2dddc58ae9b2b46346a40b06cbc0c"},
-]
-
-[package.dependencies]
-rich = ">=11.0.0"
 
 [[package]]
 name = "roman-numerals"
@@ -7625,4 +7596,4 @@ spatial = ["spatialdata"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "33c731b977d93a4da7e52f4768badae07c590b3f63ebe5425398d869c1b5631e"
+content-hash = "70f85b8a93e24873feee1f17d0cb946edaeea9800557ad88f33c039905929d88"
