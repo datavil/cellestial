@@ -251,6 +251,7 @@ def _track_layers(
     far: bool,
     colors: Mapping[str, AnnotationColors],
     palette_of: Mapping[str, str],
+    titles: bool,
 ) -> list[FeatureSpec]:
     """
     Build one band's annotation tracks, each with its own fill scale.
@@ -261,7 +262,8 @@ def _track_layers(
     the annotation columns. Each track is a level of the band's discrete cross
     axis, named after its column. The first listed is the outermost, so on a
     `far` band (right or top, where the cross axis grows away from the heatmap)
-    the level order is reversed.
+    the level order is reversed. Without `titles` the band axis has no breaks,
+    so the track names take no room.
     """
     side_tile = geom_xsidetile if band == "x" else geom_ysidetile
     layers: list[FeatureSpec] = []
@@ -273,13 +275,18 @@ def _track_layers(
         )
     if annotations:
         limits = list(reversed(annotations)) if far else list(annotations)
+        names = {} if titles else {"breaks": []}
         if band == "x":
             # Track names on the right, clear of the heatmap's y axis labels.
-            layers.append(scale_xsidey_discrete(limits=limits, expand=[0, 0], position="right"))
+            layers.append(
+                scale_xsidey_discrete(limits=limits, expand=[0, 0], position="right", **names)
+            )
         else:
             # Track names on top: turned names at the bottom would make the bottom
             # axis area as tall as the longest name.
-            layers.append(scale_ysidex_discrete(limits=limits, expand=[0, 0], position="top"))
+            layers.append(
+                scale_ysidex_discrete(limits=limits, expand=[0, 0], position="top", **names)
+            )
     return layers
 
 
@@ -348,6 +355,7 @@ def annotated_heatmap(
     row_annotation_width: float = 0.025,
     column_annotation_position: Literal["top", "bottom"] = "top",
     row_annotation_position: Literal["left", "right"] = "left",
+    track_titles: bool = False,
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
@@ -436,6 +444,11 @@ def annotated_heatmap(
         Which side of the heatmap the row (observation) tracks and the
         dendrogram sit on. Under `transpose` this reflects to the top/bottom
         side (left to top, right to bottom).
+    track_titles : bool, default=False
+        Whether to name each annotation track beside its band. Hidden by
+        default, since the legends already name the tracks; set to `True` to
+        show them (a top or bottom band's names on its right, a left or right
+        band's names above it).
     color_low : str, default='#0000ff'
         Color for low values in the heatmap gradient.
     color_mid : str, default='#ffffff'
@@ -690,6 +703,7 @@ def annotated_heatmap(
             far=variable_side in ("right", "top"),
             colors=annotation_colors,
             palette_of=palette_of,
+            titles=track_titles,
         )
 
     # ROW annotation tracks (observation metadata), in the band along the observation axis.
@@ -702,6 +716,7 @@ def annotated_heatmap(
         far=observation_far,
         colors=annotation_colors,
         palette_of=palette_of,
+        titles=track_titles,
     )
 
     # DENDROGRAM (group clustering), outermost in the observation band. Groups span

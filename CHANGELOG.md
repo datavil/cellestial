@@ -14,9 +14,10 @@ change. Versions absent from the list were never released.
   `SupPlotsSpec` panels. Annotation tracks are ggside side layers
   (`geom_xsidetile`/`geom_ysidetile`), each with its own fill scale
   (`new_scale_fill`) and legend, so they zoom and pan with the heatmap in HTML
-  output (`interactive=True`). Tracks are now named on their band's axis: a
-  top or bottom band's names on the right, a left or right band's names on
-  top, so they never enlarge the gene-label axis. The group dendrogram is drawn in
+  output (`interactive=True`). Track titles beside the bands are hidden by
+  default, since the legends name each track; the new `track_titles=True`
+  shows them (a top or bottom band's names on its right, a left or right
+  band's names above it). The group dendrogram is drawn in
   the observation band, outermost. `layers_all` acts as `layers` now that there
   is a single plot. `column_annotation_height`, `row_annotation_width` and the
   tree's 0.15 width set the bands' share of the panel
