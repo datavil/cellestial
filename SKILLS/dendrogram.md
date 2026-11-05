@@ -5,7 +5,7 @@ How dendrograms are wired into the heatmap variants (`heatmap`, `matrixplot`, `d
 ## Two cases
 
 - **One row per group** (dotplot, stacked_violin, matrixplot, heatmap with `aggregate=True`): use ggrust's native axis dendrogram. The tree orders the y-axis and draws itself right of the panel.
-- **Per-cell rows** (heatmap with `aggregate=False`; `complex/annotated_heatmap.py`): groups span many rows of unequal height, so a discrete dendrogram scale cannot express them. These keep the hand-drawn `geom_path`.
+- **Per-cell rows** (heatmap with `aggregate=False`; `complex/annotated_heatmap.py`): groups span many rows of unequal height, so a discrete dendrogram scale cannot express them. These keep the hand-drawn tree: `geom_path` in the heatmap, two-point `geom_xsideline`/`geom_ysideline` segments in the annotated heatmap's observation side band (outermost, beyond the tracks).
 
 ## Helpers
 

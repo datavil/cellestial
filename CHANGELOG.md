@@ -10,6 +10,19 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- `annotated_heatmap` returns one `PlotSpec` instead of a `gggrid` of
+  `SupPlotsSpec` panels. Annotation tracks are ggside side layers
+  (`geom_xsidetile`/`geom_ysidetile`), each with its own fill scale
+  (`new_scale_fill`) and legend, so they zoom and pan with the heatmap in HTML
+  output (`interactive=True`). Tracks are now named on their band's axis (the
+  top or bottom band's names on the right). The group dendrogram is drawn in
+  the observation band, outermost. `layers_all` acts as `layers` now that there
+  is a single plot. `column_annotation_height`, `row_annotation_width` and the
+  tree's 0.15 width set the bands' share of the panel
+  (`ggside_panel_scale_x`/`_y`).
+  - Migration: index the plot's `as_dict()["layers"]` instead of
+    `["figures"]`; combine it with other plots through `gggrid` as any
+    `PlotSpec`.
 - ggrust 0.6 is required. `cellestial.setup_html` is removed, with the ggrust
   `LetsPlot` shim it aliased; it was a no-op, as is the setup call cellestial
   made on import in IPython.
