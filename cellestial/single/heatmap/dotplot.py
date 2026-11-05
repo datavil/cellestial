@@ -9,7 +9,6 @@ from anndata import AnnData
 from ggrust import (
     aes,
     element_line,
-    geom_path,
     geom_point,
     geom_rect,
     ggplot,
@@ -33,9 +32,10 @@ from cellestial.single.heatmap.utilities import (
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _color_gradient,
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _fill_gradient,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
     _resolve_tooltips,
     _validate_tooltips,
     _warn,
@@ -75,7 +75,6 @@ def dotplot(
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
-    dendrogram_kwargs: dict | None = None,
     rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
@@ -153,8 +152,6 @@ def dotplot(
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
         By default, `dendrogram_{group_by}` is used.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_segment.
     rectangle_size : float, default=0.8
         Size (thickness) of the rectangle border.
     rectangle_color : str, default='#3f3f3f'
@@ -359,9 +356,10 @@ def dotplot(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(
+        tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
+        y_order_groups = list(tree.ordered_labels)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
@@ -428,22 +426,6 @@ def dotplot(
         + _size_scale
     )
 
-    # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits
-    x_max_limit = n_x - 0.5
-    if dendrogram:
-        group_centers = [float(i) for i in range(n_y)]
-        dendrogram_frame = _get_dendrogram_path_frame(
-            paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
-        )
-        x_max_limit = dendrogram_frame["x"].max()
-        dtplt += geom_path(
-            data=dendrogram_frame,
-            mapping=aes(x="x", y="y", group="group"),
-            color=dendrogram_color,
-            size=dendrogram_size,
-            **(dendrogram_kwargs or {}),
-        )
-
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
     data_top = n_y - 0.5
     y_max_limit = data_top
@@ -463,15 +445,19 @@ def dotplot(
     dtplt += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
-        limits=[-0.5, x_max_limit],
+        limits=[-0.5, n_x - 0.5],
         expand=[0, 0],
     )
-    dtplt += scale_y_continuous(
-        breaks=list(range(n_y)),
-        labels=y_order_groups,
-        limits=[-0.5, y_max_limit],
-        expand=[0, 0],
-    )
+    # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
+    if dendrogram:
+        dtplt += _dendrogram_y_axis(tree, limits=[-0.5, y_max_limit])
+    else:
+        dtplt += scale_y_continuous(
+            breaks=list(range(n_y)),
+            labels=y_order_groups,
+            limits=[-0.5, y_max_limit],
+            expand=[0, 0],
+        )
 
     # KEY-GROUP brackets above the data area when `keys` was a mapping.
     if key_labels and key_groups is not None:
@@ -512,6 +498,8 @@ def dotplot(
 
     # ADD: layers
     dtplt += _THEME_DOTPLOT
+    if dendrogram:
+        dtplt += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
     # HANDLE: interactive
     if interactive:

@@ -35,6 +35,23 @@ def _stage_custom_dendrogram(adata, group_key, custom_key="dendrogram_custom_v2"
     return local, custom_key
 
 
+def _dendrogram_leaf_order(plot):
+    """Leaf labels of the plot's dendrogram scale, in the tree's order."""
+    (tree,) = (scale["dendrogram"] for scale in plot.as_dict()["scales"] if "dendrogram" in scale)
+    return [tree["labels"][leaf] for leaf in tree["order"]]
+
+
+@pytest.mark.parametrize("function", ["dotplot", "stacked_violin", "matrixplot"])
+def test_dendrogram_leaf_order_matches_scanpy(adata, markers, group_key, function):
+    import scanpy as sc
+
+    local = adata.copy()
+    sc.tl.dendrogram(local, groupby=group_key)
+    plot = getattr(cl, function)(local, keys=markers, group_by=group_key, dendrogram=True)
+    expected = list(local.uns[f"dendrogram_{group_key}"]["categories_ordered"])
+    assert _dendrogram_leaf_order(plot) == expected
+
+
 def test_heatmap_dendrogram_key_uses_custom_key(adata, markers, group_key):
     local, custom = _stage_custom_dendrogram(adata, group_key)
     plot = cl.heatmap(

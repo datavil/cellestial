@@ -10,6 +10,15 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- `dotplot`, `stacked_violin`, `matrixplot` and `heatmap(aggregate=True)` draw
+  the group dendrogram with ggrust's axis dendrogram (`scale_y_dendro` +
+  `guide_axis_dendro`) instead of a `geom_path` layer. The tree sits in a fixed
+  band right of the panel rather than inside an extended x range, so the data
+  area no longer shrinks to make room for it. `dendrogram_kwargs` is removed from
+  these functions and from `heatmap`; the per-cell `heatmap(aggregate=False)`
+  keeps its path layer, styled by `dendrogram_color` and `dendrogram_size`.
+  - Migration: drop `dendrogram_kwargs`; style the tree with `dendrogram_color`
+    and `dendrogram_size`, or with `theme(axis_ticks_y=element_line(...))`.
 - `arrow_axis` returns a ggrust theme with arrow axis lines instead of a deferred
   layer of `geom_path`/`geom_segment`. It no longer takes `plot=` (the theme needs
   no data) or `**geom_kwargs`; `linetype=` is now an explicit parameter. `length`
