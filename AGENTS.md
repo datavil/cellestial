@@ -8,6 +8,7 @@
 - simplicity first: minimum code, any overengineering shows at a glance
 - surgical edits: only touch what's required, don't fix up neighboring code on the way by
 - goal-driven: translate fuzzy instructions into verifiable targets before starting
+- commit and push after every significant change
 
 ## Code Style
 - use polars over pandas.
