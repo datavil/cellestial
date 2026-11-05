@@ -275,18 +275,16 @@ def _track_layers(
         )
     if annotations:
         limits = list(reversed(annotations)) if far else list(annotations)
-        names = {} if titles else {"breaks": []}
+        # Track names on the right of an x band, clear of the heatmap's y axis
+        # labels, and on top of a y band: turned names at the bottom would make the
+        # bottom axis area as tall as the longest name. Hidden names keep the band
+        # axis on the main axes' sides, where its line joins theirs.
         if band == "x":
-            # Track names on the right, clear of the heatmap's y axis labels.
-            layers.append(
-                scale_xsidey_discrete(limits=limits, expand=[0, 0], position="right", **names)
-            )
+            names = {"position": "right"} if titles else {"breaks": []}
+            layers.append(scale_xsidey_discrete(limits=limits, expand=[0, 0], **names))
         else:
-            # Track names on top: turned names at the bottom would make the bottom
-            # axis area as tall as the longest name.
-            layers.append(
-                scale_ysidex_discrete(limits=limits, expand=[0, 0], position="top", **names)
-            )
+            names = {"position": "top"} if titles else {"breaks": []}
+            layers.append(scale_ysidex_discrete(limits=limits, expand=[0, 0], **names))
     return layers
 
 
