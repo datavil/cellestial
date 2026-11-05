@@ -13,13 +13,6 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
-def _grid_figures(grid: SupPlotsSpec) -> list[PlotSpec]:
-    # Lets-Plot does not expose the underlying PlotSpec list on SupPlotsSpec;
-    # `.as_dict()["figures"]` returns serialized dicts that `gggrid` cannot consume.
-    # Name-mangled access is the only path to the live PlotSpec objects.
-    return vars(grid)["_SupPlotsSpec__figures"]
-
-
 def _normalize_widths(
     plots: Sequence[Sequence[PlotSpec | SupPlotsSpec]],
     widths: Sequence[float] | Sequence[Sequence[float]] | None,
@@ -222,7 +215,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
         msg = f"Expected int for index, but received {type(index)}"
         raise TypeError(msg)
 
-    figures = _grid_figures(grid)
+    figures = grid.figures
     if not -len(figures) <= index < len(figures):
         msg = f"index {index} is out of range for a grid with {len(figures)} figures."
         raise IndexError(msg)
@@ -286,7 +279,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
         msg = f"Expected Sequence[int] for indices, but received {type(indices)}"
         raise TypeError(msg)
 
-    figures = _grid_figures(grid)
+    figures = grid.figures
     out_of_range = [i for i in indices if not -len(figures) <= i < len(figures)]
     if out_of_range:
         msg = f"indices {out_of_range} are out of range for a grid with {len(figures)} figures"
