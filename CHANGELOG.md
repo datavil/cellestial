@@ -10,6 +10,11 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- ggrust 0.6 is required. `cellestial.setup_html` is removed, with the ggrust
+  `LetsPlot` shim it aliased; it was a no-op, as is the setup call cellestial
+  made on import in IPython.
+  - Migration: delete `setup_html()` calls; use `ggrust.display("html" | "svg" | "png")`
+    to choose notebook output.
 - `dotplot`, `stacked_violin`, `matrixplot` and `heatmap(aggregate=True)` draw
   the group dendrogram with ggrust's axis dendrogram (`scale_y_dendro` +
   `guide_axis_dendro`) instead of a `geom_path` layer. The tree sits in a fixed
