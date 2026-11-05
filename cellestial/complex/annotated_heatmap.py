@@ -206,14 +206,24 @@ def _bin_observations(
     )
 
 
-def _assign_position_y(frame: pl.DataFrame) -> pl.DataFrame:
-    """Attach `position_y`, placing the first row at the top of the heatmap."""
+def _assign_position_y(frame: pl.DataFrame, *, descending: bool) -> pl.DataFrame:
+    """
+    Attach `position_y`, the observation index of each row.
+
+    Notes
+    -----
+    `descending` places the first row at the highest position (the top of an
+    upright heatmap); otherwise the first row sits at position 0 (the left of a
+    transposed heatmap).
+    """
     n_rows = frame.height
-    return (
-        frame.with_row_index("_row")
-        .with_columns((n_rows - 1 - pl.col("_row")).alias("position_y"))
-        .drop("_row")
-    )
+    position = n_rows - 1 - pl.col("_row") if descending else pl.col("_row")
+    return frame.with_row_index("_row").with_columns(position.alias("position_y")).drop("_row")
+
+
+def _run_boundaries(labels: Sequence) -> list[int]:
+    """Indices where `labels` changes value: each starts a new contiguous run."""
+    return [index for index in range(1, len(labels)) if labels[index] != labels[index - 1]]
 
 
 def _annotation_scale(
@@ -332,6 +342,7 @@ def annotated_heatmap(
     keys: Sequence[str],
     group_by: str | None = None,
     *,
+    variable_group_by: str | None = None,
     modality: str | None = None,
     column_annotations: str | Sequence[str] | None = None,
     row_annotations: str | Sequence[str] | None = None,
@@ -377,6 +388,10 @@ def annotated_heatmap(
         The single-cell data object.
     keys : Sequence[str]
         Variable keys to include, placed on the x-axis.
+    variable_group_by : str | None, default=None
+        Variable metadata key whose contiguous blocks (over `keys` in order) are
+        separated by group lines, like `group_by` for observations. Drawn with
+        the `group_lines_*` styling; needs `group_lines`.
     modality : str | None, default=None
         Which modality's stored analysis results to use when `markers` or
         `dendrogram` is enabled. Required for a multimodal object holding more
@@ -417,7 +432,8 @@ def annotated_heatmap(
         observation tracks, outermost in their side band.
         The clustering is computed if not already available. Requires `group_by`.
     group_lines : bool, default=True
-        Whether to draw horizontal separator lines between groups.
+        Whether to draw separator lines between `group_by` groups (and between
+        `variable_group_by` blocks).
     group_lines_color : str, default='white'
         Color of the group separator lines.
     group_lines_size : float, default=0.6
@@ -552,10 +568,15 @@ def annotated_heatmap(
         observations, group_by=group_by, group_order=dendrogram_order
     )
     observations = _bin_observations(observations, group_by=group_by, max_rows=max_rows)
-    observations = _assign_position_y(observations)
+    # Transposed, the first observation sits at the left; upright, at the top.
+    observations = _assign_position_y(observations, descending=not transpose)
 
-    # BUILD: long-form heatmap frame on shared x / y positions.
-    position_x = {key: index for index, key in enumerate(keys)}
+    # BUILD: long-form heatmap frame on shared x / y positions. Transposed, the
+    # first key sits at the top; upright, at the left.
+    n_keys = len(keys)
+    position_x = {
+        key: (n_keys - 1 - index if transpose else index) for index, key in enumerate(keys)
+    }
     frame = (
         observations.unpivot(
             on=keys,
@@ -570,7 +591,6 @@ def annotated_heatmap(
         partition_key = variable_column if scale_axis == 0 else "position_y"
         frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
 
-    n_keys = len(keys)
     n_observations = observations.height
     key_limits = (-0.5, n_keys - 0.5)
     observation_limits = (-0.5, n_observations - 0.5)
@@ -590,7 +610,10 @@ def annotated_heatmap(
     if transpose:
         heatmap_x, heatmap_y = "position_y", "position_x"
         key_scale = scale_y_continuous(
-            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+            breaks=[position_x[key] for key in keys],
+            labels=keys,
+            limits=list(key_limits),
+            expand=[0, 0],
         )
         observation_scale = scale_x_continuous(
             breaks=[], limits=list(observation_limits), expand=[0, 0]
@@ -598,7 +621,10 @@ def annotated_heatmap(
     else:
         heatmap_x, heatmap_y = "position_x", "position_y"
         key_scale = scale_x_continuous(
-            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+            breaks=[position_x[key] for key in keys],
+            labels=keys,
+            limits=list(key_limits),
+            expand=[0, 0],
         )
         observation_scale = scale_y_continuous(
             breaks=[], limits=list(observation_limits), expand=[0, 0]
@@ -630,13 +656,18 @@ def annotated_heatmap(
     plot = _apply_layers(plot, _as_layers(layers_all))
 
     # GROUP separator lines between contiguous blocks, spanning the variable axis.
+    line_style = {
+        "inherit_aes": False,
+        "color": group_lines_color,
+        "size": group_lines_size,
+        **(group_lines_kwargs or {}),
+    }
     if group_lines and group_order is not None and len(group_order) > 1:
-        sizes = observations.group_by(group_by, maintain_order=True).len()["len"].to_list()
-        boundaries = []
-        running = 0
-        for size in sizes[:-1]:
-            running += size
-            boundaries.append(n_observations - running - 0.5)
+        assert group_by is not None
+        starts = _run_boundaries(observations[group_by].to_list())
+        boundaries = [
+            start - 0.5 if transpose else n_observations - start - 0.5 for start in starts
+        ]
         if transpose:
             lines = pl.DataFrame({"x": boundaries})
             plot += geom_segment(
@@ -644,10 +675,7 @@ def annotated_heatmap(
                 mapping=aes(x="x", xend="x"),
                 y=-0.5,
                 yend=n_keys - 0.5,
-                inherit_aes=False,
-                color=group_lines_color,
-                size=group_lines_size,
-                **(group_lines_kwargs or {}),
+                **line_style,
             )
         else:
             lines = pl.DataFrame({"y": boundaries})
@@ -656,10 +684,42 @@ def annotated_heatmap(
                 mapping=aes(y="y", yend="y"),
                 x=-0.5,
                 xend=n_keys - 0.5,
-                inherit_aes=False,
-                color=group_lines_color,
-                size=group_lines_size,
-                **(group_lines_kwargs or {}),
+                **line_style,
+            )
+
+    # VARIABLE group separator lines between contiguous `variable_group_by` blocks,
+    # spanning the observation axis.
+    if group_lines and variable_group_by is not None:
+        variable_groups = build_frame(
+            data=data,
+            axis=1,
+            variable_id_column=variable_id_column,
+            metadata_columns=[variable_group_by],
+        )
+        group_of = dict(
+            zip(
+                variable_groups[variable_id_column],
+                variable_groups[variable_group_by].cast(pl.String),
+                strict=True,
+            )
+        )
+        starts = _run_boundaries([group_of[key] for key in keys])
+        boundaries = [n_keys - start - 0.5 if transpose else start - 0.5 for start in starts]
+        if starts and transpose:
+            plot += geom_segment(
+                data=pl.DataFrame({"y": boundaries}),
+                mapping=aes(y="y", yend="y"),
+                x=-0.5,
+                xend=n_observations - 0.5,
+                **line_style,
+            )
+        elif starts:
+            plot += geom_segment(
+                data=pl.DataFrame({"x": boundaries}),
+                mapping=aes(x="x", xend="x"),
+                y=-0.5,
+                yend=n_observations - 0.5,
+                **line_style,
             )
 
     # Resolve which side each annotation group sits on. `transpose` reflects the

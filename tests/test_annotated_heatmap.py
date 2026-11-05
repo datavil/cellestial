@@ -275,3 +275,72 @@ def test_annotated_heatmap_raster_warns_and_removes_tooltips(adata, markers, gro
 
     heatmap_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "raster")
     assert "tooltips" not in heatmap_layer
+
+
+def test_annotated_heatmap_transpose_puts_first_group_left_and_first_key_top(
+    adata, markers, group_key
+):
+    # Regression: transposed, the first group landed on the right and the first
+    # key at the bottom, reversing the diagonal.
+    keys = markers[:3]
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=keys,
+        group_by=group_key,
+        row_annotations=[group_key],
+        transpose=True,
+        max_rows=40,
+    ).as_dict()
+
+    (track,) = _side_layers(spec, "x")
+    track_frame = pl.DataFrame(track["data"]).sort("position_y")
+    assert track_frame[group_key][0] == adata.obs[group_key].iloc[0]
+    key_scale = next(scale for scale in spec["scales"] if scale.get("labels") == keys)
+    assert key_scale["aesthetic"] == "y"
+    assert keys[key_scale["breaks"].index(max(key_scale["breaks"]))] == keys[0]
+
+
+def test_annotated_heatmap_upright_keeps_first_group_top_and_first_key_left(
+    adata, markers, group_key
+):
+    keys = markers[:3]
+    spec = cl.annotated_heatmap(
+        adata, keys=keys, group_by=group_key, row_annotations=[group_key], max_rows=40
+    ).as_dict()
+
+    (track,) = _side_layers(spec, "y")
+    track_frame = pl.DataFrame(track["data"]).sort("position_y", descending=True)
+    assert track_frame[group_key][0] == adata.obs[group_key].iloc[0]
+    key_scale = next(scale for scale in spec["scales"] if scale.get("labels") == keys)
+    assert key_scale["aesthetic"] == "x"
+    assert key_scale["breaks"] == [0, 1, 2]
+
+
+@pytest.mark.parametrize(
+    ("transpose", "position", "expected"),
+    [(False, "x", [1.5, 2.5]), (True, "y", [1.5, 0.5])],
+)
+def test_annotated_heatmap_variable_group_by_separates_key_blocks(
+    adata, markers, transpose, position, expected
+):
+    keys = markers[:4]
+    data = adata[:, keys].copy()
+    data.var["module"] = ["a", "a", "b", "c"]
+    spec = cl.annotated_heatmap(
+        data, keys=keys, variable_group_by="module", transpose=transpose, max_rows=20
+    ).as_dict()
+
+    (lines,) = [layer for layer in spec["layers"] if layer["geom"] == "segment"]
+    assert pl.DataFrame(lines["data"])[position].to_list() == expected
+    assert lines["color"] == "white"
+
+
+def test_annotated_heatmap_variable_group_by_needs_group_lines(adata, markers):
+    keys = markers[:4]
+    data = adata[:, keys].copy()
+    data.var["module"] = ["a", "a", "b", "c"]
+    spec = cl.annotated_heatmap(
+        data, keys=keys, variable_group_by="module", group_lines=False, max_rows=20
+    ).as_dict()
+
+    assert not [layer for layer in spec["layers"] if layer["geom"] == "segment"]

@@ -141,6 +141,11 @@ change. Versions absent from the list were never released.
   - Migration: rename the keywords, e.g. `observations_name="Cell"` becomes
     `observation_id_column="Cell"`.
 
+### Added
+- `annotated_heatmap(variable_group_by=...)` draws group lines between the
+  contiguous blocks of a variable metadata key (gene modules, say), alongside
+  the `group_by` lines between observation groups.
+
 ### Changed
 - Extra keyword arguments forwarded to the underlying geom are documented as
   `**geom_kwargs` everywhere. `dimensional`, `umap`, `pca`, `tsne`,
@@ -150,6 +155,8 @@ change. Versions absent from the list were never released.
   since keyword arguments land in the catch-all whatever its name.
 
 ### Fixed
+- `annotated_heatmap(transpose=True)` puts the first group on the left and the
+  first key at the top; both were reversed.
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
   the labels picked among p-values that underflow to zero are the strongest
   features and stable between builds.
