@@ -31,6 +31,19 @@ change. Versions absent from the list were never released.
   panel corner.
   - Migration: drop `plot=`; pass `linetype=` directly; other geom kwargs such as
     `alpha` are no longer supported.
+- `bracket` computes its tests with ggrust's `stat_compare_means` instead of
+  scipy. P-values, the `none`/`bonferroni`/`fdr_bh` corrections and the stars
+  agree for groups of 50 or more values; below that, tie-free groups get R's
+  exact Wilcoxon test, so `mannwhitney` p-values change there. Stars now use
+  `<=` cutoffs, and p-value labels show 2 significant digits. Bracket tips are
+  3% of the y range (ggpubr's default) instead of a fixed size. Removed:
+  `test="student"`, `alternative`, `label="padj"` and label sequences,
+  `label_format`, `prefix`, `prefix_style`, `separator` and `threshold`.
+  - Migration: `label="padj"` becomes `label="pvalue"` (it shows the adjusted
+    p-value); `threshold=0.05` becomes `hide_ns=True` with `label="stars"`;
+    pass `tip_length=` for other tips. One-sided and pooled-variance tests are
+    no longer available: ggrust's `student` is Welch's test, so it is not offered
+    under that name; use `test="ttest"`.
 - `spatialdata` is no longer installed by default. It is only needed to plot
   `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
   inputs, spatial ones included, work without it. Dropping it from the core
@@ -44,7 +57,8 @@ change. Versions absent from the list were never released.
     in code that adds layers, scales or themes to cellestial plots.
 - `bracket(test="ttest")` is now Welch's t-test rather than the pooled-variance
   one, matching R's `t.test()` and scanpy. P-values change.
-  - Migration: pass `test="student"`, a new option, for the previous behaviour.
+  - Migration: none; the pooled-variance test is no longer available (see the
+    `stat_compare_means` entry above).
 - `volcano` and `volcanos` name their p-value column after the values it holds.
   Under the default `use_adjusted_pvalue=True` the column, tooltip entry and
   y-axis title read `pvalue_adj` and `-log10(Padj)`; raw p-values are unaffected.

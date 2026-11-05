@@ -177,8 +177,6 @@ cl.boxplot(
 ) + scale_fill_hue() + cl.bracket(
     y_padding=0.2,
     label="pvalue",
-    prefix="p",
-    prefix_style="<",
     comparisons=[
         ("Lymphocytes", "Monocytes"),
         ("Monocytes", "Erythroid"),
