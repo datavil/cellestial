@@ -277,7 +277,9 @@ def _track_layers(
             # Track names on the right, clear of the heatmap's y axis labels.
             layers.append(scale_xsidey_discrete(limits=limits, expand=[0, 0], position="right"))
         else:
-            layers.append(scale_ysidex_discrete(limits=limits, expand=[0, 0]))
+            # Track names on top: turned names at the bottom would make the bottom
+            # axis area as tall as the longest name.
+            layers.append(scale_ysidex_discrete(limits=limits, expand=[0, 0], position="top"))
     return layers
 
 

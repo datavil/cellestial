@@ -162,6 +162,8 @@ def test_annotated_heatmap_is_one_plot_with_side_tracks(adata, markers, group_ke
     # first listed track outermost: leftmost in the left band
     assert side_scales["y"]["limits"] == [cluster_key, "pct_counts_mt"]
     assert side_scales["x"]["position"] == "right"
+    # turned names on top, so they don't inflate the bottom axis area
+    assert side_scales["y"]["position"] == "top"
 
 
 def test_annotated_heatmap_transpose_moves_tracks_and_group_lines(
