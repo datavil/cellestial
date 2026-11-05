@@ -17,7 +17,15 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from ggrust import element_rect, ggsave, scale_fill_gradientn, scale_fill_viridis, theme
+from ggrust import (
+    element_blank,
+    element_rect,
+    ggsave,
+    scale_fill_gradientn,
+    scale_fill_viridis,
+    theme,
+)
+from ggrust.plot.core import FeatureSpec, PlotSpec
 
 import cellestial as cl
 
@@ -108,7 +116,7 @@ def synthetic_modality(
     )
 
 
-def panel(data: AnnData, *, palette) -> object:
+def panel(data: AnnData, *, palette: FeatureSpec) -> PlotSpec:
     """Build one Fig. 3 heatmap panel from a synthetic modality."""
     data.obs.index = data.obs.index.astype(str)
     return cl.annotated_heatmap(
@@ -129,7 +137,15 @@ def panel(data: AnnData, *, palette) -> object:
         max_rows=len(CELL_TYPES) * len(TIME_POINTS),
         group_lines_color="black",
         group_lines_size=0.8,
-        layers=[palette, theme(panel_border=element_rect(color="black", size=1.2))],
+        layers=[
+            palette,
+            # Thousands of features: no per-feature labels on the key axis.
+            theme(
+                panel_border=element_rect(color="black", size=1.2),
+                axis_text_y=element_blank(),
+                axis_ticks_y=element_blank(),
+            ),
+        ],
     )
 
 
