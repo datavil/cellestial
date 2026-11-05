@@ -10,6 +10,13 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- `arrow_axis` returns a ggrust theme with arrow axis lines instead of a deferred
+  layer of `geom_path`/`geom_segment`. It no longer takes `plot=` (the theme needs
+  no data) or `**geom_kwargs`; `linetype=` is now an explicit parameter. `length`
+  is a fraction of the panel rather than of the data range, so arrows start at the
+  panel corner.
+  - Migration: drop `plot=`; pass `linetype=` directly; other geom kwargs such as
+    `alpha` are no longer supported.
 - `spatialdata` is no longer installed by default. It is only needed to plot
   `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
   inputs, spatial ones included, work without it. Dropping it from the core

@@ -143,7 +143,7 @@ def dimensional(
     axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
-        Span of each axis line as a fraction of its data range (0.25 covers 25%).
+        Span of each axis line as a fraction of the panel (0.25 covers 25%).
     arrow_size : float, default=1
         Width of the axis lines.
     arrow_color : str, default='#3f3f3f'
@@ -339,9 +339,6 @@ def dimensional(
 
     # HANDLE: arrow axis
     scttr += _modify_axis(
-        frame=frame,
-        x=x,
-        y=y,
         axis_type=axis_type,
         arrow_size=arrow_size,
         arrow_color=arrow_color,

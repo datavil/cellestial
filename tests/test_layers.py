@@ -8,75 +8,34 @@ from ggrust import aes, geom_point, ggplot
 from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
-from cellestial.layers import DeferredLayer
-from cellestial.layers.arrow import _axis_arrow_layers
 from cellestial.layers.bracket import _compute_bracket_frame, _correct_pvalues, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util import retrieve
 from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
 
 
-def test_arrow_axis_returns_deferred(adata):
+def test_arrow_axis_adds_to_plot(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis()
-    assert isinstance(arrow, DeferredLayer)
-    # Addition should succeed
-    combined = umap + arrow
+    combined = umap + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
 
 
 def test_arrow_axis_customization(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(length=0.20, color="dark_violet")
-    assert isinstance(arrow, DeferredLayer)
-    combined = umap + arrow
-    assert isinstance(combined, PlotSpec)
+    combined = umap + cl.arrow_axis(length=0.20, color="dark_violet")
+    theme = combined.as_dict()["theme"]
+    for key in ("axis_line_x", "axis_line_y"):
+        assert theme[key]["extent"] == 0.20
+        assert theme[key]["color"] == "dark_violet"
 
 
-def test_arrow_axis_explicit_plot_kwarg(adata):
-    # Explicit `plot=` pins the data source regardless of the receiving plot.
-    umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(plot=umap, length=0.20)
-    assert isinstance(arrow, DeferredLayer)
-    # Even when added to an empty ggplot, the data source stays `umap`.
-    combined = ggplot() + arrow
-    assert isinstance(combined, PlotSpec)
-
-
-def test_arrow_axis_forwards_arrow_and_geom_kwargs(adata):
+def test_arrow_axis_forwards_linetype_and_arrow_kwargs(adata):
     umap = cl.umap(adata, "CD14")
     combined = umap + cl.arrow_axis(arrow_kwargs={"type": "closed"}, linetype="dashed")
-    layers = [
-        layer for layer in combined.as_dict()["layers"] if layer["geom"] in ("path", "segment")
-    ]
-    assert [layer["geom"] for layer in layers] == ["path", "segment", "segment"]
-    assert all(layer["linetype"] == "dashed" for layer in layers)
-    assert all(layer["arrow"]["type"] == "closed" for layer in layers[1:])
-
-
-def test_arrow_axis_rejects_empty_coordinates():
-    """Empty coordinates should raise a clear validation error."""
-    frame = pl.DataFrame(schema={"x": pl.Float64, "y": pl.Float64})
-
-    with pytest.raises(ValueError, match="coordinate"):
-        _axis_arrow_layers(
-            frame,
-            x="x",
-            y="y",
-            length=0.25,
-            size=1.0,
-            color="black",
-            angle=10.0,
-        )
-
-
-def test_arrow_axis_requires_each_coordinate_aesthetic():
-    frame = pl.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
-
-    with pytest.raises(MissingAestheticError, match="`x`"):
-        _ = (ggplot(frame) + geom_point(aes(y="y"))) + cl.arrow_axis()
-    with pytest.raises(MissingAestheticError, match="`y`"):
-        _ = (ggplot(frame) + geom_point(aes(x="x"))) + cl.arrow_axis()
+    theme = combined.as_dict()["theme"]
+    for key in ("axis_line_x", "axis_line_y"):
+        assert theme[key]["linetype"] == "dashed"
+        assert theme[key]["arrow"]["type"] == "closed"
 
 
 def test_ondata_legend_uses_group_median_positions():
