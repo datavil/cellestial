@@ -408,3 +408,53 @@ def test_annotated_heatmap_without_key_labels_labels_every_key(adata, markers, g
     assert key_scale["labels"] == keys
     assert "position" not in key_scale
     assert not [layer for layer in spec["layers"] if layer["geom"] == "line"]
+
+
+def _module_data(adata, keys):
+    data = adata[:, keys].copy()
+    data.var["module"] = ["a", "a", "b", "c"]
+    return data
+
+
+def test_annotated_heatmap_group_labels_bracket_each_labelled_block(adata, markers):
+    keys = markers[:4]
+    spec = cl.annotated_heatmap(
+        _module_data(adata, keys),
+        keys=keys,
+        variable_group_by="module",
+        group_labels={"a": "Cell adhesion\nLipid metabolism", "c": "Cilium"},
+        group_labels_kwargs={"size": 4},
+        column_annotation_position="bottom",
+        transpose=True,
+        max_rows=20,
+    ).as_dict()
+
+    lines, texts, reach = (layer for layer in _side_layers(spec, "y"))
+    assert (lines["geom"], texts["geom"], reach["geom"]) == ("line", "text", "point")
+    text_frame = pl.DataFrame(texts["data"])
+    assert text_frame["text"].to_list() == ["Cell adhesion\nLipid metabolism", "Cilium"]
+    # transposed, block "a" (keys 0-1) sits at the top, "c" (key 3) at the bottom
+    assert text_frame["along"].to_list() == pytest.approx([2.5, 0.0])
+    assert texts["hjust"] == 0
+    assert texts["size"] == 4
+    # four segments (a pointed bracket) per labelled block, all outward of the band edge
+    line_frame = pl.DataFrame(lines["data"])
+    assert line_frame["segment"].n_unique() == 8
+    assert line_frame["cross"].min() == pytest.approx(-0.5)
+    assert spec["theme"]["ggside_panel_scale_y"] == pytest.approx(0.03 + 0.25)
+
+
+def test_annotated_heatmap_group_labels_requires_variable_group_by(adata, markers):
+    with pytest.raises(ValueError, match="variable_group_by"):
+        cl.annotated_heatmap(adata, keys=markers[:4], group_labels={"a": "text"})
+
+
+def test_annotated_heatmap_group_labels_unknown_block_raises(adata, markers):
+    keys = markers[:4]
+    with pytest.raises(ValueError, match="group_labels"):
+        cl.annotated_heatmap(
+            _module_data(adata, keys),
+            keys=keys,
+            variable_group_by="module",
+            group_labels={"nope": "text"},
+        )

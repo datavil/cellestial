@@ -63,6 +63,19 @@ PAPER_GENES = {
     "Microglia Sustained": ["Top2a", "Ezh2"],
     "Microglia Late": ["Tyrobp", "Cd274"],
 }
+# GO terms bracketed beside the Fig. 3b modules.
+PAPER_TERMS = {
+    "Astrocyte Early": "Cell adhesion\nLipid metabolic process",
+    "Astrocyte Sustained": "Cell morphogenesis\nCellular response to stress",
+    "Astrocyte Late": "Axon guidance\nCell differentiation",
+    "Ependymal Early": "Cilium assembly",
+    "Ependymal Sustained": "Ribosome biogenesis\nCell proliferation",
+    "OPC Early": "Nervous system development\nIon transport",
+    "OPC Sustained": "Cell cycle\nMyelination",
+    "Microglia Early": "Immune system process\nInterleukin production",
+    "Microglia Sustained": "Cell cycle",
+    "Microglia Late": "Integrin-mediated signaling\nMicroglial cell activation",
+}
 CELLS_PER_SAMPLE = 40
 OUTPUT = Path(__file__).resolve().parent.parent / "figures"
 
@@ -158,7 +171,13 @@ def name_genes(data: AnnData, genes: dict[str, list[str]]) -> list[str]:
     return [name for name in names if not name.startswith("Gene")]
 
 
-def panel(data: AnnData, *, palette: FeatureSpec, key_labels: list[str] | None = None) -> PlotSpec:
+def panel(
+    data: AnnData,
+    *,
+    palette: FeatureSpec,
+    key_labels: list[str] | None = None,
+    group_labels: dict[str, str] | None = None,
+) -> PlotSpec:
     """Build one Fig. 3 heatmap panel from a synthetic modality."""
     data.obs.index = data.obs.index.astype(str)
     # Thousands of features: label only `key_labels` (in italics), or none.
@@ -184,6 +203,9 @@ def panel(data: AnnData, *, palette: FeatureSpec, key_labels: list[str] | None =
         # One bin per cell type x time point sample (pseudobulk-like columns).
         max_rows=len(CELL_TYPES) * len(TIME_POINTS),
         key_labels=key_labels,
+        group_labels=group_labels,
+        group_labels_width=0.4,
+        group_labels_kwargs={"size": 5},
         group_lines_color="black",
         group_lines_size=0.8,
         layers=[
@@ -237,9 +259,9 @@ def main() -> None:
     )
     genes = name_genes(rna, PAPER_GENES)
     ggsave(
-        panel(rna, palette=magma, key_labels=genes),
+        panel(rna, palette=magma, key_labels=genes, group_labels=PAPER_TERMS),
         str(OUTPUT / "zamboni_fig3b.png"),
-        w=5,
+        w=7,
         h=7,
         unit="in",
     )
