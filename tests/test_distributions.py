@@ -1,9 +1,13 @@
+import warnings
+
 import pytest
-from ggrust import aes, geom_vline
+from ggrust import aes, geom_boxplot, geom_vline, ggplot
+from ggrust._render import GgrustWarning
 from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
+from cellestial import themes
 from cellestial.util import retrieve
 from cellestial.util.errors import KeyNotFoundError
 
@@ -351,3 +355,13 @@ def test_histogram_validation_paths(adata):
         cl.histograms(adata, [])
     with pytest.raises(ValueError):
         cl.histograms(adata, ["CD14", 1])
+
+
+@pytest.mark.parametrize("theme_name", ["_THEME_DIST", "_THEME_HIGHEST"])
+def test_distribution_themes_render_without_font_warnings(theme_name, tmp_path):
+    frame = {"group": ["a", "a", "b", "b"], "value": [1.0, 2.0, 3.0, 4.0]}
+    plot = ggplot(frame, aes("group", "value", fill="group")) + geom_boxplot()
+    plot += getattr(themes, theme_name)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", GgrustWarning)
+        plot.to_png(tmp_path / "plot.png")

@@ -15,7 +15,7 @@ _THEME_DIST = (
     + theme(
         text=element_text(family="Arial", color="#1f1f1f"),
         title=element_text(family="Arial", color="#1f1f1f"),
-        legend_title=element_text(family="Arial", color="#1f1f1f", face="Bold"),
+        legend_title=element_text(family="Arial", color="#1f1f1f", face="bold"),
         axis_title_x=element_blank(),
     )
     + scale_fill_hue()
@@ -25,7 +25,7 @@ _THEME_HIGHEST = (
     theme(
         text=element_text(family="Arial", color="#1f1f1f"),
         title=element_text(family="Arial", color="#1f1f1f"),
-        legend_title=element_text(family="Arial", color="#1f1f1f", face="Bold"),
+        legend_title=element_text(family="Arial", color="#1f1f1f", face="bold"),
         axis_title_x=element_blank(),
         legend_position="none",
     )
