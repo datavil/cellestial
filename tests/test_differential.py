@@ -1,7 +1,10 @@
+import warnings
+
 import numpy as np
 import pytest
 from anndata import AnnData
 from ggrust import aes, geom_point, layer_tooltips
+from ggrust._render import GgrustWarning
 from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
@@ -443,3 +446,10 @@ def test_volcanos_rejects_empty_groups(ranked_adata):
 def test_volcanos_rejects_non_string_groups(ranked_adata):
     with pytest.raises(KeyError, match="Group"):
         cl.volcanos(ranked_adata, [1])
+
+
+def test_markers_plot_renders_without_font_warnings(ranked_adata, tmp_path):
+    plot = cl.markers(ranked_adata, groups=["A"], n_genes=2)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", GgrustWarning)
+        plot.to_png(tmp_path / "plot.png")

@@ -280,7 +280,7 @@ def markers(
         plot += labs(x="ranking", y="score")
         plot += ggtitle(f"{group} vs. rest")
         plot += theme(
-            plot_title=element_text(size=11, hjust=0.5, family="Georgia"),
+            plot_title=element_text(size=11, hjust=0.5),
             legend_position="none",
         )
 
