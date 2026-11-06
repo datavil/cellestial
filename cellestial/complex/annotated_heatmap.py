@@ -275,6 +275,7 @@ def _track_layers(
     colors: Mapping[str, AnnotationColors],
     palette_of: Mapping[str, str],
     titles: bool,
+    titles_below: bool,
     legend: bool,
 ) -> list[FeatureSpec]:
     """
@@ -287,7 +288,9 @@ def _track_layers(
     axis, named after its column. The first listed is the outermost, so on a
     `far` band (right or top, where the cross axis grows away from the heatmap)
     the level order is reversed. Without `titles` the band axis has no breaks,
-    so the track names take no room. Without `legend` the tracks draw no
+    so the track names take no room. `titles_below` puts a y band's names
+    below it instead of above (an x band's sit on its right either way).
+    Without `legend` the tracks draw no
     legends.
     """
     side_tile = geom_xsidetile if band == "x" else geom_ysidetile
@@ -313,7 +316,8 @@ def _track_layers(
             names = {"position": "right"} if titles else {"breaks": []}
             layers.append(scale_xsidey_discrete(limits=limits, expand=[0, 0], **names))
         else:
-            names = {"position": "top"} if titles else {"breaks": []}
+            side = "bottom" if titles_below else "top"
+            names = {"position": side} if titles else {"breaks": []}
             layers.append(scale_ysidex_discrete(limits=limits, expand=[0, 0], **names))
     return layers
 
@@ -506,7 +510,8 @@ def annotated_heatmap(
     row_annotation_width: float = 0.025,
     column_annotation_position: Literal["top", "bottom"] = "top",
     row_annotation_position: Literal["left", "right"] = "left",
-    track_titles: bool = False,
+    row_track_titles: bool = False,
+    column_track_titles: bool = False,
     key_labels: Sequence[str] | None = None,
     group_labels: Mapping[str, str] | None = None,
     group_labels_width: float = 0.25,
@@ -605,11 +610,16 @@ def annotated_heatmap(
         Which side of the heatmap the row (observation) tracks and the
         dendrogram sit on. Under `transpose` this reflects to the top/bottom
         side (left to top, right to bottom).
-    track_titles : bool, default=False
-        Whether to name each annotation track beside its band. Hidden by
-        default, since the legends already name the tracks; set to `True` to
-        show them (a top or bottom band's names on its right, a left or right
-        band's names above it).
+    row_track_titles : bool, default=False
+        Whether to name the `row_annotations` tracks beside their band (left
+        of the heatmap, or above it under `transpose`). Hidden by default,
+        since the legends already name the tracks. A top or bottom band's
+        names sit on its right, a left or right band's names above it.
+    column_track_titles : bool, default=False
+        Whether to name the `column_annotations` tracks beside their band
+        (above the heatmap, or left of it under `transpose`), placed as for
+        `row_track_titles`. With both set, a left or right band's names move
+        below it, so the two bands' names never share a corner.
     key_labels : Sequence[str] | None, default=None
         Label only these `keys`, spread evenly along the key axis, with a
         leader line from each key's row (or column) to its label, as for gene
@@ -943,7 +953,8 @@ def annotated_heatmap(
             far=variable_side in ("right", "top"),
             colors=annotation_colors,
             palette_of=palette_of,
-            titles=track_titles,
+            titles=column_track_titles,
+            titles_below=row_track_titles,
             legend=annotation_legends,
         )
 
@@ -957,7 +968,8 @@ def annotated_heatmap(
         far=observation_far,
         colors=annotation_colors,
         palette_of=palette_of,
-        titles=track_titles,
+        titles=row_track_titles,
+        titles_below=column_track_titles,
         legend=annotation_legends,
     )
 

@@ -176,7 +176,8 @@ def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster
         group_by=group_key,
         column_annotations=["highly_variable"],
         row_annotations=[cluster_key],
-        track_titles=True,
+        row_track_titles=True,
+        column_track_titles=True,
         max_rows=20,
     ).as_dict()
     side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
@@ -184,8 +185,35 @@ def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster
     assert "breaks" not in side_scales["x"]
     assert "breaks" not in side_scales["y"]
     assert side_scales["x"]["position"] == "right"
-    # turned names on top, so they don't inflate the bottom axis area
-    assert side_scales["y"]["position"] == "top"
+    # both shown: the y band's names move below, out of the x band's corner
+    assert side_scales["y"]["position"] == "bottom"
+
+
+@pytest.mark.parametrize(
+    ("row_track_titles", "column_track_titles"), [(True, False), (False, True)]
+)
+def test_annotated_heatmap_track_titles_per_band(
+    adata, markers, group_key, cluster_key, row_track_titles, column_track_titles
+):
+    # transposed: row tracks in the top (x) band, column tracks in the left (y) band
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key],
+        row_track_titles=row_track_titles,
+        column_track_titles=column_track_titles,
+        transpose=True,
+        max_rows=20,
+    ).as_dict()
+    side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
+
+    assert ("breaks" not in side_scales["x"]) == row_track_titles
+    assert ("breaks" not in side_scales["y"]) == column_track_titles
+    if column_track_titles:
+        # turned names on top, so they don't inflate the bottom axis area
+        assert side_scales["y"]["position"] == "top"
 
 
 def test_annotated_heatmap_transpose_moves_tracks_and_group_lines(
