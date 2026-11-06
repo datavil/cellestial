@@ -437,7 +437,6 @@ def dotplot(
             key_groups,
             padding=None,
             data_range=data_range,
-            size_unit="y",
             label_size_scale=key_labels_text_size,
         )
         key_groups_total_span = data_range + key_groups_padding
@@ -472,8 +471,6 @@ def dotplot(
             bracket_size=key_labels_bracket_size,
             width=key_labels_width,
             label_size_scale=key_labels_text_size,
-            label_size_span=n_x,
-            size_unit="x",
         ):
             dtplt += layer
 

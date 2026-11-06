@@ -327,29 +327,6 @@ def test_resolve_padding_explicit_overrides_auto():
     assert explicit == 0.5
 
 
-def test_key_groups_x_unit_label_size_ignores_y_span():
-    from cellestial.single.heatmap.utilities import _key_groups_layers
-
-    groups = {"Group_1": ["A", "B"], "Group_2": ["C", "D"]}
-    small_y_text = _key_groups_layers(
-        groups,
-        y=3.5,
-        total_span=4,
-        label_size_span=4,
-        size_unit="x",
-    )[-1].as_dict()
-    large_y_text = _key_groups_layers(
-        groups,
-        y=15.5,
-        total_span=16,
-        label_size_span=4,
-        size_unit="x",
-    )[-1].as_dict()
-    assert small_y_text["size_unit"] == "x"
-    assert large_y_text["size_unit"] == "x"
-    assert small_y_text["size"] == large_y_text["size"]
-
-
 def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
@@ -371,10 +348,22 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
     assert scales[-1]["limits"][1] == n_y - 0.5
 
 
-def test_dotplot_key_labels_use_x_unit_text_size(adata, group_key):
+def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
     plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
     text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert text_layers[-1]["size_unit"] == "x"
+    assert "size_unit" not in text_layers[-1]
+    assert text_layers[-1]["size"] >= 3.75
+
+
+def test_resolve_padding_square_cells_grow_with_columns():
+    from cellestial.single.heatmap.utilities import _resolve_padding
+
+    groups = {f"group number {index}": [str(index)] for index in range(12)}
+    free = _resolve_padding(groups, padding=None, data_range=4)
+    six = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=6)
+    twelve = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=12)
+    assert six >= free, "square cells never get less padding"
+    assert twelve > six, "one y unit is one column wide, so more columns need more y units"
 
 
 def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
