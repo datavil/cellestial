@@ -627,7 +627,9 @@ def annotated_heatmap(
         tracks, and the lines in a margin of the heatmap panel on that side.
         The labels are the key axis labels, so a theme styles them (e.g.
         `theme(axis_text_y=element_text(face="italic"))` when transposed).
-        `None` labels every key.
+        `None` labels every key; an empty sequence labels none (hiding the
+        key axis labels by theme would also hide the track titles on that
+        axis).
     group_labels : Mapping[str, str] | None, default=None
         Text per `variable_group_by` block (e.g. its GO terms; a newline breaks
         lines), drawn beside the block outside the column annotation tracks,
@@ -1034,7 +1036,10 @@ def annotated_heatmap(
     # KEY LABELS: the chosen keys' axis labels at evenly spread positions on the
     # side opposite the variable tracks, with leader lines in a panel margin there
     # (a single side band per axis, which the variable tracks may hold).
-    if key_labels:
+    if key_labels == []:
+        key_axis = scale_y_continuous if transpose else scale_x_continuous
+        key_scale = key_axis(breaks=[], limits=list(key_limits), expand=[0, 0])
+    elif key_labels:
         opposite = {"left": "right", "right": "left", "top": "bottom", "bottom": "top"}
         label_side = opposite[variable_side]
         label_far = label_side in ("right", "top")

@@ -151,7 +151,7 @@ change. Versions absent from the list were never released.
   callouts, like ComplexHeatmap's `anno_mark`). The labels sit on the side
   opposite the column annotation tracks, as that side's key axis labels (so a
   theme styles them: italics, size), and the lines in a margin of the heatmap
-  panel there.
+  panel there. An empty `key_labels` labels no key.
 - `annotated_heatmap(group_labels={block: text})` draws a pointed bracket and
   (multi-line) text beside each `variable_group_by` block, outside the column
   annotation tracks, such as GO terms per gene module. `group_labels_width`

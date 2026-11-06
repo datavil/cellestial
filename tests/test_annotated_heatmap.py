@@ -514,3 +514,21 @@ def test_annotated_heatmap_annotation_legends_toggle_track_legends(
     assert hidden == [not annotation_legends] * 4
     # the heatmap's color bar keeps its legend either way
     assert all(scale.get("guide") != "none" for scale in fill_scales if scale not in track_scales)
+
+
+def test_annotated_heatmap_empty_key_labels_label_no_key(adata, markers, group_key):
+    spec = cl.annotated_heatmap(
+        adata, keys=markers[:3], group_by=group_key, key_labels=[], max_rows=20
+    ).as_dict()
+
+    key_scale = next(
+        scale
+        for scale in spec["scales"]
+        if scale.get("aesthetic") == "x" and "ggside" not in scale
+    )
+    assert key_scale["breaks"] == []
+    assert not [
+        layer
+        for layer in spec["layers"]
+        if layer["geom"] == "segment" and "xend" in layer["mapping"] and "yend" in layer["mapping"]
+    ]
