@@ -151,6 +151,10 @@ change. Versions absent from the list were never released.
   opposite the column annotation tracks, as that side's key axis labels (so a
   theme styles them: italics, size), and the lines in a margin of the heatmap
   panel there.
+- `annotated_heatmap(group_labels={block: text})` draws a pointed bracket and
+  (multi-line) text beside each `variable_group_by` block, outside the column
+  annotation tracks, such as GO terms per gene module. `group_labels_width`
+  sets the text area and `group_labels_kwargs` styles the text.
 
 ### Changed
 - Extra keyword arguments forwarded to the underlying geom are documented as

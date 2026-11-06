@@ -17,8 +17,12 @@ from ggrust import (
     geom_segment,
     geom_tile,
     geom_xsideline,
+    geom_xsidepoint,
+    geom_xsidetext,
     geom_xsidetile,
     geom_ysideline,
+    geom_ysidepoint,
+    geom_ysidetext,
     geom_ysidetile,
     ggplot,
     ggside,
@@ -55,6 +59,9 @@ _DENDROGRAM_WIDTH = 0.15
 
 # Width of the `key_labels` leader lines, relative to the heatmap.
 _LEADER_WIDTH = 0.06
+
+# Depth of the `group_labels` brackets, relative to the heatmap.
+_BRACKET_WIDTH = 0.03
 
 
 # ColorBrewer palettes cycled across annotation tracks so each gets a distinct one.
@@ -395,6 +402,72 @@ def _leader_layer(
     )
 
 
+def _bracket_layers(
+    blocks: Sequence[tuple[float, float, str]],
+    *,
+    band: Literal["x", "y"],
+    edge: float,
+    depth: float,
+    reach: float,
+    kwargs: dict,
+) -> list[FeatureSpec]:
+    """
+    Draw a pointed bracket and a text label beside each block of a side band.
+
+    Notes
+    -----
+    `blocks` holds each block's `(start, end, text)` along the shared axis. A
+    bracket's arms leave the block ends at cross position `edge`, meet in a
+    tip `depth` cross units out (negative toward the left or bottom), and the
+    text starts just past the tip. An invisible point `reach` cross units out
+    widens the band to hold the text, which the text alone would not.
+    """
+    along, cross, segment, tips = [], [], [], []
+    for index, (start, end, _) in enumerate(blocks):
+        center = (start + end) / 2
+        path = [(start, edge), (start, edge + depth / 2), (center, edge + depth)]
+        path += [(end, edge + depth / 2), (end, edge)]
+        for part, ((along_a, cross_a), (along_b, cross_b)) in enumerate(pairwise(path)):
+            along += [float(along_a), float(along_b)]
+            cross += [float(cross_a), float(cross_b)]
+            segment += [4 * index + part] * 2
+        tips.append(center)
+    lines = pl.DataFrame({"along": along, "cross": cross, "segment": segment})
+    labels = pl.DataFrame(
+        {
+            "along": [float(tip) for tip in tips],
+            "cross": [float(edge + depth * 1.3)] * len(blocks),
+            "text": [text for _, _, text in blocks],
+        }
+    )
+    reach_point = pl.DataFrame({"along": [float(tips[0])], "cross": [float(edge + reach)]})
+    outward = depth > 0
+    if band == "x":
+        side_line, side_text, side_point = geom_xsideline, geom_xsidetext, geom_xsidepoint
+        positions = {"x": "along", "y": "cross"}
+        justify = {"vjust": 0 if outward else 1}
+    else:
+        side_line, side_text, side_point = geom_ysideline, geom_ysidetext, geom_ysidepoint
+        positions = {"x": "cross", "y": "along"}
+        justify = {"hjust": 0 if outward else 1}
+    return [
+        side_line(
+            aes(**positions, group="segment"),
+            data=lines,
+            inherit_aes=False,
+            color="#1f1f1f",
+            size=0.3,
+        ),
+        side_text(
+            aes(**positions, label="text"),
+            data=labels,
+            inherit_aes=False,
+            **{**justify, **kwargs},
+        ),
+        side_point(aes(**positions), data=reach_point, inherit_aes=False, alpha=0),
+    ]
+
+
 def annotated_heatmap(
     data: AnnData | MuData,
     keys: Sequence[str],
@@ -426,6 +499,9 @@ def annotated_heatmap(
     row_annotation_position: Literal["left", "right"] = "left",
     track_titles: bool = False,
     key_labels: Sequence[str] | None = None,
+    group_labels: Mapping[str, str] | None = None,
+    group_labels_width: float = 0.25,
+    group_labels_kwargs: dict | None = None,
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
@@ -532,6 +608,16 @@ def annotated_heatmap(
         The labels are the key axis labels, so a theme styles them (e.g.
         `theme(axis_text_y=element_text(face="italic"))` when transposed).
         `None` labels every key.
+    group_labels : Mapping[str, str] | None, default=None
+        Text per `variable_group_by` block (e.g. its GO terms; a newline breaks
+        lines), drawn beside the block outside the column annotation tracks,
+        with a bracket spanning the block. Blocks without an entry get none.
+        Requires `variable_group_by`.
+    group_labels_width : float, default=0.25
+        Width (or height) of the `group_labels` text area, relative to the
+        heatmap. Text longer than this runs past the plot's edge.
+    group_labels_kwargs : dict | None, default=None
+        Additional parameters for the `group_labels` text layer, such as `size`.
     color_low : str, default='#0000ff'
         Color for low values in the heatmap gradient.
     color_mid : str, default='#ffffff'
@@ -568,8 +654,9 @@ def annotated_heatmap(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     ValueError
-        If `dendrogram` is set without `group_by`, or `key_labels` holds a
-        name that is not in `keys`.
+        If `dendrogram` is set without `group_by`, `key_labels` holds a name
+        that is not in `keys`, or `group_labels` is set without
+        `variable_group_by` or names a block it does not have.
 
     Notes
     -----
@@ -763,7 +850,11 @@ def annotated_heatmap(
 
     # VARIABLE group separator lines between contiguous `variable_group_by` blocks,
     # spanning the observation axis.
-    if group_lines and variable_group_by is not None:
+    if group_labels is not None and variable_group_by is None:
+        msg = "`variable_group_by` is required when `group_labels` is set."
+        raise ValueError(msg)
+    key_groups: list[str] | None = None
+    if variable_group_by is not None:
         variable_groups = build_frame(
             data=data,
             axis=1,
@@ -777,7 +868,9 @@ def annotated_heatmap(
                 strict=True,
             )
         )
-        starts = _run_boundaries([group_of[key] for key in keys])
+        key_groups = [group_of[key] for key in keys]
+    if group_lines and key_groups is not None:
+        starts = _run_boundaries(key_groups)
         boundaries = [n_keys - start - 0.5 if transpose else start - 0.5 for start in starts]
         if starts and transpose:
             plot += geom_segment(
@@ -881,6 +974,36 @@ def annotated_heatmap(
         )
         observation_thickness += _DENDROGRAM_WIDTH
 
+    # GROUP LABELS: a bracket and text beside each labelled `variable_group_by`
+    # block, outermost in the variable band.
+    variable_thickness = column_annotation_height * len(column_annotations)
+    if group_labels:
+        assert key_groups is not None  # guaranteed by the guard above
+        unknown = [group for group in group_labels if group not in key_groups]
+        if unknown:
+            msg = f"`group_labels` must name `variable_group_by` blocks, but received {unknown}."
+            raise ValueError(msg)
+        blocks = []
+        for start, end in pairwise([0, *_run_boundaries(key_groups), n_keys]):
+            if key_groups[start] in group_labels:
+                block = [position_x[key] for key in keys[start:end]]
+                blocks.append(
+                    (min(block) - 0.5, max(block) + 0.5, group_labels[key_groups[start]])
+                )
+        variable_far = variable_side in ("right", "top")
+        # Cross units are tracks, as for the dendrogram.
+        depth = _BRACKET_WIDTH / column_annotation_height
+        reach = (_BRACKET_WIDTH + group_labels_width) / column_annotation_height
+        variable_layers += _bracket_layers(
+            blocks,
+            band=variable_band,
+            edge=len(column_annotations) - 0.5 if variable_far else -0.5,
+            depth=depth if variable_far else -depth,
+            reach=reach if variable_far else -reach,
+            kwargs=group_labels_kwargs or {},
+        )
+        variable_thickness += _BRACKET_WIDTH + group_labels_width
+
     # KEY LABELS: the chosen keys' axis labels at evenly spread positions on the
     # side opposite the variable tracks, with leader lines in a panel margin there
     # (a single side band per axis, which the variable tracks may hold).
@@ -922,7 +1045,7 @@ def annotated_heatmap(
 
     # COMPOSE: both bands in one plot, each sized by its tracks (and the tree).
     thickness = {
-        variable_band: column_annotation_height * len(column_annotations),
+        variable_band: variable_thickness,
         observation_band: observation_thickness,
     }
     plot = _apply_layers(plot, variable_layers + observation_layers)
