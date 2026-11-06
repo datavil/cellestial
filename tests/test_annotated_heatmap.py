@@ -4,7 +4,7 @@ from ggrust import geom_blank
 from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
-from cellestial.complex.annotated_heatmap import _bin_observations
+from cellestial.complex.annotated_heatmap import _bin_observations, _spread_labels
 from cellestial.util.errors import UnsupportedDataTypeError
 
 
@@ -345,3 +345,53 @@ def test_annotated_heatmap_variable_group_by_needs_group_lines(adata, markers):
     ).as_dict()
 
     assert not [layer for layer in spec["layers"] if layer["geom"] == "segment"]
+
+
+def test_spread_labels_keeps_order_in_even_slots():
+    # positions 7, 1, 4 on a 10-key axis: slots of 10 / 3 starting at -0.5
+    spread = _spread_labels([7, 1, 4], n_keys=10)
+    slot = 10 / 3
+    assert spread == pytest.approx([-0.5 + 2.5 * slot, -0.5 + 0.5 * slot, -0.5 + 1.5 * slot])
+
+
+def test_annotated_heatmap_key_labels_label_chosen_keys_with_leader_lines(
+    adata, markers, group_key
+):
+    keys = markers[:4]
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=keys,
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        column_annotation_position="bottom",
+        transpose=True,
+        key_labels=[keys[3], keys[0]],
+        max_rows=20,
+    ).as_dict()
+
+    key_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "y")
+    # transposed: first key at the top, so keys[0] takes the upper slot
+    assert key_scale["labels"] == [keys[3], keys[0]]
+    assert key_scale["breaks"] == pytest.approx([0.5, 2.5])
+    assert key_scale["position"] == "right"
+    (leaders,) = [layer for layer in _side_layers(spec, "y") if layer["geom"] == "line"]
+    leader_frame = pl.DataFrame(leaders["data"])
+    assert leader_frame["segment"].n_unique() == 6
+    # lines leave the track's outer edge and run outward
+    assert leader_frame["height"].min() == pytest.approx(0.5)
+    assert spec["theme"]["ggside_panel_scale_y"] == pytest.approx(0.025 + 0.06)
+
+
+def test_annotated_heatmap_key_labels_unknown_key_raises(adata, markers, group_key):
+    with pytest.raises(ValueError, match="key_labels"):
+        cl.annotated_heatmap(adata, keys=markers[:3], group_by=group_key, key_labels=["nope"])
+
+
+def test_annotated_heatmap_without_key_labels_labels_every_key(adata, markers, group_key):
+    keys = markers[:3]
+    spec = cl.annotated_heatmap(adata, keys=keys, group_by=group_key, max_rows=20).as_dict()
+
+    key_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "x")
+    assert key_scale["labels"] == keys
+    assert "position" not in key_scale
+    assert not [layer for layer in spec["layers"] if layer["geom"] == "line"]

@@ -20,6 +20,7 @@ from anndata import AnnData
 from ggrust import (
     element_blank,
     element_rect,
+    element_text,
     ggsave,
     scale_fill_gradientn,
     scale_fill_viridis,
@@ -29,10 +30,10 @@ from ggrust.plot.core import FeatureSpec, PlotSpec
 
 import cellestial as cl
 
-CELL_TYPES = ["Ependymal", "Astrocyte", "OPC", "Oligodendrocyte", "Microglia"]
+CELL_TYPES = ["Astrocyte", "Ependymal", "OPC", "Oligodendrocyte", "Microglia"]
 CELL_TYPE_COLORS = {
-    "Ependymal": "#7b2a8c",
-    "Astrocyte": "#ef5a6a",
+    "Astrocyte": "#7b2a8c",
+    "Ependymal": "#ef5a6a",
     "OPC": "#f8cc14",
     "Oligodendrocyte": "#f39a1e",
     "Microglia": "#2c5aa0",
@@ -48,6 +49,20 @@ DYNAMICS = {
     "Late": [0.0, 0.1, 0.4, 1.0, 0.7],
 }
 DYNAMICS_COLORS = {"Early": "#47a96b", "Sustained": "#e8ebe4", "Late": "#ef7d4a"}
+# Genes labelled in Fig. 3b, by the module they sit in there.
+PAPER_GENES = {
+    "Astrocyte Early": ["Cldn10", "Gjb6", "Slc27a1"],
+    "Astrocyte Sustained": ["Stat2", "Ccl2", "Yap1", "Vim", "Cd44", "Gfap"],
+    "Astrocyte Late": ["Ncam2", "Stat3"],
+    "Ependymal Early": ["Cfap52", "Dnali1", "Foxj1"],
+    "Ependymal Sustained": ["Ccnd1", "Nes", "Cd24a", "Btg1"],
+    "OPC Early": ["Olig1"],
+    "OPC Sustained": ["Cspg4", "Mki67", "Stmn4"],
+    "Oligodendrocyte Early": ["Mag"],
+    "Microglia Early": ["Cd81", "Csf1r", "Il10ra"],
+    "Microglia Sustained": ["Top2a", "Ezh2"],
+    "Microglia Late": ["Tyrobp", "Cd274"],
+}
 CELLS_PER_SAMPLE = 40
 OUTPUT = Path(__file__).resolve().parent.parent / "figures"
 
@@ -116,9 +131,42 @@ def synthetic_modality(
     )
 
 
-def panel(data: AnnData, *, palette: FeatureSpec) -> PlotSpec:
+def name_genes(data: AnnData, genes: dict[str, list[str]]) -> list[str]:
+    """
+    Rename synthetic genes after the paper's labelled genes, in place.
+
+    Parameters
+    ----------
+    data : AnnData
+        A synthetic modality with a `module` variable column.
+    genes : dict[str, list[str]]
+        Gene names per module, spread evenly over the module's features.
+
+    Returns
+    -------
+    list[str]
+        The new gene names, in feature order.
+    """
+    names = list(data.var_names)
+    modules = data.var["module"].astype(str).to_numpy()
+    for module, module_genes in genes.items():
+        (indices,) = np.nonzero(modules == module)
+        picks = np.linspace(0, indices.size - 1, len(module_genes) + 2)[1:-1].round()
+        for gene, pick in zip(module_genes, picks.astype(int), strict=True):
+            names[indices[pick]] = gene
+    data.var_names = names
+    return [name for name in names if not name.startswith("Gene")]
+
+
+def panel(data: AnnData, *, palette: FeatureSpec, key_labels: list[str] | None = None) -> PlotSpec:
     """Build one Fig. 3 heatmap panel from a synthetic modality."""
     data.obs.index = data.obs.index.astype(str)
+    # Thousands of features: label only `key_labels` (in italics), or none.
+    key_axis = (
+        theme(axis_text_y=element_text(face="italic", size=9))
+        if key_labels
+        else theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
+    )
     return cl.annotated_heatmap(
         data,
         keys=list(data.var_names),
@@ -135,16 +183,13 @@ def panel(data: AnnData, *, palette: FeatureSpec) -> PlotSpec:
         },
         # One bin per cell type x time point sample (pseudobulk-like columns).
         max_rows=len(CELL_TYPES) * len(TIME_POINTS),
+        key_labels=key_labels,
         group_lines_color="black",
         group_lines_size=0.8,
         layers=[
             palette,
-            # Thousands of features: no per-feature labels on the key axis.
-            theme(
-                panel_border=element_rect(color="black", size=1.2),
-                axis_text_y=element_blank(),
-                axis_ticks_y=element_blank(),
-            ),
+            theme(panel_border=element_rect(color="black", size=1.2)),
+            key_axis,
         ],
     )
 
@@ -154,8 +199,8 @@ def main() -> None:
     OUTPUT.mkdir(exist_ok=True)
     rna = synthetic_modality(
         {
-            "Ependymal": {"Early": 40, "Sustained": 70, "Late": 25},
-            "Astrocyte": {"Early": 45, "Sustained": 40},
+            "Astrocyte": {"Early": 40, "Sustained": 70, "Late": 25},
+            "Ependymal": {"Early": 45, "Sustained": 40},
             "OPC": {"Early": 20, "Sustained": 45},
             "Oligodendrocyte": {"Early": 12, "Sustained": 6},
             "Microglia": {"Early": 30, "Sustained": 35, "Late": 30},
@@ -166,8 +211,8 @@ def main() -> None:
     )
     atac = synthetic_modality(
         {
-            "Ependymal": {"Early": 60, "Sustained": 90, "Late": 15},
-            "Astrocyte": {"Early": 70, "Sustained": 90, "Late": 80},
+            "Astrocyte": {"Early": 60, "Sustained": 90, "Late": 15},
+            "Ependymal": {"Early": 70, "Sustained": 90, "Late": 80},
             "OPC": {"Early": 5, "Sustained": 25, "Late": 10},
             "Oligodendrocyte": {"Early": 12, "Sustained": 6, "Late": 10},
             "Microglia": {"Early": 8, "Sustained": 110, "Late": 25},
@@ -180,7 +225,14 @@ def main() -> None:
     teal = scale_fill_gradientn(
         colors=["#0b0b2b", "#2b3a7a", "#2f6c96", "#33a0a8", "#9ee6c8"], name="ATAC"
     )
-    ggsave(panel(rna, palette=magma), str(OUTPUT / "zamboni_fig3b.png"), w=5, h=7, unit="in")
+    genes = name_genes(rna, PAPER_GENES)
+    ggsave(
+        panel(rna, palette=magma, key_labels=genes),
+        str(OUTPUT / "zamboni_fig3b.png"),
+        w=5,
+        h=7,
+        unit="in",
+    )
     ggsave(panel(atac, palette=teal), str(OUTPUT / "zamboni_fig3e.png"), w=5, h=7, unit="in")
 
 
