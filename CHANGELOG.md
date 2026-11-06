@@ -147,9 +147,10 @@ change. Versions absent from the list were never released.
   the `group_by` lines between observation groups.
 - `annotated_heatmap(key_labels=[...])` labels only those keys, spread evenly
   along the key axis, with a leader line from each key to its label (gene
-  callouts, like ComplexHeatmap's `anno_mark`). The lines sit in the column
-  annotation band, outside its tracks, and the labels are the key axis labels
-  on that side, so a theme styles them (italics, size).
+  callouts, like ComplexHeatmap's `anno_mark`). The labels sit on the side
+  opposite the column annotation tracks, as that side's key axis labels (so a
+  theme styles them: italics, size), and the lines in a margin of the heatmap
+  panel there.
 
 ### Changed
 - Extra keyword arguments forwarded to the underlying geom are documented as

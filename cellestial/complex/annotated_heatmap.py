@@ -358,7 +358,7 @@ def _leader_layer(
     positions: Sequence[float],
     spread: Sequence[float],
     *,
-    band: Literal["x", "y"],
+    key_axis: Literal["x", "y"],
     edge: float,
     extent: float,
 ) -> FeatureSpec:
@@ -367,26 +367,32 @@ def _leader_layer(
 
     Notes
     -----
-    Each line leaves its key straight out from the band's cross position `edge`,
-    bends to the label position over the middle third of `extent`, and runs
-    straight out to the band's outer edge, where the key axis label sits. Drawn
-    as two-point segments, like `_dendrogram_layer`.
+    The lines run in the heatmap panel's label margin, along the observation
+    axis from `edge` (the heatmap's edge) over `extent` (negative toward the
+    left or bottom). Each leaves its key straight out, bends to the label
+    position over the middle third, and runs straight to the panel edge, where
+    the key axis label sits.
     """
-    leaf, height, segment = [], [], []
-    for index, (position, label) in enumerate(zip(positions, spread, strict=True)):
+    cross_start, cross_end, along_start, along_end = [], [], [], []
+    for position, label in zip(positions, spread, strict=True):
         path = [(edge, position), (edge + extent / 3, position)]
         path += [(edge + 2 * extent / 3, label), (edge + extent, label)]
-        for part, (start, end) in enumerate(pairwise(path)):
-            for cross, along in (start, end):
-                height.append(float(cross))
-                leaf.append(float(along))
-                segment.append(3 * index + part)
-    frame = pl.DataFrame({"leaf": leaf, "height": height, "segment": segment})
-    if band == "x":
-        mapping, side_line = aes(x="leaf", y="height", group="segment"), geom_xsideline
+        for (cross_a, along_a), (cross_b, along_b) in pairwise(path):
+            cross_start.append(float(cross_a))
+            cross_end.append(float(cross_b))
+            along_start.append(float(along_a))
+            along_end.append(float(along_b))
+    if key_axis == "y":
+        columns = {"x": cross_start, "xend": cross_end, "y": along_start, "yend": along_end}
     else:
-        mapping, side_line = aes(x="height", y="leaf", group="segment"), geom_ysideline
-    return side_line(mapping, data=frame, inherit_aes=False, color="#1f1f1f", size=0.3)
+        columns = {"x": along_start, "xend": along_end, "y": cross_start, "yend": cross_end}
+    return geom_segment(
+        aes(x="x", y="y", xend="xend", yend="yend"),
+        data=pl.DataFrame(columns),
+        inherit_aes=False,
+        color="#1f1f1f",
+        size=0.3,
+    )
 
 
 def annotated_heatmap(
@@ -521,10 +527,11 @@ def annotated_heatmap(
     key_labels : Sequence[str] | None, default=None
         Label only these `keys`, spread evenly along the key axis, with a
         leader line from each key's row (or column) to its label, as for gene
-        callouts. The labels and the lines sit on the column annotation side,
-        outside its tracks, and are the key axis labels, so a theme styles them
-        (e.g. `theme(axis_text_y=element_text(face="italic"))` when
-        transposed). `None` labels every key.
+        callouts. The labels sit on the side opposite the column annotation
+        tracks, and the lines in a margin of the heatmap panel on that side.
+        The labels are the key axis labels, so a theme styles them (e.g.
+        `theme(axis_text_y=element_text(face="italic"))` when transposed).
+        `None` labels every key.
     color_low : str, default='#0000ff'
         Color for low values in the heatmap gradient.
     color_mid : str, default='#ffffff'
@@ -875,36 +882,47 @@ def annotated_heatmap(
         observation_thickness += _DENDROGRAM_WIDTH
 
     # KEY LABELS: the chosen keys' axis labels at evenly spread positions on the
-    # variable side, with leader lines outermost in the variable band.
-    variable_thickness = column_annotation_height * len(column_annotations)
+    # side opposite the variable tracks, with leader lines in a panel margin there
+    # (a single side band per axis, which the variable tracks may hold).
     if key_labels:
-        variable_far = variable_side in ("right", "top")
+        opposite = {"left": "right", "right": "left", "top": "bottom", "bottom": "top"}
+        label_side = opposite[variable_side]
+        label_far = label_side in ("right", "top")
         positions = [position_x[label] for label in key_labels]
         spread = _spread_labels(positions, n_keys=n_keys)
-        # Cross units are tracks, as for the dendrogram.
-        extent = _LEADER_WIDTH / column_annotation_height
-        variable_layers.append(
-            _leader_layer(
-                positions,
-                spread,
-                band=variable_band,
-                edge=len(column_annotations) - 0.5 if variable_far else -0.5,
-                extent=extent if variable_far else -extent,
-            )
+        # The margin takes `_LEADER_WIDTH` of the widened observation axis.
+        margin = _LEADER_WIDTH * n_observations / (1 - _LEADER_WIDTH)
+        plot += _leader_layer(
+            positions,
+            spread,
+            key_axis="y" if transpose else "x",
+            edge=observation_limits[1] if label_far else observation_limits[0],
+            extent=margin if label_far else -margin,
         )
-        variable_thickness += _LEADER_WIDTH
-        key_axis = scale_y_continuous if transpose else scale_x_continuous
+        observation_limits = (
+            (observation_limits[0], observation_limits[1] + margin)
+            if label_far
+            else (observation_limits[0] - margin, observation_limits[1])
+        )
+        key_axis, observation_axis = (
+            (scale_y_continuous, scale_x_continuous)
+            if transpose
+            else (scale_x_continuous, scale_y_continuous)
+        )
         key_scale = key_axis(
             breaks=spread,
             labels=key_labels,
             limits=list(key_limits),
             expand=[0, 0],
-            position=variable_side,
+            position=label_side,
+        )
+        observation_scale = observation_axis(
+            breaks=[], limits=list(observation_limits), expand=[0, 0]
         )
 
     # COMPOSE: both bands in one plot, each sized by its tracks (and the tree).
     thickness = {
-        variable_band: variable_thickness,
+        variable_band: column_annotation_height * len(column_annotations),
         observation_band: observation_thickness,
     }
     plot = _apply_layers(plot, variable_layers + observation_layers)

@@ -373,13 +373,26 @@ def test_annotated_heatmap_key_labels_label_chosen_keys_with_leader_lines(
     # transposed: first key at the top, so keys[0] takes the upper slot
     assert key_scale["labels"] == [keys[3], keys[0]]
     assert key_scale["breaks"] == pytest.approx([0.5, 2.5])
-    assert key_scale["position"] == "right"
-    (leaders,) = [layer for layer in _side_layers(spec, "y") if layer["geom"] == "line"]
+    # opposite the right-hand column tracks
+    assert key_scale["position"] == "left"
+    (leaders,) = [
+        layer
+        for layer in spec["layers"]
+        if layer["geom"] == "segment" and "xend" in layer["mapping"] and "yend" in layer["mapping"]
+    ]
     leader_frame = pl.DataFrame(leaders["data"])
-    assert leader_frame["segment"].n_unique() == 6
-    # lines leave the track's outer edge and run outward
-    assert leader_frame["height"].min() == pytest.approx(0.5)
-    assert spec["theme"]["ggside_panel_scale_y"] == pytest.approx(0.025 + 0.06)
+    assert leader_frame.height == 6
+    # lines leave the heatmap's left edge into a margin of the widened x axis
+    assert leader_frame["x"].max() == pytest.approx(-0.5)
+    observation_scale = next(
+        scale
+        for scale in spec["scales"]
+        if scale.get("aesthetic") == "x" and "ggside" not in scale
+    )
+    lower, upper = observation_scale["limits"]
+    margin = 0.06 * (upper + 0.5) / 0.94
+    assert lower == pytest.approx(-0.5 - margin)
+    assert leader_frame["xend"].min() == pytest.approx(-0.5 - margin)
 
 
 def test_annotated_heatmap_key_labels_unknown_key_raises(adata, markers, group_key):
