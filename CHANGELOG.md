@@ -10,6 +10,55 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+- `annotated_heatmap` returns one `PlotSpec` instead of a `gggrid` of
+  `SupPlotsSpec` panels. Annotation tracks are ggside side layers
+  (`geom_xsidetile`/`geom_ysidetile`), each with its own fill scale
+  (`new_scale_fill`) and legend, so they zoom and pan with the heatmap in HTML
+  output (`interactive=True`). Track titles beside the bands are hidden by
+  default, since the legends name each track; the new `track_titles=True`
+  shows them (a top or bottom band's names on its right, a left or right
+  band's names above it). The group dendrogram is drawn in
+  the observation band, outermost. `layers_all` acts as `layers` now that there
+  is a single plot. `column_annotation_height`, `row_annotation_width` and the
+  tree's 0.15 width set the bands' share of the panel
+  (`ggside_panel_scale_x`/`_y`).
+  - Migration: index the plot's `as_dict()["layers"]` instead of
+    `["figures"]`; combine it with other plots through `gggrid` as any
+    `PlotSpec`.
+- ggrust 0.6 is required. `cellestial.setup_html` is removed, with the ggrust
+  `LetsPlot` shim it aliased; it was a no-op, as is the setup call cellestial
+  made on import in IPython.
+  - Migration: delete `setup_html()` calls; use `ggrust.display("html" | "svg" | "png")`
+    to choose notebook output.
+- `dotplot`, `stacked_violin`, `matrixplot` and `heatmap(aggregate=True)` draw
+  the group dendrogram with ggrust's axis dendrogram (`scale_y_dendro` +
+  `guide_axis_dendro`) instead of a `geom_path` layer. The tree sits in a fixed
+  band right of the panel rather than inside an extended x range, so the data
+  area no longer shrinks to make room for it. `dendrogram_kwargs` is removed from
+  these functions and from `heatmap`; the per-cell `heatmap(aggregate=False)`
+  keeps its path layer, styled by `dendrogram_color` and `dendrogram_size`.
+  - Migration: drop `dendrogram_kwargs`; style the tree with `dendrogram_color`
+    and `dendrogram_size`, or with `theme(axis_ticks_y=element_line(...))`.
+- `arrow_axis` returns a ggrust theme with arrow axis lines instead of a deferred
+  layer of `geom_path`/`geom_segment`. It no longer takes `plot=` (the theme needs
+  no data) or `**geom_kwargs`; `linetype=` is now an explicit parameter. `length`
+  is a fraction of the panel rather than of the data range, so arrows start at the
+  panel corner.
+  - Migration: drop `plot=`; pass `linetype=` directly; other geom kwargs such as
+    `alpha` are no longer supported.
+- `bracket` computes its tests with ggrust's `stat_compare_means` instead of
+  scipy. P-values, the `none`/`bonferroni`/`fdr_bh` corrections and the stars
+  agree for groups of 50 or more values; below that, tie-free groups get R's
+  exact Wilcoxon test, so `mannwhitney` p-values change there. Stars now use
+  `<=` cutoffs, and p-value labels show 2 significant digits. Bracket tips are
+  3% of the y range (ggpubr's default) instead of a fixed size. Removed:
+  `test="student"`, `alternative`, `label="padj"` and label sequences,
+  `label_format`, `prefix`, `prefix_style`, `separator` and `threshold`.
+  - Migration: `label="padj"` becomes `label="pvalue"` (it shows the adjusted
+    p-value); `threshold=0.05` becomes `hide_ns=True` with `label="stars"`;
+    pass `tip_length=` for other tips. One-sided and pooled-variance tests are
+    no longer available: ggrust's `student` is Welch's test, so it is not offered
+    under that name; use `test="ttest"`.
 - `spatialdata` is no longer installed by default. It is only needed to plot
   `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
   inputs, spatial ones included, work without it. Dropping it from the core
@@ -23,7 +72,8 @@ change. Versions absent from the list were never released.
     in code that adds layers, scales or themes to cellestial plots.
 - `bracket(test="ttest")` is now Welch's t-test rather than the pooled-variance
   one, matching R's `t.test()` and scanpy. P-values change.
-  - Migration: pass `test="student"`, a new option, for the previous behaviour.
+  - Migration: none; the pooled-variance test is no longer available (see the
+    `stat_compare_means` entry above).
 - `volcano` and `volcanos` name their p-value column after the values it holds.
   Under the default `use_adjusted_pvalue=True` the column, tooltip entry and
   y-axis title read `pvalue_adj` and `-log10(Padj)`; raw p-values are unaffected.

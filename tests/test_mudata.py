@@ -357,6 +357,10 @@ def test_anndata_frame_is_unchanged(mudata):
             "stacked_violin",
             lambda data: cl.stacked_violin(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
         ),
+        (
+            "annotated_heatmap",
+            lambda data: cl.annotated_heatmap(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
+        ),
     ],
 )
 def test_single_plots_accept_a_container(mudata, name, call):
@@ -380,10 +384,6 @@ def test_single_plots_accept_a_container(mudata, name, call):
             lambda data: cl.expressions(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
         ),
         ("xyplots", lambda data: cl.xyplots(data, x=GENE, y=PROTEIN, colors=["celltype"])),
-        (
-            "annotated_heatmap",
-            lambda data: cl.annotated_heatmap(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
-        ),
     ],
 )
 def test_grid_plots_accept_a_container(mudata, name, call):

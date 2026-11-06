@@ -39,9 +39,12 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import (
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _fill_gradient,
     _get_dendrogram,
     _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
     _warn,
 )
 from cellestial.util.errors import _unsupported_data_type
@@ -77,7 +80,6 @@ def heatmap(
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
-    dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
     key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
@@ -161,8 +163,6 @@ def heatmap(
         By default, `dendrogram_{group_by}` is used.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_path.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
@@ -406,7 +406,13 @@ def heatmap(
             frame = _scale_wide_values(frame, keys=keys, scale_axis=scale_axis)
 
     # DETERMINE: y order of groups
-    if dendrogram:
+    if dendrogram and aggregate:
+        tree = _get_dendrogram_tree(
+            *_modality_source(data, modality, group_by), use_key=dendrogram_key
+        )
+        y_order_groups = list(tree.ordered_labels)
+        paths = None
+    elif dendrogram:
         y_order_groups, paths = _get_dendrogram(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
@@ -490,12 +496,16 @@ def heatmap(
             data_range=data_range,
             scale=1.0,
             label_size_scale=key_labels_text_size,
+            square_cell_columns=n_x if aggregate and geom == "raster" else None,
         )
         key_groups_total_span = data_range + key_groups_padding
         y_max_limit = data_top + key_groups_padding
 
     # Y scale: groups for aggregate, group-center labels when titling bars, else hidden
-    if aggregate:
+    if aggregate and dendrogram:
+        # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
+        htmp += _dendrogram_y_axis(tree, limits=[data_bottom, y_max_limit], fixed=geom == "raster")
+    elif aggregate:
         htmp += scale_y_continuous(
             breaks=list(range(n_y)),
             labels=y_order_groups,
@@ -542,8 +552,10 @@ def heatmap(
             **(group_lines_kwargs or {}),
         )
 
-    # DENDROGRAM (right side, along y-axis)
-    if dendrogram:
+    # DENDROGRAM (right side, along y-axis); per-cell rows draw the tree as a path
+    if dendrogram and aggregate:
+        htmp += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
+    elif dendrogram:
         assert paths is not None
         dendro_frame = _get_dendrogram_path_frame(
             paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
@@ -553,7 +565,6 @@ def heatmap(
             mapping=aes(x="x", y="y", group="group"),
             color=dendrogram_color,
             size=dendrogram_size,
-            **(dendrogram_kwargs or {}),
         )
 
     # FILL gradient
@@ -606,7 +617,6 @@ def matrixplot(
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
-    dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
     key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
@@ -677,8 +687,6 @@ def matrixplot(
         By default, `dendrogram_{group_by}` is used.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_path.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
@@ -797,7 +805,6 @@ def matrixplot(
         dendrogram_size=dendrogram_size,
         dendrogram_key=dendrogram_key,
         group_lines_kwargs=group_lines_kwargs,
-        dendrogram_kwargs=dendrogram_kwargs,
         value_column=value_column,
         variable_column=variable_column,
         color_low=color_low,

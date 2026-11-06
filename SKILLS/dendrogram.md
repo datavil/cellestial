@@ -2,83 +2,53 @@
 
 How dendrograms are wired into the heatmap variants (`heatmap`, `matrixplot`, `dotplot`, `stacked_violin`). Use this as the template when adding a dendrogram to a new plot.
 
+## Two cases
+
+- **One row per group** (dotplot, stacked_violin, matrixplot, heatmap with `aggregate=True`): use ggrust's native axis dendrogram. The tree orders the y-axis and draws itself right of the panel.
+- **Per-cell rows** (heatmap with `aggregate=False`; `complex/annotated_heatmap.py`): groups span many rows of unequal height, so a discrete dendrogram scale cannot express them. These keep the hand-drawn tree: `geom_path` in the heatmap, two-point `geom_xsideline`/`geom_ysideline` segments in the annotated heatmap's observation side band (outermost, beyond the tracks).
+
 ## Helpers
 
-Two private helpers live in [cellestial/util/dendrogram.py](../cellestial/util/dendrogram.py) and are re-exported from [cellestial.util](../cellestial/util/__init__.py):
+All live in [cellestial/util/dendrogram.py](../cellestial/util/dendrogram.py), re-exported from [cellestial.util](../cellestial/util/__init__.py). Each reads `data.uns[use_key or f"dendrogram_{group_by}"]` and computes it with `scanpy.tl.dendrogram` if missing.
 
-- `_get_dendrogram(data, group_by) -> (categories_ordered, paths)`
-  - Reads `data.uns[f"dendrogram_{group_by}"]`, computes via `scanpy.tl.dendrogram` if missing.
-  - `categories_ordered`: list of group labels in dendrogram leaf order. **Use this as the y order.**
-  - `paths`: Polars DataFrame with normalized `x` (leaf positions 0..n_groups-1) and `y` (dcoord scaled to 0..1), plus `group` id per linkage segment.
+- `_get_dendrogram_tree(data, group_by, *, use_key=None) -> ClusterTree`: scanpy's linkage as a ggrust tree; `tree.ordered_labels` is scanpy's `categories_ordered`.
+- `_dendrogram_y_axis(tree, *, limits, fixed=False)`: `scale_y_dendro(..., guide=guide_axis_dendro(side="opposite"))` plus a coord holding the y `limits`. Pass `fixed=True` for `geom_raster` plots, which default to `coord_fixed()`.
+- `_dendrogram_line_theme(*, color, size)`: the tree is drawn with the y tick line, so this styles `axis_ticks_y` (size in geom units) and sets the tick length to 0. Add it **after** any full theme (`theme_classic()` in `_THEME_DOTPLOT` resets it).
+- Per-cell only: `_get_dendrogram(...) -> (categories_ordered, paths)` and `_get_dendrogram_path_frame(paths, *, n_x, n_groups, group_centers)`, which map scipy's `icoord`/`dcoord` beside the panel.
 
-- `_get_dendrogram_path_frame(paths, *, n_x, n_groups, group_centers, dendrogram_ratio=0.15) -> pl.DataFrame`
-  - Maps the normalized paths into actual plot coordinates on the **right side**, along the y-axis.
-  - Width of dendrogram = `n_x * dendrogram_ratio`, anchored at `x = n_x - 0.5`.
-  - `group_centers` is the y-pixel center of each group, ordered to match `categories_ordered`.
+## Wiring a one-row-per-group plot
 
-## Required parameters to expose
+Keep numeric `position_y` values (group `i` of the tree order at `i`): numeric layers such as key-group brackets and the border `geom_rect` still work on the discrete dendrogram scale.
+
+```python
+if dendrogram:
+    tree = _get_dendrogram_tree(data, group_by, use_key=dendrogram_key)
+    y_order_groups = list(tree.ordered_labels)
+...
+if dendrogram:
+    plot += _dendrogram_y_axis(tree, limits=[-0.5, y_max_limit])
+else:
+    plot += scale_y_continuous(breaks=list(range(n_y)), labels=y_order_groups,
+                               limits=[-0.5, y_max_limit], expand=[0, 0])
+...
+plot += _THEME_DOTPLOT
+if dendrogram:
+    plot += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
+```
+
+No x limit needs to make room for the tree; it lives in its own band outside the panel.
+
+## Parameters to expose
 
 ```python
 dendrogram: bool = False,
 dendrogram_color: str = "black",
 dendrogram_size: float = 0.5,
-dendrogram_kwargs: dict | None = None,
+dendrogram_key: str | None = None,
 ```
-
-## Wiring (three steps)
-
-**1. Determine y order before building positions.** The dendrogram dictates group order; everything else (positions, separator lines, group bars) must follow.
-
-```python
-if dendrogram:
-    y_order_groups, paths = _get_dendrogram(data, group_by)
-else:
-    y_order_groups = frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
-    paths = None
-```
-
-**2. After computing layout, build the path frame and add `geom_path`.** You need `n_x`, `n_groups`, and `group_centers` (the y-coordinate of each group's center, in `y_order_groups` order).
-
-```python
-if dendrogram:
-    dendro_frame = _get_dendrogram_path_frame(
-        paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers,
-    )
-    plot += geom_path(
-        data=dendro_frame,
-        mapping=aes(x="x", y="y", group="group"),
-        color=dendrogram_color,
-        size=dendrogram_size,
-        **(dendrogram_kwargs or {}),
-    )
-```
-
-**3. Extend the x-axis limit to include the dendrogram width.** The dendrogram lives at `x in [n_x - 0.5, n_x - 0.5 + n_x*dendrogram_ratio]`. If you set explicit `scale_x_continuous(limits=...)` or have a bordering `geom_rect`, account for this:
-
-```python
-x_max_limit = n_x - 0.5
-if dendrogram:
-    x_max_limit = dendro_frame["x"].max()
-plot += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys, limits=[-0.5, x_max_limit], expand=[0, 0])
-```
-
-If a border rectangle frames the data area, draw it from `-0.5` to `n_x - 0.5` so the dendrogram sits **outside** the frame (see dotplot pattern).
-
-## Axis type
-
-The plot must use **continuous numeric** axes (not discrete), because the dendrogram lives at fractional x-coordinates beyond the data area. Pattern:
-
-- Encode positions as floats (`position_x`, `position_y`).
-- Use `scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)` and analogous y scale to fake categorical labels on a continuous axis.
-- Always pass `limits=[...]` and `expand=[0, 0]` when a dendrogram is present, so it isn't clipped.
-
-## Computing `group_centers`
-
-- **Aggregated row-per-group plots** (matrixplot, dotplot, stacked_violin, heatmap with `aggregate=True`): `group_centers = [float(i) for i in range(n_groups)]`.
-- **Per-cell rows** (heatmap with `aggregate=False`): compute the mean `position_y` of cells in each group, sorted by group order. See `_assign_positions` in [heatmap.py](../cellestial/single/heatmap/heatmap.py) for the canonical implementation.
 
 ## Reference implementations
 
-- [cellestial/single/heatmap/heatmap.py](../cellestial/single/heatmap/heatmap.py) (per-cell and aggregated)
-- [cellestial/single/heatmap/dotplot.py](../cellestial/single/heatmap/dotplot.py) (with bordering rectangle)
+- [cellestial/single/heatmap/dotplot.py](../cellestial/single/heatmap/dotplot.py) (with bordering rectangle and key-group brackets)
 - [cellestial/single/heatmap/stacked_violin.py](../cellestial/single/heatmap/stacked_violin.py)
+- [cellestial/single/heatmap/heatmap.py](../cellestial/single/heatmap/heatmap.py) (native when aggregated, path for per-cell rows)

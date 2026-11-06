@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["ggrust", "numpy", "scipy.stats"]
+__lazy_modules__ = ["ggrust"]
 
 from itertools import combinations
 from typing import TYPE_CHECKING, Literal
 
-import numpy as np
 import polars as pl
-from ggrust import aes, geom_bracket
-from scipy.stats import mannwhitneyu, ttest_ind
+from ggrust import aes, stat_compare_means
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
@@ -20,53 +18,17 @@ if TYPE_CHECKING:
     from ggrust.plot.core import FeatureSpec, LayerSpec, PlotSpec
     from polars import DataFrame
 
-
-def _correct_pvalues(
-    pvalues: np.ndarray,
-    method: Literal["none", "bonferroni", "fdr_bh"],
-) -> np.ndarray:
-    """Adjust p-values for multiple testing."""
-    if method == "none":
-        return pvalues
-    if method == "bonferroni":
-        return np.minimum(pvalues * len(pvalues), 1.0)
-    if method == "fdr_bh":
-        n = len(pvalues)
-        order = np.argsort(pvalues)
-        ranked = pvalues[order]
-        adjusted = ranked * n / np.arange(1, n + 1)
-        # enforce monotonicity from the largest p-value downwards
-        adjusted = np.minimum.accumulate(adjusted[::-1])[::-1]
-        adjusted = np.minimum(adjusted, 1.0)
-        result = np.empty_like(adjusted)
-        result[order] = adjusted
-        return result
-    msg = f"`correction` must be one of 'none', 'bonferroni', 'fdr_bh'. Received: {method!r}"
-    raise ValueError(msg)
+_TEST_METHODS = {"mannwhitney": "wilcox.test", "ttest": "t.test"}
+_CORRECTION_METHODS = {"none": "none", "bonferroni": "bonferroni", "fdr_bh": "BH"}
+_LABELS = {"stars": "p.signif", "pvalue": "p.format"}
 
 
-_STAR_THRESHOLDS = (
-    (0.0001, "****"),
-    (0.001, "***"),
-    (0.01, "**"),
-    (0.05, "*"),
-)
-
-
-def _significance_stars(pvalue: float) -> str:
-    """Convert a p-value into an asterisk significance label."""
-    for threshold, stars in _STAR_THRESHOLDS:
-        if pvalue < threshold:
-            return stars
-    return "ns"
-
-
-def _star_threshold(pvalue: float) -> float | None:
-    """Return the star-bracket upper bound for a p-value, or None if not significant."""
-    for threshold, _ in _STAR_THRESHOLDS:
-        if pvalue < threshold:
-            return threshold
-    return None
+def _option(name: str, value: str, options: dict[str, str]) -> str:
+    """Translate a cellestial option into its `stat_compare_means` name."""
+    if value not in options:
+        msg = f"`{name}` must be one of {list(options)}. Received: {value!r}"
+        raise ValueError(msg)
+    return options[value]
 
 
 def _expand_comparisons(
@@ -117,26 +79,17 @@ def _expand_comparisons(
     return expanded
 
 
-def _compute_bracket_frame(
+def _bracket_layout(
     frame: DataFrame,
     *,
     x: str,
     y: str,
     comparisons: Sequence[Sequence[str]] | None,
-    test: Literal["mannwhitney", "ttest", "student"],
-    alternative: Literal["two-sided", "less", "greater"],
-    correction: Literal["none", "bonferroni", "fdr_bh"],
-    label: Literal["stars", "pvalue", "padj"] | Sequence[Literal["stars", "pvalue", "padj"]],
-    label_format: str,
-    prefix: str,
-    prefix_style: Literal["=", "<"] | None,
-    separator: str,
-    threshold: float | None,
     y_position: float | None,
     y_step: float | None,
     y_padding: float,
-) -> DataFrame:
-    """Build a `geom_bracket` DataFrame from pairwise significance tests."""
+) -> tuple[DataFrame, list[tuple[str, str]], list[float]]:
+    """Return the finite rows, the group pairs and the bracket heights."""
     finite_frame = frame.filter(pl.col(y).is_not_null() & pl.col(y).is_finite())
 
     # determine which pairs to compare
@@ -150,38 +103,13 @@ def _compute_bracket_frame(
         msg = "No group pairs available to compare."
         raise ValueError(msg)
 
-    # run the pairwise test
-    test_functions = {
-        "mannwhitney": lambda a, b: mannwhitneyu(a, b, alternative=alternative),
-        # Welch's, matching `t.test()` in R and scanpy's own `t-test` ranking.
-        "ttest": lambda a, b: ttest_ind(a, b, alternative=alternative, equal_var=False),
-        "student": lambda a, b: ttest_ind(a, b, alternative=alternative, equal_var=True),
-    }
-    if test not in test_functions:
-        msg = f"`test` must be one of {list(test_functions)}. Received: {test!r}"
-        raise ValueError(msg)
-    run_test = test_functions[test]
-
-    records = []
-    invalid_comparisons = []
-    for group_a, group_b in pairs:
-        values_a = finite_frame.filter(pl.col(x) == group_a)[y].to_numpy()
-        values_b = finite_frame.filter(pl.col(x) == group_b)[y].to_numpy()
-        if len(values_a) < 2 or len(values_b) < 2:
-            invalid_comparisons.append(
-                f"{group_a!r} ({len(values_a)}) vs {group_b!r} ({len(values_b)})"
-            )
-            continue
-        result = run_test(values_a, values_b)
-        records.append(
-            {
-                "xmin": group_a,
-                "xmax": group_b,
-                "statistic": float(result.statistic),
-                "pvalue": float(result.pvalue),
-            }
-        )
-
+    # every compared group needs at least 2 finite observations
+    counts = dict(finite_frame[x].value_counts().iter_rows())
+    invalid_comparisons = [
+        f"{group_a!r} ({counts.get(group_a, 0)}) vs {group_b!r} ({counts.get(group_b, 0)})"
+        for group_a, group_b in pairs
+        if counts.get(group_a, 0) < 2 or counts.get(group_b, 0) < 2
+    ]
     if invalid_comparisons:
         prefix = (
             "No valid group comparisons available. "
@@ -195,90 +123,24 @@ def _compute_bracket_frame(
         )
         raise ValueError(msg)
 
-    brackets = pl.DataFrame(records)
-
-    # adjust for multiple testing
-    pvalue_adjusted = _correct_pvalues(brackets["pvalue"].to_numpy(), method=correction)
-    brackets = brackets.with_columns(pvalue_adj=pl.Series(pvalue_adjusted))
-
-    # filter by threshold
-    if threshold is not None:
-        pvalue_column = "pvalue_adj" if correction != "none" else "pvalue"
-        brackets = brackets.filter(pl.col(pvalue_column) <= threshold)
-        if len(brackets) == 0:
-            return brackets
-
-    # build the label column - one component per label kind, merged row-wise
-    label_kinds = [label] if isinstance(label, str) else list(label)
-    valid_kinds = {"stars", "pvalue", "padj"}
-    invalid = [kind for kind in label_kinds if kind not in valid_kinds]
-    if invalid:
-        msg = (
-            "`label` entries must be from 'stars', 'pvalue', 'padj'. "
-            f"Received invalid: {invalid!r}"
-        )
-        raise ValueError(msg)
-    if len(label_kinds) == 0:
-        msg = "`label` must contain at least one entry."
-        raise ValueError(msg)
-
-    pvalues_raw = brackets["pvalue"].to_list()
-    pvalues_adj = brackets["pvalue_adj"].to_list()
-    pvalues_for_stars = brackets["pvalue_adj" if correction != "none" else "pvalue"].to_list()
-
-    def _format_pvalue(pvalue: float) -> str:
-        if prefix_style == "<":
-            threshold = _star_threshold(pvalue)
-            symbol, value = (">", 0.05) if threshold is None else ("<", threshold)
-            return f"{prefix} {symbol} {value:{label_format}}".lstrip()
-        if prefix_style == "=":
-            if not prefix:
-                return f"{pvalue:{label_format}}"
-            return f"{prefix} = {pvalue:{label_format}}"
-        if prefix_style is None:
-            return f"{prefix}{pvalue:{label_format}}"
-        msg = f"`prefix_style` must be '=', '<', or None. Received: {prefix_style!r}"
-        raise ValueError(msg)
-
-    components = []
-    for kind in label_kinds:
-        if kind == "stars":
-            components.append([_significance_stars(pvalue) for pvalue in pvalues_for_stars])
-        elif kind == "pvalue":
-            components.append([_format_pvalue(pvalue) for pvalue in pvalues_raw])
-        else:  # "padj"
-            components.append([_format_pvalue(pvalue) for pvalue in pvalues_adj])
-
-    labels = [separator.join(parts) for parts in zip(*components, strict=True)]
-    brackets = brackets.with_columns(label=pl.Series(labels))
-
-    # compute y positions so brackets stack above the data without overlapping
-
+    # stack the brackets above the data without overlapping
     data_min = finite_frame[y].min()
     data_max = finite_frame[y].max()
     data_range = data_max - data_min  # ty:ignore[unsupported-operator]
     _y_position = data_max + data_range * y_padding if y_position is None else y_position
     _y_step = data_range * y_padding if y_step is None else y_step
-    positions = [_y_position + _y_step * index for index in range(len(brackets))]
-    brackets = brackets.with_columns(y=pl.Series(positions))
-
-    return brackets
+    positions = [_y_position + _y_step * index for index in range(len(pairs))]
+    return finite_frame, pairs, positions
 
 
 def bracket(
     *,
     plot: PlotSpec | None = None,
     comparisons: Sequence[Sequence[str]] | None = None,
-    test: Literal["mannwhitney", "ttest", "student"] = "mannwhitney",
-    alternative: Literal["two-sided", "less", "greater"] = "two-sided",
+    test: Literal["mannwhitney", "ttest"] = "mannwhitney",
     correction: Literal["none", "bonferroni", "fdr_bh"] = "fdr_bh",
-    label: Literal["stars", "pvalue", "padj"]
-    | Sequence[Literal["stars", "pvalue", "padj"]] = "stars",
-    label_format: str = ".3g",
-    prefix: str = "",
-    prefix_style: Literal["=", "<"] | None = "=",
-    separator: str = " ",
-    threshold: float | None = None,
+    label: Literal["stars", "pvalue"] = "stars",
+    hide_ns: bool = False,
     y_position: float | None = None,
     y_step: float | None = None,
     y_padding: float = 0.08,
@@ -291,7 +153,7 @@ def bracket(
     **geom_kwargs,
 ) -> DeferredLayer:
     """
-    Layer of `geom_bracket` annotating pairwise significance between groups.
+    Layer of `stat_compare_means` annotating pairwise significance between groups.
 
     Parameters
     ----------
@@ -305,47 +167,21 @@ def bracket(
         If None, every pair of groups present in the plot is compared.
         `"*"` on either side expands to all other groups, so
         `[("A", "*")]` compares `A` against every remaining group.
-    test : {'mannwhitney', 'ttest', 'student'}, default='mannwhitney'
-        Statistical test used for each pairwise comparison.
-        'mannwhitney' is non-parametric and recommended for expression data.
+    test : {'mannwhitney', 'ttest'}, default='mannwhitney'
+        Two-sided statistical test used for each pairwise comparison, as in R.
+        'mannwhitney' is the Wilcoxon rank-sum test, non-parametric and
+        recommended for expression data; it is exact below 50 tie-free values
+        per group (R's `wilcox.test`).
         'ttest' is Welch's independent two-sample t-test (assumes normality).
-        'student' is the pooled-variance variant, which also assumes both
-        groups share a variance.
-    alternative : {'two-sided', 'less', 'greater'}, default='two-sided'
-        The alternative hypothesis passed to the underlying test.
     correction : {'none', 'bonferroni', 'fdr_bh'}, default='fdr_bh'
         Multiple-testing correction applied across the pairwise p-values.
-    label : {'stars', 'pvalue', 'padj'} or sequence of those, default='stars'
-        The bracket label to draw.
-        'stars' maps p-values to asterisks (`****` < 0.0001, `***` < 0.001,
-        `**` < 0.01, `*` < 0.05, `ns` otherwise).
-        'pvalue' prints the raw p-value and 'padj' prints the adjusted p-value.
-        A sequence merges each component with a newline, e.g.
-        `label=("stars", "padj")` stacks the stars on top of the adjusted p-value.
-    label_format : str, default='.3g'
-        Format string used when `label` contains 'pvalue' or 'padj'.
-    prefix : str, default=''
-        Text prepended to the numeric p-value/padj labels. Ignored for the
-        'stars' component. When `prefix_style` is '=' or '<', the symbol is
-        inserted between `prefix` and the value with whitespace around it,
-        so `prefix='p'` with `prefix_style='='` renders `'p = 0.001'`.
-        When `prefix_style` is None, `prefix` is used as-is, so the caller
-        is responsible for including any symbol and spacing.
-    prefix_style : {'=', '<'} or None, default='='
-        How the numeric portion of the label is rendered.
-        '=' shows the actual p-value with `' = '` inserted after `prefix`.
-        '<' replaces the p-value with the star-bracket threshold it falls
-        below, with `' < '` inserted after `prefix`, giving
-        `'p < 0.0001'`, `'p < 0.001'`, `'p < 0.01'`, or `'p < 0.05'`.
-        Non-significant comparisons render as `'p > 0.05'`.
-        None disables symbol insertion; the caller supplies any symbol via
-        `prefix`.
-    separator : str, default=' '
-        Separator used to join components when `label` is a sequence with
-        more than one entry (e.g. `('stars', 'padj')`).
-    threshold : float | None, default=None
-        If provided, only comparisons whose p-value (adjusted if `correction` is not
-        'none') is below this threshold are drawn.
+    label : {'stars', 'pvalue'}, default='stars'
+        The bracket label to draw, both from the adjusted p-value.
+        'stars' maps p-values to asterisks (`****` <= 0.0001, `***` <= 0.001,
+        `**` <= 0.01, `*` <= 0.05, `ns` otherwise).
+        'pvalue' prints the p-value with 2 significant digits.
+    hide_ns : bool, default=False
+        With `label='stars'`, drop the `ns` (not significant) brackets.
     y_position : float | None, default=None
         Vertical position of the lowest bracket. If None, it is placed above
         the maximum `y` value with a gap of `y_padding * y_range`.
@@ -358,7 +194,7 @@ def bracket(
     color : str, default='#1f1f1f'
         Color of the brackets and labels.
     label_size : float | None, default=None
-        Font size of the label text. If None, `geom_bracket`'s default is used.
+        Font size of the label text. If None, ggrust's default is used.
     segment_size : float, default=0.5
         Line width of the bracket segments.
     x : str | None, default=None
@@ -370,9 +206,8 @@ def bracket(
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the layer, the result of `aes()`.
     **geom_kwargs
-        Additional parameters for the `geom_bracket` layer.
-        For more information on geom_bracket parameters, see:
-        https://lets-plot.org/python/pages/api/lets_plot.geom_bracket.html
+        Additional parameters for the `stat_compare_means` layer, e.g.
+        `tip_length`.
 
     Returns
     -------
@@ -388,13 +223,14 @@ def bracket(
         If `comparisons` contains malformed pairs or groups not present in
         the plot data.
     ValueError
-        If a statistical option or label option is invalid, or there are too
-        few observations to compute brackets.
+        If `test`, `correction` or `label` is invalid, or there are too few
+        observations to compute brackets.
 
     Notes
     -----
-    Pairwise tests are computed from the plot's retrieved DataFrame using the `x`
-    aesthetic as the grouping column and the `y` aesthetic as the value column.
+    Pairwise tests are computed by ggrust's `stat_compare_means` from the plot's
+    retrieved DataFrame, using the `x` aesthetic as the grouping column and the
+    `y` aesthetic as the value column.
 
     Rows the plot dropped are absent from the test too, so a plot built with
     `threshold` compares only the observations above it.
@@ -435,7 +271,7 @@ def bracket(
         )
         box + cl.bracket(
             comparisons=[("Monocytes", "Erythroid"), ("Monocytes", "B Cells")],
-            label="padj",
+            label="pvalue",
             y_padding=0.2,
         )
 
@@ -449,38 +285,15 @@ def bracket(
             y_padding=0.2,
         )
 
-    Hide non-significant brackets by setting a threshold on the adjusted p-value.
+    Hide non-significant brackets.
 
     .. jupyter-execute::
 
-        box + cl.bracket(threshold=0.001,y_padding=0.2)
-
-    Adjust the label format places and add a prefix.
-
-    .. jupyter-execute::
-        :emphasize-lines: 4-5
-
-        box + cl.bracket(
-            threshold=0.05,
-            label="pvalue",
-            prefix="p",
-            prefix_style="=",
-            y_padding=0.2,
-        )
-
-    Use "<" notation instead.
-
-    .. jupyter-execute::
-        :emphasize-lines: 4
-
-        box + cl.bracket(
-            threshold=0.05,
-            label="pvalue",
-            prefix="p",
-            prefix_style="<",
-            y_padding=0.2,
-        )
+        box + cl.bracket(hide_ns=True, y_padding=0.2)
     """
+    method = _option("test", test, _TEST_METHODS)
+    p_adjust_method = _option("correction", correction, _CORRECTION_METHODS)
+    p_label = _option("label", label, _LABELS)
     explicit_plot = plot
     explicit_x = x
     explicit_y = y
@@ -499,21 +312,11 @@ def bracket(
             msg = "`y` is present neither as argument nor in the plot aesthetics."
             raise MissingAestheticError(msg)
 
-        # compute the pairwise significance frame
-        brackets = _compute_bracket_frame(
+        finite_frame, pairs, positions = _bracket_layout(
             frame,
             x=x,
             y=y,
             comparisons=comparisons,
-            test=test,
-            alternative=alternative,
-            correction=correction,
-            label=label,
-            label_format=label_format,
-            prefix=prefix,
-            prefix_style=prefix_style,
-            separator=separator,
-            threshold=threshold,
             y_position=y_position,
             y_step=y_step,
             y_padding=y_padding,
@@ -523,9 +326,16 @@ def bracket(
         local_mapping = mapping or aes()
         size_kwargs = {} if label_size is None else {"size": label_size}
         local_color = None if "color" in local_mapping.as_dict() else color
-        return geom_bracket(
-            data=brackets,
-            mapping=aes(xmin="xmin", xmax="xmax", y="y", label="label", **local_mapping.as_dict()),
+        return stat_compare_means(
+            aes(x=x, y=y, **local_mapping.as_dict()),
+            data=finite_frame,
+            method=method,
+            comparisons=pairs,
+            hide_ns=hide_ns,
+            label=p_label,
+            label_y=positions,
+            p_adjust_method=p_adjust_method,
+            inherit_aes=False,
             color=local_color,
             segment_size=segment_size,
             **size_kwargs,
