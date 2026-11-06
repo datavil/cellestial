@@ -19,8 +19,8 @@ import polars as pl
 from anndata import AnnData
 from ggrust import (
     element_blank,
-    element_rect,
     element_text,
+    geom_rect,
     ggsave,
     scale_fill_gradientn,
     scale_fill_viridis,
@@ -93,16 +93,16 @@ def synthetic_modality(
     rng = np.random.default_rng(seed)
     observations = pl.DataFrame(
         [
-            {"cell_type": cell_type, "time_point": time_point}
+            {"Cell type": cell_type, "Time point": time_point}
             for cell_type in CELL_TYPES
             for time_point in TIME_POINTS
             for _ in range(CELLS_PER_SAMPLE)
         ]
     )
-    cell_type_index = observations["cell_type"].replace_strict(
+    cell_type_index = observations["Cell type"].replace_strict(
         {name: index for index, name in enumerate(CELL_TYPES)}
     )
-    time_index = observations["time_point"].replace_strict(
+    time_index = observations["Time point"].replace_strict(
         {name: index for index, name in enumerate(TIME_POINTS)}
     )
     columns, variables = [], []
@@ -117,7 +117,7 @@ def synthetic_modality(
             values += rng.normal(0.0, noise, values.shape)
             columns.append(values)
             variables.extend(
-                {"module": f"{cell_type} {dynamics}", "dynamics": dynamics} for _ in range(size)
+                {"module": f"{cell_type} {dynamics}", "Dynamics": dynamics} for _ in range(size)
             )
     matrix = np.hstack(columns)
     matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
@@ -166,20 +166,20 @@ def panel(data: AnnData, *, palette: FeatureSpec, key_labels: list[str] | None =
         theme(axis_text_y=element_text(face="italic", size=9))
         if key_labels
         else theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
-    )
+    ) + theme(axis_line_x=element_blank())
     return cl.annotated_heatmap(
         data,
         keys=list(data.var_names),
-        group_by="cell_type",
+        group_by="Cell type",
         variable_group_by="module",
         transpose=True,
-        row_annotations=["cell_type", "time_point"],
-        column_annotations=["dynamics"],
+        row_annotations=["Cell type", "Time point"],
+        column_annotations=["Dynamics"],
         column_annotation_position="bottom",
         annotation_colors={
-            "cell_type": CELL_TYPE_COLORS,
-            "time_point": TIME_POINT_COLORS,
-            "dynamics": DYNAMICS_COLORS,
+            "Cell type": CELL_TYPE_COLORS,
+            "Time point": TIME_POINT_COLORS,
+            "Dynamics": DYNAMICS_COLORS,
         },
         # One bin per cell type x time point sample (pseudobulk-like columns).
         max_rows=len(CELL_TYPES) * len(TIME_POINTS),
@@ -188,7 +188,17 @@ def panel(data: AnnData, *, palette: FeatureSpec, key_labels: list[str] | None =
         group_lines_size=0.8,
         layers=[
             palette,
-            theme(panel_border=element_rect(color="black", size=1.2)),
+            # Frame the cells only: a panel border would also box the label margin.
+            geom_rect(
+                xmin=-0.5,
+                xmax=len(CELL_TYPES) * len(TIME_POINTS) - 0.5,
+                ymin=-0.5,
+                ymax=data.n_vars - 0.5,
+                fill="rgba(0,0,0,0)",
+                color="black",
+                size=1.2,
+                inherit_aes=False,
+            ),
             key_axis,
         ],
     )
