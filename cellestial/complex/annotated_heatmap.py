@@ -238,7 +238,7 @@ def _run_boundaries(labels: Sequence) -> list[int]:
 
 
 def _annotation_scale(
-    series: pl.Series, colors: AnnotationColors | None, palette: str
+    series: pl.Series, colors: AnnotationColors | None, palette: str, *, legend: bool
 ) -> FeatureSpec | None:
     """
     Resolve the fill scale for one annotation track.
@@ -247,21 +247,23 @@ def _annotation_scale(
     -----
     `colors` may be a category -> color mapping, a list of colors, or `None`.
     Numeric tracks default to a gray gradient; categorical tracks default to the
-    track's assigned ColorBrewer `palette`.
+    track's assigned ColorBrewer `palette`. Without `legend` the scale draws no
+    legend.
     """
     numeric = series.dtype.is_numeric()
+    guide = {} if legend else {"guide": "none"}
     if colors is None:
         if numeric:
-            return scale_fill_gradient(low="#f0f0f0", high="#1a1a1a", name=series.name)
-        return scale_fill_brewer(palette=palette, name=series.name)
+            return scale_fill_gradient(low="#f0f0f0", high="#1a1a1a", name=series.name, **guide)
+        return scale_fill_brewer(palette=palette, name=series.name, **guide)
     if isinstance(colors, Mapping):
-        return scale_fill_manual(values=dict(colors), name=series.name)
+        return scale_fill_manual(values=dict(colors), name=series.name, **guide)
     colors = list(colors)
     if numeric:
         if len(colors) == 2:
-            return scale_fill_gradient(low=colors[0], high=colors[1], name=series.name)
-        return scale_fill_gradientn(colors=colors, name=series.name)
-    return scale_fill_manual(values=colors, name=series.name)
+            return scale_fill_gradient(low=colors[0], high=colors[1], name=series.name, **guide)
+        return scale_fill_gradientn(colors=colors, name=series.name, **guide)
+    return scale_fill_manual(values=colors, name=series.name, **guide)
 
 
 def _track_layers(
@@ -273,6 +275,7 @@ def _track_layers(
     colors: Mapping[str, AnnotationColors],
     palette_of: Mapping[str, str],
     titles: bool,
+    legend: bool,
 ) -> list[FeatureSpec]:
     """
     Build one band's annotation tracks, each with its own fill scale.
@@ -284,7 +287,8 @@ def _track_layers(
     axis, named after its column. The first listed is the outermost, so on a
     `far` band (right or top, where the cross axis grows away from the heatmap)
     the level order is reversed. Without `titles` the band axis has no breaks,
-    so the track names take no room.
+    so the track names take no room. Without `legend` the tracks draw no
+    legends.
     """
     side_tile = geom_xsidetile if band == "x" else geom_ysidetile
     layers: list[FeatureSpec] = []
@@ -292,7 +296,12 @@ def _track_layers(
         layers.append(new_scale_fill())
         layers.append(side_tile(aes(fill=annotation), data=frame))
         layers.append(
-            _annotation_scale(frame[annotation], colors.get(annotation), palette_of[annotation])
+            _annotation_scale(
+                frame[annotation],
+                colors.get(annotation),
+                palette_of[annotation],
+                legend=legend,
+            )
         )
     if annotations:
         limits = list(reversed(annotations)) if far else list(annotations)
@@ -512,6 +521,7 @@ def annotated_heatmap(
     variable_id_column: str = "Variable",
     interactive: bool = False,
     legend: bool = True,
+    annotation_legends: bool = True,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -641,6 +651,9 @@ def annotated_heatmap(
         Whether to make the heatmap panel interactive (zoom and pan).
     legend : bool, default=True
         Whether to show the legends for the heatmap and the annotation tracks.
+    annotation_legends : bool, default=True
+        Whether to show the annotation tracks' legends. Set to `False` to keep
+        only the heatmap's color bar (with `legend`).
     **geom_kwargs
         Additional parameters for the heatmap geom layer.
 
@@ -931,6 +944,7 @@ def annotated_heatmap(
             colors=annotation_colors,
             palette_of=palette_of,
             titles=track_titles,
+            legend=annotation_legends,
         )
 
     # ROW annotation tracks (observation metadata), in the band along the observation axis.
@@ -944,6 +958,7 @@ def annotated_heatmap(
         colors=annotation_colors,
         palette_of=palette_of,
         titles=track_titles,
+        legend=annotation_legends,
     )
 
     # DENDROGRAM (group clustering), outermost in the observation band. Groups span

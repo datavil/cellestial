@@ -4,7 +4,8 @@ Reproduce Zamboni et al. 2025 (Nat Neurosci) Fig. 3b (RNA) and 3e (ATAC).
 The paper's data (GEO GSE304349, GSE304196, GSE304399) is raw multiome
 sequencing, so this builds a synthetic stand-in: 5 cell types x 5 time points,
 features in modules up-regulated in one cell type with one of three temporal
-dynamics, z-scored per feature.
+dynamics. Cells are averaged into one pseudobulk per cell type x time point
+sample and z-scored per feature.
 
 Run:
     poetry run python scripts/zamboni_fig3.py
@@ -23,10 +24,9 @@ from ggrust import (
     geom_rect,
     ggsave,
     scale_fill_gradientn,
-    scale_fill_viridis,
     theme,
 )
-from ggrust.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 
@@ -84,7 +84,7 @@ def synthetic_modality(
     module_sizes: dict[str, dict[str, int]], *, prefix: str, noise: float, seed: int
 ) -> AnnData:
     """
-    Simulate one modality as cells x features with module block structure.
+    Simulate one modality as pseudobulks x features with module block structure.
 
     Parameters
     ----------
@@ -100,8 +100,9 @@ def synthetic_modality(
     Returns
     -------
     AnnData
-        Cells ordered by cell type, then time point; features ordered by
-        module. Values are z-scored per feature.
+        One pseudobulk (mean over `CELLS_PER_SAMPLE` cells) per sample, ordered
+        by cell type, then time point; features ordered by module. Values are
+        z-scored per feature.
     """
     rng = np.random.default_rng(seed)
     observations = pl.DataFrame(
@@ -132,8 +133,11 @@ def synthetic_modality(
             variables.extend(
                 {"module": f"{cell_type} {dynamics}", "Dynamics": dynamics} for _ in range(size)
             )
-    matrix = np.hstack(columns)
+    cells = np.hstack(columns)
+    # Cells of a sample are contiguous rows: average them into its pseudobulk.
+    matrix = cells.reshape(-1, CELLS_PER_SAMPLE, cells.shape[1]).mean(axis=1)
     matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
+    observations = observations.gather_every(CELLS_PER_SAMPLE)
     variable_frame = pl.DataFrame(variables).with_columns(
         (pl.lit(prefix) + pl.int_range(pl.len()).cast(pl.String)).alias("name")
     )
@@ -174,12 +178,20 @@ def name_genes(data: AnnData, genes: dict[str, list[str]]) -> list[str]:
 def panel(
     data: AnnData,
     *,
-    palette: FeatureSpec,
+    colors: list[str],
+    title: str,
     key_labels: list[str] | None = None,
     group_labels: dict[str, str] | None = None,
 ) -> PlotSpec:
     """Build one Fig. 3 heatmap panel from a synthetic modality."""
     data.obs.index = data.obs.index.astype(str)
+    # The color bar's ends are named Min and Max, as in the paper.
+    palette = scale_fill_gradientn(
+        colors=colors,
+        name=title,
+        breaks=[float(data.X.min()), float(data.X.max())],
+        labels=["Min", "Max"],
+    )
     # Thousands of features: label only `key_labels` (in italics), or none.
     key_axis = (
         theme(axis_text_y=element_text(face="italic", size=9))
@@ -200,8 +212,7 @@ def panel(
             "Time point": TIME_POINT_COLORS,
             "Dynamics": DYNAMICS_COLORS,
         },
-        # One bin per cell type x time point sample (pseudobulk-like columns).
-        max_rows=len(CELL_TYPES) * len(TIME_POINTS),
+        annotation_legends=False,
         key_labels=key_labels,
         group_labels=group_labels,
         group_labels_width=0.4,
@@ -253,19 +264,29 @@ def main() -> None:
         noise=0.8,
         seed=1,
     )
-    magma = scale_fill_viridis(option="magma", name="RNA")
-    teal = scale_fill_gradientn(
-        colors=["#0b0b2b", "#2b3a7a", "#2f6c96", "#33a0a8", "#9ee6c8"], name="ATAC"
-    )
+    magma = ["#000004", "#3b0f70", "#8c2981", "#de4968", "#fe9f6d", "#fcfdbf"]
+    teal = ["#0b0b2b", "#2b3a7a", "#2f6c96", "#33a0a8", "#9ee6c8"]
     genes = name_genes(rna, PAPER_GENES)
     ggsave(
-        panel(rna, palette=magma, key_labels=genes, group_labels=PAPER_TERMS),
+        panel(
+            rna,
+            colors=magma,
+            title=f"RNA ({rna.n_vars:,} genes)",
+            key_labels=genes,
+            group_labels=PAPER_TERMS,
+        ),
         str(OUTPUT / "zamboni_fig3b.png"),
         w=7,
         h=7,
         unit="in",
     )
-    ggsave(panel(atac, palette=teal), str(OUTPUT / "zamboni_fig3e.png"), w=5, h=7, unit="in")
+    ggsave(
+        panel(atac, colors=teal, title=f"ATAC ({atac.n_vars:,} regions)"),
+        str(OUTPUT / "zamboni_fig3e.png"),
+        w=5,
+        h=7,
+        unit="in",
+    )
 
 
 if __name__ == "__main__":

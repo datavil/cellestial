@@ -155,6 +155,8 @@ change. Versions absent from the list were never released.
   (multi-line) text beside each `variable_group_by` block, outside the column
   annotation tracks, such as GO terms per gene module. `group_labels_width`
   sets the text area and `group_labels_kwargs` styles the text.
+- `annotated_heatmap(annotation_legends=False)` hides the annotation tracks'
+  legends, keeping only the heatmap's color bar.
 
 ### Changed
 - Extra keyword arguments forwarded to the underlying geom are documented as

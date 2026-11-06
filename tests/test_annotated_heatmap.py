@@ -458,3 +458,31 @@ def test_annotated_heatmap_group_labels_unknown_block_raises(adata, markers):
             variable_group_by="module",
             group_labels={"nope": "text"},
         )
+
+
+@pytest.mark.parametrize("annotation_legends", [True, False])
+def test_annotated_heatmap_annotation_legends_toggle_track_legends(
+    adata, markers, group_key, cluster_key, annotation_legends
+):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable", "means"],
+        row_annotations=[cluster_key, "pct_counts_mt"],
+        annotation_legends=annotation_legends,
+        max_rows=20,
+    ).as_dict()
+
+    fill_scales = [
+        scale
+        for scale in spec["scales"]
+        if scale.get("aesthetic") == "fill" and "ggside" not in scale
+    ]
+    tracks = {"highly_variable", "means", cluster_key, "pct_counts_mt"}
+    track_scales = [scale for scale in fill_scales if scale.get("name") in tracks]
+    assert len(track_scales) == 4
+    hidden = [scale.get("guide") == "none" for scale in track_scales]
+    assert hidden == [not annotation_legends] * 4
+    # the heatmap's color bar keeps its legend either way
+    assert all(scale.get("guide") != "none" for scale in fill_scales if scale not in track_scales)
