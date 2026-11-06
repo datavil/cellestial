@@ -631,19 +631,41 @@ def _extract_rank_genes_groups(
             )
             raise ValueError(msg)
 
+        # A ranking run on `.raw` can name genes that `var` lacks; skip those
+        # and take the top `n_genes` among the genes that can be plotted.
+        var_names = set(data.var_names)
+        missing: list[str] = []
         keys: dict[str, list[str]] = {}
         seen: dict[str, str] = {}
         dropped: list[tuple[str, str, str]] = []
         for group in selected:
+            present: list[str] = []
+            for gene in names[group]:
+                if len(present) == n_genes:
+                    break
+                if str(gene) in var_names:
+                    present.append(str(gene))
+                else:
+                    missing.append(str(gene))
             group_keys: list[str] = []
-            for gene in names[group][:n_genes]:
-                gene_name = str(gene)
+            for gene_name in present:
                 if gene_name in seen:
                     dropped.append((gene_name, seen[gene_name], group))
                     continue
                 seen[gene_name] = group
                 group_keys.append(gene_name)
             keys[group] = group_keys
+
+        if missing:
+            unique_missing = list(dict.fromkeys(missing))
+            examples = ", ".join(repr(gene) for gene in unique_missing[:3])
+            suffix = f" and {len(unique_missing) - 3} more" if len(unique_missing) > 3 else ""
+            _warn(
+                f"Skipped ranked genes not in `var_names` ({examples}{suffix}); "
+                "the ranking was likely computed on `.raw` or before subsetting genes. "
+                "Re-run `scanpy.tl.rank_genes_groups` with `use_raw=False` to rank "
+                "only the genes that can be plotted."
+            )
 
         if dropped:
             examples = ", ".join(

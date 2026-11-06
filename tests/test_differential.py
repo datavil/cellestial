@@ -20,7 +20,9 @@ from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
 
 @pytest.fixture
 def ranked_adata():
-    data = AnnData(X=np.ones((4, 4)))
+    genes = ["gene_a", "shared", "gene_c", "gene_d", "gene_b", "gene_e", "gene_f"]
+    data = AnnData(X=np.ones((4, len(genes))))
+    data.var_names = genes
     data.obs["cluster"] = ["A", "A", "B", "B"]
     data.uns["rank_genes_groups"] = {
         "names": np.rec.fromarrays(

@@ -554,6 +554,16 @@ def test_markers_and_dendrogram_round_trip(ranked):
     )
 
 
+@pytest.mark.parametrize("plot", [cl.heatmap, cl.dotplot, cl.stacked_violin])
+def test_markers_skip_ranked_genes_the_modality_lacks(mudata, plot):
+    """The shipped ranking ran on `.raw`, so most of its top genes are not in `var`."""
+    with pytest.warns(cl.util.errors.CellestialWarning, match="not in `var_names`"):
+        frame = cl.retrieve(plot(mudata, markers=True, modality="rna"))
+    plotted = set(frame["variable"].unique())
+    assert plotted
+    assert plotted <= set(mudata.mod["rna"].var_names)
+
+
 def test_dendrogram_translates_a_prefixed_group_column(mudata):
     """`rna:leiden` at the container is `leiden` inside the modality."""
     plot = cl.dotplot(mudata, keys=[GENE], group_by="rna:leiden", dendrogram=True, modality="rna")
