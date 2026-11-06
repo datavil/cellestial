@@ -206,6 +206,8 @@ def panel(
         transpose=True,
         row_annotations=["Cell type", "Time point"],
         column_annotations=["Dynamics"],
+        # "Cell type" / "Time point" on the right of the top tracks, as in the paper.
+        row_track_titles=True,
         column_annotation_position="bottom",
         annotation_colors={
             "Cell type": CELL_TYPE_COLORS,
