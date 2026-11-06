@@ -161,12 +161,12 @@ def test_annotated_heatmap_is_one_plot_with_side_tracks(adata, markers, group_ke
     side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
     # first listed track outermost: leftmost in the left band
     assert side_scales["y"]["limits"] == [cluster_key, "pct_counts_mt"]
-    assert side_scales["x"]["position"] == "right"
-    # turned names on top, so they don't inflate the bottom axis area
-    assert side_scales["y"]["position"] == "top"
-    # track titles hidden by default: the legends name the tracks
+    # track titles hidden by default: the legends name the tracks, and the band
+    # axes stay on the main axes' sides (no stray line on the far side)
     assert side_scales["x"]["breaks"] == []
     assert side_scales["y"]["breaks"] == []
+    assert "position" not in side_scales["x"]
+    assert "position" not in side_scales["y"]
 
 
 def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster_key):
@@ -184,6 +184,7 @@ def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster
     assert "breaks" not in side_scales["x"]
     assert "breaks" not in side_scales["y"]
     assert side_scales["x"]["position"] == "right"
+    # turned names on top, so they don't inflate the bottom axis area
     assert side_scales["y"]["position"] == "top"
 
 
