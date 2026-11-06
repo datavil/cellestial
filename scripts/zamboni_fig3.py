@@ -193,11 +193,9 @@ def panel(
         labels=["Min", "Max"],
     )
     # Thousands of features: label only `key_labels` (in italics), or none.
-    key_axis = (
-        theme(axis_text_y=element_text(face="italic", size=9))
-        if key_labels
-        else theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
-    ) + theme(axis_line_x=element_blank())
+    # `axis_text_y` also styles the top tracks' titles: italics only with gene labels.
+    face = "italic" if key_labels else "plain"
+    key_axis = theme(axis_text_y=element_text(face=face, size=9), axis_line_x=element_blank())
     return cl.annotated_heatmap(
         data,
         keys=list(data.var_names),
@@ -215,7 +213,7 @@ def panel(
             "Dynamics": DYNAMICS_COLORS,
         },
         annotation_legends=False,
-        key_labels=key_labels,
+        key_labels=key_labels or [],
         group_labels=group_labels,
         group_labels_width=0.4,
         group_labels_kwargs={"size": 5},
