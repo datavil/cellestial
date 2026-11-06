@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "ggrust", "mudata", "numpy"]
 
 from collections.abc import Mapping
+from itertools import pairwise
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -51,6 +52,9 @@ if TYPE_CHECKING:
 
 # Width of the dendrogram, relative to the heatmap.
 _DENDROGRAM_WIDTH = 0.15
+
+# Width of the `key_labels` leader lines, relative to the heatmap.
+_LEADER_WIDTH = 0.06
 
 
 # ColorBrewer palettes cycled across annotation tracks so each gets a distinct one.
@@ -335,6 +339,56 @@ def _dendrogram_layer(
     return side_line(mapping, data=frame, inherit_aes=False, color=color, size=size, **kwargs)
 
 
+def _spread_labels(positions: Sequence[float], *, n_keys: int) -> list[float]:
+    """
+    Spread label positions evenly over the key axis, keeping their order.
+
+    Notes
+    -----
+    The label of the `i`-th lowest position takes the `i`-th of
+    `len(positions)` equal slots spanning the axis (-0.5 to `n_keys` - 0.5), so
+    leader lines from the positions to their labels never cross.
+    """
+    slot = n_keys / len(positions)
+    rank = np.argsort(np.argsort(positions))
+    return [-0.5 + (index + 0.5) * slot for index in rank.tolist()]
+
+
+def _leader_layer(
+    positions: Sequence[float],
+    spread: Sequence[float],
+    *,
+    band: Literal["x", "y"],
+    edge: float,
+    extent: float,
+) -> FeatureSpec:
+    """
+    Draw leader lines from each key's position to its spread label position.
+
+    Notes
+    -----
+    Each line leaves its key straight out from the band's cross position `edge`,
+    bends to the label position over the middle third of `extent`, and runs
+    straight out to the band's outer edge, where the key axis label sits. Drawn
+    as two-point segments, like `_dendrogram_layer`.
+    """
+    leaf, height, segment = [], [], []
+    for index, (position, label) in enumerate(zip(positions, spread, strict=True)):
+        path = [(edge, position), (edge + extent / 3, position)]
+        path += [(edge + 2 * extent / 3, label), (edge + extent, label)]
+        for part, (start, end) in enumerate(pairwise(path)):
+            for cross, along in (start, end):
+                height.append(float(cross))
+                leaf.append(float(along))
+                segment.append(3 * index + part)
+    frame = pl.DataFrame({"leaf": leaf, "height": height, "segment": segment})
+    if band == "x":
+        mapping, side_line = aes(x="leaf", y="height", group="segment"), geom_xsideline
+    else:
+        mapping, side_line = aes(x="height", y="leaf", group="segment"), geom_ysideline
+    return side_line(mapping, data=frame, inherit_aes=False, color="#1f1f1f", size=0.3)
+
+
 def annotated_heatmap(
     data: AnnData | MuData,
     keys: Sequence[str],
@@ -365,6 +419,7 @@ def annotated_heatmap(
     column_annotation_position: Literal["top", "bottom"] = "top",
     row_annotation_position: Literal["left", "right"] = "left",
     track_titles: bool = False,
+    key_labels: Sequence[str] | None = None,
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
@@ -463,6 +518,13 @@ def annotated_heatmap(
         default, since the legends already name the tracks; set to `True` to
         show them (a top or bottom band's names on its right, a left or right
         band's names above it).
+    key_labels : Sequence[str] | None, default=None
+        Label only these `keys`, spread evenly along the key axis, with a
+        leader line from each key's row (or column) to its label, as for gene
+        callouts. The labels and the lines sit on the column annotation side,
+        outside its tracks, and are the key axis labels, so a theme styles them
+        (e.g. `theme(axis_text_y=element_text(face="italic"))` when
+        transposed). `None` labels every key.
     color_low : str, default='#0000ff'
         Color for low values in the heatmap gradient.
     color_mid : str, default='#ffffff'
@@ -499,7 +561,8 @@ def annotated_heatmap(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     ValueError
-        If `dendrogram` is set without `group_by`.
+        If `dendrogram` is set without `group_by`, or `key_labels` holds a
+        name that is not in `keys`.
 
     Notes
     -----
@@ -543,6 +606,12 @@ def annotated_heatmap(
     if dendrogram and group_by is None:
         msg = "`group_by` is required when `dendrogram` is set."
         raise ValueError(msg)
+    if key_labels is not None:
+        key_labels = list(key_labels)
+        unknown = [label for label in key_labels if label not in keys]
+        if unknown:
+            msg = f"`key_labels` must be among `keys`, but received {unknown}."
+            raise ValueError(msg)
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
     if dendrogram:
@@ -805,9 +874,37 @@ def annotated_heatmap(
         )
         observation_thickness += _DENDROGRAM_WIDTH
 
+    # KEY LABELS: the chosen keys' axis labels at evenly spread positions on the
+    # variable side, with leader lines outermost in the variable band.
+    variable_thickness = column_annotation_height * len(column_annotations)
+    if key_labels:
+        variable_far = variable_side in ("right", "top")
+        positions = [position_x[label] for label in key_labels]
+        spread = _spread_labels(positions, n_keys=n_keys)
+        # Cross units are tracks, as for the dendrogram.
+        extent = _LEADER_WIDTH / column_annotation_height
+        variable_layers.append(
+            _leader_layer(
+                positions,
+                spread,
+                band=variable_band,
+                edge=len(column_annotations) - 0.5 if variable_far else -0.5,
+                extent=extent if variable_far else -extent,
+            )
+        )
+        variable_thickness += _LEADER_WIDTH
+        key_axis = scale_y_continuous if transpose else scale_x_continuous
+        key_scale = key_axis(
+            breaks=spread,
+            labels=key_labels,
+            limits=list(key_limits),
+            expand=[0, 0],
+            position=variable_side,
+        )
+
     # COMPOSE: both bands in one plot, each sized by its tracks (and the tree).
     thickness = {
-        variable_band: column_annotation_height * len(column_annotations),
+        variable_band: variable_thickness,
         observation_band: observation_thickness,
     }
     plot = _apply_layers(plot, variable_layers + observation_layers)
