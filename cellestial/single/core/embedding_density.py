@@ -24,6 +24,7 @@ from cellestial.layers import _modify_axis
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _drop_nonfinite_rows, _filter_groups, _resolve_embedding_key
 from cellestial.util.errors import (
+    EmptySelectionError,
     KeyNotFoundError,
     NonCategoricalColumnError,
     _unsupported_data_type,
@@ -67,8 +68,8 @@ def embedding_density(
         The single-cell data object.
     group_by : str | None, default=None
         Categorical cell metadata to split the cells by, one panel per group.
-        e.g. 'condition' or 'cell_type'. Each panel's density uses only that
-        group's cells. If None, the density of all cells is shown in one panel.
+        e.g. 'condition' or 'cell_type'. Each panel counts only that group's
+        cells. If None, the density of all cells is shown in one panel.
     dimensions : str, default='umap'
         The dimensionality reduction to plot, named without the `X_` prefix.
         e.g. 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
@@ -126,6 +127,8 @@ def embedding_density(
         `drop` is not found, or if no embedding matches `dimensions`.
     NonCategoricalColumnError
         If `group_by` holds numeric values.
+    EmptySelectionError
+        If no cell is left after `groups` and `drop`.
     KeyError
         If `xy` does not contain exactly two dimensions.
 
@@ -133,7 +136,9 @@ def embedding_density(
     -----
     The density is computed while the plot is drawn, separately for each panel,
     and scaled to 1 at the densest cell of each panel, so panels of different
-    sizes share one color scale.
+    sizes share one color scale. The neighbor radius and the kernel bandwidth
+    follow the plot's axis ranges, which span every cell drawn, so they are the
+    same in every panel.
 
     Examples
     --------
@@ -189,6 +194,12 @@ def embedding_density(
             raise NonCategoricalColumnError(msg)
         frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
         frame = frame.filter(pl.col(group_by).is_not_null())
+        if frame.is_empty():
+            msg = (
+                f"No cells are left in `group_by` `{group_by}` after `groups` and `drop`. "
+                "Keep at least one group, e.g. drop fewer groups."
+            )
+            raise EmptySelectionError(msg)
         levels = _category_levels(data, group_by)
         if levels is not None:
             # Panels follow the data's category order (e.g. 2 before 10), not text order.

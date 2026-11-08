@@ -9,6 +9,7 @@ from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.util.errors import (
+    EmptySelectionError,
     KeyNotFoundError,
     NonCategoricalColumnError,
     UnsupportedDataTypeError,
@@ -140,3 +141,10 @@ def test_xy_must_hold_two_dimensions(adata):
     """`xy` needs exactly two dimensions."""
     with pytest.raises(KeyError, match="exactly two dimensions"):
         cl.embedding_density(adata, xy=(1, 2, 3))
+
+
+def test_dropping_every_group_is_rejected(adata, group_key):
+    """Dropping every group fails before the plot is built."""
+    categories = list(adata.obs[group_key].cat.categories)
+    with pytest.raises(EmptySelectionError, match=r"No cells are left in `group_by`"):
+        cl.embedding_density(adata, group_by=group_key, drop=categories)
