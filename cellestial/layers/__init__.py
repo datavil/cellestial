@@ -1,6 +1,7 @@
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.layers.arrow import _modify_axis, arrow_axis  # noqa: F401
 from cellestial.layers.bracket import bracket
+from cellestial.layers.highlight import highlight
 from cellestial.layers.ondata_legend import ondata_legend
 from cellestial.layers.outline import cluster_outlines
 from cellestial.layers.stream import stream
@@ -12,6 +13,7 @@ __all__ = [
     "borders",
     "bracket",
     "cluster_outlines",
+    "highlight",
     "ondata_legend",
     "stream",
 ]

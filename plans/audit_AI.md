@@ -81,6 +81,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_require_categories` | Claude Opus 5 |  |  |  |  |
 | `_is_spatialdata` | Claude Opus 5.5 |  |  |  |  |
 | `_scale_wide_values` | Claude Opus 5.5 |  |  |  |  |
+| `highlight` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 

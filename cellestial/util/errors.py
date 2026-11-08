@@ -65,6 +65,20 @@ class SpatialLibraryError(Exception):
         super().__init__(message)
 
 
+class NonCategoricalColumnError(TypeError):
+    """Raised when an operation on groups receives a column of continuous values instead of categories."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class EmptySelectionError(ValueError):
+    """Raised when a selection of groups or keys is empty, so the result would show nothing selected."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
 
