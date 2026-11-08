@@ -7,6 +7,17 @@ Entries for 0.58.2 and earlier were reconstructed from the commit history after
 the fact, so they summarize each release in a line or two rather than list every
 change. Versions absent from the list were never released.
 
+## [Unreleased]
+
+### Added
+- Added `tracksplot`: cells ordered along x by group, one bar or area track per
+  key, a colored group bar marking the group spans, and optional dendrogram and
+  key-group brackets. Shares its parameters with `heatmap`:
+  `cl.tracksplot(data, keys=["CD3D", "LYZ"], group_by="leiden")` (issue #73).
+- Added `InvalidArgumentError` (a `ValueError`) for missing or out-of-range
+  parameter values, and `DendrogramMismatchError` (a `ValueError`) for a stored
+  dendrogram that covers groups absent from the data.
+
 ## [0.61.0] - 2026-11-08
 
 cellestial now builds and renders every plot with ggrust, a Rust backend that

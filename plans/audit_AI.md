@@ -86,6 +86,11 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_format_warning` | Claude Opus 5.5 |  |  |  |  |
 | `_kernel_padding` | Claude Opus 5.5 |  |  |  |  |
 | `_print_progress` | Claude Opus 5.5 |  |  |  |  |
+| `tracksplot` | Claude Opus 5.5 |  |  |  |  |
+| `_group_order` | Claude Opus 5.5 |  |  |  |  |
+| `_key_groups_track_layers` | Claude Opus 5.5 |  |  |  |  |
+| `InvalidArgumentError` | Claude Opus 5.5 |  |  |  |  |
+| `DendrogramMismatchError` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
