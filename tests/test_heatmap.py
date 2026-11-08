@@ -194,7 +194,7 @@ def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
         group_by=group_key,
         keys=(markers := ["CD79A", "MS4A1"]),
         fill_statistic="variable",
-        rectangle_kwargs={"alpha": 0.5},
+        rectangle_kwargs={"linetype": "dashed"},
         n_points=16,
     )
     assert isinstance(plot, PlotSpec)
