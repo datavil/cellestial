@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import sys
 import tempfile
 import threading
 import time
@@ -119,7 +120,7 @@ def _render_scanpy(figure) -> None:
 
 
 def _cl_violin(data, gene: str, group_by: str) -> None:
-    plot = cl.violin(data, key=gene, group_by=group_by, tooltips="none", show_points=False)
+    plot = cl.violin(data, key=gene, group_by=group_by, tooltips="none", points=False)
     _render_cellestial(plot)
 
 
@@ -162,7 +163,7 @@ def main() -> None:
 
     rows = [
         {
-            "library": "cellestial",
+            "library": "cellestial-ggrust" if "ggrust" in sys.modules else "cellestial-letsplot",
             "case": CASE,
             "categorical": CATEGORICAL,
             "replica_id": args.replica,

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust", "ggrust.plot.core"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import gggrid, ggtb
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust import gggrid, ggtb
+from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
 from cellestial.single.core.dimensional import dimensional
@@ -19,7 +21,7 @@ from cellestial.util import (
 
 if TYPE_CHECKING:
     from anndata import AnnData
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from mudata import MuData
 
 
@@ -38,7 +40,7 @@ def dimensionals(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -72,15 +74,15 @@ def dimensionals(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -115,7 +117,7 @@ def dimensionals(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -208,7 +210,7 @@ def dimensionals(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -225,7 +227,7 @@ def dimensionals(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -275,12 +277,12 @@ def dimensionals(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -301,7 +303,7 @@ def dimensionals(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -320,7 +322,7 @@ def dimensionals(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -371,7 +373,7 @@ def umaps(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -405,15 +407,15 @@ def umaps(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -445,7 +447,7 @@ def umaps(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -538,7 +540,7 @@ def umaps(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -555,7 +557,7 @@ def umaps(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -605,12 +607,12 @@ def umaps(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -630,7 +632,7 @@ def umaps(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -649,7 +651,7 @@ def umaps(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -700,7 +702,7 @@ def tsnes(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -734,15 +736,15 @@ def tsnes(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -774,7 +776,7 @@ def tsnes(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -866,7 +868,7 @@ def tsnes(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -883,7 +885,7 @@ def tsnes(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -933,12 +935,12 @@ def tsnes(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -958,7 +960,7 @@ def tsnes(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -976,7 +978,7 @@ def tsnes(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -1027,7 +1029,7 @@ def pcas(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -1061,15 +1063,15 @@ def pcas(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (cell features) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -1101,7 +1103,7 @@ def pcas(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1193,7 +1195,7 @@ def pcas(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -1210,7 +1212,7 @@ def pcas(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -1260,12 +1262,12 @@ def pcas(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -1285,7 +1287,7 @@ def pcas(
             groups=groups,
             drop=drop,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1304,7 +1306,7 @@ def pcas(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers
@@ -1354,7 +1356,7 @@ def expressions(
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -1388,15 +1390,15 @@ def expressions(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of dimensionality reduction plots.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys (gene names) to color the points by.
     mapping : FeatureSpec | None, default=None
@@ -1424,7 +1426,7 @@ def expressions(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -1516,7 +1518,7 @@ def expressions(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -1533,7 +1535,7 @@ def expressions(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -1582,12 +1584,12 @@ def expressions(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
@@ -1606,7 +1608,7 @@ def expressions(
             variable_keys=variable_keys,
             add_keys=add_keys,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -1625,7 +1627,7 @@ def expressions(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers

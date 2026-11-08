@@ -61,4 +61,4 @@ None.
 
 13. **`widths`/`heights` used `list` instead of `list[float]`** — distribution plurals (`histograms`/`violins`/`boxplots`/`ridges`) now use `list[float] | None`, matching the other plural APIs.
 
-14. **`build_frame` defaults were lowercase while plot defaults were capitalized** — changed `build_frame`, `anndata_observations_frame`, and `anndata_variables_frame` to default to `observations_name="Barcode"` and `variables_name="Variable"`. Pass lowercase names explicitly to restore the previous output.
+14. **`build_frame` defaults were lowercase while plot defaults were capitalized** — changed `build_frame`, `anndata_observations_frame`, and `anndata_variables_frame` to default to `observation_id_column="Barcode"` and `variable_id_column="Variable"`. Pass lowercase names explicitly to restore the previous output.

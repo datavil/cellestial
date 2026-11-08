@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "mudata", "numpy", "pandas", "scipy.sparse"]
+
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
@@ -26,6 +28,8 @@ def _as_array(embedding):
     """
     Return an embedding as something positionally indexable by column.
 
+    Notes
+    -----
     An embedding store accepts a `DataFrame` as well as an array, and callers
     index embeddings as `value[:, column]`, which a `DataFrame` reads as a label
     lookup and rejects.
@@ -39,22 +43,16 @@ class _Container:
     """
     Backend-agnostic view over a single-cell data object.
 
-    Answers the questions cellestial asks of a data object (metadata tables,
-    identifiers, embeddings, variable columns) so that no other module needs to
-    know which backend it received.
-
     Notes
     -----
-    Internal. Never appears in a public signature, is never constructed by
-    users, and is not exported from the package. Build one with `_container`.
+    Internal, never appears in a public signature and is not exported. Build one
+    with `_container`.
 
-    This base implementation is written against the attributes MuData and
-    AnnData share, so it is correct for both. `_MuDataContainer` overrides only
-    the methods that genuinely diverge, which makes that override list a
-    complete inventory of the difference between the two backends.
-
-    `__init__` only stores a reference, so constructing a container is free and
-    callers can keep taking the raw data object in their signatures.
+    Answers the questions cellestial asks of a data object (metadata tables,
+    identifiers, embeddings, variable columns) so that no other module needs to
+    know which backend it received. This base implementation is written against
+    the attributes AnnData and MuData share, so it is correct for both;
+    `_MuDataContainer` overrides only the methods that diverge.
     """
 
     __slots__ = ("_data",)
@@ -65,7 +63,9 @@ class _Container:
     def __init__(self, data: AnnData | MuData) -> None:
         self._data = data
 
-    # --- shared: correct for AnnData and MuData alike ------------------------
+    # -----------------------------------------------------------------------
+    # shared by AnnData and MuData
+    # -----------------------------------------------------------------------
 
     def observation_metadata(self) -> pd.DataFrame:
         """Return the observation metadata table."""
@@ -87,14 +87,13 @@ class _Container:
 
         Notes
         -----
-        Separate from `observation_metadata` so that key-classification callers,
-        which only ask whether a name exists, never pull a backed table into
-        memory just to read its column names.
+        Separate from `observation_metadata` so that callers which only ask
+        whether a name exists never pull a backed table into memory.
         """
         return self._data.obs.columns
 
     def variable_columns(self) -> pd.Index:
-        """Return the variable metadata column names. See `observation_columns`."""
+        """Return the variable metadata column names."""
         return self._data.var.columns
 
     def observation_names(self) -> pd.Index:
@@ -109,14 +108,23 @@ class _Container:
         """Return the number of observations."""
         return self._data.n_obs
 
-    # --- overridden by `_MuDataContainer` ------------------------------------
+    # -----------------------------------------------------------------------
+    # overridden by `_MuDataContainer`
+    # -----------------------------------------------------------------------
 
     def modality_names(self) -> list[str]:
         """Return the modality names, empty when the object has no modalities."""
         return []
 
     def select_modality(self, modality: str | None) -> AnnData:
-        """Return the data object supplying stored analysis results."""
+        """
+        Return the data object supplying stored analysis results.
+
+        Raises
+        ------
+        KeyNotFoundError
+            If a modality is requested but the data object has none.
+        """
         if modality is not None:
             msg = (
                 f"`modality={modality!r}` was given but this data object has no modalities. "
@@ -144,7 +152,13 @@ class _Container:
         return {name: _as_array(value) for name, value in self._data.varm.items()}
 
     def owns_variable(self, key: str) -> bool:
-        """Report whether `key` names a variable. Never raises."""
+        """
+        Check whether `key` names a variable.
+
+        Notes
+        -----
+        Unlike `resolve_variable`, this never raises on an unknown key.
+        """
         return key in self._data.var_names
 
     def resolve_variable(self, key: str) -> tuple[str | None, str]:
@@ -166,6 +180,13 @@ class _Container:
         """
         Reject keys that name more than one variable.
 
+        Raises
+        ------
+        AmbiguousVariableError
+            If any key matches more than one variable.
+
+        Notes
+        -----
         A name matching several columns has no single set of values, and
         slicing on it silently yields the wrong ones rather than failing.
         """
@@ -181,14 +202,25 @@ class _Container:
             raise AmbiguousVariableError(msg)
 
     def fetch_variable_columns(self, keys: Sequence[str]) -> list[pl.Series]:
-        """Return one column of values per key, aligned to the observations."""
+        """
+        Return one column of values per key, aligned to the observations.
+
+        Raises
+        ------
+        VariableNotFoundError
+            If any key is not present in the variable names.
+        AmbiguousVariableError
+            If any key matches more than one variable.
+        """
         missing = [key for key in keys if key not in self._data.var_names]
         if missing:
             msg = f"Keys not found in variable names: {missing}"
             raise VariableNotFoundError(msg)
         self._require_unique_variables(self._data.var_names, keys, "the data")
 
-        matrix = self._data[:, keys].X
+        # Index `X` directly: an AnnData view also slices `.raw`, copying all of it.
+        positions = self._data.var_names.get_indexer_for(keys)
+        matrix = self._data.X[:, positions]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         else:
@@ -236,6 +268,8 @@ class _MuDataContainer(_Container):
         """
         Return `column` as the selected modality names it.
 
+        Notes
+        -----
         A container carries modality columns prefixed as `modality:column`,
         while the modality itself holds them unprefixed. Callers that hand a
         container-level column name to a single modality translate it here.
@@ -247,12 +281,18 @@ class _MuDataContainer(_Container):
         """
         Return the container's name for a column of the selected modality.
 
+        Raises
+        ------
+        KeyNotFoundError
+            If the column has no counterpart on the container.
+
+        Notes
+        -----
         The inverse of `modality_column`. The qualified `modality:column` form
         wins whenever it exists, because that is the modality's own column: a
-        container can carry an unrelated global column under the bare name. In
-        `minipbcite.h5mu` both `leiden` (9 joint clusters) and `rna:leiden` (14
-        RNA clusters) exist and disagree on 356 of 411 cells, so preferring the
-        bare name would silently group results by the wrong clustering.
+        container can carry an unrelated global column under the bare name, so
+        preferring the bare name would silently group results by the wrong
+        clustering.
         """
         qualified = f"{modality}:{column}"
         columns = self._data.obs.columns
@@ -276,6 +316,8 @@ class _MuDataContainer(_Container):
         """
         Drop the boolean membership masks stored alongside the real embeddings.
 
+        Notes
+        -----
         A multimodal container keys one mask per modality in both `obsm` and
         `varm`. Left in, they would surface as junk single-column dimensions in
         every frame.
@@ -298,23 +340,21 @@ class _MuDataContainer(_Container):
         """
         Resolve `key` to its owning modality.
 
-        A qualified `modality:name` key selects the modality explicitly and is
-        tried first. Otherwise the key is matched literally, and must then be
-        owned by exactly one modality.
-
-        Notes
-        -----
-        The qualified reading cannot be the only one: variable names may
-        themselves contain colons, either because the dataset stores them
-        already prefixed (`rna:SAMD11`) or because they are ATAC peaks
-        (`chr1:1000-2000`). Both fall through to the literal match.
-
         Raises
         ------
         VariableNotFoundError
-            If the key matches neither reading.
+            If the key names no variable in any modality.
         AmbiguousVariableError
             If the literal key is owned by more than one modality.
+
+        Notes
+        -----
+        A qualified `modality:name` key selects the modality explicitly and is
+        tried first. Otherwise the key is matched literally, and must then be
+        owned by exactly one modality. The qualified reading cannot be the only
+        one: variable names may themselves contain colons, either because the
+        dataset stores them already prefixed (`rna:SAMD11`) or because they are
+        ATAC peaks (`chr1:1000-2000`). Both fall through to the literal match.
         """
         modality, separator, name = key.partition(":")
         is_qualified = bool(separator) and modality in self._data.mod
@@ -347,12 +387,14 @@ class _MuDataContainer(_Container):
         """
         Pull one variable from its modality, aligned to the container observations.
 
+        Notes
+        -----
         Observations absent from the owning modality surface as NaN.
         """
         modality, name = self.resolve_variable(key)
         part = self._data.mod[modality]
         self._require_unique_variables(part.var_names, [name], f"modality `{modality}`")
-        matrix = part[:, name].X
+        matrix = part.X[:, part.var_names.get_indexer_for([name])]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         values = np.asarray(matrix).reshape(-1)
@@ -374,7 +416,14 @@ class _MuDataContainer(_Container):
 
 
 def _container(data: object) -> _Container:
-    """Return the container view for `data`."""
+    """
+    Return the container view for `data`.
+
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported single-cell data object.
+    """
     if isinstance(data, MuData):
         return _MuDataContainer(data)
     if isinstance(data, AnnData):

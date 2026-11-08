@@ -1,10 +1,16 @@
-from lets_plot import LetsPlot
-
 from cellestial import datasets
 from cellestial._version import __version__, versions
 from cellestial.complex import annotated_heatmap
 from cellestial.frames import build_frame
-from cellestial.layers import arrow_axis, borders, bracket, cluster_outlines, ondata_legend, stream
+from cellestial.layers import (
+    arrow_axis,
+    borders,
+    bracket,
+    cluster_outlines,
+    highlight,
+    ondata_legend,
+    stream,
+)
 from cellestial.single import (
     bar,
     boxplot,
@@ -63,8 +69,6 @@ from cellestial.util.colors import (
     show_colors,
 )
 
-setup_html = LetsPlot.setup_html
-
 __all__ = [
     "BLUE",
     "CHERRY",
@@ -97,6 +101,7 @@ __all__ = [
     "get_mapping",
     "heatmap",
     "highest_expressed_genes",
+    "highlight",
     "histogram",
     "histograms",
     "layout",
@@ -113,7 +118,6 @@ __all__ = [
     "ridges",
     "save",
     "scatter",
-    "setup_html",
     "show_colors",
     "spatial",
     "spatials",
@@ -131,13 +135,3 @@ __all__ = [
     "xyplot",
     "xyplots",
 ]
-
-try:
-    from IPython.core.interactiveshell import InteractiveShell
-
-    if InteractiveShell.initialized():
-        from lets_plot import LetsPlot
-
-        LetsPlot.setup_html()
-except ImportError:
-    pass

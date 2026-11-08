@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust", "numpy"]
+
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import polars as pl
-from lets_plot import aes, geom_path
-from scipy.stats import gaussian_kde
+from ggrust import aes, density_outline, geom_path
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import _drop_nonfinite_rows, get_mapping
@@ -14,8 +15,24 @@ from cellestial.util.errors import MissingAestheticError
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec, LayerSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, LayerSpec, PlotSpec
     from polars import DataFrame
+
+
+def _kernel_padding(points: np.ndarray, level: float) -> float:
+    """
+    Return the grid padding that keeps a `level` outline inside the grid.
+
+    Notes
+    -----
+    A Gaussian kernel falls to `level` of its peak at sqrt(-2 ln(level)) kernel
+    standard deviations, so padding by that reach (plus one deviation of margin)
+    keeps outlines closed whatever the units of the embedding. The kernel
+    standard deviation follows Scott's rule, as `density_outline` does.
+    """
+    scott_factor = len(points) ** (-1 / 6)
+    kernel_deviation = scott_factor * points.std(axis=0, ddof=1).max()
+    return float((np.sqrt(-2 * np.log(level)) + 1) * kernel_deviation)
 
 
 def _get_density_boundaries(
@@ -24,13 +41,11 @@ def _get_density_boundaries(
     y: str,
     group_by: str,
     groups: str | Sequence[str | Sequence[str]],
-    padding: float = 1,
+    padding: float | None = None,
     level: float = 0.1,
     grid_size: int = 200,
 ) -> DataFrame:
     """Creates and Returns a DataFrame to encircle the cluster via `geom_path`."""
-    from skimage import measure
-
     # 1. Normalize input to a Sequence of Sequences: List[List[str]]
     if isinstance(groups, str):
         groups = [[groups]]
@@ -55,39 +70,19 @@ def _get_density_boundaries(
         if len(points) < 5:
             continue
 
-        # 2. KDE Calculation
-        kde = gaussian_kde(points.T)
-
-        # 3. Create Grid
-        x_min, y_min = points.min(axis=0) - padding
-        x_max, y_max = points.max(axis=0) + padding
-
-        x_range = np.linspace(x_min, x_max, grid_size)
-        y_range = np.linspace(y_min, y_max, grid_size)
-        xi, yi = np.meshgrid(x_range, y_range)
-
-        # 4. Evaluate Density
-        zi = kde(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
-
-        # 5. Extract Contours (The skimage magic)
-        threshold = zi.max() * level
-        # find_contours returns a list of [row, col] arrays
-        contours = measure.find_contours(zi, threshold)
-
-        for i, contour in enumerate(contours):
-            # Map grid indices back to DIM coordinates
-            # Note: skimage returns (row, col) which maps to (y_index, x_index)
-            actual_x = np.interp(contour[:, 1], np.arange(grid_size), x_range)
-            actual_y = np.interp(contour[:, 0], np.arange(grid_size), y_range)
-
+        # 2. Gaussian KDE on a padded grid, outlined at `level` of its peak
+        # (ggrust's port of scipy's gaussian_kde + skimage's find_contours).
+        group_padding = _kernel_padding(points, level) if padding is None else padding
+        outlines = density_outline(points, level=level, padding=group_padding, grid_size=grid_size)
+        for (path_index,), outline in outlines.partition_by(
+            "path", maintain_order=True, as_dict=True
+        ).items():
             boundaries.append(
-                pl.DataFrame(
-                    {
-                        x: actual_x,
-                        y: actual_y,
-                        group_by: [group_label] * len(actual_x),
-                        "path": [f"{group_label}_{i}"] * len(actual_x),
-                    }
+                outline.select(
+                    pl.col("x").alias(x),
+                    pl.col("y").alias(y),
+                    pl.lit(group_label).alias(group_by),
+                    pl.lit(f"{group_label}_{path_index}").alias("path"),
                 )
             )
 
@@ -105,7 +100,7 @@ def cluster_outlines(
     groups: str | Sequence[str | Sequence[str]],
     *,
     plot: PlotSpec | None = None,
-    padding: float = 1.5,
+    padding: float | None = None,
     level: float = 0.04,
     grid_size: int = 200,
     color: str = "#1f1f1f",
@@ -133,10 +128,11 @@ def cluster_outlines(
         If provided, outlines are computed from this plot's data and aesthetics
         regardless of which plot the resulting layer is added to. When `None`,
         the layer is deferred and introspects the plot it is added to via `+`.
-    padding : float, default=1.5
-        The spatial buffer added to the cluster's bounding box before calculating density.
-        Increasing this value allows the density 'cloud' to expand further from the outermost
-        points, ensuring the resulting curve is smooth and not truncated at the data edges.
+    padding : float | None, default=None
+        The spatial buffer added to the cluster's bounding box before calculating density,
+        in data units. If None, it is derived per cluster from the density kernel width and
+        `level`, so outlines stay closed in any embedding scale (UMAP, t-SNE, spatial pixels).
+        Too small a value cuts the outline open at the bounding box edges.
     level : float, default=0.04
         The density threshold for the outline, expressed as a fraction of the peak density
         (0.0 to 1.0). A lower value creates a larger, more inclusive 'bubble' that captures
@@ -190,7 +186,7 @@ def cluster_outlines(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -207,7 +203,7 @@ def cluster_outlines(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -224,7 +220,7 @@ def cluster_outlines(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 

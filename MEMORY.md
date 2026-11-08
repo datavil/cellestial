@@ -26,11 +26,13 @@
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
 - [Project: Deferred layers read the built frame](project_deferred_layers_read_frame.md) — Don't narrow embeddings in plot functions; `cl.stream()` reads velocity embeddings from the frame after the plot call
-- [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under the current poetry version in repo-root `CHANGELOG.md` (`### Breaking` + migration note)
+- [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under a new `## [Unreleased]` in repo-root `CHANGELOG.md` (`### Breaking` + migration note); never edit a published dated section
 - [Project: geom_raster aspect lock](project_letsplot_geom_raster_aspect.md) — lets-plot geom_raster forces square pixels; cl.heatmap rescales y, cl.annotated_heatmap (cellestial/complex) uses geom_tile + gggrid(align, guides)
 - [Project: annotated_heatmap overflow](project_annotated_heatmap_overflow.md) — cl.annotated_heatmap layout: dendrogram clip fixed (expand left margin), legend overflow fixed (bottom horizontal compact, set on subplots+grid); per-track brewer palettes; bar-end labels tried+reverted (leftmost row-label column clips). ggsize is not a fix.
 - [Project: Distribution aesthetic param naming](project_distribution_aesthetic_naming.md) — Keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by` (collides with live lets-plot passthrough)
 - [Project: MuData container](project_mudata_container.md) — MuData support routes through internal `_Container`/`_MuDataContainer`; dtype doubling, obsmap alignment, obsm masks, non-raising lookup, lazy import
+- [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
+- [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 
 
 ---
@@ -46,7 +48,7 @@ Plot functions must NOT narrow which embeddings get materialised into the frame 
 
 **Why:** Deferred layers added after the plot call (notably `cl.stream()`, the velocity layer in `cellestial/layers/stream.py`) read columns from the *already-built* frame via `retrieve(plot)`. `cl.stream()` needs a *different* embedding than the plotted one — e.g. plotting `X_umap` but reading `velocity_umap` -> `VELOCITY_UMAP1/2`. Since `cl.stream()` lets users name velocity columns arbitrarily (`velocity_key=` / `velocity_prefix=`), the plot call cannot predict which embeddings a later layer will need. Narrowing `dimension_keys=[prefix]` caused `KeyError: Velocity columns not found`.
 
-**How to apply:** When optimizing frame builds, narrow `metadata_columns` (unused obs/var columns) and skip the identifier column (`observations_name=None`) freely, but leave embeddings alone. Embeddings are cheap anyway (each capped at `max(xy)` columns). The other deferred layers (`arrow_axis`, `ondata_legend`, `cluster_outlines`, `bracket`) only read `x`/`y`/`color`, which are the plot's own aesthetics and always present, so `metadata_columns` narrowing is safe for them. See plans/frame_overhead_narrowing.md.
+**How to apply:** When optimizing frame builds, narrow `metadata_columns` (unused obs/var columns) and skip the identifier column (`observation_id_column=None`) freely, but leave embeddings alone. Embeddings are cheap anyway (each capped at `max(xy)` columns). The other deferred layers (`arrow_axis`, `ondata_legend`, `cluster_outlines`, `bracket`) only read `x`/`y`/`color`, which are the plot's own aesthetics and always present, so `metadata_columns` narrowing is safe for them. See plans/frame_overhead_narrowing.md.
 
 ## Source: feedback_sync_repo_memory.md
 
@@ -481,7 +483,7 @@ type: project
 
 ## complex/annotated_heatmap.py
 
-- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observations_name` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. Excludes `group_bars*`/`aggregate`/`key_labels*`/`geom`/`markers` (contradict the composite). All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
+- `annotated_heatmap(data, keys, group_by=None, column_annotations, row_annotations, annotation_colors, scale_axis, max_rows=1000, ...)` — gggrid composite (returns SupPlotsSpec). Rows=cells (optionally grouped by `group_by`), cols=`keys`; var-metadata tracks on top, obs-metadata tracks on LEFT. Numeric track->gradient, categorical->discrete; `annotation_colors[name]` overrides per track (dict=manual, list=gradient/palette). `max_rows` bins contiguous rows (mean numeric / mode categorical). Uses geom_tile (see [[project_letsplot_geom_raster_aspect]]). No `observation_id_column` param (row id is `position_y`). Also supports `dendrogram` (clusters groups via `_get_dendrogram`, reorders, draws a left panel), plus heatmap passthroughs `mapping`, `group_lines_kwargs`, `dendrogram_color/size/key/kwargs`, `interactive` (ggtb), `**geom_kwargs`. Excludes `group_bars*`/`aggregate`/`key_labels*`/`geom`/`markers` (contradict the composite). All vertical panels share explicit y-limits so dendrogram leaves align with group blocks.
 - `_order_observations(frame, group_by, group_order=None)` — sorts rows into contiguous group blocks (explicit group_order e.g. from dendrogram, else first-appearance; group_by=None -> unchanged); returns (frame, group_order|None)
 - `_bin_observations(frame, group_by, max_rows)` — caps rows; reuses heatmap's `_bin_within_groups` proportional per-group allocation formula (not shared code); numeric->mean, categorical->mode
 - `_assign_position_y(frame)` — adds `position_y`, first row at top
@@ -562,8 +564,8 @@ interactive: bool = False
 
 ### Default naming parameters
 ```python
-observations_name: str = "Barcode"   # cell identifier column
-variables_name: str = "Variable"      # gene identifier column
+observation_id_column: str = "Barcode"   # cell identifier column
+variable_id_column: str = "Variable"      # gene identifier column
 ```
 
 ## Type annotation style
@@ -701,7 +703,11 @@ does not need this since dropping nulls there is acceptable.
 ---
 name: feedback_changelog_breaking_changes
 description: Record breaking API changes in CHANGELOG.md under the current poetry version
-type: feedback
+metadata: 
+  node_type: memory
+  type: feedback
+  originSessionId: 57b2d5d0-1108-4eee-846f-2d405d724e6e
+  modified: 2026-08-06T12:06:37.778Z
 ---
 
 When making a breaking API change (renaming/removing/repurposing a public
@@ -712,12 +718,15 @@ parameter or function), record it in the repo-root `CHANGELOG.md` under a
 **Why:** The user tracks breaking changes by version so users can migrate; this
 matters more as the project approaches v1.0.
 
-**How to apply:** Run `poetry version` to get the current version and date the
-section `## [X.Y.Z] - YYYY-MM-DD`. If the version hasn't been bumped yet, put
-entries under `## [Unreleased]` and rename the heading once bumped. Related:
-feedback_audit_ai_tracking.
-
----
+**How to apply:** Add a new `## [Unreleased]` section at the top and write there.
+Do not append to the topmost dated section just because it matches
+`poetry version`: that version is usually already published, and editing it
+rewrites shipped release notes (corrected on 2026-08-06, when entries went into
+a published `## [0.60.0] - 2026-08-06`). `poetry version` matching a dated
+section is evidence the release happened, not that it is pending. Only write
+into a dated section when the user says that release is still open. The user
+renames `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` at release time, where
+`release.sh` reads `poetry version -s`. Related: [[feedback_audit_ai_tracking]].
 
 ## Source: project_letsplot_geom_raster_aspect.md
 
@@ -886,3 +895,68 @@ which executes `cellestial/util/__init__.py`, which imports `utilities` while
 
 See [[feedback_isinstance_anndata_block]], [[project_cellestial_architecture]],
 [[project_polars_drop_null_gotcha]].
+
+## Source: project_math_audit_open_findings.md
+
+---
+name: project-math-audit-open-findings
+description: "Open findings from the 2026-08-05 audit of mathematical transformations (volcano, bracket, KDE, spatial); fixed items and what remains"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: ff149c3a-3b9e-4b34-9a20-283ec90472fa
+  modified: 2026-08-06T12:03:34.496Z
+---
+
+A full audit of every math-bearing plot and layer ran on 2026-08-05. Four defects
+were fixed on 2026-08-06 (see `CHANGELOG.md` 0.60.0 and
+`tests/test_audit_regressions.py`): volcano label ties, volcano adjusted-p naming,
+`_range_inclusive`, and the `cl.stream()` arrow index.
+
+Verified mathematically correct, no need to re-derive: `_correct_pvalues`
+(matches statsmodels for bonferroni and fdr_bh including ties), star thresholds,
+`stacked_violin` scale=area/count/width (matches ggplot2), the `cluster_outlines`
+KDE grid orientation, dendrogram icoord/dcoord normalization and leaf interpolation,
+`_highest_expressed_genes_frame`'s matvec identity, `_bin_within_groups`, and the
+dotplot mean/percent-expressed aggregation.
+
+Still open, reported to the user and not yet acted on:
+- `bracket(test="ttest")` is Student's (`equal_var=True`); no way to request Welch
+  because `**geom_kwargs` goes to the geom.
+- Brackets test the plot's *filtered* frame, so `violin(threshold=0.1) + bracket()`
+  silently tests only expressing cells. Undocumented.
+- `p = 0` renders as `"p = 0"` under `prefix_style="="`.
+- Volcano inherits scanpy's logFC pseudocount artifact: 88% of features called
+  "down" on pbmc3k B Cells, most expressed in under 1% of cells. No expression prefilter.
+- `_polygon_vertex_frame` concatenates interior rings onto the exterior, so a
+  Polygon with a hole draws as one bogus path.
+
+Resolved 2026-08-16: `scale_axis` was removed from `spatial`/`spatials` rather
+than renamed to `scale: bool`. Standardization needs a shared colour scale across
+several partitions to mean anything, which only the matrix plots have; a spatial
+plot maps one value column onto one unbounded gradient that stretches to the data
+range, so min-max scaling first was a visual no-op (verified: identical specs)
+that only relabelled the colour bar and leaked normalized values into tooltips.
+`dimensional` never had it, and scanpy puts `standard_scale` on heatmap/dotplot/
+matrixplot/stacked_violin/tracksplot only, giving `sc.pl.spatial` vmin/vmax/
+vcenter/norm instead. Old calls now fall into `**point_kwargs`, which lets-plot
+ignores, so they render the same plot rather than erroring.
+
+Related: [[project-cellestial-architecture]], [[feedback-changelog-breaking-changes]]
+
+---
+
+## Source: feedback_refactor_preserves_behavior.md
+
+---
+name: feedback-refactor-preserves-behavior
+description: Refactors and helper extractions must not change function behavior unless fixing a bug; features/strictness go in separate, explicitly requested changes
+metadata:
+  type: feedback
+---
+
+A refactor (e.g. extracting duplicated blocks into a helper) must reproduce the old behavior exactly: same rows, same dtype handling, same warning and error text. Behavior changes are allowed only when they fix a bug.
+
+**Why:** An agent extracted the four copied `groups`/`drop` filter blocks into `_filter_groups` and, in the same diff, added a `KeyNotFoundError` for unknown names, String/Enum/Boolean filtering via a cast, and moved ridge's filter before its threshold. The user found it neither clean nor surgical, and said: "functions do not change behavior unless there is a bug."
+
+**How to apply:** When deduplicating, extract first and keep behavior identical, even keeping parameters that exist only to reproduce old messages. Check by comparing old and new side by side before reporting. Propose new behavior (stricter validation, wider dtype support) separately, and ask before doing it. Related: [[feedback-changelog-breaking-changes]], [[feedback-dont-overengineer-resolvers]].

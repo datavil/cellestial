@@ -1,7 +1,7 @@
 import pytest
-from lets_plot import aes, geom_vline
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes, geom_vline
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.util import retrieve
@@ -41,8 +41,8 @@ def test_threshold(adata, fn, group_key):
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
-def test_show_points_false(adata, fn, group_key):
-    plot = fn(adata, "CD14", fill=group_key, show_points=False)
+def test_points_false(adata, fn, group_key):
+    plot = fn(adata, "CD14", fill=group_key, points=False)
     assert isinstance(plot, PlotSpec)
 
 
@@ -56,6 +56,15 @@ def test_group_by(adata, fn, group_key):
 def test_add_keys(adata, fn, group_key):
     plot = fn(adata, "CD14", group_by=group_key, add_keys=["MS4A1", "NKG7"])
     assert isinstance(plot, PlotSpec)
+
+
+@pytest.mark.parametrize("fn", [cl.violin, cl.boxplot, cl.histogram])
+def test_single_key_value_column_named_after_key(adata, fn, group_key):
+    # polars >= 1.44 rejects an unpivot whose value_name equals an unpivoted column
+    plot = fn(adata, "CD14", group_by=group_key)
+    columns = plot.as_dict()["data"].columns
+    assert "CD14" in columns
+    assert "value" not in columns
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])

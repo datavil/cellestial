@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
@@ -8,7 +10,7 @@ import polars as pl
 from anndata import AnnData
 
 # Data retrieval
-from lets_plot import (
+from ggrust import (
     aes,
     geom_point,
     ggplot,
@@ -16,7 +18,7 @@ from lets_plot import (
     labs,
     scale_color_brewer,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -26,6 +28,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _color_gradient,
     _drop_nonfinite_rows,
+    _filter_groups,
     _reject_sequence_key,
     _require_feature_key,
     _resolve_embedding_key,
@@ -36,7 +39,7 @@ from cellestial.util import (
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
     from polars import DataFrame
 
 
@@ -56,7 +59,7 @@ def dimensional(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -75,15 +78,15 @@ def dimensional(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Dimensionality reduction plot.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -122,7 +125,7 @@ def dimensional(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -140,7 +143,7 @@ def dimensional(
     axis_type : {'axis', 'arrow'} | None
         Whether to use regular axis or arrows as the axis.
     arrow_length : float, default=0.25
-        Span of each axis line as a fraction of its data range (0.25 covers 25%).
+        Span of each axis line as a fraction of the panel (0.25 covers 25%).
     arrow_size : float, default=1
         Width of the axis lines.
     arrow_color : str, default='#3f3f3f'
@@ -169,7 +172,7 @@ def dimensional(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -197,7 +200,7 @@ def dimensional(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -210,13 +213,23 @@ def dimensional(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
         data = cl.datasets.pbmc3k()
 
         cl.dimensional(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.dimensional(data,key="leiden") + cl.highlight(["0","3"])
 
     """
     # HANDLE: Data types
@@ -247,7 +260,7 @@ def dimensional(
     elif isinstance(variable_keys, Sequence):
         variable_keys = list(variable_keys)
 
-    # Collect the frame columns from the colour key, aes refs, and `add_keys`.
+    # Collect the frame columns from the color key, aes refs, and `add_keys`.
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     metadata_columns: list[str] = []
@@ -265,7 +278,7 @@ def dimensional(
         tooltips,
         data=data,
         variable_keys=variable_keys,
-        defaults=[observations_name, *([key] if key is not None else [])],
+        defaults=[observation_id_column, *([key] if key is not None else [])],
         metadata_columns=metadata_columns,
         axis=0,
     )
@@ -275,37 +288,22 @@ def dimensional(
     # layers like `stream` can read velocity embeddings from the frame.
     if frame is None:
         # Skip the observation identifier column when no tooltip can reference it.
-        observation_column_name = None if tooltips == "none" else observations_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=0,
-            observations_name=observation_column_name,
+            observation_id_column=observation_column_name,
             include_dimensions=max(xy),
             metadata_columns=metadata_columns,
         )
+
+    # HANDLE: groups / drop filters (categorical-only)
+    if key is not None:
+        frame = _filter_groups(frame, column=key, groups=groups, drop=drop, column_parameter="key")
+
     frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)
-
-    # HANDLE: groups filter (categorical-only)
-    if groups is not None and key is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(key).is_in(list(groups)))
-        else:
-            msg = f"key `{key}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only)
-    if drop is not None and key is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(key).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"key `{key}` is not categorical, `drop` filter ignored"
-            _warn(msg)
 
     # BUILD: scatter plot
     if "size" in mapping.as_dict():
@@ -316,7 +314,7 @@ def dimensional(
             mapping=aes(x=x, y=y, color=key, **mapping.as_dict()),
             size=size,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         + _THEME_DIMENSION
     )
@@ -351,9 +349,6 @@ def dimensional(
 
     # HANDLE: arrow axis
     scttr += _modify_axis(
-        frame=frame,
-        x=x,
-        y=y,
         axis_type=axis_type,
         arrow_size=arrow_size,
         arrow_color=arrow_color,

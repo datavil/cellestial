@@ -13,8 +13,8 @@ import inspect
 import numpy as np
 import pytest
 from anndata import AnnData
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 import cellestial.frames as frames
@@ -131,10 +131,10 @@ def test_grid_size_params_annotated_list_float(fn, param):
 
 
 def test_frame_builder_default_param_values():
-    assert _param(cl.build_frame, "observations_name").default == "Barcode"
-    assert _param(cl.build_frame, "variables_name").default == "Variable"
-    assert _param(anndata_observations_frame, "observations_name").default == "Barcode"
-    assert _param(anndata_variables_frame, "variables_name").default == "Variable"
+    assert _param(cl.build_frame, "observation_id_column").default == "Barcode"
+    assert _param(cl.build_frame, "variable_id_column").default == "Variable"
+    assert _param(anndata_observations_frame, "observation_id_column").default == "Barcode"
+    assert _param(anndata_variables_frame, "variable_id_column").default == "Variable"
 
 
 def test_build_frame_obs_axis_column_is_capitalized(adata):
@@ -150,10 +150,10 @@ def test_build_frame_var_axis_column_is_capitalized(adata):
 
 def test_build_frame_output_feeds_plot_without_renaming(adata):
     # The footgun #14 fixes: a frame built with defaults now carries "Barcode",
-    # which is exactly what the plot's observations_name default expects, so it
+    # which is exactly what the plot's observation_id_column default expects, so it
     # drops straight into `frame=` with no renaming.
     frame = cl.build_frame(adata, axis=0, variable_keys="CD14", include_dimensions=2)
-    assert _param(cl.umap, "observations_name").default in frame.columns
+    assert _param(cl.umap, "observation_id_column").default in frame.columns
     plot = cl.umap(adata, "CD14", frame=frame)
     assert isinstance(plot, PlotSpec)
 

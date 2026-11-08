@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust"]
+
 from typing import TYPE_CHECKING, Literal
 
-from lets_plot import GGBunch, ggsave
+from ggrust import GGBunch, ggsave
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.core import PlotSpec
+    from ggrust.plot.subplots import SupPlotsSpec
 
 
 def save(
@@ -67,7 +69,7 @@ def save(
     Notes
     -----
     Supported formats: PNG, SVG, PDF, HTML.
-    Wraps `ggsave`; docstrings adapted from the lets_plot ggsave function.
+    Wraps `ggsave`; docstrings adapted from the ggrust ggsave function.
     See https://lets-plot.org/python/pages/api/lets_plot.ggsave.html.
     """
     return ggsave(

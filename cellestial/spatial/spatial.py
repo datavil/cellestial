@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     coord_fixed,
     geom_imshow,
@@ -17,7 +19,7 @@ from lets_plot import (
     scale_fill_brewer,
     scale_y_reverse,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -28,17 +30,18 @@ from cellestial.util import (
     _color_gradient,
     _drop_nonfinite_rows,
     _fill_gradient,
+    _filter_groups,
+    _is_spatialdata,
     _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
-    _warn,
 )
 from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from typing import Literal
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
     from polars import DataFrame
     from spatialdata import SpatialData
 
@@ -57,7 +60,6 @@ def spatial(
     norm: bool | None = None,
     vmin: float | None = None,
     vmax: float | None = None,
-    scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
     table_name: str | None = None,
     image_name: str | None = None,
@@ -75,12 +77,12 @@ def spatial(
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Spatial plot.
@@ -121,10 +123,6 @@ def spatial(
         Lower bound for greyscale luminance normalization.
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
-    scale_axis : {0, 1} | None, default=None
-        Whether to standardize `key` values between 0 and 1 with min-max
-        scaling. Constant values are set to 0.
-        Only applied when `key` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs (coordinates come from the chosen
@@ -176,7 +174,7 @@ def spatial(
         mapped keys; 'none' disables tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give the barcode column in the DataFrame.
     color_low : str, default='#f6f6f6'
         Color for low values in the continuous gradient.
@@ -187,7 +185,7 @@ def spatial(
         Color for high values in the continuous gradient.
     midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
     Returns
@@ -214,6 +212,8 @@ def spatial(
     If no tissue image metadata is present, the plot falls back to a plain
     spatial scatter using the raw coordinates.
 
+    `cmap`, `norm`, `vmin` and `vmax` are passed to `geom_imshow`.
+
     Examples
     --------
     An example interactive spatial plot with a categorical key.
@@ -221,7 +221,7 @@ def spatial(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -269,22 +269,20 @@ def spatial(
         cl.spatial(data_hne,key="cluster", groups=["Hippocampus", "Hypothalamus_1", "Striatum"], interactive=True)
     """
     # HANDLE: data type
-    from spatialdata import SpatialData
-
     if isinstance(data, MuData):
         msg = (
             "Spatial plots do not accept a multimodal object, because spot "
             "coordinates and tissue images live in a modality rather than on the "
             "container.\nPass a single modality instead, e.g. `data['rna']`.\n"
-            "To colour by a variable from another modality, pass that modality "
+            "To color by a variable from another modality, pass that modality "
             "together with a container frame:\n"
             "    spatial(data['rna'], key='prot:CD3', "
             "frame=build_frame(data, variable_keys=['prot:CD3']))"
         )
         raise UnsupportedDataTypeError(msg)
 
-    if not isinstance(data, (AnnData, SpatialData)):
-        raise _unsupported_data_type(data, AnnData, SpatialData)
+    if not isinstance(data, AnnData) and not _is_spatialdata(data):
+        raise _unsupported_data_type(data, AnnData, "SpatialData")
 
     _reject_sequence_key(key, singular="spatial", plural="spatials")
 
@@ -312,7 +310,7 @@ def spatial(
     elif isinstance(variable_keys, Sequence):
         variable_keys = list(variable_keys)
 
-    # Collect the frame columns from the colour key, aes refs, and `add_keys`.
+    # Collect the frame columns from the color key, aes refs, and `add_keys`.
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     metadata_columns: list[str] = []
@@ -338,18 +336,18 @@ def spatial(
         tooltips,
         data=data,
         variable_keys=variable_keys,
-        defaults=[observations_name, *([key] if key is not None else [])],
+        defaults=[observation_id_column, *([key] if key is not None else [])],
         metadata_columns=metadata_columns,
     )
 
     # BUILD: dataframe
     if frame is None:
-        observation_column_name = None if tooltips == "none" else observations_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=0,
-            observations_name=observation_column_name,
+            observation_id_column=observation_column_name,
             include_dimensions=include_dimensions,
             metadata_columns=metadata_columns,
         )
@@ -372,6 +370,10 @@ def spatial(
             pl.Series("spatial_y", spot_coordinates[:, 1]),
         )
 
+    # HANDLE: groups / drop filters (categorical-only)
+    if key is not None:
+        frame = _filter_groups(frame, column=key, groups=groups, drop=drop, column_parameter="key")
+
     if is_polygon:
         finite_vertex = pl.all_horizontal(
             pl.col("polygon_x").is_not_null(),
@@ -384,39 +386,6 @@ def spatial(
         frame = _drop_nonfinite_rows(frame, ["spatial_x", "spatial_y"])
 
     _validate_tooltips(tooltips, frame)
-
-    # HANDLE: groups filter (categorical-only)
-    if groups is not None and key is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(key).is_in(list(groups)))
-        else:
-            msg = f"key `{key}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only)
-    if drop is not None and key is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[key].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(key).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"key `{key}` is not categorical, `drop` filter ignored"
-            _warn(msg)
-
-    # HANDLE: standard scaling (numeric keys only)
-    if scale_axis is not None and key is not None and frame[key].dtype.is_numeric():
-        value = pl.col(key)
-        value_min = value.min()
-        value_max = value.max()
-        value_range = value_max - value_min
-        frame = frame.with_columns(
-            pl.when(value_range == 0)
-            .then(0.0)
-            .otherwise((value - value_min) / value_range)
-            .alias(key)
-        )
 
     # BUILD: plot
     sptl = ggplot(data=frame)
@@ -448,7 +417,7 @@ def spatial(
             size=size,
             alpha=alpha,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         if key is not None:
             if frame[key].dtype == pl.Categorical:
@@ -467,7 +436,7 @@ def spatial(
             size=size,
             alpha=alpha,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         if key is not None:
             if frame[key].dtype == pl.Categorical:
@@ -487,10 +456,10 @@ def spatial(
             msg = "crop must be a sequence of 4 integers (left, right, top, bottom)"
             raise ValueError(msg)
         left, right, top, bottom = crop
-        coord = coord_fixed(xlim=[left, right], ylim=[top, bottom])
+        coordinates = coord_fixed(xlim=[left, right], ylim=[top, bottom])
     else:
-        coord = coord_fixed()
-    sptl += scale_y_reverse() + coord + _THEME_SPATIAL
+        coordinates = coord_fixed()
+    sptl += scale_y_reverse() + coordinates + _THEME_SPATIAL
 
     if interactive:
         sptl += ggtb(size_zoomin=-1)

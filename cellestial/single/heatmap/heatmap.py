@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
+    coord_cartesian,
     element_blank,
     geom_path,
     geom_raster,
@@ -22,23 +25,29 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
+    _BRACKET_REFERENCE_SPAN,
     _assign_positions,
     _bin_within_groups,
+    _fixed_cell_layout,
     _get_group_bar_frame,
     _get_group_lines_frame,
     _key_groups_bar_y,
     _key_groups_layers,
-    _nonaggregate_y_step,
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
     _scale_values,
+    _scale_wide_values,
+    _sort_integer_like_groups,
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import (
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _fill_gradient,
     _get_dendrogram,
     _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
     _warn,
 )
 from cellestial.util.errors import _unsupported_data_type
@@ -47,7 +56,9 @@ from cellestial.util.utilities import _container_column, _modality_source
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
+
+_COLOR_BAR_LEGEND_SIZE = (70, 250)  # pixels (width, height)
 
 
 def heatmap(
@@ -74,7 +85,6 @@ def heatmap(
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
-    dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
     key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
@@ -88,8 +98,8 @@ def heatmap(
     color_high: str = "#ff0000",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     axis: Literal[0, 1] | None = 0,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
     max_rows: int | None = 1000,
@@ -100,8 +110,8 @@ def heatmap(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be
@@ -158,8 +168,6 @@ def heatmap(
         By default, `dendrogram_{group_by}` is used.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_path.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
@@ -192,9 +200,9 @@ def heatmap(
         Midpoint for the color gradient.
     axis : {0,1} | None, default=0
         Axis of the data, 0 for observations and 1 for variables.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -241,7 +249,7 @@ def heatmap(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -352,14 +360,14 @@ def heatmap(
         )
         geom_kwargs.pop("tooltips")
 
-    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: long-form dataframe.
     # `group_by` (and the cell identifier, when not aggregating) are needed from
     # the observation metadata. On the variable axis `keys` are metadata columns
     # rather than genes pulled from X, so they must be materialised explicitly.
-    observation_column_name = None if aggregate else observations_name
+    observation_column_name = None if aggregate else observation_id_column
     metadata_columns = [group_by] if group_by is not None else []
     if axis == 1:
         metadata_columns = list(dict.fromkeys([*keys, *metadata_columns]))
@@ -367,54 +375,89 @@ def heatmap(
         data=data,
         variable_keys=keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variables_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
-    row_identifier = variables_name if axis == 1 else observations_name
-    index_columns = [group_by] if aggregate else [row_identifier, group_by]
-    frame = frame.unpivot(
-        on=keys,
-        index=index_columns,
-        variable_name=variable_column,
-        value_name=value_column,
-    )
+    row_identifier = variable_id_column if axis == 1 else observation_id_column
+    # Aggregate, scale and bin while wide, so the unpivoted frame never holds
+    # cells x keys rows. Cast to the dtype unpivot would supercast the keys to.
+    value_dtype = frame.head(0).select(keys).unpivot(value_name=value_column).schema[value_column]
+    frame = frame.with_columns(pl.col(keys).cast(value_dtype))
     if aggregate:
-        frame = frame.group_by(group_by, variable_column).agg(
-            pl.col(value_column).filter(pl.col(value_column).is_finite()).mean()
+        frame = frame.group_by(group_by).agg(
+            pl.col(key).filter(pl.col(key).is_finite()).mean() for key in keys
         )
-    frame = frame.drop_nulls()
-
-    # HANDLE: standard scaling
-    if scale_axis is not None:
-        partition_key = (
-            variable_column if scale_axis == 0 else (group_by if aggregate else row_identifier)
+        frame = frame.unpivot(
+            on=keys,
+            index=group_by,
+            variable_name=variable_column,
+            value_name=value_column,
+        ).drop_nulls()
+        # HANDLE: standard scaling
+        if scale_axis is not None:
+            partition_key = variable_column if scale_axis == 0 else group_by
+            frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
+    else:
+        # DROP: what nulls in the unpivoted frame would remove
+        frame = frame.filter(
+            pl.col(row_identifier).is_not_null()
+            & pl.col(group_by).is_not_null()
+            & pl.any_horizontal(pl.col(keys).is_not_null())
         )
-        frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
+        # HANDLE: standard scaling
+        if scale_axis is not None:
+            frame = _scale_wide_values(frame, keys=keys, scale_axis=scale_axis)
 
+    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
+    frame = _sort_integer_like_groups(frame, group_by=group_by)
     # DETERMINE: y order of groups
-    if dendrogram:
+    if dendrogram and aggregate:
+        tree = _get_dendrogram_tree(
+            *_modality_source(data, modality, group_by), use_key=dendrogram_key
+        )
+        y_order_groups = list(tree.ordered_labels)
+        paths = None
+    elif dendrogram:
         y_order_groups, paths = _get_dendrogram(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
-    else:
+    elif aggregate:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
         paths = None
-
-    # BIN: collapse cells into at most ``max_rows`` virtual rows (within group)
-    if not aggregate and max_rows is not None:
-        frame = _bin_within_groups(
-            frame,
-            observations_name=row_identifier,
-            group_by=group_by,
-            variable_column=variable_column,
-            value_column=value_column,
-            y_order_groups=y_order_groups,
-            max_rows=max_rows,
+    else:
+        # First appearance in key-major order, as in the unpivoted frame.
+        y_order_groups = (
+            pl.concat(
+                frame.lazy().filter(pl.col(key).is_not_null()).select(group_by) for key in keys
+            )
+            .unique(maintain_order=True)
+            .collect()[group_by]
+            .cast(pl.String)
+            .to_list()
         )
+        paths = None
+
+    if not aggregate:
+        # BIN: collapse cells into at most `max_rows` virtual rows (within group)
+        if max_rows is not None:
+            frame = _bin_within_groups(
+                frame,
+                observation_id_column=row_identifier,
+                group_by=group_by,
+                keys=keys,
+                y_order_groups=y_order_groups,
+                max_rows=max_rows,
+            )
+        frame = frame.unpivot(
+            on=keys,
+            index=[row_identifier, group_by],
+            variable_name=variable_column,
+            value_name=value_column,
+        ).drop_nulls()
 
     # ASSIGN: _x / _y positions and layout metadata
     x_keys = list(keys)
@@ -422,7 +465,7 @@ def heatmap(
         frame,
         aggregate=aggregate,
         group_by=group_by,
-        observations_name=row_identifier,
+        observation_id_column=row_identifier,
         variable_column=variable_column,
         x_keys=x_keys,
         y_order_groups=y_order_groups,
@@ -442,30 +485,29 @@ def heatmap(
 
     # Compute top edge of data and the y limit, extending the latter when
     # key-group brackets are drawn so rotated labels are not clipped.
-    if aggregate:
-        data_bottom = -0.5
-        data_top = n_y - 0.5
-    else:
-        y_step = _nonaggregate_y_step(n_x, n_y)
-        half_step = y_step / 2
-        data_bottom = -half_step
-        data_top = y_step * max(n_y - 1, 0) + half_step
+    data_bottom = -0.5
+    data_top = n_y - 0.5
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
-        data_range = data_top - data_bottom
+        # Aggregated cells have a fixed pixel size, so brackets use a constant span.
+        data_range = _BRACKET_REFERENCE_SPAN if aggregate else data_top - data_bottom
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
             data_range=data_range,
             scale=1.0,
             label_size_scale=key_labels_text_size,
+            square_cell_columns=n_x if aggregate and geom == "raster" else None,
         )
         key_groups_total_span = data_range + key_groups_padding
         y_max_limit = data_top + key_groups_padding
 
     # Y scale: groups for aggregate, group-center labels when titling bars, else hidden
-    if aggregate:
+    if aggregate and dendrogram:
+        # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
+        htmp += _dendrogram_y_axis(tree, limits=[data_bottom, y_max_limit], fixed=geom == "raster")
+    elif aggregate:
         htmp += scale_y_continuous(
             breaks=list(range(n_y)),
             labels=y_order_groups,
@@ -501,7 +543,6 @@ def heatmap(
             aggregate=aggregate,
             group_by=group_by,
             n_x=n_x,
-            n_y=n_y,
             n_groups=len(y_order_groups),
         )
         htmp += geom_segment(
@@ -512,18 +553,21 @@ def heatmap(
             **(group_lines_kwargs or {}),
         )
 
-    # DENDROGRAM (right side, along y-axis)
-    if dendrogram:
+    # DENDROGRAM (right side, along y-axis); per-cell rows draw the tree as a path
+    x_max_limit = n_x - 0.5
+    if dendrogram and aggregate:
+        htmp += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
+    elif dendrogram:
         assert paths is not None
         dendro_frame = _get_dendrogram_path_frame(
             paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
         )
+        x_max_limit = dendro_frame["x"].max()
         htmp += geom_path(
             data=dendro_frame,
             mapping=aes(x="x", y="y", group="group"),
             color=dendrogram_color,
             size=dendrogram_size,
-            **(dendrogram_kwargs or {}),
         )
 
     # FILL gradient
@@ -535,7 +579,7 @@ def heatmap(
         midpoint=midpoint,
     )
 
-    # KEY-GROUP brackets above the plot when ``keys`` was a mapping.
+    # KEY-GROUP brackets above the plot when `keys` was a mapping.
     if key_labels and key_groups is not None:
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
@@ -550,6 +594,22 @@ def heatmap(
             label_size_scale=key_labels_text_size,
         ):
             htmp += layer
+
+    # SIZE: square cells for the aggregated view; canvas fits panel, labels and legend
+    if aggregate:
+        legend_width, legend_height = _COLOR_BAR_LEGEND_SIZE
+        htmp += _fixed_cell_layout(
+            x_span=x_max_limit + 0.5,
+            y_span=y_max_limit - data_bottom,
+            y_limits=[data_bottom, y_max_limit],
+            x_labels=x_keys,
+            y_labels=y_order_groups,
+            legend_width=legend_width,
+            legend_height=legend_height,
+        )
+    else:
+        # `geom_raster` otherwise forces square pixels, squeezing many-cell heatmaps.
+        htmp += coord_cartesian()
 
     if interactive:
         htmp += ggtb(size_zoomin=-1)
@@ -576,7 +636,6 @@ def matrixplot(
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
-    dendrogram_kwargs: dict | None = None,
     key_labels: bool = True,
     key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
@@ -590,8 +649,8 @@ def matrixplot(
     color_high: str = "#ff0000",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     axis: Literal[0, 1] | None = 0,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
     **geom_kwargs,
@@ -601,7 +660,7 @@ def matrixplot(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
@@ -647,8 +706,6 @@ def matrixplot(
         By default, `dendrogram_{group_by}` is used.
     group_lines_kwargs : dict | None, default=None
         Additional parameters to pass to the group separator lines geom_segment.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_path.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_text_size : float, default=1.0
@@ -676,9 +733,9 @@ def matrixplot(
         Midpoint for the color gradient.
     axis : {0,1} | None, default=0
         Axis of the data, 0 for observations and 1 for variables.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -709,7 +766,7 @@ def matrixplot(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -767,7 +824,6 @@ def matrixplot(
         dendrogram_size=dendrogram_size,
         dendrogram_key=dendrogram_key,
         group_lines_kwargs=group_lines_kwargs,
-        dendrogram_kwargs=dendrogram_kwargs,
         value_column=value_column,
         variable_column=variable_column,
         color_low=color_low,
@@ -775,8 +831,8 @@ def matrixplot(
         color_high=color_high,
         midpoint=midpoint,
         axis=axis,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
         interactive=interactive,
         **geom_kwargs,

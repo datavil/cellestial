@@ -1,18 +1,27 @@
 from __future__ import annotations
 
+__lazy_modules__ = [
+    "anndata",
+    "ggrust",
+    "ggrust.plot.core",
+    "ggrust.plot.subplots",
+    "mudata",
+]
+
 import inspect
 import re
+import sys
 import warnings
 from collections.abc import Sequence
 from functools import lru_cache
-from math import ceil, isfinite, log10
+from math import ceil, floor, isfinite, log10
 from numbers import Real
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, cast, overload
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     element_blank,
     guide_legend,
     guides,
@@ -23,8 +32,8 @@ from lets_plot import (
     scale_fill_gradient2,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import FeatureSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 
 from cellestial.util.errors import CellestialWarning, KeyNotFoundError
@@ -51,6 +60,20 @@ def _container(data: AnnData | MuData) -> _Container:
     return _build_container(data)
 
 
+def _is_spatialdata(data: object) -> bool:
+    """
+    Return whether `data` is a SpatialData object.
+
+    Notes
+    -----
+    Importing spatialdata costs ~200 ms (dask, geopandas). A SpatialData object
+    cannot exist unless its module is already imported, so the check reads
+    `sys.modules` instead of importing it.
+    """
+    module = sys.modules.get("spatialdata")
+    return module is not None and isinstance(data, module.SpatialData)
+
+
 @overload
 def _modality_source(
     data: AnnData | MuData, modality: str | None, group_by: str
@@ -69,6 +92,8 @@ def _modality_source(
     """
     Return the data object holding stored results, and `group_by` as it names it.
 
+    Notes
+    -----
     Stored results (rankings, dendrograms) live in a single modality, while
     `group_by` names a container-level column, so the column is translated to
     the name that modality uses.
@@ -84,6 +109,8 @@ def _container_column(data: AnnData | MuData, modality: str | None, group_by: st
     """
     Return the container's name for a group column that came from a modality.
 
+    Notes
+    -----
     The inverse of `_modality_source`. A ranking stores the group column under
     the modality's own name, but the plotted frame is built from the container,
     where that column is qualified as `modality:column`.
@@ -91,9 +118,24 @@ def _container_column(data: AnnData | MuData, modality: str | None, group_by: st
     return _container(data).container_column(modality, group_by)
 
 
-def _format_warning(message: Warning | str, category: type[Warning], *_args: object) -> str:
-    """Render a cellestial warning as one line, dropping the source location."""
-    return f"{category.__name__}: {message}\n"
+_default_format_warning = warnings.formatwarning
+
+
+def _format_warning(
+    message: Warning | str,
+    category: type[Warning],
+    filename: str,
+    lineno: int,
+    line: str | None = None,
+) -> str:
+    """Render a cellestial warning as one line; delegate other warnings unchanged."""
+    if issubclass(category, CellestialWarning):
+        return f"{category.__name__}: {message}\n"
+    return _default_format_warning(message, category, filename, lineno, line)
+
+
+# Installed once rather than swapped per call, which was not thread-safe.
+warnings.formatwarning = _format_warning  # ty:ignore[invalid-assignment]
 
 
 def _warn(message: str) -> None:
@@ -117,12 +159,7 @@ def _warn(message: str) -> None:
     while caller is not None and caller.f_code.co_filename.startswith(_PACKAGE_ROOT):
         stacklevel += 1
         caller = caller.f_back
-    original_format = warnings.formatwarning
-    warnings.formatwarning = _format_warning  # ty:ignore[invalid-assignment]
-    try:
-        warnings.warn(message, CellestialWarning, stacklevel=stacklevel)
-    finally:
-        warnings.formatwarning = original_format
+    warnings.warn(message, CellestialWarning, stacklevel=stacklevel)
 
 
 def _drop_nonfinite_rows(frame: pl.DataFrame, columns: Sequence[str]) -> pl.DataFrame:
@@ -139,6 +176,90 @@ def _drop_nonfinite_rows(frame: pl.DataFrame, columns: Sequence[str]) -> pl.Data
             pl.col(column).is_not_null() & pl.col(column).is_finite() for column in numeric_columns
         )
     )
+
+
+def _filter_groups(
+    frame: pl.DataFrame,
+    *,
+    column: str,
+    groups: Sequence[str] | str | None = None,
+    drop: Sequence[str] | str | None = None,
+    column_parameter: str = "group_by",
+) -> pl.DataFrame:
+    """
+    Keep `groups` and remove `drop` from a categorical `column`.
+
+    Parameters
+    ----------
+    frame : pl.DataFrame
+        Frame to filter.
+    column : str
+        Column holding the category labels.
+    groups : Sequence[str] | str | None, default=None
+        Categories to keep. `None` keeps every category.
+    drop : Sequence[str] | str | None, default=None
+        Categories to remove. `None` removes none.
+    column_parameter : str, default='group_by'
+        Name of the parameter that supplied `column`, used in messages.
+
+    Returns
+    -------
+    pl.DataFrame
+        The filtered frame.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If a requested category is absent from `column`.
+
+    Notes
+    -----
+    A `column` that is not `Categorical` is returned unfiltered with a warning.
+    Call this before any other row filter, so a category whose rows another
+    filter would remove is still recognised.
+    """
+    if groups is None and drop is None:
+        return frame
+
+    if frame[column].dtype != pl.Categorical:
+        if groups is not None:
+            _warn(f"{column_parameter} `{column}` is not categorical, `groups` filter ignored")
+        if drop is not None:
+            _warn(f"{column_parameter} `{column}` is not categorical, `drop` filter ignored")
+        return frame
+
+    available = frame[column].unique().drop_nulls().to_list()
+    if groups is not None:
+        groups = [groups] if isinstance(groups, str) else list(groups)
+        _require_categories(
+            groups, available, parameter="groups", column=column, column_parameter=column_parameter
+        )
+        frame = frame.filter(pl.col(column).is_in(groups))
+    if drop is not None:
+        drop = [drop] if isinstance(drop, str) else list(drop)
+        _require_categories(
+            drop, available, parameter="drop", column=column, column_parameter=column_parameter
+        )
+        frame = frame.filter(~pl.col(column).is_in(drop).fill_null(False))
+    return frame
+
+
+def _require_categories(
+    values: Sequence[str],
+    available: Sequence[str],
+    *,
+    parameter: str,
+    column: str,
+    column_parameter: str,
+) -> None:
+    """Raise `KeyNotFoundError` naming the `values` missing from `available`."""
+    unknown = [value for value in values if value not in available]
+    if unknown:
+        msg = (
+            f"`{parameter}` {unknown!r} not found in {column_parameter} `{column}`. "
+            f"Available: {sorted(available)!r}."
+        )
+        raise KeyNotFoundError(msg)
 
 
 def _build_tooltips(
@@ -175,6 +296,8 @@ def _tooltip_fields(spec: FeatureSpec) -> list[str]:
     """
     Extract data variable names referenced by a `layer_tooltips` FeatureSpec.
 
+    Notes
+    -----
     Aesthetic references (`^aes`) are skipped because they are not data columns.
     """
     spec_dict = spec.as_dict()
@@ -211,6 +334,8 @@ def _qualified_alternatives(data: AnnData | MuData | None, key: str) -> list[str
     """
     Return metadata columns that differ from `key` only by a modality prefix.
 
+    Notes
+    -----
     A modality's columns are carried on the container as `modality:column`, so a
     bare name is a natural thing to reach for and a confusing thing to be told
     does not exist.
@@ -259,6 +384,8 @@ def _resolve_tooltips(
     """
     Resolve tooltips. `defaults` apply only when tooltips is None.
 
+    Notes
+    -----
     Extends `variable_keys` in place with any tooltip fields that are variable
     names. When `metadata_columns` is provided, the tooltip fields are routed
     onto the requested `axis` (observation metadata for axis 0, variable
@@ -300,21 +427,22 @@ def _resolve_tooltips(
 
 def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     """Return a list of rounded numbers between start and stop, inclusive."""
-    decimals = 0
-    if stop - start < 1:
-        if stop - start == 0:
-            return [start]
-        decimals = -round(log10(stop - start)) + 1
+    if step < 1:
+        msg = f"`step` must be >= 1, but received {step}."
+        raise ValueError(msg)
+    span = abs(stop - start)
+    if span == 0:
+        return [start]
+    if step == 1:
+        return [stop]
 
-    diff = round(stop - start, decimals)
-    increment = round(diff / (step - 1), decimals + 1)
-    inc_list = []
-
-    for i in range(step):
-        inc_list.append(round(start + increment * i, decimals + 2))
-    # make unique
-    inc_list = list(set(inc_list))
-    return sorted(inc_list)
+    # Interpolate from the endpoints so both of them are always hit, and round
+    # to enough decimals to keep neighbouring values distinct.
+    decimals = max(0, -floor(log10(span / (step - 1))) + 1)
+    values = {
+        round(start + (stop - start) * index / (step - 1), decimals) for index in range(step)
+    }
+    return sorted(values)
 
 
 def _resolve_midpoint(
@@ -461,13 +589,13 @@ def _grid_places(total: int, ncol: int | None) -> tuple[frozenset[int], frozense
     if ncol is None:
         ncol = total
     nrow = ceil(total / ncol)
-    left_places = {idx for idx in range(total) if idx % ncol == 0}
-    bottom_places = {idx for idx in range(total) if idx >= ncol * (nrow - 1)}
+    left_places = {index for index in range(total) if index % ncol == 0}
+    bottom_places = {index for index in range(total) if index >= ncol * (nrow - 1)}
     # the last grid row may be incomplete; for the columns it does not cover,
     # the bottom-most plot lives in the penultimate row.
     last_row_count = total - ncol * (nrow - 1)
     if nrow >= 2 and last_row_count < ncol:
-        bottom_places.update(ncol * (nrow - 2) + col for col in range(last_row_count, ncol))
+        bottom_places.update(ncol * (nrow - 2) + column for column in range(last_row_count, ncol))
     return frozenset(left_places), frozenset(bottom_places)
 
 
@@ -532,9 +660,7 @@ def _key_style(data: AnnData, key: str) -> str:
 '''
 
 
-def _wrap_legend(
-    frame: pl.DataFrame, fill: str | None, color: str | None, nrow: int = 5
-) -> FeatureSpec:
+def _wrap_legend(frame: pl.DataFrame, fill: str | None, color: str | None) -> FeatureSpec:
     legend = guides()
     # CASE1: LEGEND IS SEPARATED BY FILL
     if fill is not None:
@@ -629,9 +755,6 @@ def _collect_aes_columns(
     """
     Route `keys` and `mapping` references into metadata vs variable buckets.
 
-    Mutates both `metadata_columns` and `variable_keys` in place so callers
-    can pass them directly to `build_frame` for a minimal materialised frame.
-
     Parameters
     ----------
     data : AnnData | MuData
@@ -640,7 +763,7 @@ def _collect_aes_columns(
         Explicit string references (e.g., the color key, x/y keys).
         `None` entries are skipped.
     mapping : FeatureSpec | None
-        A `lets_plot.aes(...)` result. Any string value in its dict is
+        A `ggrust.aes(...)` result. Any string value in its dict is
         treated as a column reference; non-string values are skipped.
     metadata_columns : list[str]
         Mutated in place: references that match observation metadata columns
@@ -650,6 +773,11 @@ def _collect_aes_columns(
         are appended. Only relevant for axis=0; ignored for axis=1.
     axis : {0, 1}, default=0
         The axis the frame is being built for.
+
+    Notes
+    -----
+    Mutates both `metadata_columns` and `variable_keys` in place so callers
+    can pass them directly to `build_frame` for a minimal materialised frame.
     """
     container = _container(data)
     metadata_pool = (

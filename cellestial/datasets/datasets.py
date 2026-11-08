@@ -1,3 +1,5 @@
+__lazy_modules__ = ["anndata", "mudata"]
+
 import re
 import shutil
 from os import PathLike
@@ -26,6 +28,8 @@ def _resolve_cache_file(
     """
     Prepare the cache directory and return the target cache file path.
 
+    Notes
+    -----
     Creates `cache_directory` if missing. When `bring` is True and the user
     points at a non-default directory that doesn't yet contain `filename`,
     copies the file from `_GLOBAL_CACHE` if it exists there. When `use_cache`
@@ -189,6 +193,21 @@ def _read_dataset(path: Path) -> AnnData | MuData:
     return read_h5ad(path)
 
 
+def _print_progress(filename: str, downloaded_size: int, total_size: int) -> None:
+    """Redraw a one-line download progress report in place."""
+    downloaded_megabytes = downloaded_size / 1e6
+    if total_size == 0:
+        line = f"Downloading {filename}: {downloaded_megabytes:.1f} MB"
+    else:
+        total_megabytes = total_size / 1e6
+        percent = 100 * downloaded_size / total_size
+        line = (
+            f"Downloading {filename}: {percent:5.1f}% "
+            f"({downloaded_megabytes:.1f}/{total_megabytes:.1f} MB)"
+        )
+    print(f"\r{line}", end="", flush=True)
+
+
 def from_url(
     url: str,
     *,
@@ -241,8 +260,6 @@ def from_url(
     from urllib.parse import urlparse
     from urllib.request import urlopen
 
-    from tqdm import tqdm
-
     if name is not None:
         filename = f"{name}{extension}"
     else:
@@ -266,19 +283,18 @@ def from_url(
 
     with urlopen(url, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as response:
         total_size = int(response.headers.get("Content-Length", 0))
-        progress_bar = tqdm(
-            total=total_size, unit="iB", unit_scale=True, desc=f"Downloading {filename}"
-        )
+        downloaded_size = 0
 
         try:
             with partial_file.open("wb") as file:
                 while chunk := response.read(block_size):
-                    progress_bar.update(len(chunk))
                     file.write(chunk)
+                    downloaded_size += len(chunk)
+                    _print_progress(filename, downloaded_size, total_size)
 
-            if total_size != 0 and progress_bar.n != total_size:
+            if total_size != 0 and downloaded_size != total_size:
                 message = (
-                    f"Download incomplete: expected {total_size} bytes, got {progress_bar.n}."
+                    f"Download incomplete: expected {total_size} bytes, got {downloaded_size}."
                 )
                 raise OSError(message)  # noqa: TRY301
 
@@ -288,7 +304,7 @@ def from_url(
                 partial_file.unlink()
             raise
         finally:
-            progress_bar.close()
+            print()
 
     print(f"Saved to {cache_file}")
 

@@ -119,7 +119,7 @@ def _render_scanpy(figure) -> None:
 
 
 def _cl_violin(data, gene: str, group_by: str) -> None:
-    plot = cl.violin(data, key=gene, group_by=group_by, tooltips="none", show_points=False)
+    plot = cl.violin(data, key=gene, group_by=group_by, tooltips="none", points=False)
     _render_cellestial(plot)
 
 

@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust"]
+
 import re
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
-from lets_plot import (
+from ggrust import (
     aes,
     arrow,
     geom_path,
     geom_segment,
+    streamplot,
+    velocity_grid,
 )
 
 from cellestial.layers._deferred import DeferredLayer
@@ -16,7 +20,7 @@ from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
 from cellestial.util.errors import MissingAestheticError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
 
 
 def stream(
@@ -119,13 +123,12 @@ def stream(
         If dimension numbers cannot be parsed when `velocity_key` is provided.
     KeyError
         If the required velocity columns are not present in the plot data.
-    ImportError
-        If `scvelo` is not installed.
 
     Notes
     -----
-    This function requires the `scvelo` package to be installed.
-    This function utilizes the `matplotlib`'s `streamplot` function to get stream lines.
+    The velocity grid is computed by `ggrust.velocity_grid`, a port of scVelo's
+    `compute_velocity_on_grid`, and the lines are integrated by `ggrust.streamplot`,
+    a port of matplotlib's `streamplot`. Neither scVelo nor matplotlib is needed.
 
     Examples
     --------
@@ -134,7 +137,7 @@ def stream(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -158,7 +161,7 @@ def stream(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -219,68 +222,40 @@ def stream(
             )
             raise KeyError(msg)
 
-        # contained imports
-        try:
-            from matplotlib.figure import Figure
-            from scvelo.plotting.velocity_embedding_grid import compute_velocity_on_grid
-        except ImportError as err:
-            msg = "`scvelo` must be installed to use the stream layer."
-            raise ImportError(msg) from err
-
         frame = _drop_nonfinite_rows(frame, [x, y, x_velocity, y_velocity])
 
         # extract coordinates and velocities as numpy arrays
         dimensions = frame.select(pl.col(x), pl.col(y)).to_numpy()
         velocities = frame.select(pl.col(x_velocity), pl.col(y_velocity)).to_numpy()
 
-        # compute velocity grid using scvelo's compute_velocity_on_grid
-        X_grid, V_grid = compute_velocity_on_grid(
-            X_emb=dimensions,  # UMAP/tSNE etc. coords
-            V_emb=velocities,  # velocities
+        # average the velocities onto a grid (ggrust's port of scVelo's
+        # compute_velocity_on_grid, as prepared for streams)
+        grid = velocity_grid(
+            dimensions,
+            velocities,
             density=grid_density,
             smooth=smooth,
             n_neighbors=n_neighbors,
             min_mass=min_mass,
-            autoscale=False,
-            adjust_for_stream=True,  # reshape output into the meshgrid format for streams
-            cutoff_perc=cutoff_percentile,
+            # None means scVelo's default percentile, 5
+            cutoff_percentile=5 if cutoff_percentile is None else cutoff_percentile,
         )
 
-        # mock build streamplot to extract line segment coordinates
-        ax = Figure().add_subplot(1, 1, 1)
-        _stream = ax.streamplot(
-            X_grid[0],
-            X_grid[1],
-            V_grid[0],
-            V_grid[1],
+        # integrate the streamlines (ggrust's port of matplotlib's streamplot)
+        streams = streamplot(
+            grid.x,
+            grid.y,
+            grid.u,
+            grid.v,
             density=density,
             maxlength=max_length,
             integration_direction=integration_direction,
         )
-        line_paths = _stream.lines.get_paths()  # extract line segment coordinates
-
-        # extract path segments from streamplot and convert to DataFrame
-        records_path = [
-            {"x": float(x), "y": float(y), "group": i}
-            for i, path in enumerate(line_paths)
-            for x, y in path.vertices
-        ]
-        frame_streams = pl.DataFrame(records_path)
-        # compute arrow coordinates (midpoint of each path segment)
-        frame_arrows = (
-            (
-                frame_streams.group_by("group")
-                .agg(pl.col("x"), pl.col("y"))
-                .with_columns(mid=pl.col("x").list.len() // 2)
-            )
-            .with_columns(
-                pl.col("x").list.get(pl.col("mid")).alias("x"),
-                pl.col("y").list.get(pl.col("mid")).alias("y"),
-                pl.col("x").list.get(pl.col("mid").add(1)).alias("xend"),
-                pl.col("y").list.get(pl.col("mid").add(1)).alias("yend"),
-            )
-            .drop("mid")
-            .sort("group")
+        frame_streams = streams.lines
+        # one arrow per line at half its arc length, as matplotlib places them;
+        # a zero-length segment has no direction to point an arrowhead along.
+        frame_arrows = streams.arrows.filter(
+            (pl.col("x") != pl.col("xend")) | (pl.col("y") != pl.col("yend"))
         )
 
         # handle arrow kwargs

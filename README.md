@@ -33,12 +33,14 @@ uv add cellestial
 poetry add cellestial
 ```
 
+To plot `SpatialData` objects, install the `spatial` extra, e.g. `pip install "cellestial[spatial]"`.
+
 ## Quickstart
 
 Cellestial accepts a standard `AnnData` directly. The same function plots a categorical column or a gene, and everything composes through `+` like ggplot.
 
 ```python
-from lets_plot import *
+from ggrust import *
 import cellestial as cl
 
 data = cl.datasets.pbmc3k(cache_directory="data")
@@ -175,8 +177,6 @@ cl.boxplot(
 ) + scale_fill_hue() + cl.bracket(
     y_padding=0.2,
     label="pvalue",
-    prefix="p",
-    prefix_style="<",
     comparisons=[
         ("Lymphocytes", "Monocytes"),
         ("Monocytes", "Erythroid"),

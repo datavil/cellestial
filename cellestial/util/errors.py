@@ -65,12 +65,27 @@ class SpatialLibraryError(Exception):
         super().__init__(message)
 
 
+class NonCategoricalColumnError(TypeError):
+    """Raised when an operation on groups receives a column of continuous values instead of categories."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class EmptySelectionError(ValueError):
+    """Raised when a selection of groups or keys is empty, so the result would show nothing selected."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
 
 
-def _unsupported_data_type(received: object, *expected: type) -> UnsupportedDataTypeError:
+def _unsupported_data_type(received: object, *expected: type | str) -> UnsupportedDataTypeError:
     """Build an `UnsupportedDataTypeError` naming the expected and received types."""
-    expected_names = " or ".join(cls.__name__ for cls in expected)
+    # a type from an optional dependency is passed by name, so the error path never imports it.
+    expected_names = " or ".join(cls if isinstance(cls, str) else cls.__name__ for cls in expected)
     received_name = type(received).__name__
     return UnsupportedDataTypeError(f"Expected {expected_names}, but received `{received_name}`.")

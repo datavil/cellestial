@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
+
 from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_label,
     geom_line,
@@ -21,7 +23,7 @@ from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def elbow(
@@ -47,7 +49,7 @@ def elbow(
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object.
         Must have PCA results computed beforehand.
     n_pcs : int | None, default=None
@@ -110,7 +112,7 @@ def elbow(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

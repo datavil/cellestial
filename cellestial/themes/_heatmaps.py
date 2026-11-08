@@ -1,4 +1,6 @@
-from lets_plot import element_blank, element_text, theme
+__lazy_modules__ = ["ggrust"]
+
+from ggrust import element_blank, element_text, theme
 
 _THEME_HEATMAP = theme(
     panel_grid=element_blank(),

@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from anndata import AnnData
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from shapely.geometry import MultiPolygon, Point
 from spatialdata import SpatialData
 from spatialdata.models import Image2DModel, ShapesModel, TableModel
@@ -249,7 +249,7 @@ def test_spatials_sdata_with_selection_kwargs(data_multi):
 
 
 def test_spatials_with_layers_share_labels_and_interactive(data_minimal):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.spatials(
         data_minimal,
@@ -325,23 +325,6 @@ def test_spatial_anndata_generic_no_uns():
     adata.obsm["spatial"] = rng.random((n, 2)).astype("float32")
     plot = cl.spatial(adata, key="cluster")
     assert isinstance(plot, PlotSpec)
-
-
-def test_spatial_scale_axis_constant_key_returns_zero():
-    """Constant numeric spatial keys should not scale to NaN."""
-    n = 5
-    rng = np.random.default_rng(12)
-    data = AnnData(
-        X=rng.random((n, 2)).astype("float32"),
-        obs=pd.DataFrame(
-            {"score": [3.0] * n},
-            index=[f"c{i}" for i in range(n)],
-        ),
-        var=pd.DataFrame(index=["G1", "G2"]),
-    )
-    data.obsm["spatial"] = rng.random((n, 2)).astype("float32")
-    plot = cl.spatial(data, key="score", scale_axis=0)
-    assert plot.as_dict()["data"]["score"].to_list() == [0.0] * n
 
 
 def test_spatial_drop_filters_out_groups():
@@ -426,7 +409,6 @@ def test_spatial_anndata_visium_metadata_paths():
         image_alpha=0.5,
         groups=["a"],
         crop=[0, 10, 0, 10],
-        scale_axis=0,
         interactive=True,
     )
 

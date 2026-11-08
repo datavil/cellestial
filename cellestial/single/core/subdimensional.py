@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from anndata import AnnData
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from mudata import MuData
     from polars import DataFrame
 
@@ -30,7 +30,7 @@ def umap(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -49,15 +49,15 @@ def umap(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     UMAP Dimensionality reduction plot.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -92,7 +92,7 @@ def umap(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -139,7 +139,7 @@ def umap(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -156,7 +156,7 @@ def umap(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -169,13 +169,23 @@ def umap(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
         data = cl.datasets.pbmc3k()
 
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.umap(data,key="leiden") + cl.highlight(["0","3"])
 
     """
     _reject_sequence_key(key, singular="umap", plural="umaps")
@@ -194,7 +204,7 @@ def umap(
         drop=drop,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -213,7 +223,7 @@ def umap(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
-        **point_kwargs,
+        **geom_kwargs,
     )
 
 
@@ -232,7 +242,7 @@ def tsne(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -251,15 +261,15 @@ def tsne(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     tSNE Dimensionality reduction plot.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -294,7 +304,7 @@ def tsne(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -341,7 +351,7 @@ def tsne(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -358,7 +368,7 @@ def tsne(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -371,13 +381,23 @@ def tsne(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
         data = cl.datasets.pbmc3k()
 
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.tsne(data,key="leiden") + cl.highlight(["0","3"])
 
     """  # noqa: D403
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
@@ -396,7 +416,7 @@ def tsne(
         drop=drop,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -415,7 +435,7 @@ def tsne(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
-        **point_kwargs,
+        **geom_kwargs,
     )
 
 
@@ -434,7 +454,7 @@ def pca(
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -453,15 +473,15 @@ def pca(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     PCA Dimensionality reduction plot.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str, default=None
         The key (cell feature) to color the points by.
         e.g., 'leiden' or 'louvain' to color by clusters or gene name for expression.
@@ -496,7 +516,7 @@ def pca(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -543,7 +563,7 @@ def pca(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -560,7 +580,7 @@ def pca(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -573,13 +593,23 @@ def pca(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
         data = cl.datasets.pbmc3k()
 
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.pca(data,key="leiden") + cl.highlight(["0","3"])
 
     """
     _reject_sequence_key(key, singular="pca", plural="pcas")
@@ -598,7 +628,7 @@ def pca(
         drop=drop,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -617,7 +647,7 @@ def pca(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
-        **point_kwargs,
+        **geom_kwargs,
     )
 
 
@@ -635,7 +665,7 @@ def expression(
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#e6e6e6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -654,15 +684,15 @@ def expression(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Dimensionality reduction plot of expression data.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str
         The key (gene names) to color the points by.
     frame : DataFrame | None, default=None
@@ -693,7 +723,7 @@ def expression(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     color_low : str, default='#e6e6e6'
         The color to use for the low end of the color gradient.
@@ -740,7 +770,7 @@ def expression(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -762,7 +792,7 @@ def expression(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -788,7 +818,7 @@ def expression(
         add_keys=add_keys,
         tooltips=tooltips,
         interactive=interactive,
-        observations_name=observations_name,
+        observation_id_column=observation_id_column,
         color_low=color_low,
         color_mid=color_mid,
         color_high=color_high,
@@ -807,5 +837,5 @@ def expression(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
-        **point_kwargs,
+        **geom_kwargs,
     )

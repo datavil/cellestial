@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata", "numpy"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_hline,
     geom_point,
@@ -19,10 +21,13 @@ from lets_plot import (
     layer_tooltips,
     scale_color_manual,
 )
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
-from cellestial.single.differential.utilities import _build_volcano_frame
+from cellestial.single.differential.utilities import (
+    _build_volcano_frame,
+    _resolve_pvalue_column,
+)
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import _unsupported_data_type
@@ -32,8 +37,8 @@ from cellestial.util.utilities import _container
 # brick-red for up, soft cornflower-blue for down, medium-gray for non-significant.
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.core import PlotSpec
+    from ggrust.plot.subplots import SupPlotsSpec
 
 
 def volcano(
@@ -52,7 +57,7 @@ def volcano(
     color_nonsignificant: str = "#bebebe",
     size: float = 2.0,
     alpha: float = 0.8,
-    show_threshold_lines: bool = True,
+    threshold_lines: bool = True,
     threshold_color: str = "#3f3f3f",
     threshold_size: float = 0.4,
     threshold_linetype: str = "dashed",
@@ -65,8 +70,8 @@ def volcano(
     nonsignificant_subsample: int | None = 2000,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
-    pvalue_column: str = "pvalue",
-    neg_log_pvalue_column: str = "neg_log_pvalue",
+    pvalue_column: str | None = None,
+    negative_log_pvalue_column: str = "negative_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
     down_label: str = "down",
@@ -74,14 +79,14 @@ def volcano(
     rank_genes_kwargs: dict | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Volcano plot.
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding a precomputed differential
         expression ranking.
     group : str
@@ -106,7 +111,7 @@ def volcano(
         P-value threshold used to label significance.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings, the result of `aes()`. Merged on top of
-        the default `aes(x=logfoldchange, y=neg_log_pvalue, color=significance)`.
+        the default `aes(x=logfoldchange, y=negative_log_pvalue, color=significance)`.
     color_up : str, default='#b22222'
         Color for significantly up-regulated points (brick red).
     color_down : str, default='#6495ed'
@@ -114,10 +119,10 @@ def volcano(
     color_nonsignificant : str, default='#bebebe'
         Color for non-significant points (medium gray).
     size : float, default=2.0
-        Default point size; can be overridden via `point_kwargs`.
+        Default point size; can be overridden via `**geom_kwargs`.
     alpha : float, default=0.8
-        Default point alpha; can be overridden via `point_kwargs`.
-    show_threshold_lines : bool, default=True
+        Default point alpha; can be overridden via `**geom_kwargs`.
+    threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
         Color of the threshold lines.
@@ -129,8 +134,10 @@ def volcano(
         Additional parameters passed to the threshold `geom_hline` and
         `geom_vline` layers.
     top_n : int | None, default=10
-        Number of top up- and top down-regulated genes (by `-log10(pvalue)`)
-        to label. Set to `None` or `0` to disable labels.
+        Number of top up- and top down-regulated genes to label, ranked by
+        `-log10(pvalue)` and then by absolute log fold change. The second key
+        breaks the ties among features whose p-value underflowed to zero.
+        Set to `None` or `0` to disable labels.
     label_color : str, default='#1f1f1f'
         Color of the gene labels.
     label_size : float, default=4.0
@@ -150,9 +157,11 @@ def volcano(
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
         Output column name for the log fold changes.
-    pvalue_column : str, default='pvalue'
-        Output column name for the p-values.
-    neg_log_pvalue_column : str, default='neg_log_pvalue'
+    pvalue_column : str | None, default=None
+        Output column name for the p-values. Defaults to `pvalue_adj` when
+        `use_adjusted_pvalue` is True and `pvalue` otherwise, so the tooltip
+        names the quantity it shows.
+    negative_log_pvalue_column : str, default='negative_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
@@ -172,7 +181,7 @@ def volcano(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
 
     Returns
@@ -194,6 +203,10 @@ def volcano(
     Plots `-log10(pvalue)` against log fold change for the differential
     expression results of `group` (vs the rest), colored by significance and
     optionally annotated with the top up- and down-regulated genes.
+
+    Features with a p-value of 0 have an infinite `-log10(pvalue)`. They are
+    kept and drawn at `1.05 * max + 1`, where `max` is the largest finite
+    `-log10(pvalue)`, so their height marks "above the axis range", not a value.
 
     When `group_by` is provided and the ranking under `key` is missing or was
     computed with different parameters, plot construction calls
@@ -226,6 +239,9 @@ def volcano(
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
 
+    # NAME: the p-value column after the values it holds
+    pvalue_column = _resolve_pvalue_column(pvalue_column, use_adjusted_pvalue=use_adjusted_pvalue)
+
     # BUILD: dataframe via the helper
     frame = _build_volcano_frame(
         data=data,
@@ -238,7 +254,7 @@ def volcano(
         variable_column=variable_column,
         logfoldchange_column=logfoldchange_column,
         pvalue_column=pvalue_column,
-        neg_log_pvalue_column=neg_log_pvalue_column,
+        negative_log_pvalue_column=negative_log_pvalue_column,
         significance_column=significance_column,
         up_label=up_label,
         down_label=down_label,
@@ -248,15 +264,15 @@ def volcano(
     # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
     # Dropping them would silently hide the most significant features (and their labels).
     # Push them just above the densest finite cluster instead.
-    finite_max = frame.filter(pl.col(neg_log_pvalue_column).is_finite())[
-        neg_log_pvalue_column
+    finite_max = frame.filter(pl.col(negative_log_pvalue_column).is_finite())[
+        negative_log_pvalue_column
     ].max()
     cap = (finite_max or 0.0) * 1.05 + 1.0
     frame = frame.with_columns(
-        pl.when(pl.col(neg_log_pvalue_column).is_finite())
-        .then(pl.col(neg_log_pvalue_column))
+        pl.when(pl.col(negative_log_pvalue_column).is_finite())
+        .then(pl.col(negative_log_pvalue_column))
         .otherwise(cap)
-        .alias(neg_log_pvalue_column)
+        .alias(negative_log_pvalue_column)
     )
     # SUBSAMPLE: cap non-significant points to keep the embedded data small.
     # The non-significant cloud overplots itself heavily, so dropping most of
@@ -292,7 +308,7 @@ def volcano(
     # DEFINE: mapping with defaults
     _mapping = {
         "x": logfoldchange_column,
-        "y": neg_log_pvalue_column,
+        "y": negative_log_pvalue_column,
         "color": significance_column,
     }
     if mapping is not None:
@@ -304,11 +320,11 @@ def volcano(
         tooltips=tooltips_spec,
         size=size,
         alpha=alpha,
-        **point_kwargs,
+        **geom_kwargs,
     )
 
     # ADD: threshold lines
-    if show_threshold_lines:
+    if threshold_lines:
         _threshold_kwargs = {
             "color": threshold_color,
             "size": threshold_size,
@@ -320,15 +336,19 @@ def volcano(
 
     # ADD: top-N gene labels
     if top_n:
+        # Every feature whose p-value underflowed to zero shares the capped
+        # `-log10(pvalue)`, so absolute log fold change breaks those ties
+        # instead of leaving the pick to the sort's arbitrary tie order.
+        label_ranking = [pl.col(negative_log_pvalue_column), pl.col(logfoldchange_column).abs()]
         significant = frame.filter(pl.col(significance_column) != nonsignificant_label)
         top_up = (
             significant.filter(pl.col(significance_column) == up_label)
-            .sort(neg_log_pvalue_column, descending=True)
+            .sort(label_ranking, descending=True)
             .head(top_n)
         )
         top_down = (
             significant.filter(pl.col(significance_column) == down_label)
-            .sort(neg_log_pvalue_column, descending=True)
+            .sort(label_ranking, descending=True)
             .head(top_n)
         )
         label_frame = pl.concat([top_up, top_down])
@@ -346,7 +366,7 @@ def volcano(
                 data=label_frame,
                 mapping=aes(
                     x=logfoldchange_column,
-                    y=neg_log_pvalue_column,
+                    y=negative_log_pvalue_column,
                     label=variable_column,
                 ),
                 inherit_aes=False,
@@ -356,7 +376,7 @@ def volcano(
     # ADD: labels and theme
     vlcn += labs(
         x="logFC",
-        y="-log10(Pvalue)",
+        y="-log10(Padj)" if use_adjusted_pvalue else "-log10(Pvalue)",
         color=significance_column,
     )
     vlcn += (
@@ -393,7 +413,7 @@ def volcanos(
     color_nonsignificant: str = "#bebebe",
     size: float = 2.0,
     alpha: float = 0.8,
-    show_threshold_lines: bool = True,
+    threshold_lines: bool = True,
     threshold_color: str = "#3f3f3f",
     threshold_size: float = 0.4,
     threshold_linetype: str = "dashed",
@@ -406,8 +426,8 @@ def volcanos(
     nonsignificant_subsample: int | None = 2000,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
-    pvalue_column: str = "pvalue",
-    neg_log_pvalue_column: str = "neg_log_pvalue",
+    pvalue_column: str | None = None,
+    negative_log_pvalue_column: str = "negative_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
     down_label: str = "down",
@@ -430,14 +450,14 @@ def volcanos(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of volcano plots, one per group.
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding a precomputed differential
         expression ranking.
     groups : Sequence[str]
@@ -468,10 +488,10 @@ def volcanos(
     color_nonsignificant : str, default='#bebebe'
         Color for non-significant points.
     size : float, default=2.0
-        Default point size; can be overridden via `point_kwargs`.
+        Default point size; can be overridden via `**geom_kwargs`.
     alpha : float, default=0.8
-        Default point alpha; can be overridden via `point_kwargs`.
-    show_threshold_lines : bool, default=True
+        Default point alpha; can be overridden via `**geom_kwargs`.
+    threshold_lines : bool, default=True
         Whether to draw the dashed threshold lines.
     threshold_color : str, default='#3f3f3f'
         Color of the threshold lines.
@@ -482,8 +502,9 @@ def volcanos(
     threshold_kwargs : dict | None, default=None
         Additional parameters passed to the threshold `geom_hline` and `geom_vline` layers.
     top_n : int | None, default=10
-        Number of top up- and top down-regulated genes (by `-log10(pvalue)`)
-        to label per subplot. Set to `None` or `0` to disable labels.
+        Number of top up- and top down-regulated genes to label per subplot,
+        ranked by `-log10(pvalue)` and then by absolute log fold change.
+        Set to `None` or `0` to disable labels.
     label_color : str, default='#1f1f1f'
         Color of the gene labels.
     label_size : float, default=4.0
@@ -503,9 +524,10 @@ def volcanos(
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
         Output column name for the log fold changes.
-    pvalue_column : str, default='pvalue'
-        Output column name for the p-values.
-    neg_log_pvalue_column : str, default='neg_log_pvalue'
+    pvalue_column : str | None, default=None
+        Output column name for the p-values. Defaults to `pvalue_adj` when
+        `use_adjusted_pvalue` is True and `pvalue` otherwise.
+    negative_log_pvalue_column : str, default='negative_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
@@ -534,7 +556,7 @@ def volcanos(
         Number of columns in grid. If not specified, shows plots horizontally, in one row.
     sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        See :func:`lets_plot.gggrid`.
+        See :func:`ggrust.gggrid`.
     widths : list[float], default=None
         Relative width of each column of the grid.
     heights : list[float], default=None
@@ -547,8 +569,8 @@ def volcanos(
         Whether to align inner areas of plots.
     guides : str, default='auto'
         How guides (legends/colorbars) should be treated in the layout.
-        See :func:`lets_plot.gggrid`.
-    **point_kwargs
+        See :func:`ggrust.gggrid`.
+    **geom_kwargs
         Additional parameters for the `geom_point` layer of each subplot.
 
     Returns
@@ -607,7 +629,7 @@ def volcanos(
             color_nonsignificant=color_nonsignificant,
             size=size,
             alpha=alpha,
-            show_threshold_lines=show_threshold_lines,
+            threshold_lines=threshold_lines,
             threshold_color=threshold_color,
             threshold_size=threshold_size,
             threshold_linetype=threshold_linetype,
@@ -621,14 +643,14 @@ def volcanos(
             variable_column=variable_column,
             logfoldchange_column=logfoldchange_column,
             pvalue_column=pvalue_column,
-            neg_log_pvalue_column=neg_log_pvalue_column,
+            negative_log_pvalue_column=negative_log_pvalue_column,
             significance_column=significance_column,
             up_label=up_label,
             down_label=down_label,
             nonsignificant_label=nonsignificant_label,
             rank_genes_kwargs=rank_genes_kwargs,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         # handle the layers

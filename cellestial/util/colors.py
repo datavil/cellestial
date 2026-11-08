@@ -1,4 +1,6 @@
-from lets_plot import (
+__lazy_modules__ = ["ggrust"]
+
+from ggrust import (
     aes,
     element_rect,
     geom_point,

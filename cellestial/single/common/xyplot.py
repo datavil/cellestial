@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_point,
     ggplot,
     ggtb,
     labs,
 )
-from lets_plot.plot.core import FeatureSpec
+from ggrust.plot.core import FeatureSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -28,7 +30,7 @@ from cellestial.util.errors import _unsupported_data_type
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
     from polars import DataFrame
 
 
@@ -43,18 +45,18 @@ def xyplot(
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
-    **point_kwargs,
+    **geom_kwargs,
 ) -> PlotSpec:
     """
     Scatter Plot.
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     x : str
         The key for the x-axis.
     y : str
@@ -75,14 +77,14 @@ def xyplot(
         Use 'none' to disable tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
         https://lets-plot.org/python/pages/api/lets_plot.geom_point.html
@@ -104,7 +106,7 @@ def xyplot(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -123,7 +125,7 @@ def xyplot(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -142,7 +144,7 @@ def xyplot(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -212,14 +214,14 @@ def xyplot(
     )
 
     if frame is None:
-        observation_column_name = None if tooltips == "none" else observations_name
-        variable_column_name = None if tooltips == "none" else variables_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
+        variable_column_name = None if tooltips == "none" else variable_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observation_column_name,
-            variables_name=variable_column_name,
+            observation_id_column=observation_column_name,
+            variable_id_column=variable_column_name,
             include_dimensions=include_dimensions,
             metadata_columns=metadata_columns,
         )
@@ -232,7 +234,7 @@ def xyplot(
         + geom_point(
             mapping=mapping,
             tooltips=tooltips,
-            **point_kwargs,
+            **geom_kwargs,
         )
         + labs(x=x, y=y)
         + _THEME_SCATTER

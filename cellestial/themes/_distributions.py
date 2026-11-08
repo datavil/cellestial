@@ -1,4 +1,6 @@
-from lets_plot import (
+__lazy_modules__ = ["ggrust"]
+
+from ggrust import (
     coord_flip,
     element_blank,
     element_text,

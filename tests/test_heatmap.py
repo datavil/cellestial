@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
-from lets_plot import aes
-from lets_plot.plot.core import PlotSpec
+from ggrust import aes
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.single.heatmap.heatmap import _scale_values
@@ -33,6 +33,23 @@ def _stage_custom_dendrogram(adata, group_key, custom_key="dendrogram_custom_v2"
     sc.tl.dendrogram(local, groupby=group_key, key_added=custom_key)
     local.uns.pop(f"dendrogram_{group_key}", None)
     return local, custom_key
+
+
+def _dendrogram_leaf_order(plot):
+    """Leaf labels of the plot's dendrogram scale, in the tree's order."""
+    (tree,) = (scale["dendrogram"] for scale in plot.as_dict()["scales"] if "dendrogram" in scale)
+    return [tree["labels"][leaf] for leaf in tree["order"]]
+
+
+@pytest.mark.parametrize("function", ["dotplot", "stacked_violin", "matrixplot"])
+def test_dendrogram_leaf_order_matches_scanpy(adata, markers, group_key, function):
+    import scanpy as sc
+
+    local = adata.copy()
+    sc.tl.dendrogram(local, groupby=group_key)
+    plot = getattr(cl, function)(local, keys=markers, group_by=group_key, dendrogram=True)
+    expected = list(local.uns[f"dendrogram_{group_key}"]["categories_ordered"])
+    assert _dendrogram_leaf_order(plot) == expected
 
 
 def test_heatmap_dendrogram_key_uses_custom_key(adata, markers, group_key):
@@ -160,7 +177,7 @@ def test_stacked_violin_options(adata, group_key):
         mapping=aes(alpha="expression"),
         threshold=0.0,
         scale="count",
-        color_by="group",
+        fill_statistic="group",
         geom_fill=None,
         rectangle=False,
         key_labels=False,
@@ -176,7 +193,7 @@ def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
         sub,
         group_by=group_key,
         keys=(markers := ["CD79A", "MS4A1"]),
-        color_by="variable",
+        fill_statistic="variable",
         rectangle_kwargs={"alpha": 0.5},
         n_points=16,
     )
@@ -212,7 +229,7 @@ def test_compute_violin_polygons_edge_paths():
         width_scale=0.8,
         height_scale=0.8,
         aggregate="mean",
-        aggregate_key="expression",
+        aggregate_column="expression",
     )
     empty = _compute_violin_polygons(
         frame,
@@ -226,7 +243,7 @@ def test_compute_violin_polygons_edge_paths():
         width_scale=0.8,
         height_scale=0.8,
         aggregate="median",
-        aggregate_key="expression",
+        aggregate_column="expression",
     )
 
     assert polygons.height > 0
@@ -244,7 +261,7 @@ def test_compute_violin_polygons_edge_paths():
             width_scale=0.8,
             height_scale=0.8,
             aggregate="median",
-            aggregate_key="expression",
+            aggregate_column="expression",
         )
 
 
@@ -310,29 +327,6 @@ def test_resolve_padding_explicit_overrides_auto():
     assert explicit == 0.5
 
 
-def test_key_groups_x_unit_label_size_ignores_y_span():
-    from cellestial.single.heatmap.utilities import _key_groups_layers
-
-    groups = {"Group_1": ["A", "B"], "Group_2": ["C", "D"]}
-    small_y_text = _key_groups_layers(
-        groups,
-        y=3.5,
-        total_span=4,
-        label_size_span=4,
-        size_unit="x",
-    )[-1].as_dict()
-    large_y_text = _key_groups_layers(
-        groups,
-        y=15.5,
-        total_span=16,
-        label_size_span=4,
-        size_unit="x",
-    )[-1].as_dict()
-    assert small_y_text["size_unit"] == "x"
-    assert large_y_text["size_unit"] == "x"
-    assert small_y_text["size"] == large_y_text["size"]
-
-
 def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
@@ -354,10 +348,22 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
     assert scales[-1]["limits"][1] == n_y - 0.5
 
 
-def test_dotplot_key_labels_use_x_unit_text_size(adata, group_key):
+def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
     plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
     text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert text_layers[-1]["size_unit"] == "x"
+    assert "size_unit" not in text_layers[-1]
+    assert text_layers[-1]["size"] >= 3.75
+
+
+def test_resolve_padding_square_cells_grow_with_columns():
+    from cellestial.single.heatmap.utilities import _resolve_padding
+
+    groups = {f"group number {index}": [str(index)] for index in range(12)}
+    free = _resolve_padding(groups, padding=None, data_range=4)
+    six = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=6)
+    twelve = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=12)
+    assert six >= free, "square cells never get less padding"
+    assert twelve > six, "one y unit is one column wide, so more columns need more y units"
 
 
 def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
@@ -381,7 +387,7 @@ def test_dotplot_sort_by_avg_exp(adata, markers, group_key):
 
 
 def test_dotplot_fill_mapping(adata, markers, group_key):
-    from lets_plot import aes
+    from ggrust import aes
 
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(fill="avg_exp"))
     assert isinstance(plot, PlotSpec)
@@ -474,7 +480,7 @@ def test_dotplot_tooltips_missing_column(adata, markers, group_key):
 
 
 def test_dotplot_tooltips_feature_spec(adata, markers, group_key):
-    from lets_plot import layer_tooltips
+    from ggrust import layer_tooltips
 
     plot = cl.dotplot(
         adata,
@@ -549,15 +555,14 @@ def test_heatmap_variable_axis_nonaggregate(adata):
         group_by="mt",
         axis=1,
         aggregate=False,
-        variables_name="Feature",
+        variable_id_column="Feature",
         max_rows=None,
     )
 
     assert isinstance(plot, PlotSpec)
     assert plot.as_dict()["data"]["Feature"].n_unique() == local.n_vars
     y_scale = next(scale for scale in plot.as_dict()["scales"] if scale.get("aesthetic") == "y")
-    half_step = 1 / (local.n_vars - 1) / 2
-    assert y_scale["limits"] == pytest.approx([-half_step, 1 + half_step])
+    assert y_scale["limits"] == pytest.approx([-0.5, local.n_vars - 0.5])
 
 
 def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
@@ -570,14 +575,13 @@ def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
         group_by="test_group",
         axis=1,
         aggregate=False,
-        variables_name="Feature",
+        variable_id_column="Feature",
         max_rows=None,
     )
 
     spec = plot.as_dict()
     y_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "y")
-    half_step = 1 / (local.n_vars - 1) / 2
-    assert y_scale["limits"] == pytest.approx([-half_step, 1 + half_step])
+    assert y_scale["limits"] == pytest.approx([-0.5, local.n_vars - 0.5])
 
     group_lines = [
         layer["data"]
@@ -586,7 +590,7 @@ def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
         and hasattr(layer.get("data"), "columns")
         and "xend" in layer["data"].columns
     ]
-    assert group_lines[-1]["y"].to_list() == pytest.approx([0.5])
+    assert group_lines[-1]["y"].to_list() == pytest.approx([49.5])
 
 
 @pytest.mark.parametrize(
@@ -605,7 +609,7 @@ def test_heatmap_variable_axis_nonaggregate_row_operations(adata, scale_axis, ma
         group_by="mt",
         axis=1,
         aggregate=False,
-        variables_name="Feature",
+        variable_id_column="Feature",
         scale_axis=scale_axis,
         max_rows=max_rows,
     )

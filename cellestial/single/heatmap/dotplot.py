@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     element_line,
-    geom_path,
     geom_point,
     geom_rect,
     ggplot,
@@ -17,23 +18,27 @@ from lets_plot import (
     scale_y_continuous,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec
+from ggrust.plot.core import FeatureSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
+    _BRACKET_REFERENCE_SPAN,
+    _fixed_cell_layout,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
+    _sort_integer_like_groups,
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
     _color_gradient,
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _fill_gradient,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
     _resolve_tooltips,
     _validate_tooltips,
     _warn,
@@ -44,7 +49,11 @@ from cellestial.util.utilities import _container_column, _modality_source
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
+
+_DOT_SIZE_MAX = 11  # point size of a 100% dot, fills ~80% of a cell
+_LEGEND_WIDTH = 70  # pixels
+_LEGEND_HEIGHT = 400  # pixels; fits the color bar and size legend
 
 
 def dotplot(
@@ -66,14 +75,13 @@ def dotplot(
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
-    percentage_key: str = "pct_exp",
-    mean_key: str = "avg_exp",
+    percentage_column: str = "pct_exp",
+    mean_column: str = "avg_exp",
     rectangle: bool = True,
     dendrogram: bool = False,
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
-    dendrogram_kwargs: dict | None = None,
     rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
@@ -92,8 +100,8 @@ def dotplot(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys to include, placed on the x-axis. A mapping assigns
         keys to group labels (no key in more than one group). Must be
@@ -134,9 +142,9 @@ def dotplot(
         The column or columns to sort the results by.
     sort_order : str, default='descending'
         The sort order, either 'ascending' or 'descending'.
-    percentage_key : str, default='pct_exp'
+    percentage_column : str, default='pct_exp'
         The name of the percentage column.
-    mean_key : str, default='avg_exp'
+    mean_column : str, default='avg_exp'
         The name of the mean expression column.
     rectangle : bool, default=True
         Whether to add a rectangle border around the data area
@@ -151,8 +159,6 @@ def dotplot(
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
         By default, `dendrogram_{group_by}` is used.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_segment.
     rectangle_size : float, default=0.8
         Size (thickness) of the rectangle border.
     rectangle_color : str, default='#3f3f3f'
@@ -213,7 +219,7 @@ def dotplot(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -288,7 +294,7 @@ def dotplot(
 
     mapping = mapping or aes()
 
-    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: dataframe. Only `group_by` is needed from the observation metadata;
@@ -297,7 +303,7 @@ def dotplot(
         data=data,
         axis=0,
         variable_keys=keys,
-        observations_name=None,
+        observation_id_column=None,
         metadata_columns=[group_by],
     )
     # WARN: negative expression makes the percent-expressed (dot size) misleading
@@ -311,42 +317,32 @@ def dotplot(
         )
     # DROP: rows with null group_by to avoid null labels downstream
     frame = frame.filter(pl.col(group_by).is_not_null())
-    index_columns = [x for x in frame.columns if x not in keys]
 
     # CRITICAL PARTS: Dataframe Operations
-    # DataFrame to LazyFrame
-    frame = frame.lazy()
-    # 1. Unpivot frame
-    value_name: str = "value"
-    frame = frame.unpivot(
-        on=keys,
-        index=index_columns,
-        variable_name=variable_column,
-        value_name=value_name,
-    )
-    frame = frame.filter(pl.col(value_name).is_not_null() & pl.col(value_name).is_finite())
-    # 2. Aggregate and compute stats
-    frame = frame.group_by([group_by, variable_column]).agg(
-        [
-            pl.col(value_name).mean().alias(mean_key),
-            (pl.col(value_name) > threshold).mean().mul(100).alias(percentage_key),
+    # 1. Aggregate per group while wide, so the unpivoted frame holds
+    # groups x keys rows instead of cells x keys.
+    # Cast to the dtype unpivot would supercast the keys to.
+    value_dtype = frame.head(0).select(keys).unpivot(value_name=mean_column).schema[mean_column]
+    finite_values = [pl.col(key).cast(value_dtype).filter(pl.col(key).is_finite()) for key in keys]
+    percentage_names = [f"__cellestial_percentage_{index}" for index in range(len(keys))]
+    frame = frame.group_by(group_by).agg(
+        [values.mean().alias(key) for values, key in zip(finite_values, keys, strict=True)]
+        + [
+            (values > threshold).mean().mul(100).alias(name)
+            for values, name in zip(finite_values, percentage_names, strict=True)
         ]
     )
-    # LazyFrame to DataFrame
-    frame = frame.collect()
-    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
-    numeric_group_by = "__cellestial_group_by_numeric"
-    frame = frame.with_columns(
-        pl.col(group_by).cast(pl.String).cast(pl.Int64, strict=False).alias(numeric_group_by)
+    # 2. Unpivot means and percentages; both unpivots keep the same row order.
+    means = frame.unpivot(
+        on=keys, index=group_by, variable_name=variable_column, value_name=mean_column
     )
-    if frame[numeric_group_by].null_count() == 0:
-        frame = (
-            frame.sort(numeric_group_by, descending=True)
-            .drop(numeric_group_by)
-            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
-        )
-    else:
-        frame = frame.drop(numeric_group_by)
+    percentages = frame.unpivot(on=percentage_names, index=group_by, value_name=percentage_column)
+    # Keys with no finite value in a group get no row.
+    frame = means.with_columns(percentages[percentage_column]).filter(
+        pl.col(mean_column).is_not_null()
+    )
+    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
+    frame = _sort_integer_like_groups(frame, group_by=group_by)
     # perform sorting
     if sort_by is not None:
         frame = frame.sort(
@@ -356,9 +352,10 @@ def dotplot(
 
     # DETERMINE: y order of groups
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(
+        tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
+        y_order_groups = list(tree.ordered_labels)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
@@ -385,7 +382,7 @@ def dotplot(
         tooltips,
         data=data,
         variable_keys=[],
-        defaults=[group_by, variable_column, mean_key, percentage_key],
+        defaults=[group_by, variable_column, mean_column, percentage_column],
     )
     _validate_tooltips(tooltips, frame)
 
@@ -398,14 +395,13 @@ def dotplot(
     _mapping = {
         "x": "position_x",
         "y": "position_y",
-        "size": percentage_key,
-        color_or_fill: mean_key,
+        "size": percentage_column,
+        color_or_fill: mean_column,
     }
     _mapping.update(mapping.as_dict())
 
     # Adjust point size range (keeps aes(size=...) mapping and its legend):
-    n_max = max(n_x, n_y)
-    size_max = 120 / n_max * size_scale
+    size_max = _DOT_SIZE_MAX * size_scale
     _size_scale = scale_size(range=[size_max * 0.1, size_max])
 
     dtplt = (
@@ -416,7 +412,7 @@ def dotplot(
             **geom_kwargs,
         )
         + _gradient(
-            frame[mean_key],
+            frame[mean_column],
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
@@ -425,52 +421,39 @@ def dotplot(
         + _size_scale
     )
 
-    # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits
-    x_max_limit = n_x - 0.5
-    if dendrogram:
-        group_centers = [float(i) for i in range(n_y)]
-        dendrogram_frame = _get_dendrogram_path_frame(
-            paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
-        )
-        x_max_limit = dendrogram_frame["x"].max()
-        dtplt += geom_path(
-            data=dendrogram_frame,
-            mapping=aes(x="x", y="y", group="group"),
-            color=dendrogram_color,
-            size=dendrogram_size,
-            **(dendrogram_kwargs or {}),
-        )
-
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
     data_top = n_y - 0.5
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
         # Extend the y limit upward to fit the bracket bar plus rotated label.
-        data_range = data_top + 0.5
+        # Cells have a fixed pixel size, so brackets are sized against a constant span.
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
-            data_range=data_range,
-            size_unit="y",
+            data_range=_BRACKET_REFERENCE_SPAN,
             label_size_scale=key_labels_text_size,
         )
-        key_groups_total_span = data_range + key_groups_padding
+        key_groups_total_span = _BRACKET_REFERENCE_SPAN + key_groups_padding
         y_max_limit = data_top + key_groups_padding
     dtplt += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
-        limits=[-0.5, x_max_limit],
+        limits=[-0.5, n_x - 0.5],
         expand=[0, 0],
     )
-    dtplt += scale_y_continuous(
-        breaks=list(range(n_y)),
-        labels=y_order_groups,
-        limits=[-0.5, y_max_limit],
-        expand=[0, 0],
-    )
+    # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
+    if dendrogram:
+        dtplt += _dendrogram_y_axis(tree, limits=[-0.5, y_max_limit])
+    else:
+        dtplt += scale_y_continuous(
+            breaks=list(range(n_y)),
+            labels=y_order_groups,
+            limits=[-0.5, y_max_limit],
+            expand=[0, 0],
+        )
 
-    # KEY-GROUP brackets above the data area when ``keys`` was a mapping.
+    # KEY-GROUP brackets above the data area when `keys` was a mapping.
     if key_labels and key_groups is not None:
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
@@ -483,8 +466,6 @@ def dotplot(
             bracket_size=key_labels_bracket_size,
             width=key_labels_width,
             label_size_scale=key_labels_text_size,
-            label_size_span=n_x,
-            size_unit="x",
         ):
             dtplt += layer
 
@@ -509,6 +490,19 @@ def dotplot(
 
     # ADD: layers
     dtplt += _THEME_DOTPLOT
+    if dendrogram:
+        dtplt += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
+
+    # SIZE: square cells; canvas fits the panel plus axis labels and legends
+    dtplt += _fixed_cell_layout(
+        x_span=n_x,
+        y_span=y_max_limit + 0.5,
+        y_limits=[-0.5, y_max_limit],
+        x_labels=x_keys,
+        y_labels=y_order_groups,
+        legend_width=_LEGEND_WIDTH,
+        legend_height=_LEGEND_HEIGHT,
+    )
 
     # HANDLE: interactive
     if interactive:

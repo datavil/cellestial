@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_boxplot,
     geom_histogram,
@@ -18,7 +20,7 @@ from lets_plot import (
     position_dodge,
     position_jitterdodge,
 )
-from lets_plot.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -27,6 +29,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
     _drop_nonfinite_rows,
+    _filter_groups,
     _resolve_tooltips,
     _validate_aesthetic_columns,
     _validate_tooltips,
@@ -35,7 +38,7 @@ from cellestial.util import (
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
 
 
 def _distribution(
@@ -61,9 +64,9 @@ def _distribution(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
-    show_points: bool = True,
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
+    points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -164,14 +167,14 @@ def _distribution(
         ):
             index.append(column)
     if frame is None:
-        observation_column_name = None if tooltips == "none" else observations_name
-        variable_column_name = None if tooltips == "none" else variables_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
+        variable_column_name = None if tooltips == "none" else variable_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observation_column_name,
-            variables_name=variable_column_name,
+            observation_id_column=observation_column_name,
+            variable_id_column=variable_column_name,
             metadata_columns=metadata_columns,
         )
 
@@ -183,29 +186,15 @@ def _distribution(
     if group_by is not None:
         frame = frame.filter(pl.col(group_by).is_not_null())
 
-    # HANDLE: groups filter (categorical-only) on the grouping column
-    if groups is not None and group_by is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(group_by).is_in(list(groups)))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `groups` filter ignored"
-            _warn(msg)
+    # HANDLE: groups / drop filters (categorical-only) on the grouping column
+    if group_by is not None:
+        frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
 
-    # HANDLE: drop filter (categorical-only) on the grouping column
-    if drop is not None and group_by is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(group_by).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `drop` filter ignored"
-            _warn(msg)
-
+    # unpivot into a temporary name: for a single key `value_column` equals the key,
+    # which polars >= 1.44 rejects as a duplicate column
     frame = frame.unpivot(
-        on=keys, index=index, value_name=value_column, variable_name=variable_column
-    )
+        on=keys, index=index, value_name="__value__", variable_name=variable_column
+    ).rename({"__value__": value_column})
     frame = _drop_nonfinite_rows(frame, [value_column])
     if threshold is not None:
         frame = frame.filter(pl.col(value_column) >= threshold)
@@ -270,7 +259,7 @@ def _distribution(
         )
 
     # handle the points (jitter,point,sina)
-    if show_points:
+    if points:
         if point_geom in ["jitter", "point", "sina"]:
             geom_functions = {
                 "jitter": geom_jitter,

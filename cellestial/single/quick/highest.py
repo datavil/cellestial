@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
+
 from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_boxplot,
     ggplot,
@@ -18,7 +20,7 @@ from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def highest_expressed_genes(
@@ -28,7 +30,7 @@ def highest_expressed_genes(
     modality: str | None = None,
     mapping: FeatureSpec | None = None,
     threshold: float | None = None,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     value_column: str = "value",
     variable_column: str = "variable",
     color: str = "#1f1f1f",
@@ -43,8 +45,8 @@ def highest_expressed_genes(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     n : int, default=20
         Number of top expressed genes to display, ranked by mean percentage across all cells.
     modality : str | None, default=None
@@ -55,7 +57,7 @@ def highest_expressed_genes(
         Additional aesthetic mappings for the plot, the result of `aes()`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
     value_column : str, default='value'
         The name to give to the value column after unpivoting.
@@ -93,7 +95,7 @@ def highest_expressed_genes(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -106,7 +108,7 @@ def highest_expressed_genes(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

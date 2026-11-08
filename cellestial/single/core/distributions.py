@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust", "ggrust.plot.core"]
+
 from typing import TYPE_CHECKING, Any, Literal
 
-from lets_plot import gggrid, ggtb
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust import gggrid, ggtb
+from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
 from cellestial.single.core.distribution import boxplot, histogram, violin
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from anndata import AnnData
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from mudata import MuData
 
 
@@ -44,9 +46,9 @@ def violins(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
-    show_points: bool = True,
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
+    points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -74,8 +76,8 @@ def violins(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
@@ -124,11 +126,11 @@ def violins(
         Geom type of the points, default is geom_jitter.
     point_mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the points, the result of `aes()`.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
-    show_points : bool, default=True
+    points : bool, default=True
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -203,7 +205,7 @@ def violins(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -255,14 +257,14 @@ def violins(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -289,9 +291,9 @@ def violins(
             point_size=point_size,
             point_geom=point_geom,
             point_mapping=point_mapping,
-            observations_name=observations_name,
-            variables_name=variables_name,
-            show_points=show_points,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
+            points=points,
             value_column=value_column,
             variable_column=variable_column,
             point_kwargs=point_kwargs,
@@ -350,9 +352,9 @@ def boxplots(
     point_size: float = 0.5,
     point_geom: Literal["jitter", "point", "sina"] = "jitter",
     point_mapping: FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
-    show_points: bool = True,
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
+    points: bool = True,
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -380,8 +382,8 @@ def boxplots(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
@@ -430,11 +432,11 @@ def boxplots(
         Geom type of the points, default is geom_jitter.
     point_mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the points, the result of `aes()`.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
-    show_points : bool, default=True
+    points : bool, default=True
         Whether to show points.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -508,7 +510,7 @@ def boxplots(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -560,14 +562,14 @@ def boxplots(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -594,9 +596,9 @@ def boxplots(
             point_size=point_size,
             point_geom=point_geom,
             point_mapping=point_mapping,
-            observations_name=observations_name,
-            variables_name=variables_name,
-            show_points=show_points,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
+            points=points,
             value_column=value_column,
             variable_column=variable_column,
             point_kwargs=point_kwargs,
@@ -653,8 +655,8 @@ def histograms(
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     geom_fill: str | None = None,
     geom_color: str | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     value_column: str = "value",
     variable_column: str = "variable",
@@ -680,8 +682,8 @@ def histograms(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : list[str] | tuple[str] | Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
@@ -723,9 +725,9 @@ def histograms(
         Fill color for all bars in the histogram.
     geom_color : str | None, default=None
         Border color for all bars in the histogram.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -792,7 +794,7 @@ def histograms(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -836,14 +838,14 @@ def histograms(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -867,8 +869,8 @@ def histograms(
             tooltips=tooltips,
             geom_fill=geom_fill,
             geom_color=geom_color,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
             value_column=value_column,
             variable_column=variable_column,
             **geom_kwargs,

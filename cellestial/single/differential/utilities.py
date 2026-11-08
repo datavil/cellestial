@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "numpy"]
+
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -15,6 +17,13 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
+def _resolve_pvalue_column(pvalue_column: str | None, *, use_adjusted_pvalue: bool) -> str:
+    """Name the p-value column after the values it actually holds."""
+    if pvalue_column is not None:
+        return pvalue_column
+    return "pvalue_adj" if use_adjusted_pvalue else "pvalue"
+
+
 def _build_volcano_frame(
     data: AnnData,
     group: str,
@@ -26,8 +35,8 @@ def _build_volcano_frame(
     pvalue_threshold: float = 0.05,
     variable_column: str = "variable",
     logfoldchange_column: str = "logfoldchange",
-    pvalue_column: str = "pvalue",
-    neg_log_pvalue_column: str = "neg_log_pvalue",
+    pvalue_column: str | None = None,
+    negative_log_pvalue_column: str = "negative_log_pvalue",
     significance_column: str = "significance",
     up_label: str = "up",
     down_label: str = "down",
@@ -61,9 +70,10 @@ def _build_volcano_frame(
         Output column name for the gene/feature names.
     logfoldchange_column : str, default='logfoldchange'
         Output column name for the log fold changes.
-    pvalue_column : str, default='pvalue'
-        Output column name for the p-values.
-    neg_log_pvalue_column : str, default='neg_log_pvalue'
+    pvalue_column : str | None, default=None
+        Output column name for the p-values. Defaults to `pvalue_adj` when
+        `use_adjusted_pvalue` is True and `pvalue` otherwise.
+    negative_log_pvalue_column : str, default='negative_log_pvalue'
         Output column name for the `-log10(pvalue)` transform.
     significance_column : str, default='significance'
         Output column name for the categorical significance label.
@@ -90,6 +100,8 @@ def _build_volcano_frame(
     `-log10(pvalue)` and a categorical significance label (up / down / ns)
     based on the supplied thresholds.
     """
+    pvalue_column = _resolve_pvalue_column(pvalue_column, use_adjusted_pvalue=use_adjusted_pvalue)
+
     # HANDLE: Data types
     if isinstance(data, AnnData):
         # COMPUTE: rank_genes_groups if requested and missing/stale
@@ -144,7 +156,7 @@ def _build_volcano_frame(
     # CRITICAL PARTS: Dataframe Operations
     # 1. -log10(pvalue) transform
     frame = frame.with_columns(
-        pl.col(pvalue_column).log10().neg().alias(neg_log_pvalue_column),
+        pl.col(pvalue_column).log10().neg().alias(negative_log_pvalue_column),
     )
     # 2. Significance label based on log fold change and p-value thresholds
     frame = frame.with_columns(
@@ -166,7 +178,7 @@ def _build_volcano_frame(
     #    is serialized into the plot output (significant on-disk size win).
     frame = frame.with_columns(
         pl.col(logfoldchange_column).round(4),
-        pl.col(neg_log_pvalue_column).round(4),
+        pl.col(negative_log_pvalue_column).round(4),
     )
 
     return frame

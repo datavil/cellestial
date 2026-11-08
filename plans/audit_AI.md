@@ -13,7 +13,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `bracket` | Claude 4.7 | ✓ | ✓ |  |  |
 | `matrixplot` | Claude 4.7 | ✓ | ✓ |  |  |
 | `stacked_violin` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_bin_within_groups` | Claude 4.7 |  |  |  |  |
+| `_bin_within_groups` | Claude 4.7 and Claude Opus 5.5 |  |  |  |  |
 | `volcano` | Claude 4.7 | ✓ | ✓ |  |  |
 | `volcanos` | Claude 4.7 | ✓ | ✓ |  |  |
 | `_build_volcano_frame` | Claude 4.7 | ✓ | ✓ |  |  |
@@ -63,9 +63,9 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_Container.variable_embeddings` | Claude Opus 5 |  |  |  |  |
 | `_Container.owns_variable` | Claude Opus 5 |  |  |  |  |
 | `_Container.resolve_variable` | Claude Opus 5 |  |  |  |  |
-| `_Container.fetch_variable_columns` | Claude Opus 5 |  |  |  |  |
+| `_Container.fetch_variable_columns` | Claude Opus 5 and Claude Opus 5.5 |  |  |  |  |
 | `_MuDataContainer._without_modality_masks` | Claude Opus 5 |  |  |  |  |
-| `_MuDataContainer._variable_column` | Claude Opus 5 |  |  |  |  |
+| `_MuDataContainer._variable_column` | Claude Opus 5 and Claude Opus 5.5 |  |  |  |  |
 | `_dendrogram_source` | Claude Opus 5 |  |  |  |  |
 | `_read_dataset` | Claude Opus 5 |  |  |  |  |
 | `pbmc_cite` | Claude Opus 5 |  |  |  |  |
@@ -76,6 +76,16 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_as_array` | Claude Opus 5 |  |  |  |  |
 | `_qualified_alternatives` | Claude Opus 5 |  |  |  |  |
 | `_Container._require_unique_variables` | Claude Opus 5 |  |  |  |  |
+| `_resolve_pvalue_column` | Claude Opus 5 |  |  |  |  |
+| `_filter_groups` | Claude Opus 5 |  |  |  |  |
+| `_require_categories` | Claude Opus 5 |  |  |  |  |
+| `_is_spatialdata` | Claude Opus 5.5 |  |  |  |  |
+| `_scale_wide_values` | Claude Opus 5.5 |  |  |  |  |
+| `highlight` | Claude Opus 5.5 |  |  |  |  |
+| `_sort_integer_like_groups` | Claude Opus 5.5 |  |  |  |  |
+| `_format_warning` | Claude Opus 5.5 |  |  |  |  |
+| `_kernel_padding` | Claude Opus 5.5 |  |  |  |  |
+| `_print_progress` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -83,30 +93,32 @@ Modified functions require only a line-by-line check. Repeated modifications are
 
 | Function | Source | Line-by-line |
 | --- | --- | --- |
+| `_unsupported_data_type` | Claude Opus 5.5 |  |
 | `_spatial_components` | Claude 4.7 |  |
-| `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `cluster_outlines` | Mixed |  |
-| `stream` | Claude 4.7 and Claude 4.8 |  |
-| `arrow_axis` | Claude 4.7 |  |
+| `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `cluster_outlines` | Mixed and Claude Opus 5.5 |  |
+| `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
+| `arrow_axis` | Claude 4.7 and Claude Opus 5.5 |  |
+| `_axis_arrow_layers` | Claude Opus 5.5 |  |
 | `ondata_legend` | Claude 4.7 |  |
-| `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 |  |
-| `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 |  |
+| `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `ridge` | Claude 4.7 and Claude Opus 5 |  |
 | `ridges` | Claude 4.7 |  |
-| `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `umap` | Claude 4.7 |  |
-| `tsne` | Claude 4.7 |  |
-| `pca` | Claude 4.7 |  |
-| `dimensionals` | Claude 4.7 |  |
-| `umaps` | Claude 4.7 |  |
-| `tsnes` | Claude 4.7 |  |
-| `pcas` | Claude 4.7 |  |
+| `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `umap` | Claude 4.7 and Claude Opus 5.5 |  |
+| `tsne` | Claude 4.7 and Claude Opus 5.5 |  |
+| `pca` | Claude 4.7 and Claude Opus 5.5 |  |
+| `dimensionals` | Claude 4.7 and Claude Opus 5.5 |  |
+| `umaps` | Claude 4.7 and Claude Opus 5.5 |  |
+| `tsnes` | Claude 4.7 and Claude Opus 5.5 |  |
+| `pcas` | Claude 4.7 and Claude Opus 5.5 |  |
 | `violin` | Claude 4.7 |  |
 | `boxplot` | Claude 4.7 |  |
 | `violins` | Claude 4.7 |  |
 | `boxplots` | Claude 4.7 |  |
-| `_distribution` | Claude 4.7, Claude 4.8, and Claude Opus 5 |  |
+| `_distribution` | Claude 4.7, Claude 4.8, Claude Opus 5, and Claude Opus 5.5 |  |
 | `anndata_observations_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `anndata_variables_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `build_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
@@ -114,9 +126,15 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `xyplots` | Claude 4.7 and Claude 4.8 |  |
 | `expressions` | Claude 4.7 |  |
-| `stacked_violin` | Claude 4.7 and Claude Opus 5 |  |
+| `stacked_violin` | Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `expression` | Claude 4.7 and Claude 4.8 |  |
 | `volcanos` | Claude 4.8 and Claude Opus 5 |  |
+| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
+| `xyplots` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 |  |
+| `expressions` | Claude 4.7 and Claude Opus 5.5 |  |
+| `stacked_violin` | Claude 4.7 and Claude Opus 5 |  |
+| `expression` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 |  |
+| `volcanos` | Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `highest_expressed_genes` | Claude 4.8 and Claude Opus 5 |  |
 | `elbow` | Claude 4.8 and Claude Opus 5 |  |
 | `anndata_variable_columns` | Claude Opus 5 |  |
@@ -134,9 +152,66 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_resolve_embedding_key` | Claude Opus 5 |  |
 | `_determine_axis` | Claude Opus 5 |  |
 | `_get_dendrogram` | Claude Opus 5 |  |
-| `from_url` | Claude Opus 5 |  |
+| `from_url` | Claude Opus 5, Claude Opus 5.5 |  |
 | `annotated_heatmap` | Claude Opus 5 |  |
-| `markers` | Claude Opus 5 |  |
-| `volcano` | Claude Opus 5 |  |
+| `markers` | Claude Opus 5 and Claude Opus 5.5 |  |
+| `volcano` | Claude Opus 5 and Claude Opus 5.5 |  |
 | `marker_genes` | Claude Opus 5 |  |
 | `marker_genes_dict` | Claude Opus 5 |  |
+| `_build_volcano_frame` | Claude Opus 5 |  |
+| `_range_inclusive` | Claude Opus 5 |  |
+| `bracket` | Claude Opus 5 |  |
+| `_compute_bracket_frame` | Claude Opus 5 |  |
+| `_compute_violin_polygons` | Claude Opus 5.5 |  |
+| `violin` | Claude Opus 5.5 |  |
+| `violins` | Claude Opus 5.5 |  |
+| `boxplot` | Claude Opus 5.5 |  |
+| `boxplots` | Claude Opus 5.5 |  |
+| `_distribution` | Claude Opus 5.5 |  |
+| `volcano` | Claude Opus 5.5 |  |
+| `volcanos` | Claude Opus 5.5 |  |
+| `annotated_heatmap` | Claude Opus 5.5 |  |
+| `anndata_observations_frame` | Claude Opus 5.5 |  |
+| `anndata_variables_frame` | Claude Opus 5.5 |  |
+| `build_frame` | Claude Opus 5.5 |  |
+| `plot` | Claude Opus 5.5 |  |
+| `bar` | Claude Opus 5.5 |  |
+| `scatter` | Claude Opus 5.5 |  |
+| `xyplot` | Claude Opus 5.5 |  |
+| `xyplots` | Claude Opus 5.5 |  |
+| `dimensional` | Claude Opus 5.5 |  |
+| `histogram` | Claude Opus 5.5 |  |
+| `histograms` | Claude Opus 5.5 |  |
+| `umap` | Claude Opus 5.5 |  |
+| `tsne` | Claude Opus 5.5 |  |
+| `pca` | Claude Opus 5.5 |  |
+| `expression` | Claude Opus 5.5 |  |
+| `dimensionals` | Claude Opus 5.5 |  |
+| `umaps` | Claude Opus 5.5 |  |
+| `tsnes` | Claude Opus 5.5 |  |
+| `pcas` | Claude Opus 5.5 |  |
+| `expressions` | Claude Opus 5.5 |  |
+| `dotplot` | Claude Opus 5.5 |  |
+| `heatmap` | Claude Opus 5.5 |  |
+| `matrixplot` | Claude Opus 5.5 |  |
+| `stacked_violin` | Claude Opus 5.5 |  |
+| `_bin_within_groups` | Claude Opus 5.5 |  |
+| `_assign_positions` | Claude Opus 5.5 |  |
+| `highest_expressed_genes` | Claude Opus 5.5 |  |
+| `ridge` | Claude Opus 5.5 |  |
+| `ridges` | Claude Opus 5.5 |  |
+| `spatial` | Claude Opus 5.5 |  |
+| `spatials` | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` | Claude Opus 5.5 |  |
+| `bracket` | Claude Opus 5.5 |  |
+| `DeferredLayer` | Claude Opus 5.5 |  |
+| `get_figure` | Claude Opus 5.5 |  |
+| `get_figures` | Claude Opus 5.5 |  |
+| `heatmap` | Claude Opus 5.5 |  |
+| `_assign_positions` | Claude Opus 5.5 |  |
+| `_get_group_lines_frame` | Claude Opus 5.5 |  |
+| `_compute_violin_polygons` | Claude Opus 5.5 |  |
+| `dotplot` | Claude Opus 5.5 |  |
+| `stacked_violin` | Claude Opus 5.5 |  |
+| `markers` | Claude Opus 5.5 |  |
+| `_warn` | Claude Opus 5.5 |  |

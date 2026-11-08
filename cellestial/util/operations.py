@@ -1,21 +1,16 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust", "ggrust.plot.core", "ggrust.plot.subplots"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, cast
 
-from lets_plot import gggrid
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import gggrid
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 if TYPE_CHECKING:
     from polars import DataFrame
-
-
-def _grid_figures(grid: SupPlotsSpec) -> list[PlotSpec]:
-    # Lets-Plot does not expose the underlying PlotSpec list on SupPlotsSpec;
-    # `.as_dict()["figures"]` returns serialized dicts that `gggrid` cannot consume.
-    # Name-mangled access is the only path to the live PlotSpec objects.
-    return vars(grid)["_SupPlotsSpec__figures"]
 
 
 def _normalize_widths(
@@ -76,9 +71,6 @@ def layout(
     """
     Arrange plots into a grid of rows, where each inner list is one row.
 
-    Unlike a uniform grid, rows may hold different numbers of plots. Each row is
-    sized independently, so cells in different rows do not share column boundaries.
-
     Parameters
     ----------
     plots : Sequence[Sequence[PlotSpec | SupPlotsSpec] | PlotSpec | SupPlotsSpec]
@@ -108,6 +100,11 @@ def layout(
     ValueError
         If any row is empty, or `widths`/`heights` lengths do not match the layout.
 
+    Notes
+    -----
+    Unlike a uniform grid, rows may hold different numbers of plots. Each row is
+    sized independently, so cells in different rows do not share column boundaries.
+
     Examples
     --------
     Arrange plots into ragged rows.
@@ -115,7 +112,7 @@ def layout(
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -194,7 +191,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -218,7 +215,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
         msg = f"Expected int for index, but received {type(index)}"
         raise TypeError(msg)
 
-    figures = _grid_figures(grid)
+    figures = grid.figures
     if not -len(figures) <= index < len(figures):
         msg = f"index {index} is out of range for a grid with {len(figures)} figures."
         raise IndexError(msg)
@@ -258,7 +255,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -282,7 +279,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
         msg = f"Expected Sequence[int] for indices, but received {type(indices)}"
         raise TypeError(msg)
 
-    figures = _grid_figures(grid)
+    figures = grid.figures
     out_of_range = [i for i in indices if not -len(figures) <= i < len(figures)]
     if out_of_range:
         msg = f"indices {out_of_range} are out of range for a grid with {len(figures)} figures"
@@ -313,7 +310,7 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -357,7 +354,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     .. jupyter-execute ::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 

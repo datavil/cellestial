@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "numpy"]
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from lets_plot import aes, geom_path, geom_text
-from scipy.stats import gaussian_kde
+from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize, kernel_density
+from ggrust.errors import SpecError
 
 from cellestial.util import _warn
 from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupported_data_type
@@ -15,7 +17,7 @@ from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupp
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import FeatureSpec
+    from ggrust.plot.core import FeatureSpec
 
 
 # ---------------------------------------------------------------------------
@@ -30,26 +32,27 @@ _GROUP_BAR_GAP_MIN = 0.15
 def _bin_within_groups(
     frame: pl.DataFrame,
     *,
-    observations_name: str,
+    observation_id_column: str,
     group_by: str,
-    variable_column: str,
-    value_column: str,
+    keys: list[str],
     y_order_groups: list[str],
     max_rows: int,
 ) -> pl.DataFrame:
     """
-    Collapse observations into at most ``max_rows`` virtual rows, within each group.
+    Collapse observations into at most `max_rows` virtual rows, within each group.
 
+    Notes
+    -----
+    `frame` is wide, one row per observation and one column per key.
     Cells within a group are sorted by observation id and chunked into contiguous
     bins; each bin's expression value is the per-variable mean of its members.
     Group boundaries are preserved, so group bars/lines remain meaningful.
-    Returns ``frame`` unchanged when the unique observation count fits in
-    ``max_rows``.
+    Returns `frame` unchanged when the unique observation count fits in `max_rows`.
     """
     group_key = "_group_key"
     frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
     obs_per_group = (
-        frame_with_key.select(observations_name, group_key)
+        frame_with_key.select(observation_id_column, group_key)
         .unique()
         .group_by(group_key, maintain_order=False)
         .agg(pl.len().alias("_n_cells"))
@@ -79,10 +82,10 @@ def _bin_within_groups(
     )
 
     obs_frame = (
-        frame_with_key.select(observations_name, group_key)
+        frame_with_key.select(observation_id_column, group_key)
         .unique(maintain_order=True)
         .join(offsets_frame, on=group_key)
-        .sort(["_group_index", observations_name])
+        .sort(["_group_index", observation_id_column])
         .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
         .with_columns(
             (
@@ -92,15 +95,15 @@ def _bin_within_groups(
             .cast(pl.String)
             .alias("_binned_obs")
         )
-        .select(observations_name, "_binned_obs")
+        .select(observation_id_column, "_binned_obs")
     )
 
     return (
-        frame.join(obs_frame, on=observations_name)
-        .drop(observations_name)
-        .rename({"_binned_obs": observations_name})
-        .group_by(observations_name, group_by, variable_column, maintain_order=False)
-        .agg(pl.col(value_column).mean())
+        frame.join(obs_frame, on=observation_id_column)
+        .drop(observation_id_column)
+        .rename({"_binned_obs": observation_id_column})
+        .group_by(observation_id_column, group_by, maintain_order=False)
+        .agg(pl.col(keys).mean())
     )
 
 
@@ -118,15 +121,56 @@ def _scale_values(frame: pl.DataFrame, *, value_column: str, partition_key: str)
     )
 
 
+def _scale_wide_values(frame: pl.DataFrame, *, keys: list[str], scale_axis: int) -> pl.DataFrame:
+    """Min-max scale `keys` per column (`scale_axis=0`) or per row (`scale_axis=1`)."""
+    row_bounds = ["__cellestial_row_min", "__cellestial_row_max"]
+    if scale_axis == 1:
+        frame = frame.with_columns(
+            pl.min_horizontal(keys).alias(row_bounds[0]),
+            pl.max_horizontal(keys).alias(row_bounds[1]),
+        )
+    scaled = []
+    for key in keys:
+        value = pl.col(key)
+        value_min = value.min() if scale_axis == 0 else pl.col(row_bounds[0])
+        value_max = value.max() if scale_axis == 0 else pl.col(row_bounds[1])
+        value_range = value_max - value_min
+        # Nulls stay null so they are dropped after unpivoting.
+        scaled.append(
+            pl.when(value.is_not_null() & (value_range == 0))
+            .then(0.0)
+            .otherwise((value - value_min) / value_range)
+            .alias(key)
+        )
+    return frame.with_columns(scaled).drop(row_bounds, strict=False)
+
+
+def _sort_integer_like_groups(frame: pl.DataFrame, *, group_by: str) -> pl.DataFrame:
+    """
+    Sort rows by `group_by` numerically when every group label is integer-like.
+
+    Notes
+    -----
+    Labels such as cluster ids ("0", "1", "10") otherwise keep their stored
+    order. The sort is descending so the smallest label lands on top of the
+    y axis, and stable so row order within a group is kept.
+    """
+    numeric_group_by = "__cellestial_group_by_numeric"
+    frame = frame.with_columns(
+        pl.col(group_by).cast(pl.String).cast(pl.Int64, strict=False).alias(numeric_group_by)
+    )
+    if frame[numeric_group_by].null_count() == 0:
+        return (
+            frame.sort(numeric_group_by, descending=True, maintain_order=True)
+            .drop(numeric_group_by)
+            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
+        )
+    return frame.drop(numeric_group_by)
+
+
 def _group_bar_gap(n_x: int) -> float:
     """Return a stable visual gap between the heatmap and group bars."""
     return max(_GROUP_BAR_GAP_MIN, n_x * _GROUP_BAR_GAP_RATIO)
-
-
-def _nonaggregate_y_step(n_x: int, n_y: int) -> float:
-    """Return the distance between adjacent nonaggregated row centers."""
-    y_span = max(n_x - 1, 1)
-    return y_span / max(n_y - 1, 1)
 
 
 def _assign_positions(
@@ -134,7 +178,7 @@ def _assign_positions(
     *,
     aggregate: bool,
     group_by: str,
-    observations_name: str,
+    observation_id_column: str,
     variable_column: str,
     x_keys: list[str],
     y_order_groups: list[str],
@@ -154,26 +198,28 @@ def _assign_positions(
         Y center of each group, in `y_order_groups` order.
     """
     n_x = len(x_keys)
-    x_pos = {k: i for i, k in enumerate(x_keys)}
+    x_positions = {k: i for i, k in enumerate(x_keys)}
     frame = frame.with_columns(
-        pl.col(variable_column).replace_strict(x_pos, return_dtype=pl.Float64).alias("position_x")
+        pl.col(variable_column)
+        .replace_strict(x_positions, return_dtype=pl.Float64)
+        .alias("position_x")
     )
 
     if aggregate:
         n_y = len(y_order_groups)
-        y_pos = {g: i for i, g in enumerate(y_order_groups)}
+        y_positions = {g: i for i, g in enumerate(y_order_groups)}
         frame = frame.with_columns(
             pl.col(group_by)
             .cast(pl.String)
-            .replace_strict(y_pos, return_dtype=pl.Float64)
+            .replace_strict(y_positions, return_dtype=pl.Float64)
             .alias("position_y"),
         )
         return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
 
-    # Nonaggregate: use a width-comparable y span for a square-ish aspect.
+    # Nonaggregate: one row per cell.
     group_index = {g: i for i, g in enumerate(y_order_groups)}
     cell_frame = (
-        frame.select(observations_name, group_by)
+        frame.select(observation_id_column, group_by)
         .unique()
         .with_columns(
             pl.col(group_by)
@@ -181,14 +227,15 @@ def _assign_positions(
             .replace_strict(group_index, return_dtype=pl.Int64)
             .alias("_group_index")
         )
-        .sort(["_group_index", observations_name])
+        .sort(["_group_index", observation_id_column])
     )
     n_y = cell_frame.height
-    y_step = _nonaggregate_y_step(n_x, n_y)
     cell_frame = cell_frame.with_columns(
-        (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
+        pl.int_range(pl.len()).cast(pl.Float64).alias("position_y")
     )
-    frame = frame.join(cell_frame.select(observations_name, "position_y"), on=observations_name)
+    frame = frame.join(
+        cell_frame.select(observation_id_column, "position_y"), on=observation_id_column
+    )
     centers_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
         .agg(pl.col("position_y").mean().alias("_center"), pl.col("_group_index").first())
@@ -222,7 +269,6 @@ def _get_group_lines_frame(
     aggregate: bool,
     group_by: str,
     n_x: int,
-    n_y: int,
     n_groups: int,
 ) -> pl.DataFrame:
     """Build the horizontal separator-line frame between groups."""
@@ -237,8 +283,7 @@ def _get_group_lines_frame(
             .head(n_groups - 1)["y_max"]
             .to_list()
         )
-        half_step = _nonaggregate_y_step(n_x, n_y) / 2
-        line_ys = [y + half_step for y in boundaries]
+        line_ys = [y + 0.5 for y in boundaries]
 
     x_start = -0.5
     x_end = n_x - 0.5
@@ -262,20 +307,8 @@ _BAR_OFFSET_FRACTION = 0.030
 _TIP_LENGTH_FRACTION = 0.018
 _LABEL_GAP_FRACTION = 0.012
 
-# Label sizing has two modes:
-#
-# - "absolute" (default, used by heatmap): label_size is in lets-plot's default
-#   text-size unit (~pt-like). Works well when no other scale_size interferes
-#   with the geom_text. Padding is computed as a fraction of the total y-axis
-#   span using the original heuristic.
-#
-# - "y" (used by dotplot and stacked_violin): label_size is in y-axis units
-#   via ``geom_text(size_unit="y")``. This bypasses the silent shrinkage that
-#   ``scale_size(range=[...])`` applies to ``geom_text`` size constants in
-#   plots that map a size aesthetic. Padding is computed directly from the
-#   rotated text extent in y-axis units.
-
-# Absolute mode (heatmap).
+# Label size is in the default text-size unit (~pt-like). Padding is a
+# fraction of the total y-axis span.
 _ABS_LABEL_PADDING_BASE_FRACTION = 0.060
 _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION = 0.0051
 _ABS_LABEL_PADDING_MIN_DENSITY_SCALE = 0.45
@@ -286,17 +319,8 @@ _ABS_LABEL_TEXT_SIZE_MIN = 3.75
 _ABS_LABEL_TEXT_SIZE_PER_KEY = 0.06
 _ABS_LABEL_TEXT_SIZE_PER_EXTRA_CHAR = 0.08
 _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
-
-# y-unit mode (dotplot, stacked_violin).
-# Empirically calibrated: cap height ~ 22 px on a typical 6-inch panel when
-# size = 0.037 * total_span y units. Each rotated character occupies roughly
-# ``_Y_CHAR_WIDTH_PER_SIZE * label_size`` y units along the y axis.
-_Y_LABEL_VISUAL_CAP_FRACTION = 0.037
-_Y_LABEL_LONG_THRESHOLD = 12
-_Y_LABEL_LONG_MIN_FRACTION = 0.6
-_Y_LABEL_SIZE_FLOOR = 0.10
-_Y_CHAR_WIDTH_PER_SIZE = 0.40
-_Y_PADDING_SAFETY_FRACTION = 0.030
+# Square cells: padding in column widths per column, label character and size unit.
+_SQUARE_CELL_PADDING_PER_CHAR_SIZE = 0.0038
 
 
 def _resolve_key_groups(
@@ -346,7 +370,7 @@ def _resolve_key_groups(
 
 
 def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) -> float:
-    """Label size in absolute lets-plot text units (used without `size_unit`)."""
+    """Label size in absolute text units."""
     n_keys = sum(len(values) for values in groups.values())
     max_chars = max((len(label) for label in groups), default=0)
     extra_chars = max(0, max_chars - _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD)
@@ -362,21 +386,6 @@ def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) ->
     return max(_ABS_LABEL_TEXT_SIZE_MIN, size * scale)
 
 
-def _label_size_y_units(groups: dict[str, list[str]], *, span: float, scale: float = 1.0) -> float:
-    """
-    Label size in y-axis units (used with `geom_text(size_unit='y')`).
-
-    Scales with `span` so the rendered visual size stays roughly constant
-    across plots with different y-axis spans. Long labels are shrunk slightly
-    to keep the bracket area from dominating the plot.
-    """
-    max_chars = max((len(label) for label in groups), default=0)
-    visual_fraction = _Y_LABEL_VISUAL_CAP_FRACTION
-    if max_chars > _Y_LABEL_LONG_THRESHOLD:
-        visual_fraction *= max(_Y_LABEL_LONG_MIN_FRACTION, _Y_LABEL_LONG_THRESHOLD / max_chars)
-    return max(_Y_LABEL_SIZE_FLOOR, visual_fraction * span * scale)
-
-
 def _resolve_padding(
     groups: dict[str, list[str]],
     *,
@@ -384,48 +393,45 @@ def _resolve_padding(
     data_range: float | None = None,
     scale: float = 1.0,
     label_size_scale: float = 1.0,
-    size_unit: str | None = None,
+    square_cell_columns: int | None = None,
 ) -> float:
     """
     Compute y-axis padding (in data units) for the bracket area.
 
+    Notes
+    -----
     `padding` overrides the auto value when given. `scale` is a per-plot
     multiplier applied to the auto padding (use `<1` for a more compact
-    bracket area). `size_unit` selects the sizing mode (`None` for the
-    absolute heatmap mode, `"y"` for the y-unit dotplot/stacked_violin mode).
+    bracket area). `square_cell_columns` is the column count of a plot with
+    square cells (`geom_raster`): one y unit is then one column wide, so the
+    labels need more y units as columns are added.
     """
     if padding is not None:
         return padding
     data = data_range if data_range is not None and data_range > 0 else 5.0
     max_chars = max((len(label) for label in groups), default=0)
-
-    if size_unit is None:
-        n_keys = sum(len(values) for values in groups.values())
-        label_size = _label_size_absolute(groups, scale=label_size_scale)
-        density_scale = max(
-            _ABS_LABEL_PADDING_MIN_DENSITY_SCALE,
-            min(1.0, n_keys / _ABS_LABEL_PADDING_FULL_DENSITY_KEYS),
+    n_keys = sum(len(values) for values in groups.values())
+    label_size = _label_size_absolute(groups, scale=label_size_scale)
+    density_scale = max(
+        _ABS_LABEL_PADDING_MIN_DENSITY_SCALE,
+        min(1.0, n_keys / _ABS_LABEL_PADDING_FULL_DENSITY_KEYS),
+    )
+    target_fraction = min(
+        _BAR_OFFSET_FRACTION
+        + _LABEL_GAP_FRACTION
+        + _ABS_LABEL_PADDING_BASE_FRACTION
+        + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
+        _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
+    )
+    resolved = target_fraction * data / (1.0 - target_fraction) * scale
+    if square_cell_columns is not None:
+        square_padding = (
+            _SQUARE_CELL_PADDING_PER_CHAR_SIZE * square_cell_columns * max_chars * label_size
         )
-        target_fraction = min(
-            _BAR_OFFSET_FRACTION
-            + _LABEL_GAP_FRACTION
-            + _ABS_LABEL_PADDING_BASE_FRACTION
-            + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
-            _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
-        )
-        resolved = target_fraction * data / (1.0 - target_fraction) * scale
-        if data_range is None or data_range <= 0:
-            return max(1.5, resolved)
-        return resolved
-
-    # y-unit mode: padding fits the rotated text extent directly in y units.
-    approx_total_span = data * 1.3
-    label_size = _label_size_y_units(groups, span=approx_total_span, scale=label_size_scale)
-    text_extent = max_chars * _Y_CHAR_WIDTH_PER_SIZE * label_size
-    bar_offset = _BAR_OFFSET_FRACTION * data
-    label_gap = _LABEL_GAP_FRACTION * data
-    safety = _Y_PADDING_SAFETY_FRACTION * data
-    return (bar_offset + label_gap + text_extent + safety) * scale
+        resolved = max(resolved, square_padding * scale)
+    if data_range is None or data_range <= 0:
+        return max(1.5, resolved)
+    return resolved
 
 
 def _build_key_groups_frame(
@@ -437,6 +443,8 @@ def _build_key_groups_frame(
     """
     Build the `geom_bracket` data frame spanning column groups on the variable axis.
 
+    Notes
+    -----
     `width` is the bracket width for a singleton group in column units. For a
     group of `N >= 2` keys at column indices `first..last`, the bracket
     extends `width / 2` past the first and last key center on each side.
@@ -478,21 +486,16 @@ def _key_groups_layers(
     bracket_size: float = 0.6,
     width: float = 0.6,
     label_size_scale: float = 1.0,
-    label_size_span: float | None = None,
-    size_unit: str | None = None,
     extra_kwargs: dict | None = None,
 ) -> list[FeatureSpec]:
     """
     Build the layers that annotate column groups above the plot.
 
+    Notes
+    -----
     Each bracket is one connected `geom_path` (left tip down, top bar across,
     right tip down) so the corners join cleanly with no sub-pixel gap. A
     vertical label is centered on each bracket as a separate `geom_text`.
-
-    `size_unit` selects the label sizing mode (`None` for absolute units,
-    otherwise express the size in that axis' data units). `label_size_span`
-    lets callers size text from a different axis span than the y span used for
-    bracket geometry.
     """
     frame = _build_key_groups_frame(groups, y=y, width=width)
     tip_length = _TIP_LENGTH_FRACTION * total_span
@@ -525,18 +528,8 @@ def _key_groups_layers(
         "hjust": 0,
         "vjust": 0.5,
     }
-    if size_unit is not None:
-        text_kwargs["size_unit"] = size_unit
     text_kwargs.update(extra_kwargs or {})
-
-    if size_unit is None:
-        label_size = _label_size_absolute(groups, scale=label_size_scale)
-    else:
-        label_size = _label_size_y_units(
-            groups,
-            span=total_span if label_size_span is None else label_size_span,
-            scale=label_size_scale,
-        )
+    label_size = _label_size_absolute(groups, scale=label_size_scale)
 
     return [
         geom_path(
@@ -553,6 +546,50 @@ def _key_groups_layers(
             **text_kwargs,
         ),
     ]
+
+
+# ---------------------------------------------------------------------------
+# Fixed-cell canvas sizing (dotplot, stacked_violin, matrixplot)
+# ---------------------------------------------------------------------------
+
+# Pixels. Every key x group cell has a fixed size and the canvas grows with the
+# number of cells instead of stretching them.
+_CELL_SIZE = 30
+_CHARACTER_WIDTH = 7
+_MARGIN = 20
+# Cells; brackets are sized against a constant span so they keep a fixed pixel size.
+_BRACKET_REFERENCE_SPAN = 20
+
+
+def _fixed_cell_layout(
+    *,
+    x_span: float,
+    y_span: float,
+    y_limits: list[float],
+    x_labels: Sequence[str],
+    y_labels: Sequence[str],
+    legend_width: float,
+    legend_height: float,
+    cell_height_ratio: float = 1.0,
+) -> FeatureSpec:
+    """
+    Lock the cell aspect ratio and size the canvas to fit the panel.
+
+    Notes
+    -----
+    `x_span` and `y_span` are the panel extents in data units. The canvas adds
+    room for the axis labels (x labels are rotated 90 degrees) and legends,
+    and is never shorter than `legend_height`. `y_limits` are passed to the
+    fixed coordinates, which replace any coordinates added before.
+    """
+    panel_width = x_span * _CELL_SIZE
+    panel_height = y_span * _CELL_SIZE * cell_height_ratio
+    y_label_width = max(len(label) for label in y_labels) * _CHARACTER_WIDTH
+    x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
+    return coord_fixed(ratio=cell_height_ratio, ylim=y_limits) + ggsize(
+        panel_width + y_label_width + legend_width + _MARGIN,
+        max(panel_height + x_label_height + _MARGIN, legend_height),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -706,6 +743,8 @@ def _resolve_rank_genes_groups_args(
     """
     Validate caller inputs and return the resolved `keys` and `group_by`.
 
+    Notes
+    -----
     Raises if `keys` is also supplied, or if a caller-provided `group_by`
     disagrees with the value stored in `adata.uns[...]['params']['groupby']`.
     """
@@ -752,12 +791,14 @@ def _compute_violin_polygons(
     width_scale: float,
     height_scale: float,
     aggregate: Literal["mean", "median"],
-    aggregate_key: str,
+    aggregate_column: str,
     kde_max_samples: int | None = None,
 ) -> pl.DataFrame:
     """
     Build a polygon-vertex frame for one violin per (variable, group) cell.
 
+    Notes
+    -----
     Each violin is centered at `(x=variable_index, y=group_index)` with value
     mapped to local y inside the row band and density mapped to local x around
     the column position.
@@ -803,13 +844,17 @@ def _compute_violin_polygons(
                 ]
             else:
                 kde_input = group_values
-            try:
-                kde = gaussian_kde(kde_input)
-            except Exception:
-                continue
             grid = np.linspace(var_min, var_max, n_points)
-            density = kde(grid)
-            agg_value = (
+            try:
+                # ggrust's port of scipy's 1D gaussian_kde (Scott's bandwidth).
+                density = kernel_density(kde_input, grid)["density"].to_numpy()
+            except SpecError:
+                _warn(
+                    f"Skipping the violin of {var_key!r} in group {group_key!r}: "
+                    "its values are too uniform to estimate a density."
+                )
+                continue
+            aggregated_value = (
                 float(np.median(group_values))
                 if aggregate == "median"
                 else float(group_values.mean())
@@ -819,7 +864,7 @@ def _compute_violin_polygons(
                 grid,
                 density,
                 len(group_values),
-                agg_value,
+                aggregated_value,
             )
 
         if not kde_results:
@@ -837,9 +882,15 @@ def _compute_violin_polygons(
             msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
             raise ValueError(msg)
 
-        for group_key, (y_index, grid, density, n_obs, agg_value) in kde_results.items():
+        for group_key, (
+            y_index,
+            grid,
+            density,
+            n_observations,
+            aggregated_value,
+        ) in kde_results.items():
             if scale == "count":
-                density = density * n_obs
+                density = density * n_observations
             normalizer = normalizers[group_key]
             if normalizer <= 0:
                 continue
@@ -859,7 +910,7 @@ def _compute_violin_polygons(
                         "y": py,
                         variable_column: var_key,
                         group_by: group_key,
-                        aggregate_key: agg_value,
+                        aggregate_column: aggregated_value,
                     }
                 )
             polygon_id += 1
@@ -871,7 +922,7 @@ def _compute_violin_polygons(
             "y": pl.Float64,
             variable_column: pl.String,
             group_by: pl.String,
-            aggregate_key: pl.Float64,
+            aggregate_column: pl.Float64,
         }
         return pl.DataFrame(schema=schema)
     return pl.DataFrame(rows)

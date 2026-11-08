@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -8,6 +10,7 @@ from mudata import MuData
 
 from cellestial.frames._container import _container
 from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.utilities import _is_spatialdata
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -42,7 +45,7 @@ def anndata_observations_frame(
     /,
     variable_keys: str | Sequence[str] | None = None,
     *,
-    observations_name: str | None = "Barcode",
+    observation_id_column: str | None = "Barcode",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -56,7 +59,7 @@ def anndata_observations_frame(
         The data object containing the observations.
     variable_keys : str | Sequence[str] | None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str | None, optional
+    observation_id_column : str | None, optional
         The name of the observation identifier column, default is 'Barcode'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
@@ -93,10 +96,10 @@ def anndata_observations_frame(
     part = container.observation_metadata()
     partm = container.observation_embeddings()
     # PART 1: INITIALIZE
-    if observations_name is None:
+    if observation_id_column is None:
         columns = []
     else:
-        columns = [pl.Series(observations_name, container.observation_names())]
+        columns = [pl.Series(observation_id_column, container.observation_names())]
     # PART 2: ADD AnnData.obs
     if metadata_columns is None:
         selected_columns = list(part.columns)
@@ -120,22 +123,24 @@ def anndata_observations_frame(
     if include_dimensions:
         selected_embeddings = _select_embedding_keys(partm, dimension_keys)
         for X in selected_embeddings:
-            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
+            total_columns = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
-                    col_count = min(include_dimensions, total_cols)
+                    column_count = min(include_dimensions, total_columns)
                 else:
                     msg = "Number of dimensions cannot be a negative number."
                     raise ValueError(msg)
             elif isinstance(include_dimensions, bool):
-                col_count = total_cols
+                column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
                 raise TypeError(msg)
 
-            for col in range(col_count):
-                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
+            for column_index in range(column_count):
+                columns.append(
+                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                )
 
     # PART 4: ADD keys if provided
     # Empty list short-circuits: data[:, []].X still triggers a full sparse slice.
@@ -151,7 +156,7 @@ def anndata_observations_frame(
 def anndata_variables_frame(
     data: AnnData | MuData,
     *,
-    variables_name: str | None = "Variable",
+    variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -163,7 +168,7 @@ def anndata_variables_frame(
     ----------
     data : AnnData | MuData
         The data object containing the variables.
-    variables_name : str | None
+    variable_id_column : str | None
         Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
@@ -196,11 +201,11 @@ def anndata_variables_frame(
     container = _container(data)
     part = container.variable_metadata()
     partm = container.variable_embeddings()
-    # PART1: initalize columns
-    if variables_name is None:
+    # PART 2: initalize columns
+    if variable_id_column is None:
         columns = []
     else:
-        columns = [pl.Series(variables_name, container.variable_names())]
+        columns = [pl.Series(variable_id_column, container.variable_names())]
     # PART 3: ADD AnnData.var
     if metadata_columns is None:
         selected_columns = list(part.columns)
@@ -224,22 +229,24 @@ def anndata_variables_frame(
     if include_dimensions:
         selected_embeddings = _select_embedding_keys(partm, dimension_keys)
         for X in selected_embeddings:
-            total_cols = partm[X].shape[1]  # Number of dimensions (columns)
+            total_columns = partm[X].shape[1]  # Number of dimensions (columns)
             if isinstance(include_dimensions, int) and not isinstance(include_dimensions, bool):
                 if include_dimensions >= 0:
-                    col_count = min(include_dimensions, total_cols)
+                    column_count = min(include_dimensions, total_columns)
                 else:
                     msg = "Number of dimensions cannot be a negative number."
                     raise ValueError(msg)
             elif isinstance(include_dimensions, bool):
-                col_count = total_cols
+                column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
                 raise TypeError(msg)
 
-            for col in range(col_count):
-                columns.append(pl.Series(f"{X.upper()}{col + 1}", partm[X][:, col]))
+            for column_index in range(column_count):
+                columns.append(
+                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                )
 
     return pl.DataFrame(columns)
 
@@ -269,8 +276,8 @@ def build_frame(
     *,
     variable_keys: str | Sequence[str] | None = None,
     axis: Literal[0, 1] | None = None,
-    observations_name: str | None = "Barcode",
-    variables_name: str | None = "Variable",
+    observation_id_column: str | None = "Barcode",
+    variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
     metadata_columns: Sequence[str] | None = None,
     dimension_keys: Sequence[str] | None = None,
@@ -286,10 +293,10 @@ def build_frame(
         Variable keys to add to the DataFrame. If None, no additional keys are added.
     axis : {0,1} | None
         The axis to build the frame for. 0 for observations, 1 for variables.
-    observations_name : str | None
+    observation_id_column : str | None
         The name of the observation identifier column, default is 'Barcode'.
         Pass `None` to omit the identifier column entirely.
-    variables_name : str | None
+    variable_id_column : str | None
         Name for the variable identifier column, default is 'Variable'.
         Pass `None` to omit the identifier column entirely.
     include_dimensions : bool | int
@@ -356,9 +363,7 @@ def build_frame(
         frame.head()
 
     """
-    from spatialdata import SpatialData
-
-    if isinstance(data, SpatialData):
+    if _is_spatialdata(data):
         tables = list(data.tables.keys())
         if len(tables) == 1:
             # retrieve an anndata
@@ -385,8 +390,6 @@ def build_frame(
         raise ValueError(msg)
 
     if isinstance(data, (AnnData, MuData)):
-        # A tuple is correct here: the backend-specific work lives one level
-        # down in the container, so both types take an identical path.
         # infer the axis if not provided
         if axis is None and variable_keys is not None:
             axis = 0
@@ -395,7 +398,7 @@ def build_frame(
             frame = anndata_observations_frame(
                 data,
                 variable_keys=variable_keys,
-                observations_name=observations_name,
+                observation_id_column=observation_id_column,
                 include_dimensions=include_dimensions,
                 metadata_columns=metadata_columns,
                 dimension_keys=dimension_keys,
@@ -403,7 +406,7 @@ def build_frame(
         elif axis == 1:
             frame = anndata_variables_frame(
                 data,
-                variables_name=variables_name,
+                variable_id_column=variable_id_column,
                 include_dimensions=include_dimensions,
                 metadata_columns=metadata_columns,
                 dimension_keys=dimension_keys,
@@ -412,6 +415,6 @@ def build_frame(
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
             raise ValueError(msg)
     else:
-        raise _unsupported_data_type(data, AnnData, SpatialData, MuData)
+        raise _unsupported_data_type(data, AnnData, "SpatialData", MuData)
 
     return frame

@@ -1,6 +1,9 @@
 from cellestial.util.dendrogram import (  # noqa: F401
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _get_dendrogram,
     _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
 )
 from cellestial.util.markers import marker_genes, marker_genes_dict
 from cellestial.util.operations import get_figure, get_figures, get_mapping, layout, retrieve
@@ -11,7 +14,9 @@ from cellestial.util.utilities import (  # noqa: F401
     _determine_axis,
     _drop_nonfinite_rows,
     _fill_gradient,
+    _filter_groups,
     _is_observation_key,
+    _is_spatialdata,
     _is_variable_key,
     _range_inclusive,
     _reject_sequence_key,

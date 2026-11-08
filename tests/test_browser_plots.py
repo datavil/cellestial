@@ -2,9 +2,9 @@ from collections.abc import Callable
 
 import pytest
 from anndata import AnnData
-from lets_plot import aes
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from playwright.sync_api import Page
 from plot_assertions import assert_html_renders, assert_plot_renders, assert_point_tooltip
 
@@ -62,7 +62,7 @@ def _histogram(data: AnnData, _markers: list[str], group_key: str) -> PlotSpec:
     return cl.histogram(data, "n_genes_by_counts", fill=group_key, bins=20)
 
 
-def _annotated_heatmap(data: AnnData, markers: list[str], group_key: str) -> SupPlotsSpec:
+def _annotated_heatmap(data: AnnData, markers: list[str], group_key: str) -> PlotSpec:
     return cl.annotated_heatmap(
         data,
         keys=markers[:3],
@@ -86,7 +86,7 @@ def _umaps(data: AnnData, _markers: list[str], group_key: str) -> SupPlotsSpec:
         pytest.param(_ridge, PlotSpec, id="ridge"),
         pytest.param(_histogram, PlotSpec, id="histogram"),
         pytest.param(_heatmap, PlotSpec, id="heatmap"),
-        pytest.param(_annotated_heatmap, SupPlotsSpec, id="annotated-heatmap"),
+        pytest.param(_annotated_heatmap, PlotSpec, id="annotated-heatmap"),
         pytest.param(_umaps, SupPlotsSpec, id="umaps"),
     ],
 )
@@ -123,7 +123,7 @@ def test_dimensional_tooltip_works_in_browser(
 def test_browser_assertion_detects_javascript_errors(page: Page) -> None:
     """The browser helper must fail for uncaught JavaScript exceptions."""
     broken_html = """
-    <svg class="plt-container" width="100" height="100"></svg>
+    <div class="ggrust-plot"><svg width="100" height="100"></svg></div>
     <script>throw new Error("browser canary");</script>
     """
 

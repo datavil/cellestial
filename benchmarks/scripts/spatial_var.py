@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import sys
 import tempfile
 import threading
 import time
@@ -167,7 +168,7 @@ def main() -> None:
 
     rows = [
         {
-            "library": "cellestial",
+            "library": "cellestial-ggrust" if "ggrust" in sys.modules else "cellestial-letsplot",
             "case": CASE,
             "categorical": CATEGORICAL,
             "replica_id": args.replica,

@@ -10,14 +10,14 @@ import pandas as pd
 import polars as pl
 import pytest
 from anndata import AnnData
-from lets_plot import aes
+from ggrust import aes, geom_point, ggplot
 from scipy.stats import ttest_ind
 
 import cellestial as cl
 from cellestial.datasets import datasets
-from cellestial.layers.bracket import _compute_bracket_frame
+from cellestial.layers.bracket import _bracket_layout
 from cellestial.util import retrieve
-from cellestial.util.utilities import _color_gradient, _fill_gradient
+from cellestial.util.utilities import _color_gradient, _fill_gradient, _range_inclusive
 
 
 def _axis_probe_data() -> AnnData:
@@ -43,22 +43,20 @@ def _axis_probe_data() -> AnnData:
     return data
 
 
-def _compute_single_bracket(frame: pl.DataFrame) -> pl.DataFrame:
-    """Compute one uncorrected two-sided t-test bracket."""
-    return _compute_bracket_frame(
+def _bracket_label(frame: pl.DataFrame) -> str:
+    """Render one uncorrected two-sided Welch `a` vs `b` bracket and return its label."""
+    plot = ggplot(frame) + geom_point(aes(x="group", y="value"))
+    plot += cl.bracket(comparisons=[("a", "b")], test="ttest", correction="none", label="pvalue")
+    return re.findall(r"<text[^>]*>([^<]*)</text>", plot.to_svg())[0]
+
+
+def _single_layout(frame: pl.DataFrame) -> tuple[pl.DataFrame, list, list[float]]:
+    """Lay out one `a` vs `b` bracket."""
+    return _bracket_layout(
         frame,
         x="group",
         y="value",
         comparisons=[("a", "b")],
-        test="ttest",
-        alternative="two-sided",
-        correction="none",
-        label="stars",
-        label_format=".3g",
-        prefix="",
-        prefix_style="=",
-        separator=" ",
-        threshold=None,
         y_position=None,
         y_step=None,
         y_padding=0.1,
@@ -75,15 +73,13 @@ def test_bracket_omits_nonfinite_observations(nonfinite_value):
         },
         schema={"group": pl.String, "value": pl.Float64},
     )
-    expected = ttest_ind([1.0, 2.0], [10.0, 11.0, 12.0])
+    expected = ttest_ind([1.0, 2.0], [10.0, 11.0, 12.0], equal_var=False)
 
-    brackets = _compute_single_bracket(frame)
+    finite_frame, _, positions = _single_layout(frame)
 
-    assert brackets["statistic"][0] == pytest.approx(expected.statistic)
-    assert brackets["pvalue"][0] == pytest.approx(expected.pvalue)
-    assert brackets["pvalue_adj"][0] == pytest.approx(expected.pvalue)
-    assert np.isfinite(brackets["pvalue"][0])
-    assert np.isfinite(brackets["y"][0])
+    assert finite_frame.height == 5
+    assert float(_bracket_label(frame)) == float(f"{expected.pvalue:.2g}")
+    assert np.isfinite(positions[0])
 
 
 @pytest.mark.parametrize("nonfinite_value", [None, np.nan, np.inf, -np.inf])
@@ -98,7 +94,7 @@ def test_bracket_rejects_groups_with_too_few_finite_observations(nonfinite_value
     )
 
     with pytest.raises(ValueError, match="at least 2 observations"):
-        _compute_single_bracket(frame)
+        _single_layout(frame)
 
 
 def test_bracket_rejects_partial_results_with_an_invalid_comparison():
@@ -111,20 +107,11 @@ def test_bracket_rejects_partial_results_with_an_invalid_comparison():
     )
 
     with pytest.raises(ValueError, match=r"'a'.*'c'.*\(1\)"):
-        _compute_bracket_frame(
+        _bracket_layout(
             frame,
             x="group",
             y="value",
             comparisons=[("a", "b"), ("a", "c")],
-            test="ttest",
-            alternative="two-sided",
-            correction="none",
-            label="stars",
-            label_format=".3g",
-            prefix="",
-            prefix_style="=",
-            separator=" ",
-            threshold=None,
             y_position=None,
             y_step=None,
             y_padding=0.1,
@@ -269,3 +256,176 @@ def test_from_url_sets_a_positive_network_timeout(tmp_path, monkeypatch):
     timeout = calls[0][1].get("timeout")
     assert isinstance(timeout, int | float)
     assert timeout > 0
+
+
+def _tied_pvalue_adata() -> AnnData:
+    """Build a ranking whose top features all share an underflowed p-value of zero."""
+    names = ["gene_a", "gene_b", "gene_c", "gene_d", "gene_e"]
+    data = AnnData(X=np.ones((4, len(names))))
+    data.obs["cluster"] = ["A", "A", "B", "B"]
+    data.uns["rank_genes_groups"] = {
+        "names": np.rec.fromarrays([names], names=["A"]),
+        "scores": np.rec.fromarrays([[5.0, 4.0, 3.0, 2.0, 1.0]], names=["A"]),
+        # gene_c carries the largest fold change but sits last among the ties
+        "logfoldchanges": np.rec.fromarrays([[2.0, 3.0, 8.0, -9.0, -1.5]], names=["A"]),
+        "pvals": np.rec.fromarrays([[0.0, 0.0, 0.0, 0.0, 0.001]], names=["A"]),
+        "pvals_adj": np.rec.fromarrays([[0.0, 0.0, 0.0, 0.0, 0.002]], names=["A"]),
+        "params": {"groupby": "cluster"},
+    }
+    return data
+
+
+def _label_layer_data(plot) -> pl.DataFrame:
+    """Return the frame behind the volcano's repelled gene labels."""
+    layers = [layer for layer in plot.as_dict()["layers"] if layer["geom"] == "text_repel"]
+    assert len(layers) == 1
+    return pl.DataFrame(layers[0]["data"])
+
+
+def test_volcano_breaks_label_ties_by_fold_change():
+    """Features sharing a zero p-value must be labelled by fold change, not sort order."""
+    plot = cl.volcano(_tied_pvalue_adata(), "A", top_n=2, nonsignificant_subsample=None)
+
+    labelled = _label_layer_data(plot)
+    up_labels = labelled.filter(pl.col("logfoldchange") > 0)["variable"].to_list()
+
+    # gene_c (logFC 8.0) and gene_b (3.0) beat gene_a (2.0) at the same p-value
+    assert up_labels == ["gene_c", "gene_b"]
+
+
+def test_volcano_label_selection_is_deterministic():
+    """Repeated builds of the same volcano must label the same features."""
+    data = _tied_pvalue_adata()
+    selections = {
+        tuple(_label_layer_data(cl.volcano(data, "A", top_n=2))["variable"].to_list())
+        for _ in range(5)
+    }
+
+    assert len(selections) == 1
+
+
+def test_volcano_names_adjusted_pvalues_as_adjusted():
+    """The default plot reports FDR values, so nothing may call them raw p-values."""
+    data = _tied_pvalue_adata()
+
+    adjusted = cl.volcano(data, "A").as_dict()
+    raw = cl.volcano(data, "A", use_adjusted_pvalue=False).as_dict()
+
+    assert "pvalue_adj" in adjusted["data"].columns
+    assert "pvalue" not in adjusted["data"].columns
+    assert adjusted["guides"]["y"]["title"] == "-log10(Padj)"
+    assert adjusted["layers"][0]["tooltips"]["variables"] == [
+        "variable",
+        "logfoldchange",
+        "pvalue_adj",
+        "significance",
+    ]
+
+    assert "pvalue" in raw["data"].columns
+    assert raw["guides"]["y"]["title"] == "-log10(Pvalue)"
+
+    # an explicit name still wins over the resolved default
+    named = cl.volcano(data, "A", pvalue_column="p").as_dict()
+    assert "p" in named["data"].columns
+
+
+@pytest.mark.parametrize(
+    ("start", "stop", "step"),
+    [(0, 10, 4), (0, 7, 5), (0, 0.5, 5), (2, 3, 4), (0, 1, 3), (-1, 1, 5), (0, 0.001, 4)],
+)
+def test_range_inclusive_hits_both_endpoints(start, stop, step):
+    """Rounding the increment used to drop the endpoint or overshoot the range."""
+    values = _range_inclusive(start, stop, step)
+
+    assert values[0] == pytest.approx(start)
+    assert values[-1] == pytest.approx(stop)
+    assert values == sorted(values)
+
+
+def test_range_inclusive_accepts_a_descending_range():
+    """A stop below the start used to raise from `log10` of a negative span."""
+    assert _range_inclusive(1.0, 0.5, 3) == [0.5, 0.75, 1.0]
+
+
+def test_range_inclusive_rejects_a_nonpositive_step():
+    """A step count below one has no evenly spaced values to return."""
+    with pytest.raises(ValueError, match="`step` must be >= 1"):
+        _range_inclusive(0, 1, 0)
+
+
+def _stream_arrow_frame(paths: list[list[tuple[float, float]]]) -> pl.DataFrame:
+    """Run the stream layer's arrow-placement expression over raw path vertices."""
+    from cellestial.layers.stream import stream  # noqa: F401  (import guard only)
+
+    frame_streams = pl.DataFrame(
+        [
+            {"x": float(px), "y": float(py), "group": index}
+            for index, vertices in enumerate(paths)
+            for px, py in vertices
+        ]
+    )
+    return (
+        (
+            frame_streams.group_by("group")
+            .agg(pl.col("x"), pl.col("y"))
+            .filter(pl.col("x").list.len() >= 2)
+            .with_columns(
+                mid=pl.min_horizontal(
+                    pl.col("x").list.len() // 2,
+                    pl.col("x").list.len() - 2,
+                )
+            )
+        )
+        .with_columns(
+            pl.col("x").list.get(pl.col("mid")).alias("x"),
+            pl.col("y").list.get(pl.col("mid")).alias("y"),
+            pl.col("x").list.get(pl.col("mid").add(1)).alias("xend"),
+            pl.col("y").list.get(pl.col("mid").add(1)).alias("yend"),
+        )
+        .drop("mid")
+        .filter((pl.col("x") != pl.col("xend")) | (pl.col("y") != pl.col("yend")))
+        .sort("group")
+    )
+
+
+def test_stream_arrows_survive_short_and_degenerate_paths():
+    """A two-vertex streamline used to index past the end of its own path."""
+    arrows = _stream_arrow_frame(
+        [
+            [(0.0, 0.0)],  # single vertex: no segment to point along
+            [(0.0, 0.0), (1.0, 1.0)],  # two vertices: `mid + 1` was out of bounds
+            [(0.0, 0.0), (1.0, 1.0), (2.0, 3.0)],
+            [(5.0, 5.0), (5.0, 5.0)],  # repeated vertex: zero-length arrow
+        ]
+    )
+
+    assert arrows["group"].to_list() == [1, 2]
+    assert arrows["xend"].null_count() == 0
+    assert arrows["yend"].null_count() == 0
+
+
+def _unequal_variance_frame() -> pl.DataFrame:
+    """Two groups whose sizes and variances both differ, as cell types do."""
+    rng = np.random.default_rng(0)
+    return pl.DataFrame(
+        {
+            "group": ["a"] * 60 + ["b"] * 12,
+            "value": np.concatenate([rng.normal(0.0, 1.0, 60), rng.normal(0.6, 0.1, 12)]),
+        }
+    )
+
+
+def test_bracket_ttest_does_not_assume_equal_variances():
+    """`ttest` must be Welch's, matching R's `t.test` and scanpy's own ranking."""
+    frame = _unequal_variance_frame()
+    values_a = frame.filter(pl.col("group") == "a")["value"].to_numpy()
+    values_b = frame.filter(pl.col("group") == "b")["value"].to_numpy()
+    welch = ttest_ind(values_a, values_b, equal_var=False)
+
+    assert float(_bracket_label(frame)) == float(f"{welch.pvalue:.2g}")
+
+
+def test_bracket_rejects_the_pooled_variance_test():
+    """With no pooled-variance t-test in ggrust, `student` is no longer accepted."""
+    with pytest.raises(ValueError, match="`test`"):
+        cl.bracket(test="student")

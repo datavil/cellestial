@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     element_line,
-    geom_path,
     geom_polygon,
     geom_rect,
     ggplot,
@@ -16,24 +17,29 @@ from lets_plot import (
     scale_y_continuous,
     theme,
 )
-from lets_plot.plot.core import FeatureSpec
+from ggrust.plot.core import FeatureSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
+    _BRACKET_REFERENCE_SPAN,
+    _CHARACTER_WIDTH,
     _compute_violin_polygons,
+    _fixed_cell_layout,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
+    _sort_integer_like_groups,
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _drop_nonfinite_rows,
     _fill_gradient,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
     _resolve_tooltips,
     _validate_tooltips,
 )
@@ -43,7 +49,10 @@ from cellestial.util.utilities import _container_column, _modality_source
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lets_plot.plot.core import PlotSpec
+    from ggrust.plot.core import PlotSpec
+
+_CELL_HEIGHT_RATIO = 1.5  # violins get taller-than-wide cells
+_COLOR_BAR_LEGEND_SIZE = (70, 250)  # pixels (width, height)
 
 
 def stacked_violin(
@@ -62,7 +71,7 @@ def stacked_violin(
     height_scale: float = 0.85,
     n_points: int = 64,
     kde_max_samples: int | None = 1200,
-    color_by: Literal["median", "mean", "group", "variable"] | None = "median",
+    fill_statistic: Literal["median", "mean", "group", "variable"] | None = "median",
     size: float = 0.2,
     color_low: str = "#F5F5F5",
     color_mid: str | None = None,
@@ -74,7 +83,6 @@ def stacked_violin(
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
-    dendrogram_kwargs: dict | None = None,
     rectangle: bool = True,
     rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
@@ -85,11 +93,11 @@ def stacked_violin(
     key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
-    aggregate_key: str = "expression",
+    aggregate_column: str = "expression",
     value_column: str = "value",
     variable_column: str = "variable",
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -99,8 +107,8 @@ def stacked_violin(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str] | Mapping[str, Sequence[str]] | None, default=None
         Variable keys laid out along the x-axis, one column of violins per
         key. A mapping assigns keys to group labels (no key in more than one
@@ -141,7 +149,7 @@ def stacked_violin(
         before fitting the KDE. Color values (mean/median) and the "count"
         scale use the full sample size. Sampling is deterministic. `None`
         fits the KDE on every cell (slower at scale, no shape approximation).
-    color_by : {'median', 'mean', 'group', 'variable'} | None, default='median'
+    fill_statistic : {'median', 'mean', 'group', 'variable'} | None, default='median'
         Which value drives the fill aesthetic of each violin.
         `'median'` colors by median expression per (variable, group).
         `'mean'` colors by mean expression per (variable, group).
@@ -151,7 +159,7 @@ def stacked_violin(
     size : float, default=0.2
         Stroke size (edge width) of the violins.
     color_low : str, default='#F5F5F5'
-        Color for low values in the gradient (used when `color_by='mean'`).
+        Color for low values in the gradient (used when `fill_statistic='mean'`).
     color_mid : str | None, default=None
         Color for mid values in the gradient.
     color_high : str, default='#00008B'
@@ -175,8 +183,6 @@ def stacked_violin(
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
         By default, `dendrogram_{group_by}` is used.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_path.
     rectangle : bool, default=True
         Whether to add a rectangle border around the data area.
     rectangle_size : float, default=0.8
@@ -198,16 +204,16 @@ def stacked_violin(
     key_labels_width : float, default=0.6
         Bracket width (in column units) for a singleton group. Multi-key groups
         extend `key_labels_width / 2` past the first and last key on each side.
-    aggregate_key : str, default='expression'
+    aggregate_column : str, default='expression'
         Name of the per-(variable, group) aggregate column attached to each violin
-        (median or mean, selected by `color_by`).
+        (median or mean, selected by `fill_statistic`).
     value_column : str, default='value'
         Name for the value column after unpivoting.
     variable_column : str, default='variable'
         Name for the variable column after unpivoting.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     tooltips : {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
@@ -252,7 +258,7 @@ def stacked_violin(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -287,7 +293,7 @@ def stacked_violin(
             data,
             keys=markers,
             group_by="cell_type_lvl1",
-            color_by="group",
+            fill_statistic="group",
         )
 
     Plot the top genes from a precomputed ranking:
@@ -318,7 +324,7 @@ def stacked_violin(
 
     mapping = mapping or aes()
 
-    # RESOLVE: dict ``keys`` into a flat list while preserving mapping order
+    # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys_list, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
     # BUILD: dataframe. Only `group_by` is needed from the observation metadata
@@ -327,8 +333,8 @@ def stacked_violin(
         data=data,
         axis=0,
         variable_keys=keys_list,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         metadata_columns=[group_by],
     )
     # DROP: rows with null group_by to avoid null labels downstream
@@ -338,7 +344,7 @@ def stacked_violin(
     # 1. Unpivot to long format
     frame = frame.unpivot(
         on=keys_list,
-        index=[observations_name, group_by],
+        index=[observation_id_column, group_by],
         variable_name=variable_column,
         value_name=value_column,
     )
@@ -347,16 +353,18 @@ def stacked_violin(
     if threshold is not None:
         frame = frame.filter(pl.col(value_column) >= threshold)
 
+    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
+    frame = _sort_integer_like_groups(frame, group_by=group_by)
     # DETERMINE: y order of groups (dendrogram or first-seen order)
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(
+        tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
+        y_order_groups = list(tree.ordered_labels)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        paths = None
 
     x_keys = keys_list
     n_x = len(x_keys)
@@ -374,8 +382,8 @@ def stacked_violin(
         scale=scale,
         width_scale=width_scale,
         height_scale=height_scale,
-        aggregate="mean" if color_by == "mean" else "median",
-        aggregate_key=aggregate_key,
+        aggregate="mean" if fill_statistic == "mean" else "median",
+        aggregate_column=aggregate_column,
         kde_max_samples=kde_max_samples,
     )
 
@@ -384,17 +392,17 @@ def stacked_violin(
         tooltips,
         data=data,
         variable_keys=[],
-        defaults=[variable_column, group_by, aggregate_key],
+        defaults=[variable_column, group_by, aggregate_column],
     )
     _validate_tooltips(tooltips, poly_frame)
 
     # DEFINE: mapping with defaults
     _mapping = {"x": "x", "y": "y", "group": "polygon_id"}
-    if color_by in ("mean", "median"):
-        _mapping["fill"] = aggregate_key
-    elif color_by == "group":
+    if fill_statistic in ("mean", "median"):
+        _mapping["fill"] = aggregate_column
+    elif fill_statistic == "group":
         _mapping["fill"] = group_by
-    elif color_by == "variable":
+    elif fill_statistic == "variable":
         _mapping["fill"] = variable_column
     _mapping.update(mapping.as_dict())
 
@@ -409,30 +417,13 @@ def stacked_violin(
     )
 
     # ADD: continuous fill gradient when coloring by mean/median expression
-    if color_by in ("mean", "median") and poly_frame.height > 0:
+    if fill_statistic in ("mean", "median") and poly_frame.height > 0:
         plot += _fill_gradient(
-            poly_frame[aggregate_key],
+            poly_frame[aggregate_column],
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
             midpoint=midpoint,
-        )
-
-    # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits
-    x_max_limit = n_x - 0.5
-    if dendrogram:
-        assert paths is not None
-        group_centers = [float(i) for i in range(n_y)]
-        dendrogram_frame = _get_dendrogram_path_frame(
-            paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
-        )
-        x_max_limit = dendrogram_frame["x"].max()
-        plot += geom_path(
-            data=dendrogram_frame,
-            mapping=aes(x="x", y="y", group="group"),
-            color=dendrogram_color,
-            size=dendrogram_size,
-            **(dendrogram_kwargs or {}),
         )
 
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
@@ -440,29 +431,34 @@ def stacked_violin(
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
-        data_range = data_top + 0.5
+        # Cells have a fixed pixel size, so brackets are sized against a constant span.
+        reference_span = _BRACKET_REFERENCE_SPAN / _CELL_HEIGHT_RATIO
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
-            data_range=data_range,
+            data_range=reference_span,
             label_size_scale=key_labels_text_size,
         )
-        key_groups_total_span = data_range + key_groups_padding
+        key_groups_total_span = reference_span + key_groups_padding
         y_max_limit = data_top + key_groups_padding
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
-        limits=[-0.5, x_max_limit],
+        limits=[-0.5, n_x - 0.5],
         expand=[0, 0],
     )
-    plot += scale_y_continuous(
-        breaks=list(range(n_y)),
-        labels=y_order_groups,
-        limits=[-0.5, y_max_limit],
-        expand=[0, 0],
-    )
+    # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
+    if dendrogram:
+        plot += _dendrogram_y_axis(tree, limits=[-0.5, y_max_limit])
+    else:
+        plot += scale_y_continuous(
+            breaks=list(range(n_y)),
+            labels=y_order_groups,
+            limits=[-0.5, y_max_limit],
+            expand=[0, 0],
+        )
 
-    # KEY-GROUP brackets above the data area when ``keys`` was a mapping.
+    # KEY-GROUP brackets above the data area when `keys` was a mapping.
     if key_labels and key_groups is not None:
         assert key_groups_total_span is not None
         bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
@@ -499,6 +495,28 @@ def stacked_violin(
 
     # ADD: theme
     plot += _THEME_DOTPLOT
+    if dendrogram:
+        plot += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
+
+    # SIZE: fixed cells; canvas fits the panel plus axis labels and legend
+    if fill_statistic in ("mean", "median"):
+        legend_width, legend_height = _COLOR_BAR_LEGEND_SIZE
+    elif fill_statistic in ("group", "variable"):
+        legend_labels = y_order_groups if fill_statistic == "group" else x_keys
+        legend_width = max(len(label) for label in legend_labels) * _CHARACTER_WIDTH + 40
+        legend_height = len(legend_labels) * 20 + 60
+    else:
+        legend_width, legend_height = 0, 0
+    plot += _fixed_cell_layout(
+        x_span=n_x,
+        y_span=y_max_limit + 0.5,
+        y_limits=[-0.5, y_max_limit],
+        x_labels=x_keys,
+        y_labels=y_order_groups,
+        legend_width=legend_width,
+        legend_height=legend_height,
+        cell_height_ratio=_CELL_HEIGHT_RATIO,
+    )
 
     # HANDLE: interactive
     if interactive:

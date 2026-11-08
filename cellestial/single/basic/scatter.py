@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust"]
+
 from typing import TYPE_CHECKING, Literal
 
 # Data retrieval
-from lets_plot import (
+from ggrust import (
     geom_point,
     ggtb,
 )
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from anndata import AnnData
-    from lets_plot.plot.core import FeatureSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from mudata import MuData
 
 
@@ -25,8 +27,8 @@ def scatter(
     *,
     axis: Literal[0, 1] | None = None,
     variable_keys: Sequence[str] | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
     **geom_kwargs,
@@ -36,17 +38,17 @@ def scatter(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     variable_keys : str | Sequence[str] | None, default=None
         Variable keys to add to the DataFrame. If None, no additional keys are added.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name of the observations column.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         Name for the variables index column.
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
@@ -70,7 +72,7 @@ def scatter(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -88,7 +90,7 @@ def scatter(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -106,7 +108,7 @@ def scatter(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -134,8 +136,8 @@ def scatter(
         mapping=None,
         axis=axis,
         variable_keys=variable_keys,
-        observations_name=observations_name,
-        variables_name=variables_name,
+        observation_id_column=observation_id_column,
+        variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
     ) + geom_point(mapping=mapping, **geom_kwargs)
 

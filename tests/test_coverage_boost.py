@@ -6,12 +6,11 @@ arrow, legends, operations, xyplot, xyplots, ridge, highest, heatmap.
 """
 
 import pytest
-from lets_plot import aes, layer_tooltips
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes, layer_tooltips
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
-from cellestial.layers import DeferredLayer
 from cellestial.util.errors import VariableNotFoundError
 
 # ===========================================================================
@@ -122,7 +121,7 @@ def test_boxplots_share_axis(adata, group_key):
 
 
 def test_violins_interactive_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.violins(
         adata,
@@ -135,7 +134,7 @@ def test_violins_interactive_with_layers(adata, group_key):
 
 
 def test_boxplots_interactive_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.boxplots(
         adata,
@@ -242,7 +241,7 @@ def test_expressions_invalid_keys_type(adata):
 
 
 def test_tsnes_interactive_share_axis_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.tsnes(
         adata,
@@ -257,7 +256,7 @@ def test_tsnes_interactive_share_axis_with_layers(adata, group_key):
 
 
 def test_pcas_interactive_share_axis_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.pcas(
         adata,
@@ -272,7 +271,7 @@ def test_pcas_interactive_share_axis_with_layers(adata, group_key):
 
 
 def test_expressions_interactive_share_axis_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     plot = cl.expressions(
         adata,
@@ -287,7 +286,7 @@ def test_expressions_interactive_share_axis_with_layers(adata, group_key):
 
 
 def test_umaps_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
     plot = cl.umaps(adata, [group_key, "CD14"], layers=layer)
@@ -295,7 +294,7 @@ def test_umaps_with_layers(adata, group_key):
 
 
 def test_dimensionals_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
     plot = cl.dimensionals(adata, [group_key, "CD14"], layers=layer)
@@ -319,9 +318,7 @@ def test_dimensional_axis_type_none(adata):
 
 def test_arrow_axis_default(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis()
-    assert isinstance(arrow, DeferredLayer)
-    combined = umap + arrow
+    combined = umap + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
 
 
@@ -415,7 +412,7 @@ def test_xyplots_scalar_y(adata):
 
 
 def test_xyplots_with_layers(adata):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
     plot = cl.xyplots(
@@ -463,7 +460,7 @@ def test_ridge_interactive(adata, group_key):
 
 
 def test_ridges_with_layers(adata, group_key):
-    from lets_plot import geom_point
+    from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
     plot = cl.ridges(adata, keys=["CD14", "MS4A1"], group_by=group_key, layers=layer)

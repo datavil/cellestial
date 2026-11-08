@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     geom_area_ridges,
     gggrid,
@@ -12,7 +14,7 @@ from lets_plot import (
     ggtb,
     scale_fill_hue,
 )
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -20,18 +22,18 @@ from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
     _drop_nonfinite_rows,
+    _filter_groups,
     _reject_sequence_key,
     _resolve_tooltips,
     _validate_tooltips,
-    _warn,
 )
 from cellestial.util.errors import _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lets_plot.plot.core import PlotSpec
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.core import PlotSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from polars import DataFrame
 
 
@@ -49,8 +51,8 @@ def ridge(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     **geom_kwargs,
 ) -> PlotSpec:
@@ -59,8 +61,8 @@ def ridge(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     key : str
         The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
@@ -90,9 +92,9 @@ def ridge(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -119,7 +121,7 @@ def ridge(
         import cellestial as cl
         import scanpy as sc
 
-        from lets_plot import *
+        from ggrust import *
 
         data = cl.datasets.pbmc3k()
 
@@ -192,42 +194,25 @@ def ridge(
         axis=axis,
     )
     if frame is None:
-        observation_column_name = None if tooltips == "none" else observations_name
-        variable_column_name = None if tooltips == "none" else variables_name
+        observation_column_name = None if tooltips == "none" else observation_id_column
+        variable_column_name = None if tooltips == "none" else variable_id_column
         frame = build_frame(
             data=data,
             variable_keys=variable_keys,
             axis=axis,
-            observations_name=observation_column_name,
-            variables_name=variable_column_name,
+            observation_id_column=observation_column_name,
+            variable_id_column=variable_column_name,
             metadata_columns=metadata_columns,
         )
+
+    # HANDLE: groups / drop filters (categorical-only) on the grouping column
+    frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
 
     # FILTER: keep finite values and apply threshold
     frame = _drop_nonfinite_rows(frame, [key]).filter(pl.col(group_by).is_not_null())
     frame = frame.filter(
         pl.col(key) >= threshold if threshold is not None else True,
     )
-
-    # HANDLE: groups filter (categorical-only) on the grouping column
-    if groups is not None:
-        if isinstance(groups, str):
-            groups = [groups]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(pl.col(group_by).is_in(list(groups)))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `groups` filter ignored"
-            _warn(msg)
-
-    # HANDLE: drop filter (categorical-only) on the grouping column
-    if drop is not None:
-        if isinstance(drop, str):
-            drop = [drop]
-        if frame[group_by].dtype == pl.Categorical:
-            frame = frame.filter(~pl.col(group_by).is_in(list(drop)).fill_null(False))
-        else:
-            msg = f"group_by `{group_by}` is not categorical, `drop` filter ignored"
-            _warn(msg)
 
     # VALIDATE: tooltips were resolved before the frame build above.
     _validate_tooltips(tooltips, frame)
@@ -267,8 +252,8 @@ def ridges(
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
-    observations_name: str = "Barcode",
-    variables_name: str = "Variable",
+    observation_id_column: str = "Barcode",
+    variable_id_column: str = "Variable",
     interactive: bool = False,
     # multi plot args
     layers: Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None = None,
@@ -290,8 +275,8 @@ def ridges(
 
     Parameters
     ----------
-    data : AnnData
-        The AnnData object of the single cell data.
+    data : AnnData | MuData
+        The single-cell data object.
     keys : Sequence[str]
         The keys to get the values (numerical).
         e.g., ['total_counts', 'pct_counts_in_top_50_genes'] or a list of gene names.
@@ -318,9 +303,9 @@ def ridges(
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
         Use 'none' to disable tooltips.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give to barcode (or index) column in the dataframe.
-    variables_name : str, default='Variable'
+    variable_id_column : str, default='Variable'
         The name to give to variable index column in the dataframe.
     interactive : bool, default=False
         Whether to make the plot interactive.
@@ -423,14 +408,14 @@ def ridges(
         metadata_columns=metadata_columns,
         axis=axis,
     )
-    observation_column_name = None if tooltips == "none" else observations_name
-    variable_column_name = None if tooltips == "none" else variables_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
+    variable_column_name = None if tooltips == "none" else variable_id_column
     frame = build_frame(
         data=data,
         variable_keys=variable_keys,
         axis=axis,
-        observations_name=observation_column_name,
-        variables_name=variable_column_name,
+        observation_id_column=observation_column_name,
+        variable_id_column=variable_column_name,
         metadata_columns=metadata_columns,
     )
 
@@ -449,8 +434,8 @@ def ridges(
             threshold=threshold,
             add_keys=add_keys,
             tooltips=tooltips,
-            observations_name=observations_name,
-            variables_name=variables_name,
+            observation_id_column=observation_id_column,
+            variable_id_column=variable_id_column,
             interactive=interactive,
             **geom_kwargs,
         )

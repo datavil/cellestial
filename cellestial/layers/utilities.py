@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["ggrust"]
+
 from typing import TYPE_CHECKING
 
-from lets_plot import element_rect, theme
+from ggrust import element_rect, theme
 
 if TYPE_CHECKING:
-    from lets_plot.plot.core import FeatureSpec
+    from ggrust.plot.core import FeatureSpec
 
 
 def borders(

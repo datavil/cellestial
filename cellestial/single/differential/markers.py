@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import polars as pl
 from anndata import AnnData
-from lets_plot import (
+from ggrust import (
     aes,
     element_text,
     geom_path,
@@ -20,7 +22,7 @@ from lets_plot import (
     theme,
     theme_bw,
 )
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.single.differential.utilities import _build_markers_frame
@@ -29,7 +31,7 @@ from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.subplots import SupPlotsSpec
 
 
 def markers(
@@ -70,14 +72,14 @@ def markers(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **text_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of ranked genes per group.
 
     Parameters
     ----------
-    data : AnnData
+    data : AnnData | MuData
         The single-cell data object holding the precomputed differential
         expression ranking.
     groups : Sequence[str] | None, default=None
@@ -135,10 +137,11 @@ def markers(
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=3
-        Number of columns in grid. If None, shows plots horizontally, in one row.
+        Number of columns in grid, capped at the number of groups.
+        If None, shows plots horizontally, in one row.
     sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
-        See :func:`lets_plot.gggrid`.
+        See :func:`ggrust.gggrid`.
     widths : list[float], default=None
         Relative width of each column of the grid.
     heights : list[float], default=None
@@ -151,8 +154,8 @@ def markers(
         Whether to align inner areas of plots.
     guides : str, default='auto'
         How guides (legends/colorbars) should be treated in the layout.
-        See :func:`lets_plot.gggrid`.
-    **text_kwargs
+        See :func:`ggrust.gggrid`.
+    **geom_kwargs
         Additional parameters for the `geom_text` layer of each panel.
 
     Returns
@@ -230,6 +233,9 @@ def markers(
         rank_column=rank_column,
         group_column=group_column,
     )
+    # Fewer groups than columns would leave the extra columns blank.
+    if ncol is not None:
+        ncol = min(ncol, len(selected_groups))
 
     # DEFINE: mapping with defaults
     _mapping = {
@@ -267,7 +273,7 @@ def markers(
             fontface=fontface,
             angle=angle,
             **_text_color,
-            **text_kwargs,
+            **geom_kwargs,
         )
         if rank_color:
             # rank 0 (best) is pure red, fading toward light gray for the rest.

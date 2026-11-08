@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
+
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
-from lets_plot import gggrid, ggtb
-from lets_plot.plot.core import FeatureSpec, LayerSpec
+from ggrust import gggrid, ggtb
+from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -20,7 +22,7 @@ from cellestial.util import (
 from cellestial.util.errors import UnsupportedDataTypeError
 
 if TYPE_CHECKING:
-    from lets_plot.plot.subplots import SupPlotsSpec
+    from ggrust.plot.subplots import SupPlotsSpec
     from spatialdata import SpatialData
 
 
@@ -37,7 +39,6 @@ def spatials(
     norm: bool | None = None,
     vmin: float | None = None,
     vmax: float | None = None,
-    scale_axis: Literal[0, 1] | None = None,
     spatial_key: str = "spatial",
     table_name: str | None = None,
     image_name: str | None = None,
@@ -55,7 +56,7 @@ def spatials(
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
-    observations_name: str = "Barcode",
+    observation_id_column: str = "Barcode",
     color_low: str = "#f6f6f6",
     color_mid: str | None = None,
     color_high: str = "#377eb8",
@@ -74,7 +75,7 @@ def spatials(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
-    **point_kwargs,
+    **geom_kwargs,
 ) -> SupPlotsSpec:
     """
     Grid of spatial plots.
@@ -112,10 +113,6 @@ def spatials(
         Lower bound for greyscale luminance normalization.
     vmax : float | None, default=None
         Upper bound for greyscale luminance normalization.
-    scale_axis : {0, 1} | None, default=None
-        Whether to standardize `key` values between 0 and 1 (subtracts the
-        minimum and divides by the maximum).
-        Only applied when `key` is numeric.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs.
@@ -166,7 +163,7 @@ def spatials(
         mapped keys; 'none' disables tooltips.
     interactive : bool, default=False
         Whether to make the plot interactive.
-    observations_name : str, default='Barcode'
+    observation_id_column : str, default='Barcode'
         The name to give the barcode column in the DataFrame.
     color_low : str, default='#f6f6f6'
         Color for low values in the continuous gradient.
@@ -195,7 +192,7 @@ def spatials(
         Whether to align inner geom areas.
     guides : str, default='auto'
         How guides (legends, colorbars) are collected by `gggrid`.
-    **point_kwargs
+    **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
     Returns
@@ -208,6 +205,8 @@ def spatials(
     If no tissue image metadata is present, the plot falls back to a plain
     spatial scatter using the raw coordinates.
 
+    `cmap`, `norm`, `vmin` and `vmax` are passed to `geom_imshow`.
+
     Examples
     --------
     A grid of spatial plots with a sequnce of keys.
@@ -215,7 +214,7 @@ def spatials(
     .. jupyter-execute::
 
         import scanpy as sc
-        from lets_plot import *
+        from ggrust import *
 
         import cellestial as cl
 
@@ -248,7 +247,7 @@ def spatials(
             "Spatial plots do not accept a multimodal object, because spot "
             "coordinates and tissue images live in a modality rather than on the "
             "container.\nPass a single modality instead, e.g. `data['rna']`.\n"
-            "To colour by a variable from another modality, pass that modality "
+            "To color by a variable from another modality, pass that modality "
             "together with a container frame:\n"
             "    spatial(data['rna'], key='prot:CD3', "
             "frame=build_frame(data, variable_keys=['prot:CD3']))"
@@ -308,12 +307,12 @@ def spatials(
     instance_key = _resolve_instance_key(table)
     if polygon and instance_key is not None and instance_key not in metadata_columns:
         metadata_columns.append(instance_key)
-    observation_column_name = None if tooltips == "none" else observations_name
+    observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=table,
         variable_keys=variable_keys,
         axis=0,
-        observations_name=observation_column_name,
+        observation_id_column=observation_column_name,
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
@@ -333,7 +332,6 @@ def spatials(
             norm=norm,
             vmin=vmin,
             vmax=vmax,
-            scale_axis=scale_axis,
             spatial_key=spatial_key,
             table_name=table_name,
             image_name=image_name,
@@ -350,12 +348,12 @@ def spatials(
             add_keys=add_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
-            observations_name=observations_name,
+            observation_id_column=observation_id_column,
             color_low=color_low,
             color_mid=color_mid,
             color_high=color_high,
             midpoint=midpoint,
-            **point_kwargs,
+            **geom_kwargs,
         )
 
         if layers is not None:

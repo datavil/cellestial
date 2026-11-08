@@ -1,71 +1,38 @@
-import sys
-import types
-
 import numpy as np
 import polars as pl
 import pytest
-from lets_plot import aes, geom_point, ggplot
-from lets_plot.plot.core import PlotSpec
+from ggrust import aes, geom_point, ggplot
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
-from cellestial.layers import DeferredLayer
-from cellestial.layers.arrow import _axis_arrow_layers
-from cellestial.layers.bracket import _compute_bracket_frame, _correct_pvalues, _expand_comparisons
+from cellestial.layers.bracket import _bracket_layout, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util import retrieve
 from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
 
 
-def test_arrow_axis_returns_deferred(adata):
+def test_arrow_axis_adds_to_plot(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis()
-    assert isinstance(arrow, DeferredLayer)
-    # Addition should succeed
-    combined = umap + arrow
+    combined = umap + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
 
 
 def test_arrow_axis_customization(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(length=0.20, color="dark_violet")
-    assert isinstance(arrow, DeferredLayer)
-    combined = umap + arrow
-    assert isinstance(combined, PlotSpec)
+    combined = umap + cl.arrow_axis(length=0.20, color="dark_violet")
+    theme = combined.as_dict()["theme"]
+    for key in ("axis_line_x", "axis_line_y"):
+        assert theme[key]["extent"] == 0.20
+        assert theme[key]["color"] == "dark_violet"
 
 
-def test_arrow_axis_explicit_plot_kwarg(adata):
-    # Explicit `plot=` pins the data source regardless of the receiving plot.
+def test_arrow_axis_forwards_linetype_and_arrow_kwargs(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis(plot=umap, length=0.20)
-    assert isinstance(arrow, DeferredLayer)
-    # Even when added to an empty ggplot, the data source stays `umap`.
-    combined = ggplot() + arrow
-    assert isinstance(combined, PlotSpec)
-
-
-def test_arrow_axis_rejects_empty_coordinates():
-    """Empty coordinates should raise a clear validation error."""
-    frame = pl.DataFrame(schema={"x": pl.Float64, "y": pl.Float64})
-
-    with pytest.raises(ValueError, match="coordinate"):
-        _axis_arrow_layers(
-            frame,
-            x="x",
-            y="y",
-            length=0.25,
-            size=1.0,
-            color="black",
-            angle=10.0,
-        )
-
-
-def test_arrow_axis_requires_each_coordinate_aesthetic():
-    frame = pl.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
-
-    with pytest.raises(MissingAestheticError, match="`x`"):
-        _ = (ggplot(frame) + geom_point(aes(y="y"))) + cl.arrow_axis()
-    with pytest.raises(MissingAestheticError, match="`y`"):
-        _ = (ggplot(frame) + geom_point(aes(x="x"))) + cl.arrow_axis()
+    combined = umap + cl.arrow_axis(arrow_kwargs={"type": "closed"}, linetype="dashed")
+    theme = combined.as_dict()["theme"]
+    for key in ("axis_line_x", "axis_line_y"):
+        assert theme[key]["linetype"] == "dashed"
+        assert theme[key]["arrow"]["type"] == "closed"
 
 
 def test_ondata_legend_uses_group_median_positions():
@@ -198,6 +165,24 @@ def test_cluster_outlines_too_few_points_raises():
         _ = plot + cl.cluster_outlines(groups="a")
 
 
+@pytest.mark.parametrize("scale", [0.01, 1.0, 1000.0])
+def test_cluster_outlines_not_cut_at_any_embedding_scale(scale):
+    """Default padding follows the data scale, so outlines are never cut at the grid edge."""
+    generator = np.random.default_rng(0)
+    points = generator.uniform(size=(300, 2)) * scale
+    frame = pl.DataFrame({"x": points[:, 0], "y": points[:, 1], "group": ["a"] * 300})
+    plot = ggplot(frame) + geom_point(aes(x="x", y="y", color="group"))
+
+    def outline_extent(**kwargs):
+        layer = (plot + cl.cluster_outlines(groups="a", **kwargs)).as_dict()["layers"][-1]
+        vertices = pl.DataFrame(layer["data"]).select("x", "y").to_numpy()
+        return np.concatenate([vertices.min(axis=0), vertices.max(axis=0)])
+
+    # A generous padding cannot cut the outline, so it is the reference.
+    reference = outline_extent(padding=10 * scale, grid_size=400)
+    np.testing.assert_allclose(outline_extent(), reference, atol=0.05 * scale)
+
+
 def test_cluster_outlines_requires_coordinates_and_group_mapping():
     frame = pl.DataFrame(
         {
@@ -228,6 +213,25 @@ def test_bracket_too_few_observations_raises():
         _ = plot + cl.bracket()
 
 
+def test_bracket_grows_plot_with_stack_height():
+    """Grow the canvas per bracket so the data panel keeps its height."""
+    frame = pl.DataFrame(
+        {
+            "group": ["a", "b", "c", "d"] * 5,
+            "value": [float(value) for value in range(20)],
+        }
+    )
+    plot = ggplot(frame) + geom_point(aes(x="group", y="value"))
+    two_brackets = plot + cl.bracket(comparisons=[("a", "b"), ("a", "c")])
+    six_brackets = plot + cl.bracket()
+    two_width, two_height = two_brackets.size
+    six_width, six_height = six_brackets.size
+    assert two_width == six_width == 600
+    assert 400 < two_height < six_height
+    # each extra bracket adds the same pixel step, whatever the data range
+    assert six_height - two_height == pytest.approx(4 * 22)
+
+
 def test_bracket_preserves_group_order_for_default_comparisons():
     """Preserve first-seen group order when generating default comparisons."""
     frame = pl.DataFrame(
@@ -237,26 +241,17 @@ def test_bracket_preserves_group_order_for_default_comparisons():
         }
     )
 
-    brackets = _compute_bracket_frame(
+    _, pairs, _ = _bracket_layout(
         frame,
         x="group",
         y="value",
         comparisons=None,
-        test="mannwhitney",
-        alternative="two-sided",
-        correction="none",
-        label="stars",
-        label_format=".3g",
-        prefix="",
-        prefix_style="=",
-        separator=" ",
-        threshold=None,
         y_position=None,
         y_step=None,
         y_padding=0.08,
     )
 
-    assert list(zip(brackets["xmin"], brackets["xmax"], strict=True)) == [
+    assert pairs == [
         ("b", "a"),
         ("b", "c"),
         ("a", "c"),
@@ -318,124 +313,50 @@ def test_bracket_frame_accepts_group_vs_rest_comparisons():
         }
     )
 
-    brackets = _compute_bracket_frame(
+    _, pairs, _ = _bracket_layout(
         frame,
         x="group",
         y="value",
         comparisons=[("a", "*")],
-        test="mannwhitney",
-        alternative="two-sided",
-        correction="none",
-        label="stars",
-        label_format=".3g",
-        prefix="",
-        prefix_style="=",
-        separator=" ",
-        threshold=None,
         y_position=None,
         y_step=None,
         y_padding=0.08,
     )
 
-    assert list(zip(brackets["xmin"], brackets["xmax"], strict=True)) == [
+    assert pairs == [
         ("a", "b"),
         ("a", "c"),
     ]
 
 
-def test_correct_pvalues_methods_and_invalid_method():
-    pvalues = np.array([0.01, 0.02, 0.2])
-
-    assert _correct_pvalues(pvalues, "none").tolist() == pvalues.tolist()
-    assert _correct_pvalues(pvalues, "bonferroni").round(3).tolist() == [0.03, 0.06, 0.6]
-    assert _correct_pvalues(pvalues, "fdr_bh").round(3).tolist() == [0.03, 0.03, 0.2]
-    with pytest.raises(ValueError, match="correction"):
-        _correct_pvalues(pvalues, "bad")
-
-
-def test_bracket_frame_ttest_pvalue_labels_and_threshold_empty():
+def test_bracket_layout_explicit_positions():
     frame = pl.DataFrame(
         {
-            "group": ["a", "a", "a", "b", "b", "b"],
-            "value": [1.0, 1.1, 1.2, 5.0, 5.1, 5.2],
+            "group": ["a", "a", "b", "b", "c", "c"],
+            "value": [1.0, 1.1, 5.0, 5.1, 3.0, 3.1],
         }
     )
 
-    brackets = _compute_bracket_frame(
+    _, _, positions = _bracket_layout(
         frame,
         x="group",
         y="value",
-        comparisons=[("a", "b")],
-        test="ttest",
-        alternative="less",
-        correction="bonferroni",
-        label=["stars", "pvalue", "padj"],
-        label_format=".2g",
-        prefix="p",
-        prefix_style="<",
-        separator="\n",
-        threshold=None,
+        comparisons=None,
         y_position=10.0,
         y_step=2.0,
         y_padding=0.1,
     )
-    filtered = _compute_bracket_frame(
-        frame,
-        x="group",
-        y="value",
-        comparisons=[("a", "b")],
-        test="ttest",
-        alternative="less",
-        correction="bonferroni",
-        label="pvalue",
-        label_format=".2g",
-        prefix="p",
-        prefix_style=None,
-        separator=" ",
-        threshold=1e-12,
-        y_position=None,
-        y_step=None,
-        y_padding=0.1,
-    )
 
-    assert brackets["y"].to_list() == [10.0]
-    assert "p <" in brackets["label"][0]
-    assert filtered.is_empty()
+    assert positions == [10.0, 12.0, 14.0]
 
 
-def test_bracket_frame_validation_paths():
-    frame = pl.DataFrame(
-        {
-            "group": ["a", "a", "b", "b"],
-            "value": [1.0, 1.1, 2.0, 2.1],
-        }
-    )
-    kwargs = {
-        "frame": frame,
-        "x": "group",
-        "y": "value",
-        "comparisons": [("a", "b")],
-        "test": "mannwhitney",
-        "alternative": "two-sided",
-        "correction": "none",
-        "label_format": ".3g",
-        "prefix": "",
-        "prefix_style": "=",
-        "separator": " ",
-        "threshold": None,
-        "y_position": None,
-        "y_step": None,
-        "y_padding": 0.1,
-    }
-
-    with pytest.raises(ValueError, match="test"):
-        _compute_bracket_frame(**(kwargs | {"test": "bad", "label": "stars"}))
-    with pytest.raises(ValueError, match="label"):
-        _compute_bracket_frame(**(kwargs | {"label": ["bad"]}))
-    with pytest.raises(ValueError, match="at least one"):
-        _compute_bracket_frame(**(kwargs | {"label": []}))
-    with pytest.raises(ValueError, match="prefix_style"):
-        _compute_bracket_frame(**(kwargs | {"label": "pvalue", "prefix_style": "bad"}))
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"test": "student"}, {"correction": "holm"}, {"label": "padj"}],
+)
+def test_bracket_rejects_unknown_options(kwargs):
+    with pytest.raises(ValueError, match=f"`{next(iter(kwargs))}`"):
+        cl.bracket(**kwargs)
 
 
 def test_bracket_layer_explicit_plot_and_mapping():
@@ -454,9 +375,8 @@ def test_bracket_layer_explicit_plot_and_mapping():
         y="value",
         correction="none",
         label="pvalue",
-        mapping=aes(color="label"),
+        mapping=aes(color="bracket_color"),
         label_size=6,
-        threshold=1,
     )
 
     assert isinstance(combined, PlotSpec)
@@ -502,28 +422,25 @@ def test_stream_velocity_key_requires_dimension_numbers():
         _ = plot + cl.stream(velocity_key="velocity_")
 
 
-def test_stream_builds_layers_with_mocked_velocity_grid(monkeypatch):
+def test_stream_builds_layers_from_a_velocity_field():
+    # 400 cells on a jittered square, rotating about the centre: enough cells for
+    # the default `n_neighbors` (n / 50) of ggrust's velocity grid.
+    rng = np.random.default_rng(0)
+    points = rng.uniform(-1.0, 1.0, size=(400, 2))
     frame = pl.DataFrame(
         {
-            "X_UMAP1": [0.0, 0.0, 1.0, 1.0],
-            "X_UMAP2": [0.0, 1.0, 0.0, 1.0],
-            "VELOCITY_UMAP1": [0.2, 0.2, 0.2, 0.2],
-            "VELOCITY_UMAP2": [0.1, 0.1, 0.1, 0.1],
+            "X_UMAP1": points[:, 0],
+            "X_UMAP2": points[:, 1],
+            "VELOCITY_UMAP1": -points[:, 1],
+            "VELOCITY_UMAP2": points[:, 0],
         }
     )
     plot = ggplot(frame) + geom_point(aes(x="X_UMAP1", y="X_UMAP2"))
 
-    def compute_velocity_on_grid(**kwargs):
-        grid = np.linspace(0.0, 1.0, 5)
-        velocity = np.ones((5, 5))
-        return (grid, grid), (velocity, velocity)
-
-    fake_module = types.SimpleNamespace(compute_velocity_on_grid=compute_velocity_on_grid)
-    monkeypatch.setitem(sys.modules, "scvelo.plotting.velocity_embedding_grid", fake_module)
-
     combined = plot + cl.stream(arrow_kwargs={"alpha": 0.5}, density=0.5)
 
     assert isinstance(combined, PlotSpec)
+    assert "<path" in combined.to_svg()
 
 
 def _adata_with_velocity(adata):
@@ -544,19 +461,11 @@ def test_umap_frame_includes_unplotted_velocity_embedding(adata):
     assert {"VELOCITY_UMAP1", "VELOCITY_UMAP2"} <= set(frame.columns)
 
 
-def test_stream_builds_on_umap_with_velocity_embedding(adata, monkeypatch):
+def test_stream_builds_on_umap_with_velocity_embedding(adata):
     # End-to-end mirror of the reported failure: `cl.umap(...) + cl.stream()`
     # must resolve velocity columns from the umap frame without raising.
     data = _adata_with_velocity(adata)
     umap = cl.umap(data, tooltips="none")
-
-    def compute_velocity_on_grid(**kwargs):
-        grid = np.linspace(0.0, 1.0, 5)
-        velocity = np.ones((5, 5))
-        return (grid, grid), (velocity, velocity)
-
-    fake_module = types.SimpleNamespace(compute_velocity_on_grid=compute_velocity_on_grid)
-    monkeypatch.setitem(sys.modules, "scvelo.plotting.velocity_embedding_grid", fake_module)
 
     combined = umap + cl.stream()
     assert isinstance(combined, PlotSpec)

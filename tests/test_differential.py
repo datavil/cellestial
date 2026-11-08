@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 from anndata import AnnData
-from lets_plot import aes, geom_point, layer_tooltips
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust import aes, geom_point, layer_tooltips
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.single.differential.utilities import _build_markers_frame, _build_volcano_frame
@@ -62,7 +62,7 @@ def test_volcano_frame_drops_nonfinite_values_but_keeps_zero_pvalue(ranked_adata
     frame = _build_volcano_frame(ranked_adata, "A")
 
     assert frame["variable"].to_list() == ["gene_a", "gene_c"]
-    assert np.isinf(frame["neg_log_pvalue"][0])
+    assert np.isinf(frame["negative_log_pvalue"][0])
 
 
 def test_resolve_rank_genes_groups_key_invalid():
@@ -319,7 +319,7 @@ def test_build_volcano_frame_uses_raw_pvalues(ranked_adata):
     )
 
     assert frame["significance"].cast(str).to_list()[:3] == ["up", "down", "ns"]
-    assert frame["neg_log_pvalue"].to_list()[0] == 3.0
+    assert frame["negative_log_pvalue"].to_list()[0] == 3.0
 
 
 def test_build_volcano_frame_errors(ranked_adata):
@@ -383,7 +383,7 @@ def test_volcano_plot_options(ranked_adata):
         "A",
         use_adjusted_pvalue=True,
         mapping=aes(shape="significance"),
-        show_threshold_lines=True,
+        threshold_lines=True,
         threshold_kwargs={"alpha": 0.4},
         top_n=1,
         label_kwargs={"color": "blue"},
@@ -405,7 +405,7 @@ def test_volcano_without_thresholds_or_labels(ranked_adata):
     plot = cl.volcano(
         ranked_adata,
         "A",
-        show_threshold_lines=False,
+        threshold_lines=False,
         top_n=0,
         tooltips="none",
         nonsignificant_subsample=None,
@@ -418,7 +418,7 @@ def test_volcanos_plot_options(ranked_adata):
     plot = cl.volcanos(
         ranked_adata,
         ["A", "B"],
-        show_threshold_lines=False,
+        threshold_lines=False,
         top_n=None,
         share_labels=True,
         share_axis=True,

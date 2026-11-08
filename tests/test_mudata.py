@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from anndata import AnnData
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
+from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 from scipy.sparse import csr_matrix
 
@@ -357,6 +357,10 @@ def test_anndata_frame_is_unchanged(mudata):
             "stacked_violin",
             lambda data: cl.stacked_violin(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
         ),
+        (
+            "annotated_heatmap",
+            lambda data: cl.annotated_heatmap(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
+        ),
     ],
 )
 def test_single_plots_accept_a_container(mudata, name, call):
@@ -380,10 +384,6 @@ def test_single_plots_accept_a_container(mudata, name, call):
             lambda data: cl.expressions(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
         ),
         ("xyplots", lambda data: cl.xyplots(data, x=GENE, y=PROTEIN, colors=["celltype"])),
-        (
-            "annotated_heatmap",
-            lambda data: cl.annotated_heatmap(data, keys=[GENE, PROTEIN], group_by=JOINT_GROUP),
-        ),
     ],
 )
 def test_grid_plots_accept_a_container(mudata, name, call):
@@ -715,7 +715,7 @@ def test_spatial_rejects_a_container(mudata, call):
         call(mudata)
 
 
-def test_spatial_colours_across_modalities_via_a_container_frame():
+def test_spatial_colors_across_modalities_via_a_container_frame():
     """
     The supported route for the one thing native support would have added.
 

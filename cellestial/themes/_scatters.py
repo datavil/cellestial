@@ -1,4 +1,6 @@
-from lets_plot import (
+__lazy_modules__ = ["ggrust"]
+
+from ggrust import (
     element_blank,
     element_text,
     scale_color_brewer,
@@ -66,7 +68,5 @@ _THEME_DOTPLOT = (
         legend_box_spacing=0,
         legend_key_spacing_y=0,
     )
-    # + scale_y_discrete(expand=[0.05, 0.05])  # offsets for points from the frame
-    # + scale_x_discrete(expand=[0.025, 0.025])
-    + scale_size(trans="sqrt", breaks=[25, 50, 75, 100])  # to be replaced by scale_size_area
+    + scale_size(trans="sqrt", breaks=[25, 50, 75, 100])
 )
