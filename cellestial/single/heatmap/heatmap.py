@@ -496,6 +496,7 @@ def heatmap(
             data_range=data_range,
             scale=1.0,
             label_size_scale=key_labels_text_size,
+            square_cell_columns=n_x if aggregate and geom == "raster" else None,
         )
         key_groups_total_span = data_range + key_groups_padding
         y_max_limit = data_top + key_groups_padding
