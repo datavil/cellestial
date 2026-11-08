@@ -31,9 +31,6 @@ from cellestial.util.utilities import (
     _resolve_embedding_key,
     _resolve_midpoint,
     _select_variable_keys,
-    _share_axis,
-    _share_labels,
-    _share_ticks,
     _wrap_legend,
 )
 
@@ -535,47 +532,3 @@ def test_resolve_embedding_canonical_wins_over_bare(adata):
 def test_retrieve_invalid_type():
     with pytest.raises(TypeError):
         retrieve("not a plot")
-
-
-# ---- _share_labels / _share_axis / _share_ticks ----
-
-
-def test_share_labels(adata):
-    import cellestial as cl
-
-    plot = cl.umap(adata, "leiden")
-    # i=0 is top-left, should keep y label, remove x label
-    result = _share_labels(plot, 0, ["a", "b", "c", "d"], ncol=2)
-    assert result is not None
-
-
-def test_share_axis(adata):
-    import cellestial as cl
-
-    plot = cl.umap(adata, "leiden")
-    result = _share_axis(plot, 1, ["a", "b", "c", "d"], ncol=2, axis_type="axis")
-    assert result is not None
-
-
-def test_share_axis_arrow(adata):
-    import cellestial as cl
-
-    plot = cl.umap(adata, "leiden")
-    result = _share_axis(plot, 0, ["a", "b"], ncol=2, axis_type="arrow")
-    assert result is not None
-
-
-def test_share_axis_invalid_type(adata):
-    import cellestial as cl
-
-    plot = cl.umap(adata, "leiden")
-    with pytest.raises(ValueError):
-        _share_axis(plot, 0, ["a", "b"], ncol=2, axis_type="invalid")
-
-
-def test_share_ticks(adata):
-    import cellestial as cl
-
-    plot = cl.umap(adata, "leiden")
-    result = _share_ticks(plot, 0, ["a", "b", "c", "d"], ncol=2)
-    assert result is not None
