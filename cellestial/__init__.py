@@ -1,5 +1,3 @@
-__lazy_modules__ = ["ggrust"]
-
 from cellestial import datasets
 from cellestial._version import __version__, versions
 from cellestial.complex import annotated_heatmap

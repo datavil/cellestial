@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
 from ggrust import geom_blank
-from ggrust.plot.subplots import SupPlotsSpec
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.complex.annotated_heatmap import _bin_observations
@@ -10,7 +10,7 @@ from cellestial.util.errors import UnsupportedDataTypeError
 
 def test_annotated_heatmap_default(adata, markers, group_key):
     plot = cl.annotated_heatmap(adata, keys=markers, group_by=group_key)
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_both_axes(adata, markers, group_key, cluster_key):
@@ -22,14 +22,14 @@ def test_annotated_heatmap_both_axes(adata, markers, group_key, cluster_key):
         row_annotations=[cluster_key, "pct_counts_mt"],
         scale_axis=0,
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_numeric_column_annotation(adata, markers, group_key):
     plot = cl.annotated_heatmap(
         adata, keys=markers, group_by=group_key, column_annotations=["means"]
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_string_annotations(adata, markers, group_key, cluster_key):
@@ -40,26 +40,26 @@ def test_annotated_heatmap_string_annotations(adata, markers, group_key, cluster
         column_annotations="highly_variable",
         row_annotations=cluster_key,
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_no_legend(adata, markers, group_key, cluster_key):
     plot = cl.annotated_heatmap(
         adata, keys=markers, group_by=group_key, row_annotations=[cluster_key], legend=False
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_no_group_by(adata, markers):
     plot = cl.annotated_heatmap(adata, keys=markers, row_annotations="pct_counts_mt")
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_max_rows(adata, markers, group_key, cluster_key):
     plot = cl.annotated_heatmap(
         adata, keys=markers, group_by=group_key, row_annotations=[cluster_key], max_rows=200
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_annotation_colors(adata, markers, group_key):
@@ -74,7 +74,7 @@ def test_annotated_heatmap_annotation_colors(adata, markers, group_key):
             "pct_counts_mt": ["#ffffcc", "#800026"],
         },
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_dendrogram(adata, markers, group_key):
@@ -85,7 +85,7 @@ def test_annotated_heatmap_dendrogram(adata, markers, group_key):
         row_annotations=[group_key],
         dendrogram=True,
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_dendrogram_requires_group_by(adata, markers):
@@ -102,7 +102,7 @@ def test_annotated_heatmap_passthrough_params(adata, markers, group_key):
         interactive=True,
         alpha=0.9,
     )
-    assert isinstance(plot, SupPlotsSpec)
+    assert isinstance(plot, PlotSpec)
 
 
 def test_annotated_heatmap_unsupported_data_type(markers, group_key):
@@ -131,6 +131,63 @@ def test_bin_observations_noop_when_small():
     assert _bin_observations(frame, group_by=None, max_rows=1000) is frame
 
 
+def _side_layers(spec: dict, band: str) -> list[dict]:
+    return [layer for layer in spec["layers"] if layer.get("ggside") == band]
+
+
+def test_annotated_heatmap_is_one_plot_with_side_tracks(adata, markers, group_key, cluster_key):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key, "pct_counts_mt"],
+        max_rows=20,
+    ).as_dict()
+
+    assert spec["mapping"] == {"x": "position_x", "y": "position_y"}
+    assert spec["layers"][0]["mapping"] == {"fill": "value"}
+    assert spec["ggside"] == {"x_pos": "top", "y_pos": "left"}
+    assert spec["theme"]["ggside_panel_scale_x"] == pytest.approx(0.025)
+    assert spec["theme"]["ggside_panel_scale_y"] == pytest.approx(0.05)
+    assert [layer["mapping"]["fill"] for layer in _side_layers(spec, "x")] == ["highly_variable"]
+    assert [layer["mapping"]["fill"] for layer in _side_layers(spec, "y")] == [
+        cluster_key,
+        "pct_counts_mt",
+    ]
+    # every track has its own fill scale group, so its own legend
+    groups = [layer["scale_group"]["fill"] for layer in spec["layers"] if "ggside" in layer]
+    assert len(set(groups)) == 3
+    side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
+    # first listed track outermost: leftmost in the left band
+    assert side_scales["y"]["limits"] == [cluster_key, "pct_counts_mt"]
+    # track titles hidden by default: the legends name the tracks, and the band
+    # axes stay on the main axes' sides (no stray line on the far side)
+    assert side_scales["x"]["breaks"] == []
+    assert side_scales["y"]["breaks"] == []
+    assert "position" not in side_scales["x"]
+    assert "position" not in side_scales["y"]
+
+
+def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster_key):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key],
+        track_titles=True,
+        max_rows=20,
+    ).as_dict()
+    side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
+
+    assert "breaks" not in side_scales["x"]
+    assert "breaks" not in side_scales["y"]
+    assert side_scales["x"]["position"] == "right"
+    # turned names on top, so they don't inflate the bottom axis area
+    assert side_scales["y"]["position"] == "top"
+
+
 def test_annotated_heatmap_transpose_moves_tracks_and_group_lines(
     adata, markers, group_key, cluster_key
 ):
@@ -144,16 +201,11 @@ def test_annotated_heatmap_transpose_moves_tracks_and_group_lines(
         max_rows=20,
     ).as_dict()
 
-    assert spec["layout"]["widths"] == [0.025, 1.0]
-    assert spec["layout"]["heights"] == [0.025, 1.0]
-    assert spec["figures"][0] is None
-    heatmap = spec["figures"][3]
-    assert heatmap["layers"][0]["mapping"] == {
-        "x": "position_y",
-        "y": "position_x",
-        "fill": "value",
-    }
-    assert heatmap["layers"][1]["mapping"] == {"x": "x", "xend": "x"}
+    assert spec["mapping"] == {"x": "position_y", "y": "position_x"}
+    assert spec["ggside"] == {"x_pos": "top", "y_pos": "left"}
+    assert [layer["mapping"]["fill"] for layer in _side_layers(spec, "x")] == [cluster_key]
+    assert [layer["mapping"]["fill"] for layer in _side_layers(spec, "y")] == ["highly_variable"]
+    assert spec["layers"][1]["mapping"] == {"x": "x", "xend": "x"}
 
 
 def test_annotated_heatmap_right_and_bottom_track_positions(
@@ -164,20 +216,16 @@ def test_annotated_heatmap_right_and_bottom_track_positions(
         keys=markers[:2],
         group_by=group_key,
         column_annotations=["highly_variable"],
-        row_annotations=[cluster_key],
+        row_annotations=[cluster_key, "pct_counts_mt"],
         row_annotation_position="right",
         column_annotation_position="bottom",
         max_rows=20,
     ).as_dict()
 
-    assert spec["layout"]["widths"] == [1.0, 0.025]
-    assert spec["layout"]["heights"] == [1.0, 0.025]
-    assert spec["figures"][3] is None
-    assert spec["figures"][0]["layers"][0]["mapping"] == {
-        "x": "position_x",
-        "y": "position_y",
-        "fill": "value",
-    }
+    assert spec["ggside"] == {"x_pos": "bottom", "y_pos": "right"}
+    side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
+    # first listed track outermost: rightmost in the right band
+    assert side_scales["y"]["limits"] == ["pct_counts_mt", cluster_key]
 
 
 def test_annotated_heatmap_transpose_moves_dendrogram_above_heatmap(adata, markers, group_key):
@@ -190,29 +238,29 @@ def test_annotated_heatmap_transpose_moves_dendrogram_above_heatmap(adata, marke
         max_rows=20,
     ).as_dict()
 
-    assert spec["layout"]["ncol"] == 1
-    assert spec["layout"]["nrow"] == 2
-    assert spec["figures"][0]["layers"][0]["geom"] == "path"
-    assert spec["figures"][1]["layers"][0]["geom"] == "raster"
+    assert spec["layers"][0]["geom"] == "raster"
+    (tree,) = _side_layers(spec, "x")
+    assert tree["geom"] == "line"
+    assert spec["ggside"]["x_pos"] == "top"
+    # root away from the heatmap: heights grow upward from the band's inner edge
+    assert min(tree["data"]["height"]) == pytest.approx(-0.5)
+    assert max(tree["data"]["height"]) > 0
 
 
-def test_annotated_heatmap_layers_and_layers_all_have_distinct_scope(
-    adata, markers, group_key, cluster_key
-):
+def test_annotated_heatmap_layers_and_layers_all_are_added(adata, markers, group_key, cluster_key):
     spec = cl.annotated_heatmap(
         adata,
         keys=markers[:2],
         group_by=group_key,
-        column_annotations=["highly_variable"],
         row_annotations=[cluster_key],
         layers=geom_blank(),
         layers_all=geom_blank(),
         max_rows=20,
     ).as_dict()
-    panels = [panel for panel in spec["figures"] if panel is not None]
-    blank_counts = [sum(layer["geom"] == "blank" for layer in panel["layers"]) for panel in panels]
+    geoms = [layer["geom"] for layer in spec["layers"]]
 
-    assert sorted(blank_counts) == [1, 1, 2]
+    # both come right after the heatmap, before the tracks' new fill scales
+    assert geoms[:3] == ["raster", "blank", "blank"]
 
 
 def test_annotated_heatmap_raster_warns_and_removes_tooltips(adata, markers, group_key):
@@ -226,11 +274,5 @@ def test_annotated_heatmap_raster_warns_and_removes_tooltips(adata, markers, gro
             max_rows=20,
         )
 
-    heatmap_layer = next(
-        layer
-        for panel in plot.as_dict()["figures"]
-        if panel is not None
-        for layer in panel["layers"]
-        if layer["geom"] == "raster"
-    )
+    heatmap_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "raster")
     assert "tooltips" not in heatmap_layer

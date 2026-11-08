@@ -11,7 +11,6 @@ from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
-from cellestial.layers import DeferredLayer
 from cellestial.util.errors import VariableNotFoundError
 
 # ===========================================================================
@@ -319,9 +318,7 @@ def test_dimensional_axis_type_none(adata):
 
 def test_arrow_axis_default(adata):
     umap = cl.umap(adata, "CD14")
-    arrow = cl.arrow_axis()
-    assert isinstance(arrow, DeferredLayer)
-    combined = umap + arrow
+    combined = umap + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
 
 

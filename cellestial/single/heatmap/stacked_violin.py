@@ -9,7 +9,6 @@ from anndata import AnnData
 from ggrust import (
     aes,
     element_line,
-    geom_path,
     geom_polygon,
     geom_rect,
     ggplot,
@@ -36,10 +35,11 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
+    _dendrogram_line_theme,
+    _dendrogram_y_axis,
     _drop_nonfinite_rows,
     _fill_gradient,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
+    _get_dendrogram_tree,
     _resolve_tooltips,
     _validate_tooltips,
 )
@@ -83,7 +83,6 @@ def stacked_violin(
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
-    dendrogram_kwargs: dict | None = None,
     rectangle: bool = True,
     rectangle_size: float = 0.8,
     rectangle_color: str = "#3f3f3f",
@@ -184,8 +183,6 @@ def stacked_violin(
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
         By default, `dendrogram_{group_by}` is used.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters to pass to the dendrogram geom_path.
     rectangle : bool, default=True
         Whether to add a rectangle border around the data area.
     rectangle_size : float, default=0.8
@@ -360,14 +357,14 @@ def stacked_violin(
     frame = _sort_integer_like_groups(frame, group_by=group_by)
     # DETERMINE: y order of groups (dendrogram or first-seen order)
     if dendrogram:
-        y_order_groups, paths = _get_dendrogram(
+        tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
+        y_order_groups = list(tree.ordered_labels)
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        paths = None
 
     x_keys = keys_list
     n_x = len(x_keys)
@@ -429,23 +426,6 @@ def stacked_violin(
             midpoint=midpoint,
         )
 
-    # DENDROGRAM (right side, along y-axis), built first so we can derive tight x limits
-    x_max_limit = n_x - 0.5
-    if dendrogram:
-        assert paths is not None
-        group_centers = [float(i) for i in range(n_y)]
-        dendrogram_frame = _get_dendrogram_path_frame(
-            paths, n_x=n_x, n_groups=n_y, group_centers=group_centers
-        )
-        x_max_limit = dendrogram_frame["x"].max()
-        plot += geom_path(
-            data=dendrogram_frame,
-            mapping=aes(x="x", y="y", group="group"),
-            color=dendrogram_color,
-            size=dendrogram_size,
-            **(dendrogram_kwargs or {}),
-        )
-
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
     data_top = n_y - 0.5
     y_max_limit = data_top
@@ -464,15 +444,19 @@ def stacked_violin(
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
-        limits=[-0.5, x_max_limit],
+        limits=[-0.5, n_x - 0.5],
         expand=[0, 0],
     )
-    plot += scale_y_continuous(
-        breaks=list(range(n_y)),
-        labels=y_order_groups,
-        limits=[-0.5, y_max_limit],
-        expand=[0, 0],
-    )
+    # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
+    if dendrogram:
+        plot += _dendrogram_y_axis(tree, limits=[-0.5, y_max_limit])
+    else:
+        plot += scale_y_continuous(
+            breaks=list(range(n_y)),
+            labels=y_order_groups,
+            limits=[-0.5, y_max_limit],
+            expand=[0, 0],
+        )
 
     # KEY-GROUP brackets above the data area when `keys` was a mapping.
     if key_labels and key_groups is not None:
@@ -511,6 +495,8 @@ def stacked_violin(
 
     # ADD: theme
     plot += _THEME_DOTPLOT
+    if dendrogram:
+        plot += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
     # SIZE: fixed cells; canvas fits the panel plus axis labels and legend
     if fill_statistic in ("mean", "median"):
@@ -522,8 +508,9 @@ def stacked_violin(
     else:
         legend_width, legend_height = 0, 0
     plot += _fixed_cell_layout(
-        x_span=x_max_limit + 0.5,
+        x_span=n_x,
         y_span=y_max_limit + 0.5,
+        y_limits=[-0.5, y_max_limit],
         x_labels=x_keys,
         y_labels=y_order_groups,
         legend_width=legend_width,

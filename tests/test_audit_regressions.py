@@ -10,12 +10,12 @@ import pandas as pd
 import polars as pl
 import pytest
 from anndata import AnnData
-from ggrust import aes
+from ggrust import aes, geom_point, ggplot
 from scipy.stats import ttest_ind
 
 import cellestial as cl
 from cellestial.datasets import datasets
-from cellestial.layers.bracket import _compute_bracket_frame
+from cellestial.layers.bracket import _bracket_layout
 from cellestial.util import retrieve
 from cellestial.util.utilities import _color_gradient, _fill_gradient, _range_inclusive
 
@@ -43,22 +43,20 @@ def _axis_probe_data() -> AnnData:
     return data
 
 
-def _compute_single_bracket(frame: pl.DataFrame) -> pl.DataFrame:
-    """Compute one uncorrected two-sided Welch t-test bracket."""
-    return _compute_bracket_frame(
+def _bracket_label(frame: pl.DataFrame) -> str:
+    """Render one uncorrected two-sided Welch `a` vs `b` bracket and return its label."""
+    plot = ggplot(frame) + geom_point(aes(x="group", y="value"))
+    plot += cl.bracket(comparisons=[("a", "b")], test="ttest", correction="none", label="pvalue")
+    return re.findall(r"<text[^>]*>([^<]*)</text>", plot.to_svg())[0]
+
+
+def _single_layout(frame: pl.DataFrame) -> tuple[pl.DataFrame, list, list[float]]:
+    """Lay out one `a` vs `b` bracket."""
+    return _bracket_layout(
         frame,
         x="group",
         y="value",
         comparisons=[("a", "b")],
-        test="ttest",
-        alternative="two-sided",
-        correction="none",
-        label="stars",
-        label_format=".3g",
-        prefix="",
-        prefix_style="=",
-        separator=" ",
-        threshold=None,
         y_position=None,
         y_step=None,
         y_padding=0.1,
@@ -77,13 +75,11 @@ def test_bracket_omits_nonfinite_observations(nonfinite_value):
     )
     expected = ttest_ind([1.0, 2.0], [10.0, 11.0, 12.0], equal_var=False)
 
-    brackets = _compute_single_bracket(frame)
+    finite_frame, _, positions = _single_layout(frame)
 
-    assert brackets["statistic"][0] == pytest.approx(expected.statistic)
-    assert brackets["pvalue"][0] == pytest.approx(expected.pvalue)
-    assert brackets["pvalue_adj"][0] == pytest.approx(expected.pvalue)
-    assert np.isfinite(brackets["pvalue"][0])
-    assert np.isfinite(brackets["y"][0])
+    assert finite_frame.height == 5
+    assert float(_bracket_label(frame)) == float(f"{expected.pvalue:.2g}")
+    assert np.isfinite(positions[0])
 
 
 @pytest.mark.parametrize("nonfinite_value", [None, np.nan, np.inf, -np.inf])
@@ -98,7 +94,7 @@ def test_bracket_rejects_groups_with_too_few_finite_observations(nonfinite_value
     )
 
     with pytest.raises(ValueError, match="at least 2 observations"):
-        _compute_single_bracket(frame)
+        _single_layout(frame)
 
 
 def test_bracket_rejects_partial_results_with_an_invalid_comparison():
@@ -111,20 +107,11 @@ def test_bracket_rejects_partial_results_with_an_invalid_comparison():
     )
 
     with pytest.raises(ValueError, match=r"'a'.*'c'.*\(1\)"):
-        _compute_bracket_frame(
+        _bracket_layout(
             frame,
             x="group",
             y="value",
             comparisons=[("a", "b"), ("a", "c")],
-            test="ttest",
-            alternative="two-sided",
-            correction="none",
-            label="stars",
-            label_format=".3g",
-            prefix="",
-            prefix_style="=",
-            separator=" ",
-            threshold=None,
             y_position=None,
             y_step=None,
             y_padding=0.1,
@@ -428,29 +415,6 @@ def _unequal_variance_frame() -> pl.DataFrame:
     )
 
 
-def _bracket_pvalue(frame: pl.DataFrame, test: str) -> float:
-    """Run one uncorrected pairwise bracket and return its p-value."""
-    brackets = _compute_bracket_frame(
-        frame,
-        x="group",
-        y="value",
-        comparisons=[("a", "b")],
-        test=test,
-        alternative="two-sided",
-        correction="none",
-        label="stars",
-        label_format=".3g",
-        prefix="",
-        prefix_style="=",
-        separator=" ",
-        threshold=None,
-        y_position=None,
-        y_step=None,
-        y_padding=0.1,
-    )
-    return brackets["pvalue"][0]
-
-
 def test_bracket_ttest_does_not_assume_equal_variances():
     """`ttest` must be Welch's, matching R's `t.test` and scanpy's own ranking."""
     frame = _unequal_variance_frame()
@@ -458,16 +422,10 @@ def test_bracket_ttest_does_not_assume_equal_variances():
     values_b = frame.filter(pl.col("group") == "b")["value"].to_numpy()
     welch = ttest_ind(values_a, values_b, equal_var=False)
 
-    assert _bracket_pvalue(frame, "ttest") == pytest.approx(welch.pvalue)
+    assert float(_bracket_label(frame)) == float(f"{welch.pvalue:.2g}")
 
 
-def test_bracket_student_keeps_the_pooled_variance_test():
-    """The pooled-variance test stays reachable under its own name."""
-    frame = _unequal_variance_frame()
-    values_a = frame.filter(pl.col("group") == "a")["value"].to_numpy()
-    values_b = frame.filter(pl.col("group") == "b")["value"].to_numpy()
-    student = ttest_ind(values_a, values_b, equal_var=True)
-
-    assert _bracket_pvalue(frame, "student") == pytest.approx(student.pvalue)
-    # the assumption matters: the two tests disagree on this data
-    assert _bracket_pvalue(frame, "ttest") != pytest.approx(student.pvalue)
+def test_bracket_rejects_the_pooled_variance_test():
+    """With no pooled-variance t-test in ggrust, `student` is no longer accepted."""
+    with pytest.raises(ValueError, match="`test`"):
+        cl.bracket(test="student")

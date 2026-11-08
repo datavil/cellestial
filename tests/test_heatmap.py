@@ -35,6 +35,23 @@ def _stage_custom_dendrogram(adata, group_key, custom_key="dendrogram_custom_v2"
     return local, custom_key
 
 
+def _dendrogram_leaf_order(plot):
+    """Leaf labels of the plot's dendrogram scale, in the tree's order."""
+    (tree,) = (scale["dendrogram"] for scale in plot.as_dict()["scales"] if "dendrogram" in scale)
+    return [tree["labels"][leaf] for leaf in tree["order"]]
+
+
+@pytest.mark.parametrize("function", ["dotplot", "stacked_violin", "matrixplot"])
+def test_dendrogram_leaf_order_matches_scanpy(adata, markers, group_key, function):
+    import scanpy as sc
+
+    local = adata.copy()
+    sc.tl.dendrogram(local, groupby=group_key)
+    plot = getattr(cl, function)(local, keys=markers, group_by=group_key, dendrogram=True)
+    expected = list(local.uns[f"dendrogram_{group_key}"]["categories_ordered"])
+    assert _dendrogram_leaf_order(plot) == expected
+
+
 def test_heatmap_dendrogram_key_uses_custom_key(adata, markers, group_key):
     local, custom = _stage_custom_dendrogram(adata, group_key)
     plot = cl.heatmap(
@@ -310,29 +327,6 @@ def test_resolve_padding_explicit_overrides_auto():
     assert explicit == 0.5
 
 
-def test_key_groups_x_unit_label_size_ignores_y_span():
-    from cellestial.single.heatmap.utilities import _key_groups_layers
-
-    groups = {"Group_1": ["A", "B"], "Group_2": ["C", "D"]}
-    small_y_text = _key_groups_layers(
-        groups,
-        y=3.5,
-        total_span=4,
-        label_size_span=4,
-        size_unit="x",
-    )[-1].as_dict()
-    large_y_text = _key_groups_layers(
-        groups,
-        y=15.5,
-        total_span=16,
-        label_size_span=4,
-        size_unit="x",
-    )[-1].as_dict()
-    assert small_y_text["size_unit"] == "x"
-    assert large_y_text["size_unit"] == "x"
-    assert small_y_text["size"] == large_y_text["size"]
-
-
 def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
@@ -354,10 +348,22 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
     assert scales[-1]["limits"][1] == n_y - 0.5
 
 
-def test_dotplot_key_labels_use_x_unit_text_size(adata, group_key):
+def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
     plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
     text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert text_layers[-1]["size_unit"] == "x"
+    assert "size_unit" not in text_layers[-1]
+    assert text_layers[-1]["size"] >= 3.75
+
+
+def test_resolve_padding_square_cells_grow_with_columns():
+    from cellestial.single.heatmap.utilities import _resolve_padding
+
+    groups = {f"group number {index}": [str(index)] for index in range(12)}
+    free = _resolve_padding(groups, padding=None, data_range=4)
+    six = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=6)
+    twelve = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=12)
+    assert six >= free, "square cells never get less padding"
+    assert twelve > six, "one y unit is one column wide, so more columns need more y units"
 
 
 def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):

@@ -62,7 +62,7 @@ def _histogram(data: AnnData, _markers: list[str], group_key: str) -> PlotSpec:
     return cl.histogram(data, "n_genes_by_counts", fill=group_key, bins=20)
 
 
-def _annotated_heatmap(data: AnnData, markers: list[str], group_key: str) -> SupPlotsSpec:
+def _annotated_heatmap(data: AnnData, markers: list[str], group_key: str) -> PlotSpec:
     return cl.annotated_heatmap(
         data,
         keys=markers[:3],
@@ -86,7 +86,7 @@ def _umaps(data: AnnData, _markers: list[str], group_key: str) -> SupPlotsSpec:
         pytest.param(_ridge, PlotSpec, id="ridge"),
         pytest.param(_histogram, PlotSpec, id="histogram"),
         pytest.param(_heatmap, PlotSpec, id="heatmap"),
-        pytest.param(_annotated_heatmap, SupPlotsSpec, id="annotated-heatmap"),
+        pytest.param(_annotated_heatmap, PlotSpec, id="annotated-heatmap"),
         pytest.param(_umaps, SupPlotsSpec, id="umaps"),
     ],
 )

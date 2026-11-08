@@ -307,20 +307,8 @@ _BAR_OFFSET_FRACTION = 0.030
 _TIP_LENGTH_FRACTION = 0.018
 _LABEL_GAP_FRACTION = 0.012
 
-# Label sizing has two modes:
-#
-# - "absolute" (default, used by heatmap): label_size is in lets-plot's default
-#   text-size unit (~pt-like). Works well when no other scale_size interferes
-#   with the geom_text. Padding is computed as a fraction of the total y-axis
-#   span using the original heuristic.
-#
-# - "y" (used by dotplot and stacked_violin): label_size is in y-axis units
-#   via `geom_text(size_unit="y")`. This bypasses the silent shrinkage that
-#   `scale_size(range=[...])` applies to `geom_text` size constants in
-#   plots that map a size aesthetic. Padding is computed directly from the
-#   rotated text extent in y-axis units.
-
-# Absolute mode (heatmap).
+# Label size is in the default text-size unit (~pt-like). Padding is a
+# fraction of the total y-axis span.
 _ABS_LABEL_PADDING_BASE_FRACTION = 0.060
 _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION = 0.0051
 _ABS_LABEL_PADDING_MIN_DENSITY_SCALE = 0.45
@@ -331,17 +319,8 @@ _ABS_LABEL_TEXT_SIZE_MIN = 3.75
 _ABS_LABEL_TEXT_SIZE_PER_KEY = 0.06
 _ABS_LABEL_TEXT_SIZE_PER_EXTRA_CHAR = 0.08
 _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
-
-# y-unit mode (dotplot, stacked_violin).
-# Empirically calibrated: cap height ~ 22 px on a typical 6-inch panel when
-# size = 0.037 * total_span y units. Each rotated character occupies roughly
-# `_Y_CHAR_WIDTH_PER_SIZE * label_size` y units along the y axis.
-_Y_LABEL_VISUAL_CAP_FRACTION = 0.037
-_Y_LABEL_LONG_THRESHOLD = 12
-_Y_LABEL_LONG_MIN_FRACTION = 0.6
-_Y_LABEL_SIZE_FLOOR = 0.10
-_Y_CHAR_WIDTH_PER_SIZE = 0.40
-_Y_PADDING_SAFETY_FRACTION = 0.030
+# Square cells: padding in column widths per column, label character and size unit.
+_SQUARE_CELL_PADDING_PER_CHAR_SIZE = 0.0038
 
 
 def _resolve_key_groups(
@@ -391,7 +370,7 @@ def _resolve_key_groups(
 
 
 def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) -> float:
-    """Label size in absolute lets-plot text units (used without `size_unit`)."""
+    """Label size in absolute text units."""
     n_keys = sum(len(values) for values in groups.values())
     max_chars = max((len(label) for label in groups), default=0)
     extra_chars = max(0, max_chars - _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD)
@@ -407,23 +386,6 @@ def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) ->
     return max(_ABS_LABEL_TEXT_SIZE_MIN, size * scale)
 
 
-def _label_size_y_units(groups: dict[str, list[str]], *, span: float, scale: float = 1.0) -> float:
-    """
-    Label size in y-axis units (used with `geom_text(size_unit='y')`).
-
-    Notes
-    -----
-    Scales with `span` so the rendered visual size stays roughly constant
-    across plots with different y-axis spans. Long labels are shrunk slightly
-    to keep the bracket area from dominating the plot.
-    """
-    max_chars = max((len(label) for label in groups), default=0)
-    visual_fraction = _Y_LABEL_VISUAL_CAP_FRACTION
-    if max_chars > _Y_LABEL_LONG_THRESHOLD:
-        visual_fraction *= max(_Y_LABEL_LONG_MIN_FRACTION, _Y_LABEL_LONG_THRESHOLD / max_chars)
-    return max(_Y_LABEL_SIZE_FLOOR, visual_fraction * span * scale)
-
-
 def _resolve_padding(
     groups: dict[str, list[str]],
     *,
@@ -431,7 +393,7 @@ def _resolve_padding(
     data_range: float | None = None,
     scale: float = 1.0,
     label_size_scale: float = 1.0,
-    size_unit: str | None = None,
+    square_cell_columns: int | None = None,
 ) -> float:
     """
     Compute y-axis padding (in data units) for the bracket area.
@@ -440,41 +402,36 @@ def _resolve_padding(
     -----
     `padding` overrides the auto value when given. `scale` is a per-plot
     multiplier applied to the auto padding (use `<1` for a more compact
-    bracket area). `size_unit` selects the sizing mode (`None` for the
-    absolute heatmap mode, `"y"` for the y-unit dotplot/stacked_violin mode).
+    bracket area). `square_cell_columns` is the column count of a plot with
+    square cells (`geom_raster`): one y unit is then one column wide, so the
+    labels need more y units as columns are added.
     """
     if padding is not None:
         return padding
     data = data_range if data_range is not None and data_range > 0 else 5.0
     max_chars = max((len(label) for label in groups), default=0)
-
-    if size_unit is None:
-        n_keys = sum(len(values) for values in groups.values())
-        label_size = _label_size_absolute(groups, scale=label_size_scale)
-        density_scale = max(
-            _ABS_LABEL_PADDING_MIN_DENSITY_SCALE,
-            min(1.0, n_keys / _ABS_LABEL_PADDING_FULL_DENSITY_KEYS),
+    n_keys = sum(len(values) for values in groups.values())
+    label_size = _label_size_absolute(groups, scale=label_size_scale)
+    density_scale = max(
+        _ABS_LABEL_PADDING_MIN_DENSITY_SCALE,
+        min(1.0, n_keys / _ABS_LABEL_PADDING_FULL_DENSITY_KEYS),
+    )
+    target_fraction = min(
+        _BAR_OFFSET_FRACTION
+        + _LABEL_GAP_FRACTION
+        + _ABS_LABEL_PADDING_BASE_FRACTION
+        + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
+        _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
+    )
+    resolved = target_fraction * data / (1.0 - target_fraction) * scale
+    if square_cell_columns is not None:
+        square_padding = (
+            _SQUARE_CELL_PADDING_PER_CHAR_SIZE * square_cell_columns * max_chars * label_size
         )
-        target_fraction = min(
-            _BAR_OFFSET_FRACTION
-            + _LABEL_GAP_FRACTION
-            + _ABS_LABEL_PADDING_BASE_FRACTION
-            + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
-            _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
-        )
-        resolved = target_fraction * data / (1.0 - target_fraction) * scale
-        if data_range is None or data_range <= 0:
-            return max(1.5, resolved)
-        return resolved
-
-    # y-unit mode: padding fits the rotated text extent directly in y units.
-    approx_total_span = data * 1.3
-    label_size = _label_size_y_units(groups, span=approx_total_span, scale=label_size_scale)
-    text_extent = max_chars * _Y_CHAR_WIDTH_PER_SIZE * label_size
-    bar_offset = _BAR_OFFSET_FRACTION * data
-    label_gap = _LABEL_GAP_FRACTION * data
-    safety = _Y_PADDING_SAFETY_FRACTION * data
-    return (bar_offset + label_gap + text_extent + safety) * scale
+        resolved = max(resolved, square_padding * scale)
+    if data_range is None or data_range <= 0:
+        return max(1.5, resolved)
+    return resolved
 
 
 def _build_key_groups_frame(
@@ -529,8 +486,6 @@ def _key_groups_layers(
     bracket_size: float = 0.6,
     width: float = 0.6,
     label_size_scale: float = 1.0,
-    label_size_span: float | None = None,
-    size_unit: str | None = None,
     extra_kwargs: dict | None = None,
 ) -> list[FeatureSpec]:
     """
@@ -541,11 +496,6 @@ def _key_groups_layers(
     Each bracket is one connected `geom_path` (left tip down, top bar across,
     right tip down) so the corners join cleanly with no sub-pixel gap. A
     vertical label is centered on each bracket as a separate `geom_text`.
-
-    `size_unit` selects the label sizing mode (`None` for absolute units,
-    otherwise express the size in that axis' data units). `label_size_span`
-    lets callers size text from a different axis span than the y span used for
-    bracket geometry.
     """
     frame = _build_key_groups_frame(groups, y=y, width=width)
     tip_length = _TIP_LENGTH_FRACTION * total_span
@@ -578,18 +528,8 @@ def _key_groups_layers(
         "hjust": 0,
         "vjust": 0.5,
     }
-    if size_unit is not None:
-        text_kwargs["size_unit"] = size_unit
     text_kwargs.update(extra_kwargs or {})
-
-    if size_unit is None:
-        label_size = _label_size_absolute(groups, scale=label_size_scale)
-    else:
-        label_size = _label_size_y_units(
-            groups,
-            span=total_span if label_size_span is None else label_size_span,
-            scale=label_size_scale,
-        )
+    label_size = _label_size_absolute(groups, scale=label_size_scale)
 
     return [
         geom_path(
@@ -625,6 +565,7 @@ def _fixed_cell_layout(
     *,
     x_span: float,
     y_span: float,
+    y_limits: list[float],
     x_labels: Sequence[str],
     y_labels: Sequence[str],
     legend_width: float,
@@ -638,13 +579,14 @@ def _fixed_cell_layout(
     -----
     `x_span` and `y_span` are the panel extents in data units. The canvas adds
     room for the axis labels (x labels are rotated 90 degrees) and legends,
-    and is never shorter than `legend_height`.
+    and is never shorter than `legend_height`. `y_limits` are passed to the
+    fixed coordinates, which replace any coordinates added before.
     """
     panel_width = x_span * _CELL_SIZE
     panel_height = y_span * _CELL_SIZE * cell_height_ratio
     y_label_width = max(len(label) for label in y_labels) * _CHARACTER_WIDTH
     x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
-    return coord_fixed(ratio=cell_height_ratio) + ggsize(
+    return coord_fixed(ratio=cell_height_ratio, ylim=y_limits) + ggsize(
         panel_width + y_label_width + legend_width + _MARGIN,
         max(panel_height + x_label_height + _MARGIN, legend_height),
     )
