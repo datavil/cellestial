@@ -165,6 +165,24 @@ def test_cluster_outlines_too_few_points_raises():
         _ = plot + cl.cluster_outlines(groups="a")
 
 
+@pytest.mark.parametrize("scale", [0.01, 1.0, 1000.0])
+def test_cluster_outlines_not_cut_at_any_embedding_scale(scale):
+    """Default padding follows the data scale, so outlines are never cut at the grid edge."""
+    generator = np.random.default_rng(0)
+    points = generator.uniform(size=(300, 2)) * scale
+    frame = pl.DataFrame({"x": points[:, 0], "y": points[:, 1], "group": ["a"] * 300})
+    plot = ggplot(frame) + geom_point(aes(x="x", y="y", color="group"))
+
+    def outline_extent(**kwargs):
+        layer = (plot + cl.cluster_outlines(groups="a", **kwargs)).as_dict()["layers"][-1]
+        vertices = pl.DataFrame(layer["data"]).select("x", "y").to_numpy()
+        return np.concatenate([vertices.min(axis=0), vertices.max(axis=0)])
+
+    # A generous padding cannot cut the outline, so it is the reference.
+    reference = outline_extent(padding=10 * scale, grid_size=400)
+    np.testing.assert_allclose(outline_extent(), reference, atol=0.05 * scale)
+
+
 def test_cluster_outlines_requires_coordinates_and_group_mapping():
     frame = pl.DataFrame(
         {

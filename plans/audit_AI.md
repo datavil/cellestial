@@ -84,6 +84,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `highlight` | Claude Opus 5.5 |  |  |  |  |
 | `_sort_integer_like_groups` | Claude Opus 5.5 |  |  |  |  |
 | `_format_warning` | Claude Opus 5.5 |  |  |  |  |
+| `_kernel_padding` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -95,7 +96,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_spatial_components` | Claude 4.7 |  |
 | `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
 | `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `cluster_outlines` | Mixed |  |
+| `cluster_outlines` | Mixed and Claude Opus 5.5 |  |
 | `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
 | `arrow_axis` | Claude 4.7 and Claude Opus 5.5 |  |
 | `_axis_arrow_layers` | Claude Opus 5.5 |  |
