@@ -85,6 +85,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_sort_integer_like_groups` | Claude Opus 5.5 |  |  |  |  |
 | `_format_warning` | Claude Opus 5.5 |  |  |  |  |
 | `_kernel_padding` | Claude Opus 5.5 |  |  |  |  |
+| `_print_progress` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -151,7 +152,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_resolve_embedding_key` | Claude Opus 5 |  |
 | `_determine_axis` | Claude Opus 5 |  |
 | `_get_dendrogram` | Claude Opus 5 |  |
-| `from_url` | Claude Opus 5 |  |
+| `from_url` | Claude Opus 5, Claude Opus 5.5 |  |
 | `annotated_heatmap` | Claude Opus 5 |  |
 | `markers` | Claude Opus 5 and Claude Opus 5.5 |  |
 | `volcano` | Claude Opus 5 and Claude Opus 5.5 |  |

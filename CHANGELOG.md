@@ -7,14 +7,58 @@ Entries for 0.58.2 and earlier were reconstructed from the commit history after
 the fact, so they summarize each release in a line or two rather than list every
 change. Versions absent from the list were never released.
 
-## [Unreleased]
+## [0.61.0] - 2026-11-08
+
+cellestial now builds and renders every plot with ggrust, a Rust backend that
+keeps the lets-plot API. Statistics, density estimates, velocity grids,
+outlines, axis dendrograms and arrow axes that cellestial used to compute or
+draw by hand now come from ggrust. That shrinks the dependency tree: lets-plot,
+scikit-image and tqdm are gone, spatialdata is optional, and the `extras` extra
+is removed. The release also adds `highlight`, gives the matrix-style plots
+fixed-size cells, turns `annotated_heatmap` into a single zoomable plot, and
+renames several parameters for consistency. Most of the breaking changes are
+renames with a one-line migration, listed below.
 
 ### Added
 - Added `highlight`, a layer that draws the chosen groups in color over every
   other cell in grey: `cl.umap(data, key="leiden") + cl.highlight(["0", "3"])`
   (issue #38).
+- Added `track_titles` to `annotated_heatmap` (see the `annotated_heatmap`
+  entry under Breaking).
+
+### Dependencies
+- lets-plot is replaced by ggrust (`ggrust>=0.8.0,<1.0`).
+- scikit-image is no longer a dependency: `cluster_outlines` uses ggrust's
+  density outline.
+- tqdm is no longer a dependency: dataset downloads print their own progress
+  line.
+- spatialdata moved to the `spatial` extra (see Breaking).
+- The `extras` extra (matplotlib, scanpy, scvelo) is removed (see Breaking).
+  None of the three is needed any more: `stream` builds its velocity grid and
+  streamlines with ggrust instead of scVelo and matplotlib.
 
 ### Breaking
+- Plots are built and rendered with ggrust instead of lets-plot. ggrust keeps
+  the lets-plot API, but cellestial now returns ggrust plot objects, which do
+  not combine with layers or themes made by `lets_plot`.
+  - Migration: replace `from lets_plot import ...` with `from ggrust import ...`
+    in code that adds layers, scales or themes to cellestial plots.
+- `cellestial.setup_html` is removed, along with the ggrust `LetsPlot` shim it
+  aliased. It was a no-op, and so is the setup call cellestial made on import
+  in IPython.
+  - Migration: delete `setup_html()` calls; use
+    `ggrust.display("html" | "svg" | "png")` to choose notebook output.
+- `spatialdata` is no longer installed by default. It is only needed to plot
+  `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
+  inputs, spatial ones included, work without it. Dropping it from the core
+  install keeps its dask and geopandas stack out of environments that do not
+  use it.
+  - Migration: install the `spatial` extra, `pip install "cellestial[spatial]"`.
+- The `extras` extra is removed. cellestial no longer imports matplotlib,
+  scanpy or scvelo.
+  - Migration: install the packages you use directly, e.g.
+    `pip install cellestial "scanpy[leiden]"` instead of
+    `pip install "cellestial[extras]"`.
 - `annotated_heatmap` returns one `PlotSpec` instead of a `gggrid` of
   `SupPlotsSpec` panels. Annotation tracks are ggside side layers
   (`geom_xsidetile`/`geom_ysidetile`), each with its own fill scale
@@ -22,39 +66,38 @@ change. Versions absent from the list were never released.
   output (`interactive=True`). Track titles beside the bands are hidden by
   default, since the legends name each track; the new `track_titles=True`
   shows them (a top or bottom band's names on its right, a left or right
-  band's names above it). The group dendrogram is drawn in
-  the observation band, outermost. `layers_all` acts as `layers` now that there
-  is a single plot. `column_annotation_height`, `row_annotation_width` and the
-  tree's 0.15 width set the bands' share of the panel
-  (`ggside_panel_scale_x`/`_y`).
+  band's names above it). The group dendrogram is drawn in the observation
+  band, outermost. `layers_all` acts as `layers` now that there is a single
+  plot. `column_annotation_height`, `row_annotation_width` and the tree's 0.15
+  width set the bands' share of the panel (`ggside_panel_scale_x`/`_y`).
   - Migration: index the plot's `as_dict()["layers"]` instead of
     `["figures"]`; combine it with other plots through `gggrid` as any
     `PlotSpec`.
-- ggrust 0.7.1 is required. `cellestial.setup_html` is removed, with the ggrust
-  `LetsPlot` shim it aliased; it was a no-op, as is the setup call cellestial
-  made on import in IPython.
-  - Migration: delete `setup_html()` calls; use `ggrust.display("html" | "svg" | "png")`
-    to choose notebook output.
 - `dotplot`, `stacked_violin`, `matrixplot` and `heatmap(aggregate=True)` draw
   the group dendrogram with ggrust's axis dendrogram (`scale_y_dendro` +
   `guide_axis_dendro`) instead of a `geom_path` layer. The tree sits in a fixed
   band right of the panel rather than inside an extended x range, so the data
-  area no longer shrinks to make room for it. `dendrogram_kwargs` is removed from
-  these functions and from `heatmap`; the per-cell `heatmap(aggregate=False)`
-  keeps its path layer, styled by `dendrogram_color` and `dendrogram_size`.
+  area no longer shrinks to make room for it. `dendrogram_kwargs` is removed
+  from these functions and from `heatmap`; the per-cell
+  `heatmap(aggregate=False)` keeps its path layer, styled by `dendrogram_color`
+  and `dendrogram_size`.
   - Migration: drop `dendrogram_kwargs`; style the tree with `dendrogram_color`
     and `dendrogram_size`, or with `theme(axis_ticks_y=element_line(...))`.
-- `arrow_axis` returns a ggrust theme with arrow axis lines instead of a deferred
-  layer of `geom_path`/`geom_segment`. It no longer takes `plot=` (the theme needs
-  no data) or `**geom_kwargs`; `linetype=` is now an explicit parameter. `length`
-  is a fraction of the panel rather than of the data range, so arrows start at the
-  panel corner.
-  - Migration: drop `plot=`; pass `linetype=` directly; other geom kwargs such as
-    `alpha` are no longer supported.
+- `arrow_axis` returns a ggrust theme with arrow axis lines instead of a
+  deferred layer of `geom_path`/`geom_segment`. It no longer takes `plot=`
+  (the theme needs no data) or extra keyword arguments, which used to be
+  forwarded to `arrow()`. Arrowhead options go through an `arrow_kwargs` dict,
+  and `linetype=` is an explicit parameter. `length` is a fraction of the panel
+  rather than of the data range, so arrows start at the panel corner.
+  - Migration: drop `plot=`; `arrow_axis(type="closed")` becomes
+    `arrow_axis(arrow_kwargs={"type": "closed"})`; pass `linetype=` directly.
+    Other geom options such as `alpha` are no longer supported.
 - `bracket` computes its tests with ggrust's `stat_compare_means` instead of
   scipy. P-values, the `none`/`bonferroni`/`fdr_bh` corrections and the stars
   agree for groups of 50 or more values; below that, tie-free groups get R's
-  exact Wilcoxon test, so `mannwhitney` p-values change there. Stars now use
+  exact Wilcoxon test, so `mannwhitney` p-values change there.
+  `test="ttest"` is now Welch's t-test rather than the pooled-variance one,
+  matching R's `t.test()` and scanpy, so its p-values change too. Stars now use
   `<=` cutoffs, and p-value labels show 2 significant digits. Bracket tips are
   3% of the y range (ggpubr's default) instead of a fixed size. Removed:
   `test="student"`, `alternative`, `label="padj"` and label sequences,
@@ -62,32 +105,15 @@ change. Versions absent from the list were never released.
   - Migration: `label="padj"` becomes `label="pvalue"` (it shows the adjusted
     p-value); `threshold=0.05` becomes `hide_ns=True` with `label="stars"`;
     pass `tip_length=` for other tips. One-sided and pooled-variance tests are
-    no longer available: ggrust's `student` is Welch's test, so it is not offered
-    under that name; use `test="ttest"`.
-- `spatialdata` is no longer installed by default. It is only needed to plot
-  `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
-  inputs, spatial ones included, work without it. Dropping it from the core
-  install keeps its dask and geopandas stack out of environments that do not
-  use it.
-  - Migration: install the `spatial` extra, `pip install "cellestial[spatial]"`.
-- Plots are built and rendered with ggrust instead of lets-plot. ggrust keeps
-  the lets-plot API, but cellestial now returns ggrust plot objects, which do
-  not combine with layers or themes made by `lets_plot`.
-  - Migration: replace `from lets_plot import ...` with `from ggrust import ...`
-    in code that adds layers, scales or themes to cellestial plots.
-- `bracket(test="ttest")` is now Welch's t-test rather than the pooled-variance
-  one, matching R's `t.test()` and scanpy. P-values change.
-  - Migration: none; the pooled-variance test is no longer available (see the
-    `stat_compare_means` entry above).
+    no longer available; use `test="ttest"` for Welch's test.
 - `volcano` and `volcanos` name their p-value column after the values it holds.
   Under the default `use_adjusted_pvalue=True` the column, tooltip entry and
-  y-axis title read `pvalue_adj` and `-log10(Padj)`; raw p-values are unaffected.
+  y-axis title read `pvalue_adj` and `-log10(Padj)`; raw p-values are
+  unaffected.
   - Migration: pass `pvalue_column="pvalue"` to keep the old column name.
 - `volcano` and `volcanos` spell out the negative log p-value parameter and the
   column it names: `neg_log_pvalue_column` is now `negative_log_pvalue_column`,
-  and its default changes from `neg_log_pvalue` to `negative_log_pvalue`. The
-  contraction was the only one left in the public API, next to fully spelled
-  neighbours like `pvalue_column` and `nonsignificant_label`.
+  and its default changes from `neg_log_pvalue` to `negative_log_pvalue`.
   - Migration: rename the keyword. Code reading the output column by name, or
     naming it in `mapping`/`tooltips`, needs the new spelling too, or pass
     `negative_log_pvalue_column="neg_log_pvalue"` to keep the old column name.
@@ -100,23 +126,19 @@ change. Versions absent from the list were never released.
   - Migration: correct the name, or drop it from the list. To tolerate names
     that may be absent across datasets, intersect with the column's categories
     before the call.
-- `spatial` and `spatials` no longer accept `scale_axis`. Standardization needs
-  a matrix with two directions to partition along, which a spatial plot does not
-  have: it maps one value column onto one continuous colour scale, so min-max
-  scaling it was absorbed by that scale and left the rendered plot unchanged.
-  It also leaked normalized values into the tooltips. The parameter is dropped
-  rather than renamed, matching `dimensional`, which never offered it, and
-  scanpy, which puts `standard_scale` on the matrix plots only.
+- `spatial` and `spatials` no longer accept `scale_axis`. A spatial plot maps
+  one value column onto one continuous colour scale, so min-max scaling it was
+  absorbed by that scale and left the rendered plot unchanged, while leaking
+  normalized values into the tooltips.
   - Migration: remove the argument. Plots render identically without it. Only
     the colour bar labels change, from 0-1 back to the values' own units, and a
     numeric `midpoint` is now given in those units.
 - `stacked_violin` renames `color_by` to `fill_statistic`. The parameter picks
   what drives the fill aesthetic, not color, and its old name shadowed the
-  plotting backend's own `color_by` layer parameter, which could not be passed
-  through `**geom_kwargs`.
-  - Migration: rename the keyword, e.g. `color_by="group"` becomes
-    `fill_statistic="group"`. A `color_by` argument now reaches the violin
-    layer instead.
+  backend's own `color_by` layer parameter, which could not be passed through
+  `**geom_kwargs`.
+  - Migration: `color_by="group"` becomes `fill_statistic="group"`. A
+    `color_by` argument now reaches the violin layer instead.
 - `dotplot` and `stacked_violin` name the parameters for their output frame
   columns with a `_column` suffix, matching `value_column` and
   `variable_column`: `percentage_key` is now `percentage_column`, `mean_key` is
@@ -131,28 +153,14 @@ change. Versions absent from the list were never released.
   - Migration: rename the keyword. The old names are no longer recognized and
     are passed through to the geom like any other extra keyword, so they no
     longer hide the points or threshold lines.
-- `arrow_axis` takes arrowhead options through an `arrow_kwargs` dict, and
-  its extra keyword arguments now go to the axis line layers (`geom_path`
-  and `geom_segment`) as `**geom_kwargs`. They used to be forwarded to
-  `arrow()`, so a geom option like `linetype` had no way in.
-  - Migration: `arrow_axis(type="closed")` becomes
-    `arrow_axis(arrow_kwargs={"type": "closed"})`.
 - `observations_name` and `variables_name` are renamed to
   `observation_id_column` and `variable_id_column` across the public API
-  (`build_frame`, the frame helpers and every plot that takes them). They name
-  the identifier column of the observations or variables frame, and the old
-  names were easy to confuse with `variable_column`, the unpivot name column.
-  Defaults (`"Barcode"`, `"Variable"`) and behaviour are unchanged.
-  - Migration: rename the keywords, e.g. `observations_name="Cell"` becomes
+  (`build_frame`, the frame helpers and every plot that takes them). Defaults
+  (`"Barcode"`, `"Variable"`) and behaviour are unchanged.
+  - Migration: e.g. `observations_name="Cell"` becomes
     `observation_id_column="Cell"`.
 
 ### Changed
-- Extra keyword arguments forwarded to the underlying geom are documented as
-  `**geom_kwargs` everywhere. `dimensional`, `umap`, `pca`, `tsne`,
-  `expression`, `xyplot`, `spatial`, `volcano` (and their plurals) used
-  `**point_kwargs`, and `markers` used `**text_kwargs`, which clashed with the
-  `point_kwargs` dict parameter of `violin` and `boxplot`. Calls are unaffected,
-  since keyword arguments land in the catch-all whatever its name.
 - `dotplot`, `stacked_violin` and `matrixplot` draw cells of a fixed size
   (square, and 1.5 times taller than wide for violins), and the plot grows
   with the number of keys and groups instead of stretching cells to fill a
@@ -167,6 +175,14 @@ change. Versions absent from the list were never released.
   panel, so heatmaps with many keys are no longer a narrow column with
   overlapping key labels. Cell rows sit one y unit apart rather than being
   rescaled to the width of the key axis.
+- `cluster_outlines` pads each cluster's density grid by the reach of its
+  kernel instead of a fixed 1.5 data units, so outlines stay closed on t-SNE,
+  spatial and rescaled embeddings, not just UMAP. `padding` now defaults to
+  `None` (automatic); an explicit float works as before.
+- `stream`, `cluster_outlines` and `stacked_violin` compute their velocity
+  grid, density outlines and violin densities with ggrust. Plots look the
+  same: violins are pixel-identical, outlines move by at most 5 px, and
+  streams differ only by float32 rounding.
 - `stacked_violin` warns when it skips a group's violin because its values are
   too uniform to estimate a density, instead of dropping it silently. Other
   errors from the density estimate are no longer swallowed.
@@ -175,24 +191,24 @@ change. Versions absent from the list were never released.
   `dotplot` already did. They used to follow first-seen order.
 - `markers` caps `ncol` at the number of groups, so a single group fills the
   canvas instead of taking one third of it.
+- Extra keyword arguments forwarded to the underlying geom are documented as
+  `**geom_kwargs` everywhere (previously `**point_kwargs` or `**text_kwargs`
+  in some functions). Calls are unaffected.
 
 ### Fixed
+- Single-key `violin`, `boxplot`, `histogram` and their plural variants no
+  longer raise `DuplicateError: duplicate column name` with polars 1.44 and
+  newer.
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
   the labels picked among p-values that underflow to zero are the strongest
   features and stable between builds.
 - `stream` no longer fails on a two-vertex streamline, and drops streamlines
   whose midpoint vertex is repeated.
-- `_range_inclusive` reaches both endpoints without overshooting them, and
-  accepts a stop below the start.
-- Single-key `violin`, `boxplot`, `histogram` and their plural variants no
-  longer raise `DuplicateError: duplicate column name` with polars 1.44 and
-  newer. The value column took the key's name during the unpivot, which newer
-  polars rejects.
 
 ### Notes
-- `bracket` tests the rows the plot draws, so a plot built with `threshold`
-  restricts the comparison to the observations above it. Documented only;
-  behaviour unchanged.
+- `bracket` tests the rows the plot draws, so on a plot built with the plot
+  function's own `threshold`, the comparison covers only the observations
+  above it. Documented only; behaviour unchanged.
 
 ## [0.60.0] - 2026-08-06
 
