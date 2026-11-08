@@ -7,6 +7,17 @@ Entries for 0.58.2 and earlier were reconstructed from the commit history after
 the fact, so they summarize each release in a line or two rather than list every
 change. Versions absent from the list were never released.
 
+## [Unreleased]
+
+### Added
+- Added `blend`, a co-expression plot of two features on an embedding, after
+  Seurat's blended feature plot: `cl.blend(data, keys=("CD3E", "CD8A"))`. It
+  returns a grid of the two feature panels, the blended panel, and a
+  two-dimensional color key. Cells expressing both features show the sum of
+  both colors (yellow for the default red and green) (issue #75).
+- Added `InvalidColorError`, raised when a color is not in a format the
+  function can compute with.
+
 ## [0.61.0] - 2026-11-08
 
 cellestial now builds and renders every plot with ggrust, a Rust backend that
