@@ -517,7 +517,7 @@ def ranked(mudata):
     return container
 
 
-@pytest.mark.parametrize("plot", [cl.heatmap, cl.dotplot, cl.stacked_violin])
+@pytest.mark.parametrize("plot", [cl.heatmap, cl.dotplot, cl.stacked_violin, cl.tracksplot])
 def test_markers_group_by_the_clustering_the_ranking_used(ranked, plot):
     """
     The derived `group_by` must be read as the container names it.

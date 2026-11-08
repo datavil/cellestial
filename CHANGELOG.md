@@ -22,6 +22,13 @@ change. Versions absent from the list were never released.
   both colors (yellow for the default red and green) (issue #75).
 - Added `InvalidColorError`, raised when a color is not in a format the
   function can compute with.
+- Added `tracksplot`: cells ordered along x by group, one bar or area track per
+  key, a colored group bar marking the group spans, and optional dendrogram and
+  key-group brackets. Shares its parameters with `heatmap`:
+  `cl.tracksplot(data, keys=["CD3D", "LYZ"], group_by="leiden")` (issue #73).
+- Added `InvalidArgumentError` (a `ValueError`) for missing or out-of-range
+  parameter values, and `DendrogramMismatchError` (a `ValueError`) for a stored
+  dendrogram that covers groups absent from the data.
 
 ## [0.61.0] - 2026-11-08
 

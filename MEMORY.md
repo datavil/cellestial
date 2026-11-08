@@ -28,6 +28,7 @@
 - [Project: Deferred layers read the built frame](project_deferred_layers_read_frame.md) — Don't narrow embeddings in plot functions; `cl.stream()` reads velocity embeddings from the frame after the plot call
 - [Feedback: Track breaking changes in CHANGELOG.md](feedback_changelog_breaking_changes.md) — Record breaking API changes under a new `## [Unreleased]` in repo-root `CHANGELOG.md` (`### Breaking` + migration note); never edit a published dated section
 - [Project: geom_raster aspect lock](project_letsplot_geom_raster_aspect.md) — lets-plot geom_raster forces square pixels; cl.heatmap rescales y, cl.annotated_heatmap (cellestial/complex) uses geom_tile + gggrid(align, guides)
+- [Project: ggrust facets and thin rects](project_ggrust_facets_and_thin_rects.md) — Facets drop ggside layers; dense geom_rect outlines hide fill (size=0); ribbons need per-track-per-group `group`
 - [Project: annotated_heatmap overflow](project_annotated_heatmap_overflow.md) — cl.annotated_heatmap layout: dendrogram clip fixed (expand left margin), legend overflow fixed (bottom horizontal compact, set on subplots+grid); per-track brewer palettes; bar-end labels tried+reverted (leftmost row-label column clips). ggsize is not a fix.
 - [Project: Distribution aesthetic param naming](project_distribution_aesthetic_naming.md) — Keep `color`/`fill` as column mappings and `geom_color`/`geom_fill` as constants; never rename to `color_by`/`fill_by` (collides with live lets-plot passthrough)
 - [Project: MuData container](project_mudata_container.md) — MuData support routes through internal `_Container`/`_MuDataContainer`; dtype doubling, obsmap alignment, obsm masks, non-raising lookup, lazy import
@@ -976,3 +977,22 @@ In ggrust (as in lets-plot), `geom_tile(width=..., height=...)` is a fraction of
 **Why:** The `cl.blend` color key (issue #75, 2026-11-08) rendered empty until width/height were dropped.
 
 **How to apply:** Omit tile width/height for touching tiles; use values below 1 only to add gaps. Related: [[project-letsplot-geom-raster-aspect]].
+
+---
+
+## Source: project_ggrust_facets_and_thin_rects.md
+
+---
+name: project-ggrust-facets-and-thin-rects
+description: ggrust facets drop ggside layers; rect/ribbon outlines hide the fill of one-pixel-wide columns, so set size=0
+metadata:
+  type: project
+---
+
+Two ggrust 0.8 limits that shaped `cl.tracksplot` (issue #73, 2026-11-08):
+- `facet_grid`/`facet_wrap` plots draw no side panels: `geom_xside*` / `ggside` layers are dropped with a warning. A faceted plot cannot carry an aligned group bar, so tracksplot stacks its tracks manually in one panel (offset per key, scaled by each key's max absolute value).
+- With ~1000 cell columns each `geom_rect` is about one pixel wide, and its default outline covers the fill, so a mapped `fill` looks grey. Default `size=0` for such layers. A `geom_ribbon` with a mapped fill also needs `group` set per track and per group, or each track gets one fill.
+
+**Why:** Both cost a render-and-look cycle to diagnose.
+
+**How to apply:** Avoid facets when a plot needs side annotations. Zero the outline on dense rect/ribbon layers. Related: [[project-ggrust-tile-width-relative]].

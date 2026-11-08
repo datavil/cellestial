@@ -86,6 +86,20 @@ class InvalidColorError(ValueError):
         super().__init__(message)
 
 
+class DendrogramMismatchError(ValueError):
+    """Raised when a stored dendrogram covers groups that differ from the groups present in the data."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class InvalidArgumentError(ValueError):
+    """Raised when a required parameter is missing or a parameter value is not one of the accepted values."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
 
