@@ -4,7 +4,15 @@ from cellestial import datasets
 from cellestial._version import __version__, versions
 from cellestial.complex import annotated_heatmap
 from cellestial.frames import build_frame
-from cellestial.layers import arrow_axis, borders, bracket, cluster_outlines, ondata_legend, stream
+from cellestial.layers import (
+    arrow_axis,
+    borders,
+    bracket,
+    cluster_outlines,
+    highlight,
+    ondata_legend,
+    stream,
+)
 from cellestial.single import (
     bar,
     boxplot,
@@ -95,6 +103,7 @@ __all__ = [
     "get_mapping",
     "heatmap",
     "highest_expressed_genes",
+    "highlight",
     "histogram",
     "histograms",
     "layout",

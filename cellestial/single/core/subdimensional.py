@@ -177,6 +177,16 @@ def umap(
 
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.umap(data,key="leiden") + cl.highlight(["0","3"])
+
     """
     _reject_sequence_key(key, singular="umap", plural="umaps")
     return dimensional(
@@ -379,6 +389,16 @@ def tsne(
 
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
 
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.tsne(data,key="leiden") + cl.highlight(["0","3"])
+
     """  # noqa: D403
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
     return dimensional(
@@ -580,6 +600,16 @@ def pca(
         data = cl.datasets.pbmc3k()
 
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.pca(data,key="leiden") + cl.highlight(["0","3"])
 
     """
     _reject_sequence_key(key, singular="pca", plural="pcas")

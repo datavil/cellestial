@@ -221,6 +221,16 @@ def dimensional(
 
         cl.dimensional(data,key="CD14",axis_type="arrow",color_high="red")
 
+    Highlight a few groups over grey cells.
+
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.dimensional(data,key="leiden") + cl.highlight(["0","3"])
+
     """
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):

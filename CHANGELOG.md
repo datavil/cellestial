@@ -9,6 +9,11 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Added
+- Added `highlight`, a layer that draws the chosen groups in color over every
+  other cell in grey: `cl.umap(data, key="leiden") + cl.highlight(["0", "3"])`
+  (issue #38).
+
 ### Breaking
 - `spatialdata` is no longer installed by default. It is only needed to plot
   `SpatialData` objects with `spatial`, `spatials` or `build_frame`; AnnData
