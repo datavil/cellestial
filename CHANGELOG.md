@@ -26,6 +26,12 @@ change. Versions absent from the list were never released.
   - Migration: index the plot's `as_dict()["layers"]` instead of
     `["figures"]`; combine it with other plots through `gggrid` as any
     `PlotSpec`.
+- ggrust 0.7 is required.
+- `cellestial.layers.DeferredLayer` is a plain class instead of a `PlotSpec`
+  subclass; ggrust's `+` now hands unknown operands to their `__radd__`.
+  `plot + layer` works as before, but `isinstance(layer, PlotSpec)` is now
+  `False`.
+  - Migration: only add a `DeferredLayer` to a plot; do not treat it as one.
 - ggrust 0.6 is required. `cellestial.setup_html` is removed, with the ggrust
   `LetsPlot` shim it aliased; it was a no-op, as is the setup call cellestial
   made on import in IPython.

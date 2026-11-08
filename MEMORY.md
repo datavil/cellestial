@@ -603,15 +603,15 @@ if interactive:
 
 ## Layer addition (deferred layer pattern)
 - Layers (`arrow_axis`, `bracket`, `cluster_outlines`, `stream`) return a `DeferredLayer`
-  (subclass of `PlotSpec` in `cellestial/layers/_deferred.py`) — they do **not** take
+  (plain class with `__radd__` in `cellestial/layers/_deferred.py`) — they do **not** take
   `plot` positionally. The receiving plot is delivered by `__radd__` at `+` time.
 - Primary usage: `umap + cl.arrow_axis()` (no `plot` arg needed).
 - Advanced/escape-hatch: `ggplot() + cl.stream(plot=umap)` — the `plot` keyword-only
   argument lets callers pin an explicit data source when the receiving plot is
   different (e.g. drawing stream on an empty canvas beside the source).
-- `DeferredLayer` subclasses `PlotSpec` so Python's reflected-operator priority
-  rule fires `__radd__` before lets-plot's `PlotSpec.__add__` (which otherwise
-  raises `TypeError` for unknown right operands — it does NOT return `NotImplemented`).
+- ggrust's `PlotSpec.__add__` returns `NotImplemented` for unknown operands, so
+  `__radd__` runs. `DeferredLayer` must not subclass `FeatureSpec`/`PlotSpec`
+  (the lets-plot era needed a `PlotSpec` subclass; dropped with ggrust 0.7).
 
 
 ---
