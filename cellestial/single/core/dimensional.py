@@ -221,6 +221,20 @@ def dimensional(
 
         cl.dimensional(data,key="CD14",axis_type="arrow",color_high="red")
 
+    Highlight a few groups over grey cells by adding `gghighlight`. The
+    `.all()` tests each group as a whole, so whole groups are kept.
+
+    .. jupyter-execute::
+
+        import polars as pl
+        from ggrust import *
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.dimensional(data,key="leiden") + gghighlight(pl.col("leiden").is_in(["0","3"]).all())
+
     """
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):

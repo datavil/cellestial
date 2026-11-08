@@ -177,6 +177,20 @@ def umap(
 
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
+    Highlight a few groups over grey cells by adding `gghighlight`. The
+    `.all()` tests each group as a whole, so whole groups are kept.
+
+    .. jupyter-execute::
+
+        import polars as pl
+        from ggrust import *
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.umap(data,key="leiden") + gghighlight(pl.col("leiden").is_in(["0","3"]).all())
+
     """
     _reject_sequence_key(key, singular="umap", plural="umaps")
     return dimensional(
@@ -378,6 +392,20 @@ def tsne(
         data = cl.datasets.pbmc3k()
 
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight a few groups over grey cells by adding `gghighlight`. The
+    `.all()` tests each group as a whole, so whole groups are kept.
+
+    .. jupyter-execute::
+
+        import polars as pl
+        from ggrust import *
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.tsne(data,key="leiden") + gghighlight(pl.col("leiden").is_in(["0","3"]).all())
 
     """  # noqa: D403
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
@@ -581,6 +609,20 @@ def pca(
 
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
 
+    Highlight a few groups over grey cells by adding `gghighlight`. The
+    `.all()` tests each group as a whole, so whole groups are kept.
+
+    .. jupyter-execute::
+
+        import polars as pl
+        from ggrust import *
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.pca(data,key="leiden") + gghighlight(pl.col("leiden").is_in(["0","3"]).all())
+
     """
     _reject_sequence_key(key, singular="pca", plural="pcas")
     return dimensional(
@@ -769,6 +811,19 @@ def expression(
         data = cl.datasets.pbmc3k()
 
         cl.expression(data,key="CD14",axis_type="arrow",color_high="red")
+
+    Highlight the cells above an expression threshold by adding `gghighlight`.
+
+    .. jupyter-execute::
+
+        import polars as pl
+        from ggrust import *
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+
+        cl.expression(data,key="CD14") + gghighlight(pl.col("CD14") > 2)
 
     """
     _reject_sequence_key(key, singular="expression", plural="expressions")

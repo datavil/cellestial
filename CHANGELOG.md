@@ -92,6 +92,9 @@ change. Versions absent from the list were never released.
     `observation_id_column="Cell"`.
 
 ### Changed
+- The `dimensional`, `umap`, `tsne`, `pca` and `expression` docs show how to
+  highlight a few groups, or the cells above an expression threshold, over grey
+  cells by adding `gghighlight` to the plot (issue #38).
 - Extra keyword arguments forwarded to the underlying geom are documented as
   `**geom_kwargs` everywhere. `dimensional`, `umap`, `pca`, `tsne`,
   `expression`, `xyplot`, `spatial`, `volcano` (and their plurals) used
