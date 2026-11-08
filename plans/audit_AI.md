@@ -28,6 +28,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_collect_aes_columns` | Claude 4.7 |  |  |  |  |
 | `_resolve_instance_key` | Claude 4.7 |  |  |  |  |
 | `layout` | Claude 4.8 |  |  |  |  |
+| `_key_groups_guide` | Claude Opus 5.5 |  |  |  |  |
 | `_normalize_widths` | Claude 4.8 |  |  |  |  |
 | `_unsupported_data_type` | Claude 4.8 |  |  |  |  |
 | `_reject_sequence_key` | Claude 4.8 |  |  |  |  |

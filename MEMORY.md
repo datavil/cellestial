@@ -21,7 +21,7 @@
 - [Feedback: `if isinstance(data, AnnData)` block stays](feedback_isinstance_anndata_block.md) — Never flatten to `if not isinstance: raise`; positive branch hosts AnnData-specific ops for future multi-backend support
 - [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
 - [Feedback: No hidden aesthetic promotion](feedback_no_hidden_aesthetic_promotion.md) — Don't auto-promote `group_by` to `fill`/`color`; user wires aesthetics explicitly, prefer warn+facet over hidden magic
-- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
+- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Key-group brackets avoid it since ggrust 0.7 (axis guide).
 - [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
@@ -314,10 +314,11 @@ scale_size routing. Calibrate the size value differently:
 - Without size_unit: size is in lets-plot text units (~pt-like, e.g. 4-6 typical).
 - With size_unit="y": size is in y-axis units (e.g. 0.2 means cap height = 0.2 y).
 
-This is exactly why `cellestial/single/heatmap/_key_groups.py` has dual-mode
-sizing: heatmap uses absolute units (no scale_size in plot), dotplot and
-stacked_violin pass `size_unit="y"` because dotplot adds
-`scale_size(range=[size_max*0.1, size_max])` for the dot sizing.
+Key-group brackets no longer draw `geom_text`: since ggrust 0.7 they are an
+axis guide (`guide_axis_nested(side="opposite")` via `_key_groups_guide` in
+`cellestial/single/heatmap/utilities.py`), so the padding and label-size
+calibration that this quirk forced is gone. The quirk still applies to any
+other `geom_text` added to a plot with `scale_size(range=...)`.
 
 **To reproduce / verify:** Build a plot with `geom_point(aes(size="value"))` +
 `scale_size(range=[3, 30])` + `geom_text(size=8.6)`. The text renders at ~1px.

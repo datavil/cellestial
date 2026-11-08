@@ -302,40 +302,15 @@ def test_resolve_key_groups_dict_rejects_single_string_value():
         _resolve_key_groups({"G1": "A"})
 
 
-def test_key_groups_bar_y_above_top_edge():
-    from cellestial.single.heatmap.utilities import _key_groups_bar_y
-
-    top_edge = 7.5
-    bar_y = _key_groups_bar_y(top_edge)
-    assert bar_y > top_edge, "bracket bar must sit above the plot top edge"
-    assert bar_y - top_edge < 1.0, "bracket bar should be close to the top edge"
-
-
-def test_resolve_padding_scales_with_label_length():
-    from cellestial.single.heatmap.utilities import _resolve_padding
-
-    short = _resolve_padding({"A": ["x"], "B": ["y"]}, padding=None)
-    long = _resolve_padding({"Lymphocytes": ["x"], "Monocytes": ["y"]}, padding=None)
-    assert short < long, "longer labels need more padding"
-    assert short >= 1.5, "padding has a sensible floor"
-
-
-def test_resolve_padding_explicit_overrides_auto():
-    from cellestial.single.heatmap.utilities import _resolve_padding
-
-    explicit = _resolve_padding({"Lymphocytes": ["x"]}, padding=0.5)
-    assert explicit == 0.5
-
-
-def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
+def test_dotplot_dict_keys_keep_tight_y_limit_with_brackets(adata, group_key):
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
     n_y = adata.obs[group_key].nunique()
     spec = plot.as_dict()
     scales = [s for s in spec.get("scales", []) if s.get("aesthetic") == "y" and "limits" in s]
     assert scales, "dotplot should keep explicit y limits"
-    # Brackets are drawn above the data area, so y limit must extend past it.
-    assert scales[-1]["limits"][1] > n_y - 0.5
+    # Brackets are an axis guide outside the panel, so the y limit stays tight.
+    assert scales[-1]["limits"][1] == n_y - 0.5
 
 
 def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_key):
@@ -346,31 +321,6 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
     scales = [s for s in spec.get("scales", []) if s.get("aesthetic") == "y" and "limits" in s]
     assert scales, "dotplot should keep explicit y limits"
     assert scales[-1]["limits"][1] == n_y - 0.5
-
-
-def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
-    plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
-    text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert "size_unit" not in text_layers[-1]
-    assert text_layers[-1]["size"] >= 3.75
-
-
-def test_resolve_padding_square_cells_grow_with_columns():
-    from cellestial.single.heatmap.utilities import _resolve_padding
-
-    groups = {f"group number {index}": [str(index)] for index in range(12)}
-    free = _resolve_padding(groups, padding=None, data_range=4)
-    six = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=6)
-    twelve = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=12)
-    assert six >= free, "square cells never get less padding"
-    assert twelve > six, "one y unit is one column wide, so more columns need more y units"
-
-
-def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
-    plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
-    text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert "size_unit" not in text_layers[-1]
-    assert text_layers[-1]["size"] >= 3.75
 
 
 # ---- dotplot ----

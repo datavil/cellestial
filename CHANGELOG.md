@@ -27,6 +27,16 @@ change. Versions absent from the list were never released.
     `["figures"]`; combine it with other plots through `gggrid` as any
     `PlotSpec`.
 - ggrust 0.7 is required.
+- `heatmap`, `matrixplot`, `dotplot` and `stacked_violin` draw key-group
+  brackets (`keys` as a mapping) with ggrust's nested axis guide
+  (`guide_axis_nested(side="opposite")`) instead of `geom_path` and `geom_text`
+  layers. The brackets sit outside the panel, so the y axis is no longer
+  widened to make room and the data area grows. `key_labels_text_size` and
+  `key_labels_text_color` are removed: the group names now take the x-axis
+  text theme, the same element as the key names. `key_labels_bracket_size`,
+  `key_labels_bracket_color` and `key_labels_width` are unchanged.
+  - Migration: drop the two parameters; style the names with
+    `+ theme(axis_text_x=element_text(...))` (this also styles the key names).
 - `cellestial.layers.DeferredLayer` is a plain class instead of a `PlotSpec`
   subclass; ggrust's `+` now hands unknown operands to their `__radd__`.
   `plot + layer` works as before, but `isinstance(layer, PlotSpec)` is now

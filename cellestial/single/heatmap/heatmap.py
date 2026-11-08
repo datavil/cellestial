@@ -28,11 +28,10 @@ from cellestial.single.heatmap.utilities import (
     _bin_within_groups,
     _get_group_bar_frame,
     _get_group_lines_frame,
-    _key_groups_bar_y,
-    _key_groups_layers,
+    _key_groups_guide,
+    _key_groups_theme,
     _nonaggregate_y_step,
     _resolve_key_groups,
-    _resolve_padding,
     _resolve_rank_genes_groups_args,
     _scale_values,
     _scale_wide_values,
@@ -81,9 +80,7 @@ def heatmap(
     dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
     key_labels: bool = True,
-    key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
-    key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
     value_column: str = "value",
@@ -165,12 +162,8 @@ def heatmap(
         Additional parameters to pass to the group separator lines geom_segment.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
-    key_labels_text_size : float, default=1.0
-        Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
         Size (thickness) of the bracket lines.
-    key_labels_text_color : str, default='black'
-        Color of the bracket label text.
     key_labels_bracket_color : str, default='black'
         Color of the bracket lines.
     key_labels_width : float, default=0.6
@@ -474,10 +467,12 @@ def heatmap(
     htmp = ggplot(frame) + geom_layer + _THEME_HEATMAP
 
     # X scale: variable labels
-    htmp += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)
+    htmp += scale_x_continuous(
+        breaks=list(range(n_x)),
+        labels=x_keys,
+    )
 
-    # Compute top edge of data and the y limit, extending the latter when
-    # key-group brackets are drawn so rotated labels are not clipped.
+    # Compute the top edge of the data.
     if aggregate:
         data_bottom = -0.5
         data_top = n_y - 0.5
@@ -486,42 +481,28 @@ def heatmap(
         half_step = y_step / 2
         data_bottom = -half_step
         data_top = y_step * max(n_y - 1, 0) + half_step
-    y_max_limit = data_top
-    key_groups_total_span: float | None = None
-    if key_labels and key_groups is not None:
-        data_range = data_top - data_bottom
-        key_groups_padding = _resolve_padding(
-            key_groups,
-            padding=None,
-            data_range=data_range,
-            scale=1.0,
-            label_size_scale=key_labels_text_size,
-            square_cell_columns=n_x if aggregate and geom == "raster" else None,
-        )
-        key_groups_total_span = data_range + key_groups_padding
-        y_max_limit = data_top + key_groups_padding
 
     # Y scale: groups for aggregate, group-center labels when titling bars, else hidden
     if aggregate and dendrogram:
         # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
-        htmp += _dendrogram_y_axis(tree, limits=[data_bottom, y_max_limit], fixed=geom == "raster")
+        htmp += _dendrogram_y_axis(tree, limits=[data_bottom, data_top], fixed=geom == "raster")
     elif aggregate:
         htmp += scale_y_continuous(
             breaks=list(range(n_y)),
             labels=y_order_groups,
-            limits=[data_bottom, y_max_limit],
+            limits=[data_bottom, data_top],
             expand=[0, 0],
         )
     elif group_bars and group_bars_labels:
         htmp += scale_y_continuous(
             breaks=group_centers,
             labels=y_order_groups,
-            limits=[data_bottom, y_max_limit],
+            limits=[data_bottom, data_top],
             expand=[0, 0],
         )
         htmp += guides(color="none")
     else:
-        htmp += scale_y_continuous(limits=[data_bottom, y_max_limit], expand=[0, 0])
+        htmp += scale_y_continuous(limits=[data_bottom, data_top], expand=[0, 0])
         htmp += theme(axis_text_y=element_blank(), axis_ticks_y=element_blank())
 
     # GROUP color bar on left for non-aggregate
@@ -578,19 +559,8 @@ def heatmap(
 
     # KEY-GROUP brackets above the plot when `keys` was a mapping.
     if key_labels and key_groups is not None:
-        assert key_groups_total_span is not None
-        bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
-        for layer in _key_groups_layers(
-            key_groups,
-            y=bar_y,
-            total_span=key_groups_total_span,
-            text_color=key_labels_text_color,
-            bracket_color=key_labels_bracket_color,
-            bracket_size=key_labels_bracket_size,
-            width=key_labels_width,
-            label_size_scale=key_labels_text_size,
-        ):
-            htmp += layer
+        htmp += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
+        htmp += _key_groups_theme(color=key_labels_bracket_color, size=key_labels_bracket_size)
 
     if interactive:
         htmp += ggtb(size_zoomin=-1)
@@ -618,9 +588,7 @@ def matrixplot(
     dendrogram_key: str | None = None,
     group_lines_kwargs: dict | None = None,
     key_labels: bool = True,
-    key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
-    key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
     value_column: str = "value",
@@ -689,12 +657,8 @@ def matrixplot(
         Additional parameters to pass to the group separator lines geom_segment.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
-    key_labels_text_size : float, default=1.0
-        Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
         Size (thickness) of the bracket lines.
-    key_labels_text_color : str, default='black'
-        Color of the bracket label text.
     key_labels_bracket_color : str, default='black'
         Color of the bracket lines.
     key_labels_width : float, default=0.6
@@ -792,9 +756,7 @@ def matrixplot(
         scale_axis=scale_axis,
         dendrogram=dendrogram,
         key_labels=key_labels,
-        key_labels_text_size=key_labels_text_size,
         key_labels_bracket_size=key_labels_bracket_size,
-        key_labels_text_color=key_labels_text_color,
         key_labels_bracket_color=key_labels_bracket_color,
         key_labels_width=key_labels_width,
         aggregate=True,

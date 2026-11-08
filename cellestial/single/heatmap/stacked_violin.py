@@ -13,6 +13,7 @@ from ggrust import (
     geom_rect,
     ggplot,
     ggtb,
+    guides,
     scale_x_continuous,
     scale_y_continuous,
     theme,
@@ -23,10 +24,9 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _compute_violin_polygons,
-    _key_groups_bar_y,
-    _key_groups_layers,
+    _key_groups_guide,
+    _key_groups_theme,
     _resolve_key_groups,
-    _resolve_padding,
     _resolve_rank_genes_groups_args,
 )
 from cellestial.themes import _THEME_DOTPLOT
@@ -81,9 +81,7 @@ def stacked_violin(
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
     key_labels: bool = True,
-    key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
-    key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
     aggregate_column: str = "expression",
@@ -186,12 +184,8 @@ def stacked_violin(
         Additional parameters to pass to the rectangle geom_rect.
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
-    key_labels_text_size : float, default=1.0
-        Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
         Size (thickness) of the bracket lines.
-    key_labels_text_color : str, default='black'
-        Color of the bracket label text.
     key_labels_bracket_color : str, default='black'
         Color of the bracket lines.
     key_labels_width : float, default=0.6
@@ -419,18 +413,6 @@ def stacked_violin(
 
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
     data_top = n_y - 0.5
-    y_max_limit = data_top
-    key_groups_total_span: float | None = None
-    if key_labels and key_groups is not None:
-        data_range = data_top + 0.5
-        key_groups_padding = _resolve_padding(
-            key_groups,
-            padding=None,
-            data_range=data_range,
-            label_size_scale=key_labels_text_size,
-        )
-        key_groups_total_span = data_range + key_groups_padding
-        y_max_limit = data_top + key_groups_padding
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -439,30 +421,18 @@ def stacked_violin(
     )
     # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
     if dendrogram:
-        plot += _dendrogram_y_axis(tree, limits=[-0.5, y_max_limit])
+        plot += _dendrogram_y_axis(tree, limits=[-0.5, data_top])
     else:
         plot += scale_y_continuous(
             breaks=list(range(n_y)),
             labels=y_order_groups,
-            limits=[-0.5, y_max_limit],
+            limits=[-0.5, data_top],
             expand=[0, 0],
         )
 
     # KEY-GROUP brackets above the data area when `keys` was a mapping.
     if key_labels and key_groups is not None:
-        assert key_groups_total_span is not None
-        bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
-        for layer in _key_groups_layers(
-            key_groups,
-            y=bar_y,
-            total_span=key_groups_total_span,
-            text_color=key_labels_text_color,
-            bracket_color=key_labels_bracket_color,
-            bracket_size=key_labels_bracket_size,
-            width=key_labels_width,
-            label_size_scale=key_labels_text_size,
-        ):
-            plot += layer
+        plot += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
 
     # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
     if rectangle:
@@ -485,6 +455,8 @@ def stacked_violin(
 
     # ADD: theme
     plot += _THEME_DOTPLOT
+    if key_labels and key_groups is not None:
+        plot += _key_groups_theme(color=key_labels_bracket_color, size=key_labels_bracket_size)
     if dendrogram:
         plot += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
