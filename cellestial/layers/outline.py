@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["ggrust", "numpy", "scipy.stats"]
+__lazy_modules__ = ["ggrust"]
 
 from typing import TYPE_CHECKING, Literal
 
-import numpy as np
 import polars as pl
-from ggrust import aes, geom_path
-from scipy.stats import gaussian_kde
+from ggrust import aes, density_outline, geom_path
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import _drop_nonfinite_rows, get_mapping
@@ -31,8 +29,6 @@ def _get_density_boundaries(
     grid_size: int = 200,
 ) -> DataFrame:
     """Creates and Returns a DataFrame to encircle the cluster via `geom_path`."""
-    from skimage import measure
-
     # 1. Normalize input to a Sequence of Sequences: List[List[str]]
     if isinstance(groups, str):
         groups = [[groups]]
@@ -57,39 +53,18 @@ def _get_density_boundaries(
         if len(points) < 5:
             continue
 
-        # 2. KDE Calculation
-        kde = gaussian_kde(points.T)
-
-        # 3. Create Grid
-        x_min, y_min = points.min(axis=0) - padding
-        x_max, y_max = points.max(axis=0) + padding
-
-        x_range = np.linspace(x_min, x_max, grid_size)
-        y_range = np.linspace(y_min, y_max, grid_size)
-        xi, yi = np.meshgrid(x_range, y_range)
-
-        # 4. Evaluate Density
-        zi = kde(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
-
-        # 5. Extract Contours (The skimage magic)
-        threshold = zi.max() * level
-        # find_contours returns a list of [row, col] arrays
-        contours = measure.find_contours(zi, threshold)
-
-        for i, contour in enumerate(contours):
-            # Map grid indices back to DIM coordinates
-            # Note: skimage returns (row, col) which maps to (y_index, x_index)
-            actual_x = np.interp(contour[:, 1], np.arange(grid_size), x_range)
-            actual_y = np.interp(contour[:, 0], np.arange(grid_size), y_range)
-
+        # 2. Gaussian KDE on a padded grid, outlined at `level` of its peak
+        # (ggrust's port of scipy's gaussian_kde + skimage's find_contours).
+        outlines = density_outline(points, level=level, padding=padding, grid_size=grid_size)
+        for (path_index,), outline in outlines.partition_by(
+            "path", maintain_order=True, as_dict=True
+        ).items():
             boundaries.append(
-                pl.DataFrame(
-                    {
-                        x: actual_x,
-                        y: actual_y,
-                        group_by: [group_label] * len(actual_x),
-                        "path": [f"{group_label}_{i}"] * len(actual_x),
-                    }
+                outline.select(
+                    pl.col("x").alias(x),
+                    pl.col("y").alias(y),
+                    pl.lit(group_label).alias(group_by),
+                    pl.lit(f"{group_label}_{path_index}").alias("path"),
                 )
             )
 

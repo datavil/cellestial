@@ -1757,19 +1757,19 @@ dev = ["codecov", "pre-commit", "pytest (>=3.1.0)", "pytest-cov", "pytest-xdist"
 
 [[package]]
 name = "ggrust"
-version = "0.7.1"
+version = "0.8.0"
 description = "Grammar-of-graphics plotting engine in Rust with a lets_plot-compatible Python API"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "ggrust-0.7.1-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:f6dae13f2656497eb54c41df8b36f1b65713811bcbc9da7a8b86c9f7ddf18651"},
-    {file = "ggrust-0.7.1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:a985fb405c3da354e217dc5a06e7dba438c4f5afcea4bccceffe94574cbd3e13"},
-    {file = "ggrust-0.7.1-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:13bc1b4947cdb0fc5db75c990eda53e83ada502a5882493186cc7bf9c5b9fa56"},
-    {file = "ggrust-0.7.1-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:342bbabe8b409228790fd2f1f6b7605a448b5139460960256eb7112a44151615"},
-    {file = "ggrust-0.7.1-cp311-abi3-win_amd64.whl", hash = "sha256:967673fcae8b270837bf85fe18e5ff7a18c8e240f95273bfd6b3541cb0b62505"},
-    {file = "ggrust-0.7.1-cp311-abi3-win_arm64.whl", hash = "sha256:b43d2f49506a855da99f5039dd6c11aec968582658f08aec900f3d0a56cced04"},
-    {file = "ggrust-0.7.1.tar.gz", hash = "sha256:e8395299d409e852854a406584e960dec50f0110edb0c1f2bb4d654075d990ad"},
+    {file = "ggrust-0.8.0-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:4367054e07ad849bc5a80aee1d730ccd35cc32991807fe7d16dab7cdb5888609"},
+    {file = "ggrust-0.8.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:fc466085ae1ce7b677019dfcc7376e25cc346468223b650e1eb874cd9d9de527"},
+    {file = "ggrust-0.8.0-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:0c9c5622cd1dcd2ceac8539089e0545847a0a63085bc111d051074d0bd033291"},
+    {file = "ggrust-0.8.0-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:bb057a452cc54b108e274e5148fca687e007366da283ba5e67a6f823fa5f49a6"},
+    {file = "ggrust-0.8.0-cp311-abi3-win_amd64.whl", hash = "sha256:70efa34936675a1ed318e7504b079bbe8cb4030b74400be7f5643d528ac7bf39"},
+    {file = "ggrust-0.8.0-cp311-abi3-win_arm64.whl", hash = "sha256:9fbc9f254498080b71e0e612f21f483656d91a8834f69099aa7ff2f6c3ccdb9c"},
+    {file = "ggrust-0.8.0.tar.gz", hash = "sha256:336b958e522084e56381c3fe2dae6cfef0f79bdbaf84e6f7cc8342a304ee5e2e"},
 ]
 
 [package.dependencies]
@@ -2063,6 +2063,7 @@ files = [
     {file = "imageio-2.37.3-py3-none-any.whl", hash = "sha256:46f5bb8522cd421c0f5ae104d8268f569d856b29eb1a13b92829d1970f32c9f0"},
     {file = "imageio-2.37.3.tar.gz", hash = "sha256:bbb37efbfc4c400fcd534b367b91fcd66d5da639aaa138034431a1c5e0a41451"},
 ]
+markers = {main = "extra == \"spatial\""}
 
 [package.dependencies]
 numpy = "*"
@@ -2603,6 +2604,7 @@ files = [
     {file = "lazy_loader-0.5-py3-none-any.whl", hash = "sha256:ab0ea149e9c554d4ffeeb21105ac60bed7f3b4fd69b1d2360a4add51b170b005"},
     {file = "lazy_loader-0.5.tar.gz", hash = "sha256:717f9179a0dbed357012ddad50a5ad3d5e4d9a0b8712680d4e687f5e6e6ed9b3"},
 ]
+markers = {main = "extra == \"spatial\""}
 
 [package.dependencies]
 packaging = "*"
@@ -3644,11 +3646,11 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.11"
 groups = ["main", "dev", "docs"]
-markers = "python_version < \"3.15\" and python_version >= \"3.12\""
 files = [
     {file = "networkx-3.6-py3-none-any.whl", hash = "sha256:cdb395b105806062473d3be36458d8f1459a4e4b98e236a66c3a48996e07684f"},
     {file = "networkx-3.6.tar.gz", hash = "sha256:285276002ad1f7f7da0f7b42f004bcba70d381e936559166363707fdad3d72ad"},
 ]
+markers = {main = "python_version >= \"3.12\" and (extra == \"spatial\" or extra == \"extras\") and python_version < \"3.15\"", dev = "python_version < \"3.15\" and python_version >= \"3.12\"", docs = "python_version < \"3.15\" and python_version >= \"3.12\""}
 
 [package.extras]
 benchmarking = ["asv", "virtualenv"]
@@ -3668,11 +3670,11 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = "!=3.14.1,>=3.11"
 groups = ["main", "dev", "docs"]
-markers = "python_version == \"3.11\" or python_version >= \"3.15\""
 files = [
     {file = "networkx-3.6.1-py3-none-any.whl", hash = "sha256:d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762"},
     {file = "networkx-3.6.1.tar.gz", hash = "sha256:26b7c357accc0c8cde558ad486283728b65b6a95d85ee1cd66bafab4c8168509"},
 ]
+markers = {main = "(python_version == \"3.11\" or python_version >= \"3.15\") and (extra == \"spatial\" or extra == \"extras\")", dev = "python_version == \"3.11\" or python_version >= \"3.15\"", docs = "python_version == \"3.11\" or python_version >= \"3.15\""}
 
 [package.extras]
 benchmarking = ["asv", "virtualenv"]
@@ -4272,6 +4274,7 @@ files = [
     {file = "pillow-12.2.0-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:bfa9c230d2fe991bed5318a5f119bd6780cda2915cca595393649fc118ab895e"},
     {file = "pillow-12.2.0.tar.gz", hash = "sha256:a830b1a40919539d07806aa58e1b114df53ddd43213d9c8b75847eee6c0182b5"},
 ]
+markers = {main = "extra == \"spatial\" or extra == \"extras\""}
 
 [package.extras]
 docs = ["furo", "olefile", "sphinx (>=8.2)", "sphinx-autobuild", "sphinx-copybutton", "sphinx-inline-tabs", "sphinxext-opengraph"]
@@ -5779,6 +5782,7 @@ files = [
     {file = "scikit_image-0.26.0-cp314-cp314t-win_arm64.whl", hash = "sha256:0608aa4a9ec39e0843de10d60edb2785a30c1c47819b67866dd223ebd149acaf"},
     {file = "scikit_image-0.26.0.tar.gz", hash = "sha256:f5f970ab04efad85c24714321fcc91613fcb64ef2a892a13167df2f3e59199fa"},
 ]
+markers = {main = "extra == \"spatial\""}
 
 [package.dependencies]
 imageio = ">=2.33,!=2.35.0"
@@ -6710,11 +6714,11 @@ description = "Read and write TIFF files"
 optional = false
 python-versions = ">=3.11"
 groups = ["main", "dev", "docs"]
-markers = "python_version == \"3.11\""
 files = [
     {file = "tifffile-2026.3.3-py3-none-any.whl", hash = "sha256:e8be15c94273113d31ecb7aa3a39822189dd11c4967e3cc88c178f1ad2fd1170"},
     {file = "tifffile-2026.3.3.tar.gz", hash = "sha256:d9a1266bed6f2ee1dd0abde2018a38b4f8b2935cb843df381d70ac4eac5458b7"},
 ]
+markers = {main = "python_version == \"3.11\" and extra == \"spatial\"", dev = "python_version == \"3.11\"", docs = "python_version == \"3.11\""}
 
 [package.dependencies]
 numpy = "*"
@@ -6734,11 +6738,11 @@ description = "Read and write TIFF files"
 optional = false
 python-versions = ">=3.12"
 groups = ["main", "dev", "docs"]
-markers = "python_version >= \"3.12\""
 files = [
     {file = "tifffile-2026.5.15-py3-none-any.whl", hash = "sha256:6715515a53cabc0cefc5c9f13a0ae2c250e63e2ca784ce02d0b6c333810c2a17"},
     {file = "tifffile-2026.5.15.tar.gz", hash = "sha256:ee4f3e07ee0d8ff4745a8c735ac2b72caa3173c7d6059b00fdc3ff492a0b635b"},
 ]
+markers = {main = "python_version >= \"3.12\" and extra == \"spatial\"", dev = "python_version >= \"3.12\"", docs = "python_version >= \"3.12\""}
 
 [package.dependencies]
 numpy = ">=2.1"
@@ -7599,4 +7603,4 @@ spatial = ["spatialdata"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "59e49332047e2718b6286276f1f3bd90330232c24417195598aa8317b96879f7"
+content-hash = "1e5c8718c797e5cc3e67e78970c7713b51b05cbb91dfeced6619fb045ae2541f"

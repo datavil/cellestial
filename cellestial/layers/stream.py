@@ -12,6 +12,7 @@ from ggrust import (
     geom_path,
     geom_segment,
     streamplot,
+    velocity_grid,
 )
 
 from cellestial.layers._deferred import DeferredLayer
@@ -122,14 +123,12 @@ def stream(
         If dimension numbers cannot be parsed when `velocity_key` is provided.
     KeyError
         If the required velocity columns are not present in the plot data.
-    ImportError
-        If `scvelo` is not installed.
 
     Notes
     -----
-    This function requires the `scvelo` package to be installed (for the velocity grid).
-    Stream lines are integrated by `ggrust.streamplot`, a port of matplotlib's
-    `streamplot` that gives the same lines without matplotlib.
+    The velocity grid is computed by `ggrust.velocity_grid`, a port of scVelo's
+    `compute_velocity_on_grid`, and the lines are integrated by `ggrust.streamplot`,
+    a port of matplotlib's `streamplot`. Neither scVelo nor matplotlib is needed.
 
     Examples
     --------
@@ -223,38 +222,31 @@ def stream(
             )
             raise KeyError(msg)
 
-        # contained imports
-        try:
-            from scvelo.plotting.velocity_embedding_grid import compute_velocity_on_grid
-        except ImportError as err:
-            msg = "`scvelo` must be installed to use the stream layer."
-            raise ImportError(msg) from err
-
         frame = _drop_nonfinite_rows(frame, [x, y, x_velocity, y_velocity])
 
         # extract coordinates and velocities as numpy arrays
         dimensions = frame.select(pl.col(x), pl.col(y)).to_numpy()
         velocities = frame.select(pl.col(x_velocity), pl.col(y_velocity)).to_numpy()
 
-        # compute velocity grid using scvelo's compute_velocity_on_grid
-        X_grid, V_grid = compute_velocity_on_grid(
-            X_emb=dimensions,  # UMAP/tSNE etc. coords
-            V_emb=velocities,  # velocities
+        # average the velocities onto a grid (ggrust's port of scVelo's
+        # compute_velocity_on_grid, as prepared for streams)
+        grid = velocity_grid(
+            dimensions,
+            velocities,
             density=grid_density,
             smooth=smooth,
             n_neighbors=n_neighbors,
             min_mass=min_mass,
-            autoscale=False,
-            adjust_for_stream=True,  # reshape output into the meshgrid format for streams
-            cutoff_perc=cutoff_percentile,
+            # None means scVelo's default percentile, 5
+            cutoff_percentile=5 if cutoff_percentile is None else cutoff_percentile,
         )
 
         # integrate the streamlines (ggrust's port of matplotlib's streamplot)
         streams = streamplot(
-            X_grid[0],
-            X_grid[1],
-            V_grid[0],
-            V_grid[1],
+            grid.x,
+            grid.y,
+            grid.u,
+            grid.v,
             density=density,
             maxlength=max_length,
             integration_direction=integration_direction,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "ggrust", "numpy", "scipy.stats"]
+__lazy_modules__ = ["anndata", "ggrust", "numpy"]
 
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal, cast
@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Literal, cast
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize
-from scipy.stats import gaussian_kde
+from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize, kernel_density
+from ggrust.errors import SpecError
 
 from cellestial.util import _warn
 from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupported_data_type
@@ -844,16 +844,16 @@ def _compute_violin_polygons(
                 ]
             else:
                 kde_input = group_values
+            grid = np.linspace(var_min, var_max, n_points)
             try:
-                kde = gaussian_kde(kde_input)
-            except np.linalg.LinAlgError:
+                # ggrust's port of scipy's 1D gaussian_kde (Scott's bandwidth).
+                density = kernel_density(kde_input, grid)["density"].to_numpy()
+            except SpecError:
                 _warn(
                     f"Skipping the violin of {var_key!r} in group {group_key!r}: "
                     "its values are too uniform to estimate a density."
                 )
                 continue
-            grid = np.linspace(var_min, var_max, n_points)
-            density = kde(grid)
             aggregated_value = (
                 float(np.median(group_values))
                 if aggregate == "median"

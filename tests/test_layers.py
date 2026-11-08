@@ -1,6 +1,3 @@
-import sys
-import types
-
 import numpy as np
 import polars as pl
 import pytest
@@ -407,28 +404,25 @@ def test_stream_velocity_key_requires_dimension_numbers():
         _ = plot + cl.stream(velocity_key="velocity_")
 
 
-def test_stream_builds_layers_with_mocked_velocity_grid(monkeypatch):
+def test_stream_builds_layers_from_a_velocity_field():
+    # 400 cells on a jittered square, rotating about the centre: enough cells for
+    # the default `n_neighbors` (n / 50) of ggrust's velocity grid.
+    rng = np.random.default_rng(0)
+    points = rng.uniform(-1.0, 1.0, size=(400, 2))
     frame = pl.DataFrame(
         {
-            "X_UMAP1": [0.0, 0.0, 1.0, 1.0],
-            "X_UMAP2": [0.0, 1.0, 0.0, 1.0],
-            "VELOCITY_UMAP1": [0.2, 0.2, 0.2, 0.2],
-            "VELOCITY_UMAP2": [0.1, 0.1, 0.1, 0.1],
+            "X_UMAP1": points[:, 0],
+            "X_UMAP2": points[:, 1],
+            "VELOCITY_UMAP1": -points[:, 1],
+            "VELOCITY_UMAP2": points[:, 0],
         }
     )
     plot = ggplot(frame) + geom_point(aes(x="X_UMAP1", y="X_UMAP2"))
 
-    def compute_velocity_on_grid(**kwargs):
-        grid = np.linspace(0.0, 1.0, 5)
-        velocity = np.ones((5, 5))
-        return (grid, grid), (velocity, velocity)
-
-    fake_module = types.SimpleNamespace(compute_velocity_on_grid=compute_velocity_on_grid)
-    monkeypatch.setitem(sys.modules, "scvelo.plotting.velocity_embedding_grid", fake_module)
-
     combined = plot + cl.stream(arrow_kwargs={"alpha": 0.5}, density=0.5)
 
     assert isinstance(combined, PlotSpec)
+    assert "<path" in combined.to_svg()
 
 
 def _adata_with_velocity(adata):
@@ -449,19 +443,11 @@ def test_umap_frame_includes_unplotted_velocity_embedding(adata):
     assert {"VELOCITY_UMAP1", "VELOCITY_UMAP2"} <= set(frame.columns)
 
 
-def test_stream_builds_on_umap_with_velocity_embedding(adata, monkeypatch):
+def test_stream_builds_on_umap_with_velocity_embedding(adata):
     # End-to-end mirror of the reported failure: `cl.umap(...) + cl.stream()`
     # must resolve velocity columns from the umap frame without raising.
     data = _adata_with_velocity(adata)
     umap = cl.umap(data, tooltips="none")
-
-    def compute_velocity_on_grid(**kwargs):
-        grid = np.linspace(0.0, 1.0, 5)
-        velocity = np.ones((5, 5))
-        return (grid, grid), (velocity, velocity)
-
-    fake_module = types.SimpleNamespace(compute_velocity_on_grid=compute_velocity_on_grid)
-    monkeypatch.setitem(sys.modules, "scvelo.plotting.velocity_embedding_grid", fake_module)
 
     combined = umap + cl.stream()
     assert isinstance(combined, PlotSpec)
