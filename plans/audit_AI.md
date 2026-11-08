@@ -82,6 +82,8 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_is_spatialdata` | Claude Opus 5.5 |  |  |  |  |
 | `_scale_wide_values` | Claude Opus 5.5 |  |  |  |  |
 | `highlight` | Claude Opus 5.5 |  |  |  |  |
+| `_sort_integer_like_groups` | Claude Opus 5.5 |  |  |  |  |
+| `_format_warning` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -199,3 +201,15 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `spatial` | Claude Opus 5.5 |  |
 | `spatials` | Claude Opus 5.5 |  |
 | `_fixed_cell_layout` | Claude Opus 5.5 |  |
+| `bracket` | Claude Opus 5.5 |  |
+| `DeferredLayer` | Claude Opus 5.5 |  |
+| `get_figure` | Claude Opus 5.5 |  |
+| `get_figures` | Claude Opus 5.5 |  |
+| `heatmap` | Claude Opus 5.5 |  |
+| `_assign_positions` | Claude Opus 5.5 |  |
+| `_get_group_lines_frame` | Claude Opus 5.5 |  |
+| `_compute_violin_polygons` | Claude Opus 5.5 |  |
+| `dotplot` | Claude Opus 5.5 |  |
+| `stacked_violin` | Claude Opus 5.5 |  |
+| `markers` | Claude Opus 5.5 |  |
+| `_warn` | Claude Opus 5.5 |  |

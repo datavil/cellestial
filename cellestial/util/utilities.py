@@ -118,9 +118,24 @@ def _container_column(data: AnnData | MuData, modality: str | None, group_by: st
     return _container(data).container_column(modality, group_by)
 
 
-def _format_warning(message: Warning | str, category: type[Warning], *_args: object) -> str:
-    """Render a cellestial warning as one line, dropping the source location."""
-    return f"{category.__name__}: {message}\n"
+_default_format_warning = warnings.formatwarning
+
+
+def _format_warning(
+    message: Warning | str,
+    category: type[Warning],
+    filename: str,
+    lineno: int,
+    line: str | None = None,
+) -> str:
+    """Render a cellestial warning as one line; delegate other warnings unchanged."""
+    if issubclass(category, CellestialWarning):
+        return f"{category.__name__}: {message}\n"
+    return _default_format_warning(message, category, filename, lineno, line)
+
+
+# Installed once rather than swapped per call, which was not thread-safe.
+warnings.formatwarning = _format_warning  # ty:ignore[invalid-assignment]
 
 
 def _warn(message: str) -> None:
@@ -144,12 +159,7 @@ def _warn(message: str) -> None:
     while caller is not None and caller.f_code.co_filename.startswith(_PACKAGE_ROOT):
         stacklevel += 1
         caller = caller.f_back
-    original_format = warnings.formatwarning
-    warnings.formatwarning = _format_warning  # ty:ignore[invalid-assignment]
-    try:
-        warnings.warn(message, CellestialWarning, stacklevel=stacklevel)
-    finally:
-        warnings.formatwarning = original_format
+    warnings.warn(message, CellestialWarning, stacklevel=stacklevel)
 
 
 def _drop_nonfinite_rows(frame: pl.DataFrame, columns: Sequence[str]) -> pl.DataFrame:

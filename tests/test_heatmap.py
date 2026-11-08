@@ -556,8 +556,7 @@ def test_heatmap_variable_axis_nonaggregate(adata):
     assert isinstance(plot, PlotSpec)
     assert plot.as_dict()["data"]["Feature"].n_unique() == local.n_vars
     y_scale = next(scale for scale in plot.as_dict()["scales"] if scale.get("aesthetic") == "y")
-    half_step = 1 / (local.n_vars - 1) / 2
-    assert y_scale["limits"] == pytest.approx([-half_step, 1 + half_step])
+    assert y_scale["limits"] == pytest.approx([-0.5, local.n_vars - 0.5])
 
 
 def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
@@ -576,8 +575,7 @@ def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
 
     spec = plot.as_dict()
     y_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "y")
-    half_step = 1 / (local.n_vars - 1) / 2
-    assert y_scale["limits"] == pytest.approx([-half_step, 1 + half_step])
+    assert y_scale["limits"] == pytest.approx([-0.5, local.n_vars - 0.5])
 
     group_lines = [
         layer["data"]
@@ -586,7 +584,7 @@ def test_heatmap_variable_axis_single_key_preserves_row_span(adata):
         and hasattr(layer.get("data"), "columns")
         and "xend" in layer["data"].columns
     ]
-    assert group_lines[-1]["y"].to_list() == pytest.approx([0.5])
+    assert group_lines[-1]["y"].to_list() == pytest.approx([49.5])
 
 
 @pytest.mark.parametrize(

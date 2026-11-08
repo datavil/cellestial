@@ -1,18 +1,14 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["ggrust.plot.core"]
-
 from typing import TYPE_CHECKING
-
-from ggrust.plot.core import FeatureSpec, PlotSpec
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from ggrust.plot.core import FeatureSpecArray, LayerSpec
+    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, LayerSpec, PlotSpec
 
 
-class DeferredLayer(PlotSpec):
+class DeferredLayer:
     """
     A layer whose construction depends on an existing plot's data and aesthetics.
 
@@ -27,16 +23,9 @@ class DeferredLayer(PlotSpec):
     Built by cellestial layer functions that need to introspect the plot they are
     added to. Rather than taking the plot explicitly (`plot + cl.layer(plot)`),
     the real layer is assembled at `+` time via :meth:`__radd__`, so callers
-    write `plot + cl.layer()`.
-
-    Why subclass `PlotSpec`? Python's reflected operator priority rule says
-    that when the right operand's class is a subclass of the left operand's
-    class, `b.__radd__(a)` is tried *before* `a.__add__(b)`. Lets-Plot's
-    `PlotSpec.__add__` raises `TypeError` for unknown types instead of
-    returning `NotImplemented`, so the usual `__radd__` fallback would
-    never fire, subclassing restores that fallback via the priority rule.
-    The base `__init__` is deliberately bypassed because `DeferredLayer`
-    does not carry real plot data; only :meth:`__radd__` is ever used.
+    write `plot + cl.layer()`. ggrust's `PlotSpec.__add__` returns
+    `NotImplemented` for operands it does not know, which hands them to this
+    `__radd__`.
     """
 
     __slots__ = ("_builder",)
@@ -45,8 +34,6 @@ class DeferredLayer(PlotSpec):
         self,
         builder: Callable[[PlotSpec], LayerSpec | FeatureSpec | FeatureSpecArray],
     ) -> None:
-        # bypass `PlotSpec.__init__`, this wrapper does not carry plot data.
-        FeatureSpec.__init__(self, kind="deferred", name=None)
         self._builder = builder
 
     def __radd__(self, plot: PlotSpec) -> PlotSpec:

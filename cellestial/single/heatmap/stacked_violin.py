@@ -32,6 +32,7 @@ from cellestial.single.heatmap.utilities import (
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
+    _sort_integer_like_groups,
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
@@ -355,6 +356,8 @@ def stacked_violin(
     if threshold is not None:
         frame = frame.filter(pl.col(value_column) >= threshold)
 
+    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
+    frame = _sort_integer_like_groups(frame, group_by=group_by)
     # DETERMINE: y order of groups (dendrogram or first-seen order)
     if dendrogram:
         y_order_groups, paths = _get_dendrogram(

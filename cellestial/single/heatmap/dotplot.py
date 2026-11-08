@@ -31,6 +31,7 @@ from cellestial.single.heatmap.utilities import (
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
+    _sort_integer_like_groups,
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
@@ -344,18 +345,7 @@ def dotplot(
         pl.col(mean_column).is_not_null()
     )
     # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
-    numeric_group_by = "__cellestial_group_by_numeric"
-    frame = frame.with_columns(
-        pl.col(group_by).cast(pl.String).cast(pl.Int64, strict=False).alias(numeric_group_by)
-    )
-    if frame[numeric_group_by].null_count() == 0:
-        frame = (
-            frame.sort(numeric_group_by, descending=True)
-            .drop(numeric_group_by)
-            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
-        )
-    else:
-        frame = frame.drop(numeric_group_by)
+    frame = _sort_integer_like_groups(frame, group_by=group_by)
     # perform sorting
     if sort_by is not None:
         frame = frame.sort(

@@ -239,6 +239,25 @@ def test_bracket_too_few_observations_raises():
         _ = plot + cl.bracket()
 
 
+def test_bracket_grows_plot_with_stack_height():
+    """Grow the canvas per bracket so the data panel keeps its height."""
+    frame = pl.DataFrame(
+        {
+            "group": ["a", "b", "c", "d"] * 5,
+            "value": [float(value) for value in range(20)],
+        }
+    )
+    plot = ggplot(frame) + geom_point(aes(x="group", y="value"))
+    two_brackets = plot + cl.bracket(comparisons=[("a", "b"), ("a", "c")])
+    six_brackets = plot + cl.bracket()
+    two_width, two_height = two_brackets.size
+    six_width, six_height = six_brackets.size
+    assert two_width == six_width == 600
+    assert 400 < two_height < six_height
+    # each extra bracket adds the same pixel step, whatever the data range
+    assert six_height - two_height == pytest.approx(4 * 22)
+
+
 def test_bracket_preserves_group_order_for_default_comparisons():
     """Preserve first-seen group order when generating default comparisons."""
     frame = pl.DataFrame(

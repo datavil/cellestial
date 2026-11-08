@@ -111,6 +111,23 @@ change. Versions absent from the list were never released.
   with the number of keys and groups instead of stretching cells to fill a
   fixed canvas. Dot sizes no longer shrink as keys or groups are added. A
   `ggsize` added to the plot still overrides the computed size.
+- `bracket` stacks brackets at a fixed pixel step sized to the label, and the
+  plot grows taller by the height of the stack, so labels no longer collide
+  with the next bracket and many brackets no longer squash the data. The
+  default `y_step` no longer follows `y_padding`. A `ggsize` added after the
+  brackets still overrides the computed size.
+- The per-cell `heatmap` fills the canvas instead of being locked to a square
+  panel, so heatmaps with many keys are no longer a narrow column with
+  overlapping key labels. Cell rows sit one y unit apart rather than being
+  rescaled to the width of the key axis.
+- `stacked_violin` warns when it skips a group's violin because its values are
+  too uniform to estimate a density, instead of dropping it silently. Other
+  errors from the density estimate are no longer swallowed.
+- `heatmap`, `matrixplot` and `stacked_violin` order integer-like group labels
+  (such as leiden clusters "0" to "16") numerically, smallest on top, as
+  `dotplot` already did. They used to follow first-seen order.
+- `markers` caps `ncol` at the number of groups, so a single group fills the
+  canvas instead of taking one third of it.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so

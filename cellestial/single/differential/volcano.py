@@ -204,6 +204,10 @@ def volcano(
     expression results of `group` (vs the rest), colored by significance and
     optionally annotated with the top up- and down-regulated genes.
 
+    Features with a p-value of 0 have an infinite `-log10(pvalue)`. They are
+    kept and drawn at `1.05 * max + 1`, where `max` is the largest finite
+    `-log10(pvalue)`, so their height marks "above the axis range", not a value.
+
     When `group_by` is provided and the ranking under `key` is missing or was
     computed with different parameters, plot construction calls
     `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.

@@ -145,15 +145,32 @@ def _scale_wide_values(frame: pl.DataFrame, *, keys: list[str], scale_axis: int)
     return frame.with_columns(scaled).drop(row_bounds, strict=False)
 
 
+def _sort_integer_like_groups(frame: pl.DataFrame, *, group_by: str) -> pl.DataFrame:
+    """
+    Sort rows by `group_by` numerically when every group label is integer-like.
+
+    Notes
+    -----
+    Labels such as cluster ids ("0", "1", "10") otherwise keep their stored
+    order. The sort is descending so the smallest label lands on top of the
+    y axis, and stable so row order within a group is kept.
+    """
+    numeric_group_by = "__cellestial_group_by_numeric"
+    frame = frame.with_columns(
+        pl.col(group_by).cast(pl.String).cast(pl.Int64, strict=False).alias(numeric_group_by)
+    )
+    if frame[numeric_group_by].null_count() == 0:
+        return (
+            frame.sort(numeric_group_by, descending=True, maintain_order=True)
+            .drop(numeric_group_by)
+            .with_columns(pl.col(group_by).cast(pl.String).cast(pl.Categorical))
+        )
+    return frame.drop(numeric_group_by)
+
+
 def _group_bar_gap(n_x: int) -> float:
     """Return a stable visual gap between the heatmap and group bars."""
     return max(_GROUP_BAR_GAP_MIN, n_x * _GROUP_BAR_GAP_RATIO)
-
-
-def _nonaggregate_y_step(n_x: int, n_y: int) -> float:
-    """Return the distance between adjacent nonaggregated row centers."""
-    y_span = max(n_x - 1, 1)
-    return y_span / max(n_y - 1, 1)
 
 
 def _assign_positions(
@@ -199,7 +216,7 @@ def _assign_positions(
         )
         return frame, None, n_x, n_y, [float(i) for i in range(n_y)]
 
-    # Nonaggregate: use a width-comparable y span for a square-ish aspect.
+    # Nonaggregate: one row per cell.
     group_index = {g: i for i, g in enumerate(y_order_groups)}
     cell_frame = (
         frame.select(observation_id_column, group_by)
@@ -213,9 +230,8 @@ def _assign_positions(
         .sort(["_group_index", observation_id_column])
     )
     n_y = cell_frame.height
-    y_step = _nonaggregate_y_step(n_x, n_y)
     cell_frame = cell_frame.with_columns(
-        (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
+        pl.int_range(pl.len()).cast(pl.Float64).alias("position_y")
     )
     frame = frame.join(
         cell_frame.select(observation_id_column, "position_y"), on=observation_id_column
@@ -253,7 +269,6 @@ def _get_group_lines_frame(
     aggregate: bool,
     group_by: str,
     n_x: int,
-    n_y: int,
     n_groups: int,
 ) -> pl.DataFrame:
     """Build the horizontal separator-line frame between groups."""
@@ -268,8 +283,7 @@ def _get_group_lines_frame(
             .head(n_groups - 1)["y_max"]
             .to_list()
         )
-        half_step = _nonaggregate_y_step(n_x, n_y) / 2
-        line_ys = [y + half_step for y in boundaries]
+        line_ys = [y + 0.5 for y in boundaries]
 
     x_start = -0.5
     x_end = n_x - 0.5
@@ -890,7 +904,11 @@ def _compute_violin_polygons(
                 kde_input = group_values
             try:
                 kde = gaussian_kde(kde_input)
-            except Exception:
+            except np.linalg.LinAlgError:
+                _warn(
+                    f"Skipping the violin of {var_key!r} in group {group_key!r}: "
+                    "its values are too uniform to estimate a density."
+                )
                 continue
             grid = np.linspace(var_min, var_max, n_points)
             density = kde(grid)

@@ -11,6 +11,7 @@ from ggrust import (
     arrow,
     geom_path,
     geom_segment,
+    streamplot,
 )
 
 from cellestial.layers._deferred import DeferredLayer
@@ -126,8 +127,9 @@ def stream(
 
     Notes
     -----
-    This function requires the `scvelo` package to be installed.
-    This function utilizes the `matplotlib`'s `streamplot` function to get stream lines.
+    This function requires the `scvelo` package to be installed (for the velocity grid).
+    Stream lines are integrated by `ggrust.streamplot`, a port of matplotlib's
+    `streamplot` that gives the same lines without matplotlib.
 
     Examples
     --------
@@ -223,7 +225,6 @@ def stream(
 
         # contained imports
         try:
-            from matplotlib.figure import Figure
             from scvelo.plotting.velocity_embedding_grid import compute_velocity_on_grid
         except ImportError as err:
             msg = "`scvelo` must be installed to use the stream layer."
@@ -248,9 +249,8 @@ def stream(
             cutoff_perc=cutoff_percentile,
         )
 
-        # mock build streamplot to extract line segment coordinates
-        axes = Figure().add_subplot(1, 1, 1)
-        _stream = axes.streamplot(
+        # integrate the streamlines (ggrust's port of matplotlib's streamplot)
+        streams = streamplot(
             X_grid[0],
             X_grid[1],
             V_grid[0],
@@ -259,41 +259,11 @@ def stream(
             maxlength=max_length,
             integration_direction=integration_direction,
         )
-        line_paths = _stream.lines.get_paths()  # extract line segment coordinates
-
-        # extract path segments from streamplot and convert to DataFrame
-        records_path = [
-            {"x": float(x), "y": float(y), "group": i}
-            for i, path in enumerate(line_paths)
-            for x, y in path.vertices
-        ]
-        frame_streams = pl.DataFrame(records_path)
-        # compute arrow coordinates (midpoint of each path segment)
-        frame_arrows = (
-            (
-                frame_streams.group_by("group")
-                .agg(pl.col("x"), pl.col("y"))
-                # a path of `n` vertices holds segments 0..n-2, so the middle
-                # vertex is clamped to n-2 to keep `mid + 1` a valid index.
-                .filter(pl.col("x").list.len() >= 2)
-                .with_columns(
-                    mid=pl.min_horizontal(
-                        pl.col("x").list.len() // 2,
-                        pl.col("x").list.len() - 2,
-                    )
-                )
-            )
-            .with_columns(
-                pl.col("x").list.get(pl.col("mid")).alias("x"),
-                pl.col("y").list.get(pl.col("mid")).alias("y"),
-                pl.col("x").list.get(pl.col("mid").add(1)).alias("xend"),
-                pl.col("y").list.get(pl.col("mid").add(1)).alias("yend"),
-            )
-            .drop("mid")
-            # streamplot repeats vertices at path joins; a zero-length segment
-            # has no direction to point an arrowhead along.
-            .filter((pl.col("x") != pl.col("xend")) | (pl.col("y") != pl.col("yend")))
-            .sort("group")
+        frame_streams = streams.lines
+        # one arrow per line at half its arc length, as matplotlib places them;
+        # a zero-length segment has no direction to point an arrowhead along.
+        frame_arrows = streams.arrows.filter(
+            (pl.col("x") != pl.col("xend")) | (pl.col("y") != pl.col("yend"))
         )
 
         # handle arrow kwargs

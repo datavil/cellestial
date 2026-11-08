@@ -137,7 +137,8 @@ def markers(
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=3
-        Number of columns in grid. If None, shows plots horizontally, in one row.
+        Number of columns in grid, capped at the number of groups.
+        If None, shows plots horizontally, in one row.
     sharex, sharey : str | None, default=None
         Controls sharing of axis limits between subplots in the grid.
         See :func:`ggrust.gggrid`.
@@ -232,6 +233,9 @@ def markers(
         rank_column=rank_column,
         group_column=group_column,
     )
+    # Fewer groups than columns would leave the extra columns blank.
+    if ncol is not None:
+        ncol = min(ncol, len(selected_groups))
 
     # DEFINE: mapping with defaults
     _mapping = {

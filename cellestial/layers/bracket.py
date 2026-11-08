@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import polars as pl
-from ggrust import aes, geom_bracket
+from ggrust import aes, geom_bracket, ggsize
 from scipy.stats import mannwhitneyu, ttest_ind
 
 from cellestial.layers._deferred import DeferredLayer
@@ -19,6 +19,18 @@ if TYPE_CHECKING:
 
     from ggrust.plot.core import FeatureSpec, LayerSpec, PlotSpec
     from polars import DataFrame
+
+
+# canvas used by ggrust when the plot sets no `ggsize`
+_DEFAULT_PLOT_SIZE = (600, 400)
+# canvas height outside the panel (x axis, margins), in pixels
+_NON_PANEL_HEIGHT = 50
+# fraction of the y range the default continuous scale adds on each side
+_Y_EXPAND = 0.05
+# vertical room per stacked bracket at the default label size, in pixels
+_BRACKET_STEP_PIXELS = 22
+# `geom_bracket` label size the step above is calibrated for
+_DEFAULT_LABEL_SIZE = 5
 
 
 def _correct_pvalues(
@@ -350,11 +362,10 @@ def bracket(
         Vertical position of the lowest bracket. If None, it is placed above
         the maximum `y` value with a gap of `y_padding * y_range`.
     y_step : float | None, default=None
-        Vertical spacing between stacked brackets. If None, defaults to
-        `y_padding * y_range`.
+        Vertical spacing between stacked brackets. If None, each bracket gets
+        a fixed height on screen sized to its label.
     y_padding : float, default=0.08
-        Fraction of the `y` range used as vertical padding above the data
-        and as the default spacing between stacked brackets.
+        Fraction of the `y` range used as vertical padding above the data.
     color : str, default='#1f1f1f'
         Color of the brackets and labels.
     label_size : float | None, default=None
@@ -398,6 +409,10 @@ def bracket(
 
     Rows the plot dropped are absent from the test too, so a plot built with
     `threshold` compares only the observations above it.
+
+    The plot grows taller by the height of the bracket stack, so the data keeps
+    its size however many brackets are drawn. A `ggsize` added after the
+    brackets overrides this.
 
     Examples
     --------
@@ -499,6 +514,17 @@ def bracket(
             msg = "`y` is present neither as argument nor in the plot aesthetics."
             raise MissingAestheticError(msg)
 
+        # size the stacking step in pixels so labels keep their room on any y range
+        plot_width, plot_height = receiving_plot.size or _DEFAULT_PLOT_SIZE
+        values = frame.filter(pl.col(y).is_finite())[y]
+        data_max = values.max()
+        data_range = data_max - values.min()  # ty:ignore[unsupported-operator]
+        panel_height = plot_height - _NON_PANEL_HEIGHT
+        units_per_pixel = data_range * (1 + 2 * _Y_EXPAND) / panel_height
+        step_pixels = _BRACKET_STEP_PIXELS * (label_size or _DEFAULT_LABEL_SIZE)
+        step_pixels /= _DEFAULT_LABEL_SIZE
+        resolved_y_step = step_pixels * units_per_pixel if y_step is None else y_step
+
         # compute the pairwise significance frame
         brackets = _compute_bracket_frame(
             frame,
@@ -515,15 +541,15 @@ def bracket(
             separator=separator,
             threshold=threshold,
             y_position=y_position,
-            y_step=y_step,
+            y_step=resolved_y_step,
             y_padding=y_padding,
         )
 
-        # build and return the layer
+        # build the layer
         local_mapping = mapping or aes()
         size_kwargs = {} if label_size is None else {"size": label_size}
         local_color = None if "color" in local_mapping.as_dict() else color
-        return geom_bracket(
+        layer = geom_bracket(
             data=brackets,
             mapping=aes(xmin="xmin", xmax="xmax", y="y", label="label", **local_mapping.as_dict()),
             color=local_color,
@@ -531,5 +557,11 @@ def bracket(
             **size_kwargs,
             **geom_kwargs,
         )
+        if len(brackets) == 0 or data_range == 0:
+            return layer
+
+        # grow the canvas by the stack height so the data panel keeps its size
+        stack_pixels = (brackets["y"].max() - data_max) / units_per_pixel + step_pixels
+        return layer + ggsize(plot_width, plot_height + stack_pixels)
 
     return DeferredLayer(_build)

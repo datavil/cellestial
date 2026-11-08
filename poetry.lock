@@ -1757,19 +1757,19 @@ dev = ["codecov", "pre-commit", "pytest (>=3.1.0)", "pytest-cov", "pytest-xdist"
 
 [[package]]
 name = "ggrust"
-version = "0.7.0"
+version = "0.7.1"
 description = "Grammar-of-graphics plotting engine in Rust with a lets_plot-compatible Python API"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "ggrust-0.7.0-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:8db76cd4ed9a235aacd09130d2e92d512e469a0d31ea50c74bcdde04c7752d1b"},
-    {file = "ggrust-0.7.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:73ae726a58883a68c80c7ecbdf6f885d815a8aa6cd404778488d4688e67e6284"},
-    {file = "ggrust-0.7.0-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:018d9c217376a2823852d59a26fc1e976134bb3b33d0820977eb20f246368da4"},
-    {file = "ggrust-0.7.0-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:cf73c21fb8021cd5484fc02331be58826c15de6271cd38a5a00eb3d79bd8425a"},
-    {file = "ggrust-0.7.0-cp311-abi3-win_amd64.whl", hash = "sha256:c235a1cc92f1dc931ba194ef40e16f2f60b64d5323fce349c4120e20162088ff"},
-    {file = "ggrust-0.7.0-cp311-abi3-win_arm64.whl", hash = "sha256:acaff91f88e29bb3b2e6c39513adc0d0e93545a75aecdacaa2892ba31bd0c043"},
-    {file = "ggrust-0.7.0.tar.gz", hash = "sha256:3e5e20ddf5c9ccbde87d1dc538505c059cf05739a5c9be21bd62b848cdb2e0ce"},
+    {file = "ggrust-0.7.1-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:f6dae13f2656497eb54c41df8b36f1b65713811bcbc9da7a8b86c9f7ddf18651"},
+    {file = "ggrust-0.7.1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:a985fb405c3da354e217dc5a06e7dba438c4f5afcea4bccceffe94574cbd3e13"},
+    {file = "ggrust-0.7.1-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:13bc1b4947cdb0fc5db75c990eda53e83ada502a5882493186cc7bf9c5b9fa56"},
+    {file = "ggrust-0.7.1-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:342bbabe8b409228790fd2f1f6b7605a448b5139460960256eb7112a44151615"},
+    {file = "ggrust-0.7.1-cp311-abi3-win_amd64.whl", hash = "sha256:967673fcae8b270837bf85fe18e5ff7a18c8e240f95273bfd6b3541cb0b62505"},
+    {file = "ggrust-0.7.1-cp311-abi3-win_arm64.whl", hash = "sha256:b43d2f49506a855da99f5039dd6c11aec968582658f08aec900f3d0a56cced04"},
+    {file = "ggrust-0.7.1.tar.gz", hash = "sha256:e8395299d409e852854a406584e960dec50f0110edb0c1f2bb4d654075d990ad"},
 ]
 
 [package.dependencies]
@@ -7599,4 +7599,4 @@ spatial = ["spatialdata"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "2c1d346d68cdb943b58b18a3ed22eff18c0bde1b76889e0222060f3e8ebdd50f"
+content-hash = "59e49332047e2718b6286276f1f3bd90330232c24417195598aa8317b96879f7"

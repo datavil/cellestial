@@ -8,6 +8,7 @@ import polars as pl
 from anndata import AnnData
 from ggrust import (
     aes,
+    coord_cartesian,
     element_blank,
     geom_path,
     geom_raster,
@@ -32,12 +33,12 @@ from cellestial.single.heatmap.utilities import (
     _get_group_lines_frame,
     _key_groups_bar_y,
     _key_groups_layers,
-    _nonaggregate_y_step,
     _resolve_key_groups,
     _resolve_padding,
     _resolve_rank_genes_groups_args,
     _scale_values,
     _scale_wide_values,
+    _sort_integer_like_groups,
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import (
@@ -409,6 +410,8 @@ def heatmap(
         if scale_axis is not None:
             frame = _scale_wide_values(frame, keys=keys, scale_axis=scale_axis)
 
+    # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
+    frame = _sort_integer_like_groups(frame, group_by=group_by)
     # DETERMINE: y order of groups
     if dendrogram:
         y_order_groups, paths = _get_dendrogram(
@@ -476,14 +479,8 @@ def heatmap(
 
     # Compute top edge of data and the y limit, extending the latter when
     # key-group brackets are drawn so rotated labels are not clipped.
-    if aggregate:
-        data_bottom = -0.5
-        data_top = n_y - 0.5
-    else:
-        y_step = _nonaggregate_y_step(n_x, n_y)
-        half_step = y_step / 2
-        data_bottom = -half_step
-        data_top = y_step * max(n_y - 1, 0) + half_step
+    data_bottom = -0.5
+    data_top = n_y - 0.5
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
@@ -536,7 +533,6 @@ def heatmap(
             aggregate=aggregate,
             group_by=group_by,
             n_x=n_x,
-            n_y=n_y,
             n_groups=len(y_order_groups),
         )
         htmp += geom_segment(
@@ -599,6 +595,9 @@ def heatmap(
             legend_width=legend_width,
             legend_height=legend_height,
         )
+    else:
+        # `geom_raster` otherwise forces square pixels, squeezing many-cell heatmaps.
+        htmp += coord_cartesian()
 
     if interactive:
         htmp += ggtb(size_zoomin=-1)
