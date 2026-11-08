@@ -18,7 +18,7 @@ All live in [cellestial/util/dendrogram.py](../cellestial/util/dendrogram.py), r
 
 ## Wiring a one-row-per-group plot
 
-Keep numeric `position_y` values (group `i` of the tree order at `i`): numeric layers such as the border `geom_rect` still work on the discrete dendrogram scale.
+Keep numeric `position_y` values (group `i` of the tree order at `i`): numeric layers (dots, violins, group lines) still work on the discrete dendrogram scale.
 
 ```python
 if dendrogram:

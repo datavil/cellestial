@@ -9,8 +9,8 @@ from anndata import AnnData
 from ggrust import (
     aes,
     element_line,
+    element_rect,
     geom_polygon,
-    geom_rect,
     ggplot,
     ggtb,
     guides,
@@ -39,6 +39,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _validate_tooltips,
 )
+from cellestial.util.dendrogram import _GEOM_LINE_UNIT
 from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container_column, _modality_source
 
@@ -181,7 +182,7 @@ def stacked_violin(
     rectangle_color : str, default='#3f3f3f'
         Color of the rectangle border.
     rectangle_kwargs : dict | None, default=None
-        Additional parameters to pass to the rectangle geom_rect.
+        Additional parameters for the border's `element_rect` (e.g. `linetype`).
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
     key_labels_bracket_size : float, default=0.6
@@ -434,27 +435,20 @@ def stacked_violin(
     if key_labels and key_groups is not None:
         plot += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
 
-    # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
-    if rectangle:
-        plot += geom_rect(
-            data={
-                "xmin": [-0.5],
-                "xmax": [n_x - 0.5],
-                "ymin": [-0.5],
-                "ymax": [data_top],
-            },
-            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
-            color=rectangle_color,
-            size=rectangle_size,
-            fill="rgba(0,0,0,0)",
-            inherit_aes=False,
-            **(rectangle_kwargs or {}),
-        )
-    else:
+    if not rectangle:
         plot += theme(axis_line=element_line(color="#1f1f1f"))
 
     # ADD: theme
     plot += _THEME_DOTPLOT
+    # BORDER: the panel border boxes the data area only (brackets and tree sit outside it)
+    if rectangle:
+        plot += theme(
+            panel_border=element_rect(
+                color=rectangle_color,
+                size=rectangle_size * _GEOM_LINE_UNIT,
+                **(rectangle_kwargs or {}),
+            )
+        )
     if key_labels and key_groups is not None:
         plot += _key_groups_theme(color=key_labels_bracket_color, size=key_labels_bracket_size)
     if dendrogram:

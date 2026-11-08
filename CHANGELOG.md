@@ -27,6 +27,13 @@ change. Versions absent from the list were never released.
     `["figures"]`; combine it with other plots through `gggrid` as any
     `PlotSpec`.
 - ggrust 0.7 is required.
+- `dotplot` and `stacked_violin` draw their data-area border as the panel
+  border (`theme(panel_border=element_rect(...))`) instead of a `geom_rect`
+  layer. `rectangle_kwargs` now goes to `element_rect`, which accepts `fill`
+  and `linetype` but not geom options such as `alpha`.
+  - Migration: keep `linetype`; drop geom-only keys from `rectangle_kwargs`.
+- `annotated_heatmap` sets `ggside_panel_border=element_blank()`, so a
+  `panel_border` added to it frames the heatmap only, not the track bands.
 - `heatmap`, `matrixplot`, `dotplot` and `stacked_violin` draw key-group
   brackets (`keys` as a mapping) with ggrust's nested axis guide
   (`guide_axis_nested(side="opposite")`) instead of `geom_path` and `geom_text`

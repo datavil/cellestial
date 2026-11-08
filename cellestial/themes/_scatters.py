@@ -58,7 +58,7 @@ _THEME_SCATTER_BASE = theme(
 _THEME_DOTPLOT = (
     theme_classic()
     + theme(
-        panel_border=element_blank(),  # replaced by data-area geom_rect in dotplot
+        panel_border=element_blank(),  # dotplot sets it when `rectangle` is on
         axis_line=element_blank(),
         text=element_text(family="Arial", color="#1f1f1f"),
         axis_text_x=element_text(angle=90),

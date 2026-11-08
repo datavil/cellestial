@@ -12,6 +12,7 @@ from anndata import AnnData
 from ggrust import (
     aes,
     coord_cartesian,
+    element_blank,
     element_text,
     geom_raster,
     geom_segment,
@@ -1095,6 +1096,8 @@ def annotated_heatmap(
         + theme(
             ggside_panel_scale_x=thickness["x"] or None,
             ggside_panel_scale_y=thickness["y"] or None,
+            # A panel border boxes the heatmap only, not the track bands.
+            ggside_panel_border=element_blank(),
             legend_position="bottom" if legend else "none",
             legend_box="horizontal",
             legend_direction="horizontal",

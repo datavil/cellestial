@@ -4,7 +4,7 @@ How a border rectangle is wired around the data area in `dotplot` and `stacked_v
 
 ## Why
 
-When the plot uses continuous numeric axes to fake categorical labels (see [dendrogram.md](dendrogram.md)), the default panel frame doesn't sit tightly against the data. A `geom_rect` lets you draw a tight border around the data area only, while keeping side elements (dendrogram, group bars) **outside** the frame.
+The border boxes the data area only, while side elements (dendrogram, key-group brackets, group bars) stay **outside** the frame. Since ggrust 0.7 the tree and the brackets are axis guides outside the panel, so the panel border is exactly the data area.
 
 ## Required parameters to expose
 
@@ -17,47 +17,32 @@ rectangle_kwargs: dict | None = None,
 
 ## Wiring
 
-After data layers and after computing `n_x` and `data_top` (the top y-coordinate of the data area, which differs per plot type, see below), add:
+The plot theme (`_THEME_DOTPLOT`) blanks `panel_border`, so add the border **after** it:
 
 ```python
-if rectangle:
-    plot += geom_rect(
-        data={
-            "xmin": [-0.5],
-            "xmax": [n_x - 0.5],
-            "ymin": [-0.5],
-            "ymax": [data_top],
-        },
-        mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
-        color=rectangle_color,
-        size=rectangle_size,
-        fill="rgba(0,0,0,0)",
-        inherit_aes=False,
-        **(rectangle_kwargs or {}),
-    )
-else:
+if not rectangle:
     plot += theme(axis_line=element_line(color="#1f1f1f"))
+...
+plot += _THEME_DOTPLOT
+if rectangle:
+    plot += theme(
+        panel_border=element_rect(
+            color=rectangle_color,
+            size=rectangle_size * _GEOM_LINE_UNIT,
+            **(rectangle_kwargs or {}),
+        )
+    )
 ```
 
 Key points:
 
-- `fill="rgba(0,0,0,0)"` keeps the rectangle a stroke-only border.
-- `inherit_aes=False` prevents the main aesthetic mapping (e.g. `fill=value_column`) from polluting the rect.
-- The `else` branch restores a normal axis line so the plot still has a visible frame when the rectangle is disabled.
-- The rectangle ends at `n_x - 0.5`, so any dendrogram drawn beyond that x stays outside the border (this is intentional, see [dendrogram.md](dendrogram.md)).
-
-## Computing `data_top`
-
-`data_top` is the y-coordinate of the top edge of the data area, **excluding** any padding for key-group brackets above:
-
-- **Aggregated row-per-group plots** (matrixplot, dotplot, stacked_violin, heatmap with `aggregate=True`): `data_top = n_y - 0.5`.
-- **Per-cell heatmap** (`aggregate=False`): cells extend half a row above `position_y`'s max, so `data_top = (n_x - 1) + half_step` where `half_step = (n_x - 1) / max(n_y - 1, 1) / 2`.
-
-Do not use `y_max_limit` here. The y-axis limit may be extended above `data_top` to make room for key-group bracket labels, but the rectangle should hug the data, not the bracket area.
+- `_GEOM_LINE_UNIT` (`cellestial/util/dendrogram.py`) keeps `rectangle_size` in the geom line units of the former `geom_rect` border.
+- `rectangle_kwargs` goes to `element_rect`, so only theme rect options (`linetype`, `fill`) are accepted.
+- Plots with ggside track bands set `ggside_panel_border=element_blank()` so a panel border never frames the bands (see `annotated_heatmap`).
 
 ## Axis interaction
 
-The plot must already use continuous numeric scales with explicit `limits` and `expand=[0, 0]` (same requirement as dendrograms). Without `expand=[0, 0]`, lets-plot adds default padding and the rectangle no longer aligns with the panel edge.
+The panel must end at the data: continuous numeric scales with `limits=[-0.5, n - 0.5]` and `expand=[0, 0]`, as for dendrograms.
 
 ## Reference implementations
 
