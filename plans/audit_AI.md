@@ -90,6 +90,10 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | Function | Source | Line-by-line |
 | --- | --- | --- |
 | `DeferredLayer` | Claude Opus 5.5 |  |
+| `_dendrogram_y_axis` | Claude Opus 5.5 |  |
+| `_dendrogram_line_theme` | Claude Opus 5.5 |  |
+| `_nonaggregate_y_step` | Claude Opus 5.5 |  |
+| `_get_group_lines_frame` | Claude Opus 5.5 |  |
 | `_unsupported_data_type` | Claude Opus 5.5 |  |
 | `_spatial_components` | Claude 4.7 |  |
 | `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |

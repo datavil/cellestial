@@ -60,6 +60,17 @@ change. Versions absent from the list were never released.
   `plot + layer` works as before, but `isinstance(layer, PlotSpec)` is now
   `False`.
   - Migration: only add a `DeferredLayer` to a plot; do not treat it as one.
+- The per-cell `heatmap(aggregate=False)` and `annotated_heatmap` draw the
+  group dendrogram with ggrust's axis dendrogram (`scale_*_dendro` with
+  `leaf_levels`, each leaf spanning its group's rows) instead of a path layer.
+  In `heatmap` the tree sits in a band right of the panel and the group names
+  label the left axis; rows are one unit apart when `dendrogram=True`. In
+  `annotated_heatmap` the tree is the observation axis guide, outside the
+  annotation tracks, so it no longer takes a fixed 0.15 share of the panel.
+  `dendrogram_kwargs` is removed from `annotated_heatmap`.
+  - Migration: drop `dendrogram_kwargs`; style the tree with `dendrogram_color`
+    and `dendrogram_size`, or with `theme(axis_ticks_y=element_line(...))`
+    (`axis_ticks_x` when `transpose=True`).
 - ggrust 0.6 is required. `cellestial.setup_html` is removed, with the ggrust
   `LetsPlot` shim it aliased; it was a no-op, as is the setup call cellestial
   made on import in IPython.

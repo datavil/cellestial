@@ -151,8 +151,10 @@ def _group_bar_gap(n_x: int) -> float:
     return max(_GROUP_BAR_GAP_MIN, n_x * _GROUP_BAR_GAP_RATIO)
 
 
-def _nonaggregate_y_step(n_x: int, n_y: int) -> float:
-    """Return the distance between adjacent nonaggregated row centers."""
+def _nonaggregate_y_step(n_x: int, n_y: int, *, unit_rows: bool = False) -> float:
+    """Return the distance between adjacent nonaggregated row centers (1 with `unit_rows`)."""
+    if unit_rows:
+        return 1.0
     y_span = max(n_x - 1, 1)
     return y_span / max(n_y - 1, 1)
 
@@ -166,6 +168,7 @@ def _assign_positions(
     variable_column: str,
     x_keys: list[str],
     y_order_groups: list[str],
+    unit_rows: bool = False,
 ) -> tuple[pl.DataFrame, pl.DataFrame | None, int, int, list[float]]:
     """
     Attach `_x`/`_y` to `frame` and compute layout metadata.
@@ -214,7 +217,7 @@ def _assign_positions(
         .sort(["_group_index", observation_id_column])
     )
     n_y = cell_frame.height
-    y_step = _nonaggregate_y_step(n_x, n_y)
+    y_step = _nonaggregate_y_step(n_x, n_y, unit_rows=unit_rows)
     cell_frame = cell_frame.with_columns(
         (pl.int_range(pl.len()).cast(pl.Float64) * y_step).alias("position_y")
     )
@@ -256,6 +259,7 @@ def _get_group_lines_frame(
     n_x: int,
     n_y: int,
     n_groups: int,
+    unit_rows: bool = False,
 ) -> pl.DataFrame:
     """Build the horizontal separator-line frame between groups."""
     if aggregate:
@@ -269,7 +273,7 @@ def _get_group_lines_frame(
             .head(n_groups - 1)["y_max"]
             .to_list()
         )
-        half_step = _nonaggregate_y_step(n_x, n_y) / 2
+        half_step = _nonaggregate_y_step(n_x, n_y, unit_rows=unit_rows) / 2
         line_ys = [y + half_step for y in boundaries]
 
     x_start = -0.5

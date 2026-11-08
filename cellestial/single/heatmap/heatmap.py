@@ -9,7 +9,6 @@ from anndata import AnnData
 from ggrust import (
     aes,
     element_blank,
-    geom_path,
     geom_raster,
     geom_segment,
     geom_tile,
@@ -41,8 +40,6 @@ from cellestial.util import (
     _dendrogram_line_theme,
     _dendrogram_y_axis,
     _fill_gradient,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
     _get_dendrogram_tree,
     _warn,
 )
@@ -399,21 +396,15 @@ def heatmap(
             frame = _scale_wide_values(frame, keys=keys, scale_axis=scale_axis)
 
     # DETERMINE: y order of groups
-    if dendrogram and aggregate:
+    if dendrogram:
         tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
         y_order_groups = list(tree.ordered_labels)
-        paths = None
-    elif dendrogram:
-        y_order_groups, paths = _get_dendrogram(
-            *_modality_source(data, modality, group_by), use_key=dendrogram_key
-        )
     elif aggregate:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        paths = None
     else:
         # First appearance in key-major order, as in the unpivoted frame.
         y_order_groups = (
@@ -425,7 +416,6 @@ def heatmap(
             .cast(pl.String)
             .to_list()
         )
-        paths = None
 
     if not aggregate:
         # BIN: collapse cells into at most `max_rows` virtual rows (within group)
@@ -455,6 +445,7 @@ def heatmap(
         variable_column=variable_column,
         x_keys=x_keys,
         y_order_groups=y_order_groups,
+        unit_rows=dendrogram,
     )
 
     # BUILD: heatmap layer
@@ -477,7 +468,7 @@ def heatmap(
         data_bottom = -0.5
         data_top = n_y - 0.5
     else:
-        y_step = _nonaggregate_y_step(n_x, n_y)
+        y_step = _nonaggregate_y_step(n_x, n_y, unit_rows=dendrogram)
         half_step = y_step / 2
         data_bottom = -half_step
         data_top = y_step * max(n_y - 1, 0) + half_step
@@ -486,6 +477,30 @@ def heatmap(
     if aggregate and dendrogram:
         # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
         htmp += _dendrogram_y_axis(tree, limits=[data_bottom, data_top], fixed=geom == "raster")
+    elif dendrogram:
+        # DENDROGRAM (right side, along y-axis): each leaf spans its group's rows,
+        # which sit one level apart; group names label each group's middle row.
+        assert cell_frame is not None
+        row_levels = cell_frame.with_columns(
+            pl.col("position_y").cast(pl.Int64).cast(pl.String).alias("_level"),
+            pl.col(group_by).cast(pl.String),
+        )
+        runs = {
+            group: row_levels.filter(pl.col(group_by) == group)["_level"].to_list()
+            for group in y_order_groups
+        }
+        labelled = group_bars and group_bars_labels
+        htmp += _dendrogram_y_axis(
+            tree,
+            limits=[data_bottom, data_top],
+            leaf_levels=runs,
+            breaks=[runs[group][len(runs[group]) // 2] for group in y_order_groups]
+            if labelled
+            else [],
+            labels=y_order_groups if labelled else [],
+        )
+        if labelled:
+            htmp += guides(color="none")
     elif aggregate:
         htmp += scale_y_continuous(
             breaks=list(range(n_y)),
@@ -524,6 +539,7 @@ def heatmap(
             n_x=n_x,
             n_y=n_y,
             n_groups=len(y_order_groups),
+            unit_rows=dendrogram,
         )
         htmp += geom_segment(
             data=lines_frame,
@@ -533,20 +549,9 @@ def heatmap(
             **(group_lines_kwargs or {}),
         )
 
-    # DENDROGRAM (right side, along y-axis); per-cell rows draw the tree as a path
-    if dendrogram and aggregate:
+    # DENDROGRAM (right side, along y-axis), drawn with the y tick line
+    if dendrogram:
         htmp += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
-    elif dendrogram:
-        assert paths is not None
-        dendro_frame = _get_dendrogram_path_frame(
-            paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
-        )
-        htmp += geom_path(
-            data=dendro_frame,
-            mapping=aes(x="x", y="y", group="group"),
-            color=dendrogram_color,
-            size=dendrogram_size,
-        )
 
     # FILL gradient
     htmp += _fill_gradient(

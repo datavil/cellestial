@@ -267,12 +267,13 @@ def test_annotated_heatmap_transpose_moves_dendrogram_above_heatmap(adata, marke
     ).as_dict()
 
     assert spec["layers"][0]["geom"] == "raster"
-    (tree,) = _side_layers(spec, "x")
-    assert tree["geom"] == "line"
-    assert spec["ggside"]["x_pos"] == "top"
-    # root away from the heatmap: heights grow upward from the band's inner edge
-    assert min(tree["data"]["height"]) == pytest.approx(-0.5)
-    assert max(tree["data"]["height"]) > 0
+    (tree,) = [scale for scale in spec["scales"] if "dendrogram" in scale]
+    assert tree["aesthetic"] == "x"
+    assert tree["position"] == "top"
+    assert tree["guide"] == {"name": "axis_dendro"}
+    # every observation row is one level of the tree's leaves
+    rows = [level for levels in tree["leaf_levels"].values() for level in levels]
+    assert sorted(rows, key=int) == [str(index) for index in range(len(rows))]
 
 
 def test_annotated_heatmap_layers_and_layers_all_are_added(adata, markers, group_key, cluster_key):

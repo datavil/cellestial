@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "ggrust", "mudata", "numpy"]
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from collections.abc import Mapping
 from itertools import pairwise
 from typing import TYPE_CHECKING, Literal
 
-import numpy as np
 import polars as pl
 from anndata import AnnData
 from ggrust import (
@@ -28,6 +27,7 @@ from ggrust import (
     ggplot,
     ggside,
     ggtb,
+    guide_axis_dendro,
     guide_axis_mark,
     guides,
     new_scale_fill,
@@ -36,8 +36,10 @@ from ggrust import (
     scale_fill_gradientn,
     scale_fill_manual,
     scale_x_continuous,
+    scale_x_dendro,
     scale_xsidey_discrete,
     scale_y_continuous,
+    scale_y_dendro,
     scale_ysidex_discrete,
     theme,
 )
@@ -46,7 +48,8 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import _scale_values
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _fill_gradient, _get_dendrogram, _warn
+from cellestial.util import _fill_gradient, _warn
+from cellestial.util.dendrogram import _dendrogram_line_theme, _get_dendrogram_tree
 from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _modality_source
 
@@ -56,9 +59,6 @@ if TYPE_CHECKING:
     from ggrust.plot.core import FeatureSpec, PlotSpec
 
     AnnotationColors = Mapping[str, str] | Sequence[str]
-
-# Width of the dendrogram, relative to the heatmap.
-_DENDROGRAM_WIDTH = 0.15
 
 # Depth of the `group_labels` brackets, relative to the heatmap.
 _BRACKET_WIDTH = 0.03
@@ -322,43 +322,6 @@ def _track_layers(
     return layers
 
 
-def _dendrogram_layer(
-    paths: pl.DataFrame,
-    *,
-    band: Literal["x", "y"],
-    group_centers: list[float],
-    leaf_edge: float,
-    extent: float,
-    color: str,
-    size: float,
-    kwargs: dict,
-) -> FeatureSpec:
-    """
-    Draw the group dendrogram as line segments in a side band.
-
-    Notes
-    -----
-    Leaves sit at the group centers along the heatmap's observation axis, at
-    cross position `leaf_edge` next to the tracks; the root lies `extent` cross
-    units away (negative `extent` points toward the left or bottom). Each path
-    is split into two-point segments, since a side line orders its points along
-    the shared axis.
-    """
-    leaf_positions = np.arange(len(group_centers), dtype=float)
-    leaf = np.interp(paths["x"].to_numpy(), leaf_positions, group_centers)
-    height = leaf_edge + paths["y"].to_numpy() * extent
-    path_group = paths["group"].to_numpy()
-    starts = np.flatnonzero(path_group[:-1] == path_group[1:])
-    segment = np.repeat(np.arange(starts.size), 2)
-    index = np.column_stack([starts, starts + 1]).ravel()
-    frame = pl.DataFrame({"leaf": leaf[index], "height": height[index], "segment": segment})
-    if band == "x":
-        mapping, side_line = aes(x="leaf", y="height", group="segment"), geom_xsideline
-    else:
-        mapping, side_line = aes(x="height", y="leaf", group="segment"), geom_ysideline
-    return side_line(mapping, data=frame, inherit_aes=False, color=color, size=size, **kwargs)
-
-
 def _bracket_layers(
     blocks: Sequence[tuple[float, float, str]],
     *,
@@ -449,7 +412,6 @@ def annotated_heatmap(
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
-    dendrogram_kwargs: dict | None = None,
     column_annotation_height: float = 0.025,
     row_annotation_width: float = 0.025,
     column_annotation_position: Literal["top", "bottom"] = "top",
@@ -540,8 +502,6 @@ def annotated_heatmap(
         Size (thickness) of the dendrogram segments.
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters for the dendrogram `geom_path`.
     column_annotation_height : float, default=0.025
         Height of each column annotation track, relative to the heatmap.
     row_annotation_width : float, default=0.025
@@ -679,11 +639,12 @@ def annotated_heatmap(
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
     if dendrogram:
         assert group_by is not None  # guaranteed by the guard above
-        dendrogram_order, dendrogram_paths = _get_dendrogram(
+        tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
+        dendrogram_order = list(tree.ordered_labels)
     else:
-        dendrogram_order, dendrogram_paths = None, None
+        tree, dendrogram_order = None, None
 
     # BUILD: observation frame with expression and row metadata, order, then bin.
     metadata = [group_by, *row_annotations] if group_by is not None else list(row_annotations)
@@ -919,33 +880,33 @@ def annotated_heatmap(
         legend=annotation_legends,
     )
 
-    # DENDROGRAM (group clustering), outermost in the observation band. Groups span
-    # many rows, so an axis dendrogram (one leaf per discrete level) cannot be used.
+    # DENDROGRAM (group clustering), outermost on the observation side: an axis
+    # tree whose leaves each span their group's rows (one level per row).
     observation_thickness = row_annotation_width * len(row_annotations)
     if dendrogram:
         assert group_by is not None
-        assert dendrogram_paths is not None
-        assert group_order is not None
-        centers = observations.group_by(group_by, maintain_order=True).agg(
-            pl.col("position_y").mean().alias("_center")
+        assert tree is not None
+        rows = observations.select(
+            pl.col(group_by).cast(pl.String), pl.col("position_y").cast(pl.String)
         )
-        center_of = dict(zip(centers[group_by].cast(pl.String), centers["_center"], strict=True))
-        # The tree spans `_DENDROGRAM_WIDTH` of the heatmap; cross units are tracks.
-        extent = _DENDROGRAM_WIDTH / row_annotation_width
-        leaf_edge = len(row_annotations) - 0.5 if observation_far else -0.5
-        observation_layers.append(
-            _dendrogram_layer(
-                dendrogram_paths,
-                band=observation_band,
-                group_centers=[center_of[group] for group in group_order],
-                leaf_edge=leaf_edge,
-                extent=extent if observation_far else -extent,
-                color=dendrogram_color,
-                size=dendrogram_size,
-                kwargs=dendrogram_kwargs or {},
-            )
+        runs = {
+            group: rows.filter(pl.col(group_by) == group)["position_y"].to_list()
+            for group in tree.ordered_labels
+        }
+        dendro_axis = scale_x_dendro if transpose else scale_y_dendro
+        # Upright, the first group sits at the top: the tree runs top-down.
+        observation_scale = dendro_axis(
+            tree,
+            breaks=[],
+            expand=[0, 0],
+            reverse=not transpose,
+            position=observation_side,
+            leaf_levels=runs,
+            guide=guide_axis_dendro(),
         )
-        observation_thickness += _DENDROGRAM_WIDTH
+        plot += _dendrogram_line_theme(
+            color=dendrogram_color, size=dendrogram_size, axis="x" if transpose else "y"
+        )
 
     # GROUP LABELS: a bracket and text beside each labelled `variable_group_by`
     # block, outermost in the variable band.
@@ -983,7 +944,12 @@ def annotated_heatmap(
         key_axis = scale_y_continuous if transpose else scale_x_continuous
         key_scale = key_axis(breaks=[], limits=list(key_limits), expand=[0, 0])
     elif key_labels:
-        opposite = {"left": "right", "right": "left", "top": "bottom", "bottom": "top"}
+        opposite: dict[str, Literal["left", "right", "top", "bottom"]] = {
+            "left": "right",
+            "right": "left",
+            "top": "bottom",
+            "bottom": "top",
+        }
         key_axis = scale_y_continuous if transpose else scale_x_continuous
         key_scale = key_axis(
             breaks=[position_x[label] for label in key_labels],

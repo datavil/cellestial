@@ -1,8 +1,6 @@
 from cellestial.util.dendrogram import (  # noqa: F401
     _dendrogram_line_theme,
     _dendrogram_y_axis,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
     _get_dendrogram_tree,
 )
 from cellestial.util.markers import marker_genes, marker_genes_dict
