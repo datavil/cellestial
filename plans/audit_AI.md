@@ -86,6 +86,9 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_format_warning` | Claude Opus 5.5 |  |  |  |  |
 | `_kernel_padding` | Claude Opus 5.5 |  |  |  |  |
 | `_print_progress` | Claude Opus 5.5 |  |  |  |  |
+| `embedding_density` | Claude Opus 5.5 |  |  |  |  |
+| `_require_observation_column` | Claude Opus 5.5 |  |  |  |  |
+| `_category_levels` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 

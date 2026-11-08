@@ -7,6 +7,15 @@ Entries for 0.58.2 and earlier were reconstructed from the commit history after
 the fact, so they summarize each release in a line or two rather than list every
 change. Versions absent from the list were never released.
 
+## [Unreleased]
+
+### Added
+- Added `embedding_density`, an embedding plot with cells colored by the local
+  density of cells around them, optionally with one panel per group:
+  `cl.embedding_density(data, group_by="condition")` (issue #74). Each panel's
+  density uses only that group's cells, and every cell is drawn in grey behind
+  each panel.
+
 ## [0.61.0] - 2026-11-08
 
 cellestial now builds and renders every plot with ggrust, a Rust backend that
