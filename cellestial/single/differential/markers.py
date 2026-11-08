@@ -26,7 +26,6 @@ from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.single.differential.utilities import _build_markers_frame
-from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container
 
@@ -129,11 +128,11 @@ def markers(
     interactive : bool, default=False
         Whether to make the plot interactive.
     share_labels : bool, default=True
-        Whether to share axis labels across the grid.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share axes across the grid.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=3
@@ -246,7 +245,7 @@ def markers(
 
     # BUILD: one panel per group
     plots = []
-    for i, group in enumerate(selected_groups):
+    for group in selected_groups:
         group_frame = frame.filter(pl.col(group_column) == group)
         plot = ggplot(group_frame)
 
@@ -290,10 +289,6 @@ def markers(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, selected_groups, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, selected_groups, ncol, "axis")
 
         plots.append(plot)
 
@@ -309,6 +304,8 @@ def markers(
             vspace=vspace,  # ty:ignore[invalid-argument-type]
             fit=fit,  # ty:ignore[invalid-argument-type]
             align=align,  # ty:ignore[invalid-argument-type]
+            axes="collect" if share_axis else None,
+            axis_titles="collect" if share_labels else None,
             guides=guides,
         )
         + theme_bw()

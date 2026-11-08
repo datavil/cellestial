@@ -29,7 +29,6 @@ from cellestial.single.differential.utilities import (
     _resolve_pvalue_column,
 )
 from cellestial.themes import _THEME_SCATTER_BASE
-from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _container
 
@@ -541,11 +540,11 @@ def volcanos(
     interactive : bool, default=False
         Whether to make the plot interactive.
     share_labels : bool, default=False
-        Whether to share axis labels across the grid.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share axes across the grid.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -609,7 +608,7 @@ def volcanos(
         raise TypeError(msg)
 
     plots = []
-    for i, group in enumerate(groups):
+    for group in groups:
         plot = volcano(
             data=data,
             group=group,
@@ -655,10 +654,6 @@ def volcanos(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, groups, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, groups, ncol, "axis")
 
         plots.append(plot)
 
@@ -673,6 +668,8 @@ def volcanos(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 

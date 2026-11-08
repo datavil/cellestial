@@ -27,6 +27,17 @@ change. Versions absent from the list were never released.
     `["figures"]`; combine it with other plots through `gggrid` as any
     `PlotSpec`.
 - ggrust 0.7 is required.
+- Plural plots share axes and titles through ggrust's collected grid axes
+  (`gggrid(axes="collect", axis_titles="collect")`, patchwork's rules) instead
+  of blanking them per plot by grid position. `share_axis` (and `share_ticks`
+  in `violins`, `boxplots` and `histograms`) now keeps every axis whose range
+  differs from its neighbour's; only identical axes collapse, so pass
+  `sharex` / `sharey` to make them equal. `share_ticks` no longer keeps the
+  tick marks of the axes it hides: it behaves as `share_axis`. `share_labels`
+  draws one title per run of plots, centred across a run that spans several
+  columns or rows, instead of one per bottom-row and left-column plot.
+  - Migration: add `sharex=True` / `sharey=True` where inner axes should still
+    disappear across plots with different ranges.
 - `dotplot` and `stacked_violin` draw their data-area border as the panel
   border (`theme(panel_border=element_rect(...))`) instead of a `geom_rect`
   layer. `rectangle_kwargs` now goes to `element_rect`, which accepts `fill`

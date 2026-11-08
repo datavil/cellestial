@@ -13,8 +13,6 @@ from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
     _resolve_tooltips,
-    _share_axis,
-    _share_ticks,
 )
 
 if TYPE_CHECKING:
@@ -140,11 +138,10 @@ def violins(
         Additional layers to add to the plot.
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the ticks across all plots.
-        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+        Same as `share_axis`.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     ncol : int, default=None
@@ -269,7 +266,7 @@ def violins(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = violin(
             data=data,
             key=key,
@@ -305,10 +302,6 @@ def violins(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_ticks:
-            plot = _share_ticks(plot, i, keys, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, keys, ncol, "axis")
         plots.append(plot)
 
     dsts = gggrid(
@@ -322,6 +315,7 @@ def violins(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis or share_ticks else None,
         guides=guides,
     )
 
@@ -445,11 +439,10 @@ def boxplots(
     value_column : str, default='value'
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the ticks across all plots.
-        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+        Same as `share_axis`.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     ncol : int, default=None
@@ -574,7 +567,7 @@ def boxplots(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = boxplot(
             data=data,
             key=key,
@@ -610,10 +603,6 @@ def boxplots(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_ticks:
-            plot = _share_ticks(plot, i, keys, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, keys, ncol, "axis")
 
         plots.append(plot)
 
@@ -628,6 +617,7 @@ def boxplots(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis or share_ticks else None,
         guides=guides,
     )
 
@@ -736,11 +726,10 @@ def histograms(
     value_column : str, default='value'
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the ticks across all plots.
-        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+        Same as `share_axis`.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     ncol : int, default=None
@@ -850,7 +839,7 @@ def histograms(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = histogram(
             data=data,
             key=key,
@@ -881,10 +870,6 @@ def histograms(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_ticks:
-            plot = _share_ticks(plot, i, keys, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, keys, ncol, "axis")
 
         plots.append(plot)
 
@@ -899,6 +884,7 @@ def histograms(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis or share_ticks else None,
         guides=guides,
     )
 

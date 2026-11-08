@@ -13,7 +13,6 @@ import re
 import sys
 import warnings
 from collections.abc import Sequence
-from functools import lru_cache
 from math import ceil, floor, isfinite, log10
 from numbers import Real
 from pathlib import Path
@@ -22,7 +21,6 @@ from typing import TYPE_CHECKING, Literal, cast, overload
 import polars as pl
 from anndata import AnnData
 from ggrust import (
-    element_blank,
     guide_legend,
     guides,
     layer_tooltips,
@@ -30,10 +28,8 @@ from ggrust import (
     scale_color_gradient2,
     scale_fill_continuous,
     scale_fill_gradient2,
-    theme,
 )
 from ggrust.plot.core import FeatureSpec
-from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 
 from cellestial.util.errors import CellestialWarning, KeyNotFoundError
@@ -571,71 +567,6 @@ def _fill_gradient(
             high=color_high,
             midpoint=mid_value,
         )
-
-
-# cache to avoid recomputing for every plot in a grid...
-@lru_cache(maxsize=32)
-def _grid_places(total: int, ncol: int | None) -> tuple[frozenset[int], frozenset[int]]:
-    if ncol is None:
-        ncol = total
-    nrow = ceil(total / ncol)
-    left_places = {index for index in range(total) if index % ncol == 0}
-    bottom_places = {index for index in range(total) if index >= ncol * (nrow - 1)}
-    # the last grid row may be incomplete; for the columns it does not cover,
-    # the bottom-most plot lives in the penultimate row.
-    last_row_count = total - ncol * (nrow - 1)
-    if nrow >= 2 and last_row_count < ncol:
-        bottom_places.update(ncol * (nrow - 2) + column for column in range(last_row_count, ncol))
-    return frozenset(left_places), frozenset(bottom_places)
-
-
-def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
-    left_places, bottom_places = _grid_places(len(keys), ncol)
-    if i not in bottom_places:  # remove x axis title except for bottom row
-        plot = plot + theme(axis_title_x=element_blank())
-    if i not in left_places:  # remove y axis title except for left column
-        plot = plot + theme(axis_title_y=element_blank())
-
-    return plot
-
-
-def _share_axis(
-    plot, i: int, keys: Sequence[str], ncol: int | None, axis_type: Literal["axis", "arrow"]
-) -> SupPlotsSpec:
-    left_places, bottom_places = _grid_places(len(keys), ncol)
-
-    if axis_type == "axis":
-        if i not in bottom_places:  # remove x axis title except for bottom row
-            plot = plot + theme(
-                # remove x axis elements
-                axis_text_x=element_blank(),
-                axis_ticks_x=element_blank(),
-                axis_line_x=element_blank(),
-            )
-        if i not in left_places:  # remove y axis title except for left column
-            plot = plot + theme(
-                # remove y axis elements
-                axis_text_y=element_blank(),
-                axis_ticks_y=element_blank(),
-                axis_line_y=element_blank(),
-            )
-    elif axis_type == "arrow":
-        pass
-    else:
-        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
-        raise ValueError(msg)
-
-    return plot
-
-
-def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
-    left_places, bottom_places = _grid_places(len(keys), ncol)
-    if i not in bottom_places:  # remove x axis title except for bottom row
-        plot = plot + theme(axis_text_x=element_blank())
-    if i not in left_places:  # remove y axis title except for left column
-        plot = plot + theme(axis_text_y=element_blank())
-
-    return plot
 
 
 '''

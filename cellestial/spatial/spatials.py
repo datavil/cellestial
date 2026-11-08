@@ -17,7 +17,6 @@ from cellestial.util import (
     _collect_aes_columns,
     _is_variable_key,
     _resolve_tooltips,
-    _share_labels,
 )
 from cellestial.util.errors import UnsupportedDataTypeError
 
@@ -175,7 +174,8 @@ def spatials(
     midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
     share_labels : bool, default=False
-        If True, only show axis labels at the grid edges.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to every plot in the grid.
     ncol : int, default=None
@@ -318,7 +318,7 @@ def spatials(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = spatial(
             data=data,
             key=key,
@@ -361,8 +361,6 @@ def spatials(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
 
         plots.append(plot)
 
@@ -377,6 +375,7 @@ def spatials(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
     if interactive:

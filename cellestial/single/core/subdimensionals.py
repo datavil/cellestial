@@ -15,8 +15,6 @@ from cellestial.util import (
     _collect_aes_columns,
     _is_variable_key,
     _resolve_tooltips,
-    _share_axis,
-    _share_labels,
 )
 
 if TYPE_CHECKING:
@@ -166,11 +164,12 @@ def dimensionals(
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -288,7 +287,7 @@ def dimensionals(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = dimensional(
             data=data,
             key=key,
@@ -331,11 +330,6 @@ def dimensionals(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
@@ -350,6 +344,8 @@ def dimensionals(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -496,11 +492,12 @@ def umaps(
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -618,7 +615,7 @@ def umaps(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = umap(
             data=data,
             key=key,
@@ -660,11 +657,6 @@ def umaps(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
@@ -679,6 +671,8 @@ def umaps(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -824,11 +818,12 @@ def tsnes(
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -946,7 +941,7 @@ def tsnes(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = tsne(
             data=data,
             key=key,
@@ -987,11 +982,6 @@ def tsnes(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
@@ -1006,6 +996,8 @@ def tsnes(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -1151,11 +1143,12 @@ def pcas(
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -1273,7 +1266,7 @@ def pcas(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = pca(
             data=data,
             key=key,
@@ -1315,11 +1308,6 @@ def pcas(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
@@ -1334,6 +1322,8 @@ def pcas(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -1474,11 +1464,12 @@ def expressions(
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -1595,7 +1586,7 @@ def expressions(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = expression(
             data=data,
             key=key,
@@ -1636,11 +1627,6 @@ def expressions(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
@@ -1655,6 +1641,8 @@ def expressions(
         vspace=vspace,  # ty:ignore[invalid-argument-type]
         fit=fit,  # ty:ignore[invalid-argument-type]
         align=align,  # ty:ignore[invalid-argument-type]
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 

@@ -582,11 +582,11 @@ variable_id_column: str = "Variable"      # gene identifier column
 - `.drop_nulls()` — clean after unpivot
 - Categorical integer conversion in `build_frame()` — important for proper Polars typing
 
-## Grid helper functions
-- `_share_ticks()` — removes axis text on non-edge plots
-- `_share_axis()` — removes axis elements except at edges
-- `_share_labels()` — removes axis titles except at edges
-- All applied before `gggrid()` call in plural functions
+## Grid axes in plural functions
+- `share_axis` / `share_ticks` -> `gggrid(axes="collect")`, `share_labels` ->
+  `gggrid(axis_titles="collect")` (ggrust 0.7, patchwork rules: only identical
+  neighbouring axes collapse; titles one per run). The per-plot `_share_*`
+  helpers were removed.
 
 ## Color logic
 - **Categorical key** → `scale_color_brewer(palette="Set2")`
