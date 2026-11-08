@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal, cast
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from ggrust import aes, geom_path, geom_text
+from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize
 from scipy.stats import gaussian_kde
 
 from cellestial.util import _warn
@@ -592,6 +592,48 @@ def _key_groups_layers(
             **text_kwargs,
         ),
     ]
+
+
+# ---------------------------------------------------------------------------
+# Fixed-cell canvas sizing (dotplot, stacked_violin, matrixplot)
+# ---------------------------------------------------------------------------
+
+# Pixels. Every key x group cell has a fixed size and the canvas grows with the
+# number of cells instead of stretching them.
+_CELL_SIZE = 30
+_CHARACTER_WIDTH = 7
+_MARGIN = 20
+# Cells; brackets are sized against a constant span so they keep a fixed pixel size.
+_BRACKET_REFERENCE_SPAN = 20
+
+
+def _fixed_cell_layout(
+    *,
+    x_span: float,
+    y_span: float,
+    x_labels: Sequence[str],
+    y_labels: Sequence[str],
+    legend_width: float,
+    legend_height: float,
+    cell_height_ratio: float = 1.0,
+) -> FeatureSpec:
+    """
+    Lock the cell aspect ratio and size the canvas to fit the panel.
+
+    Notes
+    -----
+    `x_span` and `y_span` are the panel extents in data units. The canvas adds
+    room for the axis labels (x labels are rotated 90 degrees) and legends,
+    and is never shorter than `legend_height`.
+    """
+    panel_width = x_span * _CELL_SIZE
+    panel_height = y_span * _CELL_SIZE * cell_height_ratio
+    y_label_width = max(len(label) for label in y_labels) * _CHARACTER_WIDTH
+    x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
+    return coord_fixed(ratio=cell_height_ratio) + ggsize(
+        panel_width + y_label_width + legend_width + _MARGIN,
+        max(panel_height + x_label_height + _MARGIN, legend_height),
+    )
 
 
 # ---------------------------------------------------------------------------

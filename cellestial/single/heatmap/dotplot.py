@@ -24,6 +24,8 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
+    _BRACKET_REFERENCE_SPAN,
+    _fixed_cell_layout,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
@@ -47,6 +49,10 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from ggrust.plot.core import PlotSpec
+
+_DOT_SIZE_MAX = 11  # point size of a 100% dot, fills ~80% of a cell
+_LEGEND_WIDTH = 70  # pixels
+_LEGEND_HEIGHT = 400  # pixels; fits the color bar and size legend
 
 
 def dotplot(
@@ -407,8 +413,7 @@ def dotplot(
     _mapping.update(mapping.as_dict())
 
     # Adjust point size range (keeps aes(size=...) mapping and its legend):
-    n_max = max(n_x, n_y)
-    size_max = 120 / n_max * size_scale
+    size_max = _DOT_SIZE_MAX * size_scale
     _size_scale = scale_size(range=[size_max * 0.1, size_max])
 
     dtplt = (
@@ -450,15 +455,15 @@ def dotplot(
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
         # Extend the y limit upward to fit the bracket bar plus rotated label.
-        data_range = data_top + 0.5
+        # Cells have a fixed pixel size, so brackets are sized against a constant span.
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
-            data_range=data_range,
+            data_range=_BRACKET_REFERENCE_SPAN,
             size_unit="y",
             label_size_scale=key_labels_text_size,
         )
-        key_groups_total_span = data_range + key_groups_padding
+        key_groups_total_span = _BRACKET_REFERENCE_SPAN + key_groups_padding
         y_max_limit = data_top + key_groups_padding
     dtplt += scale_x_continuous(
         breaks=list(range(n_x)),
@@ -486,7 +491,6 @@ def dotplot(
             bracket_size=key_labels_bracket_size,
             width=key_labels_width,
             label_size_scale=key_labels_text_size,
-            label_size_span=n_x,
             size_unit="x",
         ):
             dtplt += layer
@@ -512,6 +516,16 @@ def dotplot(
 
     # ADD: layers
     dtplt += _THEME_DOTPLOT
+
+    # SIZE: square cells; canvas fits the panel plus axis labels and legends
+    dtplt += _fixed_cell_layout(
+        x_span=x_max_limit + 0.5,
+        y_span=y_max_limit + 0.5,
+        x_labels=x_keys,
+        y_labels=y_order_groups,
+        legend_width=_LEGEND_WIDTH,
+        legend_height=_LEGEND_HEIGHT,
+    )
 
     # HANDLE: interactive
     if interactive:

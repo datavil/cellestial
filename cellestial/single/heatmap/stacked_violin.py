@@ -23,7 +23,10 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
+    _BRACKET_REFERENCE_SPAN,
+    _CHARACTER_WIDTH,
     _compute_violin_polygons,
+    _fixed_cell_layout,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
@@ -46,6 +49,9 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from ggrust.plot.core import PlotSpec
+
+_CELL_HEIGHT_RATIO = 1.5  # violins get taller-than-wide cells
+_COLOR_BAR_LEGEND_SIZE = (70, 250)  # pixels (width, height)
 
 
 def stacked_violin(
@@ -442,14 +448,15 @@ def stacked_violin(
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
-        data_range = data_top + 0.5
+        # Cells have a fixed pixel size, so brackets are sized against a constant span.
+        reference_span = _BRACKET_REFERENCE_SPAN / _CELL_HEIGHT_RATIO
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
-            data_range=data_range,
+            data_range=reference_span,
             label_size_scale=key_labels_text_size,
         )
-        key_groups_total_span = data_range + key_groups_padding
+        key_groups_total_span = reference_span + key_groups_padding
         y_max_limit = data_top + key_groups_padding
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
@@ -501,6 +508,25 @@ def stacked_violin(
 
     # ADD: theme
     plot += _THEME_DOTPLOT
+
+    # SIZE: fixed cells; canvas fits the panel plus axis labels and legend
+    if fill_statistic in ("mean", "median"):
+        legend_width, legend_height = _COLOR_BAR_LEGEND_SIZE
+    elif fill_statistic in ("group", "variable"):
+        legend_labels = y_order_groups if fill_statistic == "group" else x_keys
+        legend_width = max(len(label) for label in legend_labels) * _CHARACTER_WIDTH + 40
+        legend_height = len(legend_labels) * 20 + 60
+    else:
+        legend_width, legend_height = 0, 0
+    plot += _fixed_cell_layout(
+        x_span=x_max_limit + 0.5,
+        y_span=y_max_limit + 0.5,
+        x_labels=x_keys,
+        y_labels=y_order_groups,
+        legend_width=legend_width,
+        legend_height=legend_height,
+        cell_height_ratio=_CELL_HEIGHT_RATIO,
+    )
 
     # HANDLE: interactive
     if interactive:

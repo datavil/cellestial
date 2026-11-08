@@ -197,3 +197,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `ridges` | Claude Opus 5.5 |  |
 | `spatial` | Claude Opus 5.5 |  |
 | `spatials` | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` | Claude Opus 5.5 |  |

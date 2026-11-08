@@ -24,8 +24,10 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
+    _BRACKET_REFERENCE_SPAN,
     _assign_positions,
     _bin_within_groups,
+    _fixed_cell_layout,
     _get_group_bar_frame,
     _get_group_lines_frame,
     _key_groups_bar_y,
@@ -51,6 +53,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from ggrust.plot.core import FeatureSpec, PlotSpec
+
+_COLOR_BAR_LEGEND_SIZE = (70, 250)  # pixels (width, height)
 
 
 def heatmap(
@@ -483,7 +487,8 @@ def heatmap(
     y_max_limit = data_top
     key_groups_total_span: float | None = None
     if key_labels and key_groups is not None:
-        data_range = data_top - data_bottom
+        # Aggregated cells have a fixed pixel size, so brackets use a constant span.
+        data_range = _BRACKET_REFERENCE_SPAN if aggregate else data_top - data_bottom
         key_groups_padding = _resolve_padding(
             key_groups,
             padding=None,
@@ -543,11 +548,13 @@ def heatmap(
         )
 
     # DENDROGRAM (right side, along y-axis)
+    x_max_limit = n_x - 0.5
     if dendrogram:
         assert paths is not None
         dendro_frame = _get_dendrogram_path_frame(
             paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
         )
+        x_max_limit = dendro_frame["x"].max()
         htmp += geom_path(
             data=dendro_frame,
             mapping=aes(x="x", y="y", group="group"),
@@ -580,6 +587,18 @@ def heatmap(
             label_size_scale=key_labels_text_size,
         ):
             htmp += layer
+
+    # SIZE: square cells for the aggregated view; canvas fits panel, labels and legend
+    if aggregate:
+        legend_width, legend_height = _COLOR_BAR_LEGEND_SIZE
+        htmp += _fixed_cell_layout(
+            x_span=x_max_limit + 0.5,
+            y_span=y_max_limit - data_bottom,
+            x_labels=x_keys,
+            y_labels=y_order_groups,
+            legend_width=legend_width,
+            legend_height=legend_height,
+        )
 
     if interactive:
         htmp += ggtb(size_zoomin=-1)

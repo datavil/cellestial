@@ -101,6 +101,11 @@ change. Versions absent from the list were never released.
   `**point_kwargs`, and `markers` used `**text_kwargs`, which clashed with the
   `point_kwargs` dict parameter of `violin` and `boxplot`. Calls are unaffected,
   since keyword arguments land in the catch-all whatever its name.
+- `dotplot`, `stacked_violin` and `matrixplot` draw cells of a fixed size
+  (square, and 1.5 times taller than wide for violins), and the plot grows
+  with the number of keys and groups instead of stretching cells to fill a
+  fixed canvas. Dot sizes no longer shrink as keys or groups are added. A
+  `ggsize` added to the plot still overrides the computed size.
 
 ### Fixed
 - `volcano` and `volcanos` break gene-label ties by absolute log fold change, so
