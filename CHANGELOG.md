@@ -15,6 +15,13 @@ change. Versions absent from the list were never released.
   `cl.embedding_density(data, group_by="condition")` (issue #74). Each panel's
   density uses only that group's cells, and every cell is drawn in grey behind
   each panel.
+- Added `blend`, a co-expression plot of two features on an embedding, after
+  Seurat's blended feature plot: `cl.blend(data, keys=("CD3E", "CD8A"))`. It
+  returns a grid of the two feature panels, the blended panel, and a
+  two-dimensional color key. Cells expressing both features show the sum of
+  both colors (yellow for the default red and green) (issue #75).
+- Added `InvalidColorError`, raised when a color is not in a format the
+  function can compute with.
 
 ## [0.61.0] - 2026-11-08
 

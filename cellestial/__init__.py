@@ -13,6 +13,7 @@ from cellestial.layers import (
 )
 from cellestial.single import (
     bar,
+    blend,
     boxplot,
     boxplots,
     dimensional,
@@ -84,6 +85,7 @@ __all__ = [
     "annotated_heatmap",
     "arrow_axis",
     "bar",
+    "blend",
     "borders",
     "boxplot",
     "boxplots",

@@ -33,6 +33,7 @@
 - [Project: MuData container](project_mudata_container.md) — MuData support routes through internal `_Container`/`_MuDataContainer`; dtype doubling, obsmap alignment, obsm masks, non-raising lookup, lazy import
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 - [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
+- [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
 
 
 ---
@@ -960,3 +961,18 @@ A refactor (e.g. extracting duplicated blocks into a helper) must reproduce the 
 **Why:** An agent extracted the four copied `groups`/`drop` filter blocks into `_filter_groups` and, in the same diff, added a `KeyNotFoundError` for unknown names, String/Enum/Boolean filtering via a cast, and moved ridge's filter before its threshold. The user found it neither clean nor surgical, and said: "functions do not change behavior unless there is a bug."
 
 **How to apply:** When deduplicating, extract first and keep behavior identical, even keeping parameters that exist only to reproduce old messages. Check by comparing old and new side by side before reporting. Propose new behavior (stricter validation, wider dtype support) separately, and ask before doing it. Related: [[feedback-changelog-breaking-changes]], [[feedback-dont-overengineer-resolvers]].
+
+## Source: project_ggrust_tile_width_relative.md
+
+---
+name: project-ggrust-tile-width-relative
+description: ggrust geom_tile/geom_bar width and height are fractions of the data resolution, not data units; passing 1/(n-1) shrinks tiles to invisible
+metadata:
+  type: project
+---
+
+In ggrust (as in lets-plot), `geom_tile(width=..., height=...)` is a fraction of the data resolution (the smallest gap between positions), not a size in data units. For a 32x32 key on 0..1 levels, `width=1/31` made each tile 1/31 of its cell, so the tiles rendered as nothing. Leave width/height unset (default 1 = touching tiles).
+
+**Why:** The `cl.blend` color key (issue #75, 2026-11-08) rendered empty until width/height were dropped.
+
+**How to apply:** Omit tile width/height for touching tiles; use values below 1 only to add gaps. Related: [[project-letsplot-geom-raster-aspect]].

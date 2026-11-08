@@ -79,6 +79,13 @@ class EmptySelectionError(ValueError):
         super().__init__(message)
 
 
+class InvalidColorError(ValueError):
+    """Raised when a color is not in a format the function can compute with (e.g. not a hex color)."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
 

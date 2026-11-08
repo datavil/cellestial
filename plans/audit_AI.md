@@ -89,6 +89,13 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `embedding_density` | Claude Opus 5.5 |  |  |  |  |
 | `_require_observation_column` | Claude Opus 5.5 |  |  |  |  |
 | `_category_levels` | Claude Opus 5.5 |  |  |  |  |
+| `blend` | Claude Opus 5.5 |  |  |  |  |
+| `_require_variable` | Claude Opus 5.5 |  |  |  |  |
+| `_hex_to_rgb` | Claude Opus 5.5 |  |  |  |  |
+| `_scaled` | Claude Opus 5.5 |  |  |  |  |
+| `_blend_color` | Claude Opus 5.5 |  |  |  |  |
+| `_color_key` | Claude Opus 5.5 |  |  |  |  |
+| `InvalidColorError` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 

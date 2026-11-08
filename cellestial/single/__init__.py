@@ -2,6 +2,7 @@ from cellestial.single.base import plot
 from cellestial.single.basic import bar, scatter
 from cellestial.single.common import xyplot, xyplots
 from cellestial.single.core import (
+    blend,
     boxplot,
     boxplots,
     dimensional,
@@ -26,6 +27,7 @@ from cellestial.single.quick import elbow, highest_expressed_genes, ridge, ridge
 
 __all__ = [
     "bar",
+    "blend",
     "boxplot",
     "boxplots",
     "dimensional",
