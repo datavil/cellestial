@@ -28,6 +28,8 @@ from ggrust import (
     ggplot,
     ggside,
     ggtb,
+    guide_axis_mark,
+    guides,
     new_scale_fill,
     scale_fill_brewer,
     scale_fill_gradient,
@@ -57,9 +59,6 @@ if TYPE_CHECKING:
 
 # Width of the dendrogram, relative to the heatmap.
 _DENDROGRAM_WIDTH = 0.15
-
-# Width of the `key_labels` leader lines, relative to the heatmap.
-_LEADER_WIDTH = 0.06
 
 # Depth of the `group_labels` brackets, relative to the heatmap.
 _BRACKET_WIDTH = 0.03
@@ -358,62 +357,6 @@ def _dendrogram_layer(
     else:
         mapping, side_line = aes(x="height", y="leaf", group="segment"), geom_ysideline
     return side_line(mapping, data=frame, inherit_aes=False, color=color, size=size, **kwargs)
-
-
-def _spread_labels(positions: Sequence[float], *, n_keys: int) -> list[float]:
-    """
-    Spread label positions evenly over the key axis, keeping their order.
-
-    Notes
-    -----
-    The label of the `i`-th lowest position takes the `i`-th of
-    `len(positions)` equal slots spanning the axis (-0.5 to `n_keys` - 0.5), so
-    leader lines from the positions to their labels never cross.
-    """
-    slot = n_keys / len(positions)
-    rank = np.argsort(np.argsort(positions))
-    return [-0.5 + (index + 0.5) * slot for index in rank.tolist()]
-
-
-def _leader_layer(
-    positions: Sequence[float],
-    spread: Sequence[float],
-    *,
-    key_axis: Literal["x", "y"],
-    edge: float,
-    extent: float,
-) -> FeatureSpec:
-    """
-    Draw leader lines from each key's position to its spread label position.
-
-    Notes
-    -----
-    The lines run in the heatmap panel's label margin, along the observation
-    axis from `edge` (the heatmap's edge) over `extent` (negative toward the
-    left or bottom). Each leaves its key straight out, bends to the label
-    position over the middle third, and runs straight to the panel edge, where
-    the key axis label sits.
-    """
-    cross_start, cross_end, along_start, along_end = [], [], [], []
-    for position, label in zip(positions, spread, strict=True):
-        path = [(edge, position), (edge + extent / 3, position)]
-        path += [(edge + 2 * extent / 3, label), (edge + extent, label)]
-        for (cross_a, along_a), (cross_b, along_b) in pairwise(path):
-            cross_start.append(float(cross_a))
-            cross_end.append(float(cross_b))
-            along_start.append(float(along_a))
-            along_end.append(float(along_b))
-    if key_axis == "y":
-        columns = {"x": cross_start, "xend": cross_end, "y": along_start, "yend": along_end}
-    else:
-        columns = {"x": along_start, "xend": along_end, "y": cross_start, "yend": cross_end}
-    return geom_segment(
-        aes(x="x", y="y", xend="xend", yend="yend"),
-        data=pl.DataFrame(columns),
-        inherit_aes=False,
-        color="#1f1f1f",
-        size=0.3,
-    )
 
 
 def _bracket_layers(
@@ -1034,47 +977,22 @@ def annotated_heatmap(
         )
         variable_thickness += _BRACKET_WIDTH + group_labels_width
 
-    # KEY LABELS: the chosen keys' axis labels at evenly spread positions on the
-    # side opposite the variable tracks, with leader lines in a panel margin there
-    # (a single side band per axis, which the variable tracks may hold).
+    # KEY LABELS: the chosen keys' axis labels, spread evenly with leader lines
+    # (`guide_axis_mark`), on the side opposite the variable tracks.
     if key_labels == []:
         key_axis = scale_y_continuous if transpose else scale_x_continuous
         key_scale = key_axis(breaks=[], limits=list(key_limits), expand=[0, 0])
     elif key_labels:
         opposite = {"left": "right", "right": "left", "top": "bottom", "bottom": "top"}
-        label_side = opposite[variable_side]
-        label_far = label_side in ("right", "top")
-        positions = [position_x[label] for label in key_labels]
-        spread = _spread_labels(positions, n_keys=n_keys)
-        # The margin takes `_LEADER_WIDTH` of the widened observation axis.
-        margin = _LEADER_WIDTH * n_observations / (1 - _LEADER_WIDTH)
-        plot += _leader_layer(
-            positions,
-            spread,
-            key_axis="y" if transpose else "x",
-            edge=observation_limits[1] if label_far else observation_limits[0],
-            extent=margin if label_far else -margin,
-        )
-        observation_limits = (
-            (observation_limits[0], observation_limits[1] + margin)
-            if label_far
-            else (observation_limits[0] - margin, observation_limits[1])
-        )
-        key_axis, observation_axis = (
-            (scale_y_continuous, scale_x_continuous)
-            if transpose
-            else (scale_x_continuous, scale_y_continuous)
-        )
+        key_axis = scale_y_continuous if transpose else scale_x_continuous
         key_scale = key_axis(
-            breaks=spread,
+            breaks=[position_x[label] for label in key_labels],
             labels=key_labels,
             limits=list(key_limits),
             expand=[0, 0],
-            position=label_side,
+            position=opposite[variable_side],
         )
-        observation_scale = observation_axis(
-            breaks=[], limits=list(observation_limits), expand=[0, 0]
-        )
+        plot += guides(**{"y" if transpose else "x": guide_axis_mark(spread="even")})
 
     # COMPOSE: both bands in one plot, each sized by its tracks (and the tree).
     thickness = {

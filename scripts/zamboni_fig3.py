@@ -20,8 +20,8 @@ import polars as pl
 from anndata import AnnData
 from ggrust import (
     element_blank,
+    element_rect,
     element_text,
-    geom_rect,
     ggsave,
     scale_fill_gradientn,
     theme,
@@ -195,7 +195,12 @@ def panel(
     # Thousands of features: label only `key_labels` (in italics), or none.
     # `axis_text_y` also styles the top tracks' titles: italics only with gene labels.
     face = "italic" if key_labels else "plain"
-    key_axis = theme(axis_text_y=element_text(face=face, size=9), axis_line_x=element_blank())
+    key_axis = theme(
+        axis_text_y=element_text(face=face, size=9),
+        axis_line_x=element_blank(),
+        # The panel is the cells only; the track bands keep no frame.
+        panel_border=element_rect(color="black", size=2.6),
+    )
     return cl.annotated_heatmap(
         data,
         keys=list(data.var_names),
@@ -221,17 +226,6 @@ def panel(
         group_lines_size=0.8,
         layers=[
             palette,
-            # Frame the cells only: a panel border would also box the label margin.
-            geom_rect(
-                xmin=-0.5,
-                xmax=len(CELL_TYPES) * len(TIME_POINTS) - 0.5,
-                ymin=-0.5,
-                ymax=data.n_vars - 0.5,
-                fill="rgba(0,0,0,0)",
-                color="black",
-                size=1.2,
-                inherit_aes=False,
-            ),
             key_axis,
         ],
     )

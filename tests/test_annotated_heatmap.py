@@ -4,7 +4,7 @@ from ggrust import geom_blank
 from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
-from cellestial.complex.annotated_heatmap import _bin_observations, _spread_labels
+from cellestial.complex.annotated_heatmap import _bin_observations
 from cellestial.util.errors import UnsupportedDataTypeError
 
 
@@ -373,54 +373,6 @@ def test_annotated_heatmap_variable_group_by_needs_group_lines(adata, markers):
     ).as_dict()
 
     assert not [layer for layer in spec["layers"] if layer["geom"] == "segment"]
-
-
-def test_spread_labels_keeps_order_in_even_slots():
-    # positions 7, 1, 4 on a 10-key axis: slots of 10 / 3 starting at -0.5
-    spread = _spread_labels([7, 1, 4], n_keys=10)
-    slot = 10 / 3
-    assert spread == pytest.approx([-0.5 + 2.5 * slot, -0.5 + 0.5 * slot, -0.5 + 1.5 * slot])
-
-
-def test_annotated_heatmap_key_labels_label_chosen_keys_with_leader_lines(
-    adata, markers, group_key
-):
-    keys = markers[:4]
-    spec = cl.annotated_heatmap(
-        adata,
-        keys=keys,
-        group_by=group_key,
-        column_annotations=["highly_variable"],
-        column_annotation_position="bottom",
-        transpose=True,
-        key_labels=[keys[3], keys[0]],
-        max_rows=20,
-    ).as_dict()
-
-    key_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "y")
-    # transposed: first key at the top, so keys[0] takes the upper slot
-    assert key_scale["labels"] == [keys[3], keys[0]]
-    assert key_scale["breaks"] == pytest.approx([0.5, 2.5])
-    # opposite the right-hand column tracks
-    assert key_scale["position"] == "left"
-    (leaders,) = [
-        layer
-        for layer in spec["layers"]
-        if layer["geom"] == "segment" and "xend" in layer["mapping"] and "yend" in layer["mapping"]
-    ]
-    leader_frame = pl.DataFrame(leaders["data"])
-    assert leader_frame.height == 6
-    # lines leave the heatmap's left edge into a margin of the widened x axis
-    assert leader_frame["x"].max() == pytest.approx(-0.5)
-    observation_scale = next(
-        scale
-        for scale in spec["scales"]
-        if scale.get("aesthetic") == "x" and "ggside" not in scale
-    )
-    lower, upper = observation_scale["limits"]
-    margin = 0.06 * (upper + 0.5) / 0.94
-    assert lower == pytest.approx(-0.5 - margin)
-    assert leader_frame["xend"].min() == pytest.approx(-0.5 - margin)
 
 
 def test_annotated_heatmap_key_labels_unknown_key_raises(adata, markers, group_key):

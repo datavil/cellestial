@@ -194,6 +194,10 @@ change. Versions absent from the list were never released.
   legends, keeping only the heatmap's color bar.
 
 ### Changed
+- `annotated_heatmap(key_labels=[...])` lays out the chosen labels and their
+  leader lines with ggrust's `guide_axis_mark(spread="even")` instead of a
+  `geom_segment` layer in a widened panel margin. The panel is now the heatmap
+  only, so a `panel_border` frames the cells.
 - Extra keyword arguments forwarded to the underlying geom are documented as
   `**geom_kwargs` everywhere. `dimensional`, `umap`, `pca`, `tsne`,
   `expression`, `xyplot`, `spatial`, `volcano` (and their plurals) used
