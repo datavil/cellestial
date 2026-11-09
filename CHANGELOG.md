@@ -9,23 +9,11 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
-### Fixed
-- `dotplot` dots no longer spill into neighboring cells when the canvas is
-  smaller than the plot's own size (for example `ggsave(plot, w=8, h=5,
-  unit="in")` or `+ ggsize(...)`). Dot sizes are now fractions of a cell (a
-  dot for 100% of cells is 80% of a cell wide), so they shrink with the cells.
-  The size legend is drawn for the default cell size and does not shrink with
-  a resized canvas. Dot size now covers a fixed 0 to 100% range, so genes
-  expressed in few cells get smaller dots than before.
-- `dotplot`, `stacked_violin` and `matrixplot` cells are now exactly 30 pixels
-  wide. Before, a dendrogram squeezed them to 21 to 25 pixels and plots with
-  few groups stretched them to about 34 pixels. A single key keeps the backend's
-  50 pixel minimum panel instead of clipping the legend.
-
 ## [0.62.0] - 2026-11-09
 
 Three new plots: `tracksplot`, `blend` and `embedding_density`. The release
-also moves to ggrust 0.8.1. There are no breaking changes.
+also moves to ggrust 0.8.1 and keeps `dotplot` dots inside their cells.
+There are no breaking changes.
 
 ### Added
 - Added `embedding_density`, an embedding plot with cells colored by the local
@@ -47,6 +35,19 @@ also moves to ggrust 0.8.1. There are no breaking changes.
 - Added `InvalidArgumentError` (a `ValueError`) for missing or out-of-range
   parameter values, and `DendrogramMismatchError` (a `ValueError`) for a stored
   dendrogram that covers groups absent from the data.
+
+### Fixed
+- `dotplot` dots no longer spill into neighboring cells when the canvas is
+  smaller than the plot's own size (for example `ggsave(plot, w=8, h=5,
+  unit="in")` or `+ ggsize(...)`). Dot sizes are now fractions of a cell (a
+  dot for 100% of cells is 80% of a cell wide), so they shrink with the cells.
+  The size legend is drawn for the default cell size and does not shrink with
+  a resized canvas. Dot size now covers a fixed 0 to 100% range, so genes
+  expressed in few cells get smaller dots than before.
+- `dotplot`, `stacked_violin` and `matrixplot` cells are now exactly 30 pixels
+  wide. Before, a dendrogram squeezed them to 21 to 25 pixels and plots with
+  few groups stretched them to about 34 pixels. A single key keeps the backend's
+  50 pixel minimum panel instead of clipping the legend.
 
 ### Dependencies
 - ggrust is raised to 0.8.1 (`ggrust>=0.8.1,<1.0`). It brings working
