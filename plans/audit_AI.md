@@ -237,3 +237,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_panel_size` | Claude Opus 5.5 |  |
 | `heatmap` | Claude Opus 5.5 |  |
 | `_resolve_padding` | Claude Opus 5.5 |  |
+| `heatmap` | Claude Opus 5.5 |  |
+| `dotplot` | Claude Opus 5.5 |  |

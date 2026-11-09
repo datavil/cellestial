@@ -17,6 +17,11 @@ change. Versions absent from the list were never released.
 - `stacked_violin`, `dotplot` and aggregated `heatmap` no longer leave empty
   space above the key-group bracket labels.
 
+### Fixed
+- `heatmap(aggregate=True)`, `matrixplot` and `dotplot` now order groups the
+  same way on every call, by their first appearance in the data. The order
+  used to change between identical calls.
+
 ## [0.62.0] - 2026-11-09
 
 Three new plots: `tracksplot`, `blend` and `embedding_density`. The release
