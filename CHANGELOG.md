@@ -9,6 +9,14 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Changed
+- `dotplot` dot area is now proportional to the share of expressing cells, so
+  a group where no cell expresses a key shows an empty cell instead of a small
+  dot, as in scanpy. Low shares draw smaller dots than before; 100% dots are
+  unchanged.
+- `stacked_violin`, `dotplot` and aggregated `heatmap` no longer leave empty
+  space above the key-group bracket labels.
+
 ## [0.62.0] - 2026-11-09
 
 Three new plots: `tracksplot`, `blend` and `embedding_density`. The release

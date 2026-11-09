@@ -667,17 +667,46 @@ def test_dotplot_size_range_fits_one_cell(adata, markers, group_key, size_scale)
     point_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "point")
     assert point_layer["size_unit"] == "x"
     scale = _size_scale_spec(plot)
-    size_min, size_max = scale["range"]
+    assert scale["scale_mapper_kind"] == "size_area", "dot area is proportional to the share"
+    size_max = scale["max_size"]
     assert size_max == pytest.approx(_DOT_SIZE_MAX * size_scale)
     assert size_max < 1, "a 100% dot must be narrower than one cell"
     assert scale["limits"] == [0, 100]
+    assert not any(
+        other.get("trans")
+        for other in plot.as_dict()["scales"]
+        if other.get("aesthetic") == "size"
+    ), "a transform on top of the area scale would distort dot sizes"
     legend_sizes = scale["guide"]["override_aes"]["size"]
     assert len(legend_sizes) == len(scale["breaks"])
     # The 100% key is as wide in pixels as a 100% dot in a default cell.
     assert legend_sizes[-1] * _POINT_PIXELS_PER_SIZE == pytest.approx(size_max * _CELL_SIZE)
-    assert legend_sizes[0] * _POINT_PIXELS_PER_SIZE == pytest.approx(
-        (size_min + (size_max - size_min) * 0.5) * _CELL_SIZE
+    # The 25% key is half as wide: diameter grows with the square root of the share.
+    assert legend_sizes[0] * _POINT_PIXELS_PER_SIZE == pytest.approx(size_max * 0.5 * _CELL_SIZE)
+
+
+def test_dotplot_zero_share_draws_no_dot():
+    """Like scanpy, a group where no cell expresses the key gets an empty cell."""
+    import re
+
+    import anndata
+    import numpy as np
+    import pandas as pd
+
+    X = np.array([[0.0, 1.0], [0.0, 2.0], [1.0, 0.0], [3.0, 1.0]], dtype=np.float32)
+    data = anndata.AnnData(
+        X=X,
+        obs=pd.DataFrame(
+            {"group": pd.Categorical(["a", "a", "b", "b"])}, index=[f"c{i}" for i in range(4)]
+        ),
+        var=pd.DataFrame(index=["g0", "g1"]),
     )
+    svg = cl.dotplot(data, keys=["g0", "g1"], group_by="group").to_svg()
+    radii = [float(r) for r in re.findall(r'<circle[^>]* r="([\d.]+)"', svg)]
+    # Shares: g0 = 0% (a), 100% (b); g1 = 100% (a), 50% (b); plus 4 legend keys.
+    assert len(radii) == 3 + 4, "the 0% cell must not draw a dot"
+    data_radii = sorted(radii[:3])
+    assert data_radii[0] / data_radii[-1] == pytest.approx(0.5**0.5, rel=0.01)
 
 
 @pytest.mark.parametrize("canvas", [None, (640, 400), (400, 900), (300, 300)])

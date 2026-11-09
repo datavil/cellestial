@@ -4,7 +4,6 @@ from ggrust import (
     element_blank,
     element_text,
     scale_color_brewer,
-    scale_size,
     theme,
     theme_classic,
 )
@@ -55,18 +54,14 @@ _THEME_SCATTER_BASE = theme(
     # customize legend columns
 )
 
-_THEME_DOTPLOT = (
-    theme_classic()
-    + theme(
-        panel_border=element_blank(),  # replaced by data-area geom_rect in dotplot
-        axis_line=element_blank(),
-        text=element_text(family="Arial", color="#1f1f1f"),
-        axis_text_x=element_text(angle=90),
-        axis_title=element_blank(),
-        legend_text=element_text(size=10),
-        legend_title=element_text(size=12),
-        legend_box_spacing=0,
-        legend_key_spacing_y=0,
-    )
-    + scale_size(trans="sqrt", breaks=[25, 50, 75, 100])
+_THEME_DOTPLOT = theme_classic() + theme(
+    panel_border=element_blank(),  # replaced by data-area geom_rect in dotplot
+    axis_line=element_blank(),
+    text=element_text(family="Arial", color="#1f1f1f"),
+    axis_text_x=element_text(angle=90),
+    axis_title=element_blank(),
+    legend_text=element_text(size=10),
+    legend_title=element_text(size=12),
+    legend_box_spacing=0,
+    legend_key_spacing_y=0,
 )

@@ -15,6 +15,7 @@ from ggrust import (
     ggtb,
     guide_legend,
     scale_size,
+    scale_size_area,
     scale_x_continuous,
     scale_y_continuous,
     theme,
@@ -413,16 +414,14 @@ def dotplot(
     point_kwargs: dict[str, Any] = {}
     if _mapping["size"] == percentage_column and "size" not in geom_kwargs:
         point_kwargs["size_unit"] = "x"
+        # Dot area is proportional to the share, so groups with no expressing cells get no dot.
         # Legend keys ignore `size_unit`; draw them in pixels at the default cell size.
-        # The theme's sqrt transform makes size grow with the square root of the share.
         legend_sizes = [
-            (size_min + (size_max - size_min) * (percentage / 100) ** 0.5)
-            * _CELL_SIZE
-            / _POINT_PIXELS_PER_SIZE
+            size_max * (percentage / 100) ** 0.5 * _CELL_SIZE / _POINT_PIXELS_PER_SIZE
             for percentage in _PERCENTAGE_BREAKS
         ]
-        _size_scale = scale_size(
-            range=[size_min, size_max],
+        _size_scale = scale_size_area(
+            max_size=size_max,
             limits=[0, 100],
             breaks=_PERCENTAGE_BREAKS,
             guide=guide_legend(override_aes={"size": legend_sizes}),
@@ -430,7 +429,11 @@ def dotplot(
     else:
         # Other size mappings or a constant `size` stay in pixels, sized for the default cell.
         pixels_per_cell = _CELL_SIZE / _POINT_PIXELS_PER_SIZE
-        _size_scale = scale_size(range=[size_min * pixels_per_cell, size_max * pixels_per_cell])
+        _size_scale = scale_size(
+            range=[size_min * pixels_per_cell, size_max * pixels_per_cell],
+            trans="sqrt",
+            breaks=_PERCENTAGE_BREAKS,
+        )
     point_kwargs.update(geom_kwargs)
 
     dtplt = (
