@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import polars as pl
 from anndata import AnnData
@@ -13,6 +13,7 @@ from ggrust import (
     geom_rect,
     ggplot,
     ggtb,
+    guide_legend,
     scale_size,
     scale_x_continuous,
     scale_y_continuous,
@@ -24,6 +25,7 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _BRACKET_REFERENCE_SPAN,
+    _CELL_SIZE,
     _fixed_cell_layout,
     _key_groups_bar_y,
     _key_groups_layers,
@@ -51,7 +53,9 @@ if TYPE_CHECKING:
 
     from ggrust.plot.core import PlotSpec
 
-_DOT_SIZE_MAX = 11  # point size of a 100% dot, fills ~80% of a cell
+_DOT_SIZE_MAX = 0.8  # diameter of a 100% dot as a fraction of the cell width
+_PERCENTAGE_BREAKS = [25, 50, 75, 100]
+_POINT_PIXELS_PER_SIZE = 2.2  # point diameter in pixels per unit of size
 _LEGEND_WIDTH = 70  # pixels
 _LEGEND_HEIGHT = 400  # pixels; fits the color bar and size legend
 
@@ -127,7 +131,8 @@ def dotplot(
     threshold : float, default=0
         The expression threshold to consider a gene as expressed.
     size_scale : float, default=1.0
-        Scaling factor for the point sizes in the plot.
+        Scaling factor for the point sizes in the plot. At 1 a dot for 100% of
+        cells is 80% of a cell wide; keep it below 1.25 so dots stay in their cells.
     variable_column : str, default='variable'
         Name for the variable column after unpivoting.
     color_low : str, default='#e6e6e6'
@@ -400,16 +405,40 @@ def dotplot(
     }
     _mapping.update(mapping.as_dict())
 
-    # Adjust point size range (keeps aes(size=...) mapping and its legend):
+    # Adjust point size range (keeps aes(size=...) mapping and its legend).
+    # Percentage sizes are in x units (one unit is one cell), so dots shrink with
+    # the cells when the canvas is resized instead of spilling into their neighbors.
     size_max = _DOT_SIZE_MAX * size_scale
-    _size_scale = scale_size(range=[size_max * 0.1, size_max])
+    size_min = size_max * 0.1
+    point_kwargs: dict[str, Any] = {}
+    if _mapping["size"] == percentage_column and "size" not in geom_kwargs:
+        point_kwargs["size_unit"] = "x"
+        # Legend keys ignore `size_unit`; draw them in pixels at the default cell size.
+        # The theme's sqrt transform makes size grow with the square root of the share.
+        legend_sizes = [
+            (size_min + (size_max - size_min) * (percentage / 100) ** 0.5)
+            * _CELL_SIZE
+            / _POINT_PIXELS_PER_SIZE
+            for percentage in _PERCENTAGE_BREAKS
+        ]
+        _size_scale = scale_size(
+            range=[size_min, size_max],
+            limits=[0, 100],
+            breaks=_PERCENTAGE_BREAKS,
+            guide=guide_legend(override_aes={"size": legend_sizes}),
+        )
+    else:
+        # Other size mappings or a constant `size` stay in pixels, sized for the default cell.
+        pixels_per_cell = _CELL_SIZE / _POINT_PIXELS_PER_SIZE
+        _size_scale = scale_size(range=[size_min * pixels_per_cell, size_max * pixels_per_cell])
+    point_kwargs.update(geom_kwargs)
 
     dtplt = (
         ggplot(frame)
         + geom_point(
             aes(**_mapping),
             tooltips=tooltips,
-            **geom_kwargs,
+            **point_kwargs,
         )
         + _gradient(
             frame[mean_column],
@@ -494,7 +523,8 @@ def dotplot(
         dtplt += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
     # SIZE: square cells; canvas fits the panel plus axis labels and legends
-    dtplt += _fixed_cell_layout(
+    dtplt = _fixed_cell_layout(
+        dtplt,
         x_span=n_x,
         y_span=y_max_limit + 0.5,
         y_limits=[-0.5, y_max_limit],

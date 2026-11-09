@@ -59,6 +59,7 @@ if TYPE_CHECKING:
     from ggrust.plot.core import FeatureSpec, PlotSpec
 
 _COLOR_BAR_LEGEND_SIZE = (70, 250)  # pixels (width, height)
+_X_EXPAND = 0.05  # x axis padding on each side, as a fraction of the data range
 
 
 def heatmap(
@@ -481,7 +482,7 @@ def heatmap(
     htmp = ggplot(frame) + geom_layer + _THEME_HEATMAP
 
     # X scale: variable labels
-    htmp += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys)
+    htmp += scale_x_continuous(breaks=list(range(n_x)), labels=x_keys, expand=[_X_EXPAND, 0])
 
     # Compute top edge of data and the y limit, extending the latter when
     # key-group brackets are drawn so rotated labels are not clipped.
@@ -598,8 +599,9 @@ def heatmap(
     # SIZE: square cells for the aggregated view; canvas fits panel, labels and legend
     if aggregate:
         legend_width, legend_height = _COLOR_BAR_LEGEND_SIZE
-        htmp += _fixed_cell_layout(
-            x_span=x_max_limit + 0.5,
+        htmp = _fixed_cell_layout(
+            htmp,
+            x_span=(x_max_limit + 0.5) * (1 + 2 * _X_EXPAND),
             y_span=y_max_limit - data_bottom,
             y_limits=[data_bottom, y_max_limit],
             x_labels=x_keys,
