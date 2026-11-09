@@ -51,6 +51,27 @@ def _dendrogram_leaf_order(plot):
     return [tree["labels"][leaf] for leaf in tree["order"]]
 
 
+def _y_labels(plot):
+    """Labels of the plot's y scale."""
+    return [scale["labels"] for scale in plot.as_dict()["scales"] if scale.get("aesthetic") == "y"]
+
+
+@pytest.mark.parametrize("function", ["heatmap", "matrixplot", "dotplot", "stacked_violin"])
+def test_group_order_is_deterministic(adata, markers, group_key, function):
+    keyword_arguments = {"aggregate": True} if function == "heatmap" else {}
+    orders = [
+        _y_labels(
+            getattr(cl, function)(adata, keys=markers, group_by=group_key, **keyword_arguments)
+        )
+        for _ in range(10)
+    ]
+    assert orders[0]
+    assert all(order == orders[0] for order in orders)
+    # Groups follow their first appearance in the data, as in the per-cell view.
+    first_appearance = adata.obs[group_key].dropna().astype(str).unique().tolist()
+    assert orders[0][0] == first_appearance
+
+
 @pytest.mark.parametrize("function", ["dotplot", "stacked_violin", "matrixplot"])
 def test_dendrogram_leaf_order_matches_scanpy(adata, markers, group_key, function):
     import scanpy as sc

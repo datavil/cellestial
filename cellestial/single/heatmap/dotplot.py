@@ -330,7 +330,7 @@ def dotplot(
     value_dtype = frame.head(0).select(keys).unpivot(value_name=mean_column).schema[mean_column]
     finite_values = [pl.col(key).cast(value_dtype).filter(pl.col(key).is_finite()) for key in keys]
     percentage_names = [f"__cellestial_percentage_{index}" for index in range(len(keys))]
-    frame = frame.group_by(group_by).agg(
+    frame = frame.group_by(group_by, maintain_order=True).agg(
         [values.mean().alias(key) for values, key in zip(finite_values, keys, strict=True)]
         + [
             (values > threshold).mean().mul(100).alias(name)

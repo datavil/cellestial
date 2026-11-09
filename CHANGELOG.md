@@ -9,6 +9,11 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Fixed
+- `heatmap(aggregate=True)`, `matrixplot` and `dotplot` now order groups the
+  same way on every call, by their first appearance in the data. The order
+  used to change between identical calls.
+
 ## [0.62.0] - 2026-11-09
 
 Three new plots: `tracksplot`, `blend` and `embedding_density`. The release

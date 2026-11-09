@@ -387,7 +387,7 @@ def heatmap(
     value_dtype = frame.head(0).select(keys).unpivot(value_name=value_column).schema[value_column]
     frame = frame.with_columns(pl.col(keys).cast(value_dtype))
     if aggregate:
-        frame = frame.group_by(group_by).agg(
+        frame = frame.group_by(group_by, maintain_order=True).agg(
             pl.col(key).filter(pl.col(key).is_finite()).mean() for key in keys
         )
         frame = frame.unpivot(
