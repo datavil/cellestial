@@ -9,6 +9,11 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+## [0.62.1] - 2026-11-09
+
+Fixes for the fixed-cell plots: stable group order, area-proportional dotplot
+dots and tighter key-group bracket labels. There are no breaking changes.
+
 ### Changed
 - `dotplot` dot area is now proportional to the share of expressing cells, so
   a group where no cell expresses a key shows an empty cell instead of a small
