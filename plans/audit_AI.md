@@ -101,6 +101,8 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_key_groups_track_layers` | Claude Opus 5.5 |  |  |  |  |
 | `InvalidArgumentError` | Claude Opus 5.5 |  |  |  |  |
 | `DendrogramMismatchError` | Claude Opus 5.5 |  |  |  |  |
+| `_fixed_cell_padding` | Claude Opus 5.5 |  |  |  |  |
+| `_label_width` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -234,3 +236,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_fixed_cell_layout` | Claude Opus 5.5 |  |
 | `_panel_size` | Claude Opus 5.5 |  |
 | `heatmap` | Claude Opus 5.5 |  |
+| `_resolve_padding` | Claude Opus 5.5 |  |

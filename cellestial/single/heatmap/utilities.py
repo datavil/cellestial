@@ -321,8 +321,17 @@ _ABS_LABEL_TEXT_SIZE_MIN = 3.75
 _ABS_LABEL_TEXT_SIZE_PER_KEY = 0.06
 _ABS_LABEL_TEXT_SIZE_PER_EXTRA_CHAR = 0.08
 _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
-# Square cells: padding in column widths per column, label character and size unit.
-_SQUARE_CELL_PADDING_PER_CHAR_SIZE = 0.0038
+# Fixed-pixel cells: a text size unit renders as this many pixels of font size.
+_TEXT_SIZE_TO_PIXELS = 2.0
+# Sans-serif character widths as a fraction of the font size, rounded up per class.
+_NARROW_CHARACTERS = frozenset("fijlrtI .,;:'!|")
+_WIDE_CHARACTERS = frozenset("mwMW")
+_NARROW_CHARACTER_WIDTH = 0.34
+_REGULAR_CHARACTER_WIDTH = 0.57
+_UPPERCASE_CHARACTER_WIDTH = 0.78
+_WIDE_CHARACTER_WIDTH = 0.95
+# Pixels left free above the longest bracket label.
+_LABEL_TOP_MARGIN = 6
 
 
 def _resolve_key_groups(
@@ -395,7 +404,6 @@ def _resolve_padding(
     data_range: float | None = None,
     scale: float = 1.0,
     label_size_scale: float = 1.0,
-    square_cell_columns: int | None = None,
 ) -> float:
     """
     Compute y-axis padding (in data units) for the bracket area.
@@ -404,9 +412,7 @@ def _resolve_padding(
     -----
     `padding` overrides the auto value when given. `scale` is a per-plot
     multiplier applied to the auto padding (use `<1` for a more compact
-    bracket area). `square_cell_columns` is the column count of a plot with
-    square cells (`geom_raster`): one y unit is then one column wide, so the
-    labels need more y units as columns are added.
+    bracket area).
     """
     if padding is not None:
         return padding
@@ -426,14 +432,49 @@ def _resolve_padding(
         _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
     )
     resolved = target_fraction * data / (1.0 - target_fraction) * scale
-    if square_cell_columns is not None:
-        square_padding = (
-            _SQUARE_CELL_PADDING_PER_CHAR_SIZE * square_cell_columns * max_chars * label_size
-        )
-        resolved = max(resolved, square_padding * scale)
     if data_range is None or data_range <= 0:
         return max(1.5, resolved)
     return resolved
+
+
+def _label_width(label: str) -> float:
+    """Estimated rendered width of `label` in multiples of the font size (never under)."""
+    width = 0.0
+    for character in label:
+        if character in _WIDE_CHARACTERS:
+            width += _WIDE_CHARACTER_WIDTH
+        elif character in _NARROW_CHARACTERS:
+            width += _NARROW_CHARACTER_WIDTH
+        elif character.isupper():
+            width += _UPPERCASE_CHARACTER_WIDTH
+        else:
+            width += _REGULAR_CHARACTER_WIDTH
+    return width
+
+
+def _fixed_cell_padding(
+    groups: dict[str, list[str]],
+    *,
+    reference_span: float,
+    cell_height: float,
+    label_size_scale: float = 1.0,
+) -> float:
+    """
+    Compute y-axis padding (in data units) that fits the brackets and their labels.
+
+    Notes
+    -----
+    For plots whose cells have a fixed pixel height (`cell_height`), the rotated
+    label length is known in pixels, so the padding is solved exactly instead of
+    taken as a fraction of the span. `reference_span` is the span the bracket
+    geometry is scaled against (see `_key_groups_layers`).
+    """
+    label_width = max((_label_width(label) for label in groups), default=0.0)
+    font_size = _TEXT_SIZE_TO_PIXELS * _label_size_absolute(groups, scale=label_size_scale)
+    label_pixels = label_width * font_size + _LABEL_TOP_MARGIN
+    fraction = _BAR_OFFSET_FRACTION + _LABEL_GAP_FRACTION
+    # The bar offset and label gap scale with the total span (reference + padding).
+    return (fraction * reference_span + label_pixels / cell_height) / (1.0 - fraction)
 
 
 def _build_key_groups_frame(

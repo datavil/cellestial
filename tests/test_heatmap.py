@@ -365,15 +365,36 @@ def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
     assert text_layers[-1]["size"] >= 3.75
 
 
-def test_resolve_padding_square_cells_grow_with_columns():
-    from cellestial.single.heatmap.utilities import _resolve_padding
+def test_fixed_cell_padding_grows_with_label_width():
+    from cellestial.single.heatmap.utilities import _fixed_cell_padding
 
-    groups = {f"group number {index}": [str(index)] for index in range(12)}
-    free = _resolve_padding(groups, padding=None, data_range=4)
-    six = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=6)
-    twelve = _resolve_padding(groups, padding=None, data_range=4, square_cell_columns=12)
-    assert six >= free, "square cells never get less padding"
-    assert twelve > six, "one y unit is one column wide, so more columns need more y units"
+    def padding(label: str) -> float:
+        return _fixed_cell_padding({label: ["a"], "b": ["c"]}, reference_span=20, cell_height=30)
+
+    assert padding("MMMMWWWW") > padding("AAAAEEEE") > padding("aaaaeeee") > padding("iiiillll")
+    assert padding("a much longer group label") > padding("short")
+
+
+def test_fixed_cell_padding_fits_rendered_labels(adata, group_key):
+    """The top label stays inside the panel with little room to spare."""
+    import re
+
+    from cellestial.single.heatmap.utilities import _label_width
+
+    groups = {"MMMMWWWW MEMORY": ["CD3E", "CD3D"], "a very long lowercase label": ["MS4A1"]}
+    svg = cl.dotplot(adata, group_by=group_key, keys=groups).to_svg()
+    panel_top = float(re.search(r'<clipPath[^>]*><rect x="[-\d.]+" y="([-\d.]+)"', svg).group(1))
+    rotated = re.findall(
+        r'font-size="([\d.]+)"[^>]*transform="rotate\(-90 [\d.]+ ([\d.]+)\)">([^<]+)<', svg
+    )
+    assert rotated, "bracket labels should be drawn rotated"
+    # Rotated labels are centered on their rotation point.
+    gaps = [
+        float(center) - _label_width(label) * float(font_size) / 2 - panel_top
+        for font_size, center, label in rotated
+    ]
+    assert min(gaps) >= 0, "no label may reach past the panel top"
+    assert min(gaps) <= 30, "the longest label sits close to the panel top"
 
 
 def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):

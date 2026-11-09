@@ -26,9 +26,11 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _BRACKET_REFERENCE_SPAN,
+    _CELL_SIZE,
     _assign_positions,
     _bin_within_groups,
     _fixed_cell_layout,
+    _fixed_cell_padding,
     _get_group_bar_frame,
     _get_group_lines_frame,
     _key_groups_bar_y,
@@ -493,14 +495,21 @@ def heatmap(
     if key_labels and key_groups is not None:
         # Aggregated cells have a fixed pixel size, so brackets use a constant span.
         data_range = _BRACKET_REFERENCE_SPAN if aggregate else data_top - data_bottom
-        key_groups_padding = _resolve_padding(
-            key_groups,
-            padding=None,
-            data_range=data_range,
-            scale=1.0,
-            label_size_scale=key_labels_text_size,
-            square_cell_columns=n_x if aggregate and geom == "raster" else None,
-        )
+        if aggregate:
+            key_groups_padding = _fixed_cell_padding(
+                key_groups,
+                reference_span=data_range,
+                cell_height=_CELL_SIZE,
+                label_size_scale=key_labels_text_size,
+            )
+        else:
+            key_groups_padding = _resolve_padding(
+                key_groups,
+                padding=None,
+                data_range=data_range,
+                scale=1.0,
+                label_size_scale=key_labels_text_size,
+            )
         key_groups_total_span = data_range + key_groups_padding
         y_max_limit = data_top + key_groups_padding
 

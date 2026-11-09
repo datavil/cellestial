@@ -23,13 +23,14 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _BRACKET_REFERENCE_SPAN,
+    _CELL_SIZE,
     _CHARACTER_WIDTH,
     _compute_violin_polygons,
     _fixed_cell_layout,
+    _fixed_cell_padding,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
-    _resolve_padding,
     _resolve_rank_genes_groups_args,
     _sort_integer_like_groups,
 )
@@ -433,10 +434,10 @@ def stacked_violin(
     if key_labels and key_groups is not None:
         # Cells have a fixed pixel size, so brackets are sized against a constant span.
         reference_span = _BRACKET_REFERENCE_SPAN / _CELL_HEIGHT_RATIO
-        key_groups_padding = _resolve_padding(
+        key_groups_padding = _fixed_cell_padding(
             key_groups,
-            padding=None,
-            data_range=reference_span,
+            reference_span=reference_span,
+            cell_height=_CELL_SIZE * _CELL_HEIGHT_RATIO,
             label_size_scale=key_labels_text_size,
         )
         key_groups_total_span = reference_span + key_groups_padding

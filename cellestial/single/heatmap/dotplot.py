@@ -27,10 +27,10 @@ from cellestial.single.heatmap.utilities import (
     _BRACKET_REFERENCE_SPAN,
     _CELL_SIZE,
     _fixed_cell_layout,
+    _fixed_cell_padding,
     _key_groups_bar_y,
     _key_groups_layers,
     _resolve_key_groups,
-    _resolve_padding,
     _resolve_rank_genes_groups_args,
     _sort_integer_like_groups,
 )
@@ -457,10 +457,10 @@ def dotplot(
     if key_labels and key_groups is not None:
         # Extend the y limit upward to fit the bracket bar plus rotated label.
         # Cells have a fixed pixel size, so brackets are sized against a constant span.
-        key_groups_padding = _resolve_padding(
+        key_groups_padding = _fixed_cell_padding(
             key_groups,
-            padding=None,
-            data_range=_BRACKET_REFERENCE_SPAN,
+            reference_span=_BRACKET_REFERENCE_SPAN,
+            cell_height=_CELL_SIZE,
             label_size_scale=key_labels_text_size,
         )
         key_groups_total_span = _BRACKET_REFERENCE_SPAN + key_groups_padding
