@@ -507,7 +507,8 @@ def stacked_violin(
         legend_height = len(legend_labels) * 20 + 60
     else:
         legend_width, legend_height = 0, 0
-    plot += _fixed_cell_layout(
+    plot = _fixed_cell_layout(
+        plot,
         x_span=n_x,
         y_span=y_max_limit + 0.5,
         y_limits=[-0.5, y_max_limit],

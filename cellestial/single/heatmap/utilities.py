@@ -2,6 +2,8 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "numpy"]
 
+import re
+import warnings
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -17,7 +19,7 @@ from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupp
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from ggrust.plot.core import FeatureSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 # ---------------------------------------------------------------------------
@@ -561,7 +563,34 @@ _MARGIN = 20
 _BRACKET_REFERENCE_SPAN = 20
 
 
+# Pixels. A probe canvas this long never limits the panel along that side.
+_PROBE_SPAN = 10_000  # the largest side `ggsize` accepts
+# Pixels. The backend never makes the panel area narrower or shorter than this; it
+# takes the room from the legend instead, which then gets clipped.
+_PANEL_MIN_SIZE = 50
+# The first clip rectangle of a rendered SVG is the panel.
+_PANEL_CLIP_PATTERN = re.compile(
+    r'<clipPath[^>]*><rect x="[-\d.]+" y="[-\d.]+" width="([\d.]+)" height="([\d.]+)"'
+)
+
+
+def _panel_size(plot: PlotSpec) -> tuple[float, float] | None:
+    """Render `plot` to SVG and read its panel size in pixels; `None` if that fails."""
+    try:
+        with warnings.catch_warnings():
+            # The user's own render reports the same warnings.
+            warnings.simplefilter("ignore")
+            svg = plot.to_svg()
+    except Exception:  # the probe never breaks the plot; the user's own render reports errors
+        return None
+    match = _PANEL_CLIP_PATTERN.search(svg) if isinstance(svg, str) else None
+    if match is None:
+        return None
+    return float(match.group(1)), float(match.group(2))
+
+
 def _fixed_cell_layout(
+    plot: PlotSpec,
     *,
     x_span: float,
     y_span: float,
@@ -571,24 +600,41 @@ def _fixed_cell_layout(
     legend_width: float,
     legend_height: float,
     cell_height_ratio: float = 1.0,
-) -> FeatureSpec:
+) -> PlotSpec:
     """
-    Lock the cell aspect ratio and size the canvas to fit the panel.
+    Lock the cell aspect ratio and size the canvas so every cell is `_CELL_SIZE` wide.
 
     Notes
     -----
-    `x_span` and `y_span` are the panel extents in data units. The canvas adds
-    room for the axis labels (x labels are rotated 90 degrees) and legends,
-    and is never shorter than `legend_height`. `y_limits` are passed to the
-    fixed coordinates, which replace any coordinates added before.
+    `x_span` and `y_span` are the panel extents in data units. The room around the
+    panel (axis labels, legends, dendrogram) is measured by rendering `plot` once
+    with a very tall and once with a very wide canvas; when that fails it is
+    estimated from the label lengths and `legend_width`. The canvas is never
+    shorter than `legend_height`. The panel keeps at least `_PANEL_MIN_SIZE` pixels
+    per side, so a single key or group gets wider cells instead of a clipped legend.
+    `y_limits` are passed to the fixed coordinates, which replace any coordinates
+    added before.
     """
     panel_width = x_span * _CELL_SIZE
     panel_height = y_span * _CELL_SIZE * cell_height_ratio
     y_label_width = max(len(label) for label in y_labels) * _CHARACTER_WIDTH
     x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
-    return coord_fixed(ratio=cell_height_ratio, ylim=y_limits) + ggsize(
-        panel_width + y_label_width + legend_width + _MARGIN,
-        max(panel_height + x_label_height + _MARGIN, legend_height),
+    other_width = y_label_width + legend_width + _MARGIN
+    other_height = x_label_height + _MARGIN
+    plot += coord_fixed(ratio=cell_height_ratio, ylim=y_limits)
+    # Probe panels get twice the minimum size so the backend never squeezes the legend.
+    probe_width = min(other_width + max(panel_width, 2 * _PANEL_MIN_SIZE), _PROBE_SPAN)
+    probe_height = min(other_height + max(panel_height, 2 * _PANEL_MIN_SIZE), _PROBE_SPAN)
+    # Width-limited probe: the panel is as wide as the canvas leaves it.
+    tall = _panel_size(plot + ggsize(probe_width, _PROBE_SPAN))
+    # Height-limited probe: the panel is as tall as the canvas leaves it.
+    wide = _panel_size(plot + ggsize(_PROBE_SPAN, probe_height))
+    if tall is not None and wide is not None:
+        other_width = probe_width - tall[0]
+        other_height = probe_height - wide[1]
+    return plot + ggsize(
+        other_width + max(panel_width, _PANEL_MIN_SIZE),
+        max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height),
     )
 
 

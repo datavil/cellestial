@@ -230,3 +230,7 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `stacked_violin` | Claude Opus 5.5 |  |
 | `markers` | Claude Opus 5.5 |  |
 | `_warn` | Claude Opus 5.5 |  |
+| `dotplot` | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` | Claude Opus 5.5 |  |
+| `_panel_size` | Claude Opus 5.5 |  |
+| `heatmap` | Claude Opus 5.5 |  |

@@ -1,11 +1,21 @@
+import re
+
 import polars as pl
 import pytest
-from ggrust import aes
+from ggrust import aes, ggsize
 from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
-from cellestial.single.heatmap.heatmap import _scale_values
-from cellestial.single.heatmap.utilities import _compute_violin_polygons
+from cellestial.single.heatmap import utilities as heatmap_utilities
+from cellestial.single.heatmap.dotplot import _DOT_SIZE_MAX, _POINT_PIXELS_PER_SIZE
+from cellestial.single.heatmap.heatmap import _X_EXPAND, _scale_values
+from cellestial.single.heatmap.utilities import (
+    _CELL_SIZE,
+    _PANEL_CLIP_PATTERN,
+    _PANEL_MIN_SIZE,
+    _compute_violin_polygons,
+    _panel_size,
+)
 from cellestial.util.errors import UnsupportedDataTypeError
 
 
@@ -616,3 +626,111 @@ def test_heatmap_variable_axis_nonaggregate_row_operations(adata, scale_axis, ma
 
     assert isinstance(plot, PlotSpec)
     assert "Feature" in plot.as_dict()["data"].columns
+
+
+# ---------------------------------------------------------------------------
+# Fixed cells: every cell is `_CELL_SIZE` pixels and dots fit inside it
+# ---------------------------------------------------------------------------
+
+_CIRCLE_PATTERN = re.compile(r'<circle cx="([\d.]+)" cy="[\d.]+" r="([\d.]+)"')
+
+
+def _size_scale_spec(plot):
+    return next(scale for scale in plot.as_dict()["scales"] if scale.get("aesthetic") == "size")
+
+
+@pytest.mark.parametrize("size_scale", [0.5, 1.0, 1.2])
+def test_dotplot_size_range_fits_one_cell(adata, markers, group_key, size_scale):
+    """Dot sizes are cell fractions; the legend draws the same sizes in pixels."""
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, size_scale=size_scale)
+    point_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "point")
+    assert point_layer["size_unit"] == "x"
+    scale = _size_scale_spec(plot)
+    size_min, size_max = scale["range"]
+    assert size_max == pytest.approx(_DOT_SIZE_MAX * size_scale)
+    assert size_max < 1, "a 100% dot must be narrower than one cell"
+    assert scale["limits"] == [0, 100]
+    legend_sizes = scale["guide"]["override_aes"]["size"]
+    assert len(legend_sizes) == len(scale["breaks"])
+    # The 100% key is as wide in pixels as a 100% dot in a default cell.
+    assert legend_sizes[-1] * _POINT_PIXELS_PER_SIZE == pytest.approx(size_max * _CELL_SIZE)
+    assert legend_sizes[0] * _POINT_PIXELS_PER_SIZE == pytest.approx(
+        (size_min + (size_max - size_min) * 0.5) * _CELL_SIZE
+    )
+
+
+@pytest.mark.parametrize("canvas", [None, (640, 400), (400, 900), (300, 300)])
+def test_dotplot_dots_stay_inside_cells(adata, markers, cluster_key, canvas):
+    """Shrinking the canvas shrinks the dots with the cells (no overlap)."""
+    plot = cl.dotplot(adata, keys=markers, group_by=cluster_key)
+    if canvas is not None:
+        plot += ggsize(*canvas)
+    svg = plot.to_svg()
+    panel = _PANEL_CLIP_PATTERN.search(svg)
+    assert panel is not None
+    panel_left = float(re.search(r'<clipPath[^>]*><rect x="([-\d.]+)"', svg).group(1))
+    panel_width = float(panel.group(1))
+    cell = panel_width / len(markers)
+    diameters = [
+        2 * float(radius)
+        for center, radius in _CIRCLE_PATTERN.findall(svg)
+        if panel_left <= float(center) <= panel_left + panel_width
+    ]
+    assert diameters
+    assert max(diameters) <= cell
+
+
+@pytest.mark.parametrize("function", ["dotplot", "stacked_violin", "matrixplot"])
+@pytest.mark.parametrize("dendrogram", [False, True])
+@pytest.mark.parametrize("group", ["group_key", "cluster_key"])
+def test_fixed_cells_are_cell_size_wide(adata, markers, request, function, dendrogram, group):
+    """Few groups, many groups and a dendrogram all keep `_CELL_SIZE` cells."""
+    group_by = request.getfixturevalue(group)
+    plot = getattr(cl, function)(adata, keys=markers, group_by=group_by, dendrogram=dendrogram)
+    panel = _panel_size(plot)
+    assert panel is not None
+    x_span = len(markers) * (1 + 2 * _X_EXPAND if function == "matrixplot" else 1)
+    assert panel[0] / x_span == pytest.approx(_CELL_SIZE, abs=0.1)
+    y_span = adata.obs[group_by].nunique() * (1.5 if function == "stacked_violin" else 1)
+    assert panel[1] / y_span == pytest.approx(_CELL_SIZE, abs=0.1)
+
+
+def test_fixed_cells_single_key_keeps_legend_room(adata, group_key):
+    """One key gets the backend's minimum panel instead of clipping the legend."""
+    plot = cl.dotplot(adata, keys=["LYZ"], group_by=group_key)
+    panel = _panel_size(plot)
+    assert panel is not None
+    assert panel[0] == pytest.approx(_PANEL_MIN_SIZE, abs=0.1)
+    # A wider canvas widens the panel: nothing was squeezed at the chosen size.
+    width = plot.as_dict()["ggsize"]["width"]
+    wider = _panel_size(plot + ggsize(width + 10, plot.as_dict()["ggsize"]["height"]))
+    assert wider is not None
+    assert wider[0] == pytest.approx(_PANEL_MIN_SIZE + 10, abs=0.1)
+
+
+def test_fixed_cell_layout_falls_back_to_estimates(adata, markers, group_key, monkeypatch):
+    """Without a measurable render the canvas comes from the label estimates."""
+    monkeypatch.setattr(heatmap_utilities, "_panel_size", lambda plot: None)
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key)
+    size = plot.as_dict()["ggsize"]
+    assert size["width"] > len(markers) * _CELL_SIZE
+    assert size["height"] >= 400
+
+
+def test_dotplot_constant_size_stays_in_pixels(adata, markers, group_key):
+    """A constant `size` is a point size, not a fraction of a cell."""
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, size=5)
+    point_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "point")
+    assert "size_unit" not in point_layer
+    radii = {float(radius) for _, radius in _CIRCLE_PATTERN.findall(plot.to_svg())}
+    assert max(radii) == pytest.approx(5 * _POINT_PIXELS_PER_SIZE / 2, abs=0.1)
+
+
+def test_dotplot_other_size_mapping_stays_in_pixels(adata, markers, group_key):
+    """Sizes mapped to another column keep pixel sizes and their plain legend."""
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(size="avg_exp"))
+    point_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "point")
+    assert "size_unit" not in point_layer
+    scale = _size_scale_spec(plot)
+    assert scale["range"][1] == pytest.approx(_DOT_SIZE_MAX * _CELL_SIZE / _POINT_PIXELS_PER_SIZE)
+    assert "guide" not in scale
