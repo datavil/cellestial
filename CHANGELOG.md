@@ -9,6 +9,11 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+## [0.62.0] - 2026-11-09
+
+Three new plots: `tracksplot`, `blend` and `embedding_density`. The release
+also moves to ggrust 0.8.1. There are no breaking changes.
+
 ### Added
 - Added `embedding_density`, an embedding plot with cells colored by the local
   density of cells around them, optionally with one panel per group:
@@ -29,6 +34,17 @@ change. Versions absent from the list were never released.
 - Added `InvalidArgumentError` (a `ValueError`) for missing or out-of-range
   parameter values, and `DendrogramMismatchError` (a `ValueError`) for a stored
   dendrogram that covers groups absent from the data.
+
+### Dependencies
+- ggrust is raised to 0.8.1 (`ggrust>=0.8.1,<1.0`). It brings working
+  `sampling=` on layers, `label_format` and `check_overlap` on `geom_text` and
+  `geom_label`, `stat_centroid`, contour `breaks=`, and `scale_linewidth` /
+  `scale_stroke`. Layers you add to cellestial plots can use all of them.
+- Behavior changes from ggrust that can show in plots you extend: a mapped
+  `linewidth` now uses a 1..7 range (lines get slightly thicker), and
+  `ggsave(plot, filename)` called without `path` writes to `filename`
+  directly instead of into a `lets-plot-images/` folder. `cl.save` always
+  passes `path`, so it behaves as before.
 
 ## [0.61.0] - 2026-11-08
 
