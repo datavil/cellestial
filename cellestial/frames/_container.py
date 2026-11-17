@@ -15,6 +15,7 @@ from cellestial.util.errors import (
     AmbiguousVariableError,
     KeyNotFoundError,
     VariableNotFoundError,
+    _did_you_mean,
     _unsupported_data_type,
 )
 
@@ -172,6 +173,9 @@ class _Container:
         """
         if key not in self._data.var_names:
             msg = f"Keys not found in variable names: [{key!r}]"
+            hint = _did_you_mean(key, self._data.var_names)
+            if hint:
+                msg += f". {hint}"
             raise VariableNotFoundError(msg)
         return None, key
 
@@ -215,6 +219,9 @@ class _Container:
         missing = [key for key in keys if key not in self._data.var_names]
         if missing:
             msg = f"Keys not found in variable names: {missing}"
+            hint = _did_you_mean(missing, self._data.var_names)
+            if hint:
+                msg += f". {hint}"
             raise VariableNotFoundError(msg)
         self._require_unique_variables(self._data.var_names, keys, "the data")
 
@@ -257,6 +264,9 @@ class _MuDataContainer(_Container):
             modality = available[0]
         elif modality not in self._data.mod:
             msg = f"Unknown modality `{modality}`. Available: {available}."
+            hint = _did_you_mean(modality, available)
+            if hint:
+                msg += f" {hint}"
             raise KeyNotFoundError(msg)
         part = self._data.mod[modality]
         if not isinstance(part, AnnData):
@@ -369,11 +379,19 @@ class _MuDataContainer(_Container):
         if not owners:
             if is_qualified:
                 msg = f"`{name}` not found in the variable names of modality `{modality}`."
+                hint = _did_you_mean(name, self._data.mod[modality].var_names)
+                if hint:
+                    msg += f" {hint}"
                 raise VariableNotFoundError(msg)
             msg = (
                 f"Keys not found in variable names: [{key!r}]. "
                 f"Searched modalities: {self.modality_names()}."
             )
+            hint = _did_you_mean(
+                key, [name for part in self._data.mod.values() for name in part.var_names]
+            )
+            if hint:
+                msg += f" {hint}"
             raise VariableNotFoundError(msg)
         if len(owners) > 1:
             qualified = [f"{owner}:{key}" for owner in owners]

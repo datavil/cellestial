@@ -36,7 +36,7 @@ from ggrust.plot.core import FeatureSpec
 from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 
-from cellestial.util.errors import CellestialWarning, KeyNotFoundError
+from cellestial.util.errors import CellestialWarning, KeyNotFoundError, _did_you_mean
 
 if TYPE_CHECKING:
     from cellestial.frames._container import _Container
@@ -698,6 +698,9 @@ def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
     if key in container.observation_columns() or container.owns_variable(key):
         return
     msg = f"Key `{key}` not found.\nLooked in observation metadata and variable (gene) names."
+    hint = _did_you_mean(key, [*container.observation_columns(), *container.variable_names()])
+    if hint:
+        msg += f"\n{hint}"
     raise KeyNotFoundError(msg)
 
 

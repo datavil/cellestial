@@ -10,7 +10,12 @@ from mudata import MuData
 from scipy.sparse import issparse
 
 from cellestial.frames._container import _container
-from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    KeyNotFoundError,
+    _did_you_mean,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _is_spatialdata
 
 if TYPE_CHECKING:
@@ -87,7 +92,7 @@ def anndata_observations_frame(
         If any `variable_keys` entry is not present in the variable names.
     AmbiguousVariableError
         If a bare `variable_keys` entry is present in more than one modality.
-    KeyError
+    KeyNotFoundError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
     ValueError
@@ -107,8 +112,11 @@ def anndata_observations_frame(
     else:
         missing = [name for name in metadata_columns if name not in part.columns]
         if missing:
-            msg = f"metadata_columns not found in observations: {missing}"
-            raise KeyError(msg)
+            msg = f"`metadata_columns` not found in observations: {missing}."
+            hint = _did_you_mean(missing, part.columns)
+            if hint:
+                msg += f" {hint}"
+            raise KeyNotFoundError(msg)
         selected_columns = list(dict.fromkeys(metadata_columns))
     for key in selected_columns:
         # handle categorical integer data
@@ -196,7 +204,7 @@ def anndata_variables_frame(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported data object.
-    KeyError
+    KeyNotFoundError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
     ValueError
@@ -217,8 +225,11 @@ def anndata_variables_frame(
     else:
         missing = [name for name in metadata_columns if name not in part.columns]
         if missing:
-            msg = f"metadata_columns not found in variables: {missing}"
-            raise KeyError(msg)
+            msg = f"`metadata_columns` not found in variables: {missing}."
+            hint = _did_you_mean(missing, part.columns)
+            if hint:
+                msg += f" {hint}"
+            raise KeyNotFoundError(msg)
         selected_columns = list(dict.fromkeys(metadata_columns))
     for key in selected_columns:
         # handle categorical integer data
@@ -275,8 +286,11 @@ def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> 
         elif actual not in selected:
             selected.append(actual)
     if missing:
-        msg = f"dimension_keys not found in embeddings: {missing}"
-        raise KeyError(msg)
+        msg = f"`dimension_keys` not found in embeddings: {missing}. Available: {available}."
+        hint = _did_you_mean(missing, available)
+        if hint:
+            msg += f" {hint}"
+        raise KeyNotFoundError(msg)
     return selected
 
 

@@ -1,8 +1,25 @@
-class KeyNotFoundError(Exception):
-    """Raised when a key is not found."""
+from __future__ import annotations
+
+from collections.abc import Sequence
+from difflib import get_close_matches
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+
+class _MessageKeyError(KeyError):
+    """A `KeyError` whose message prints as written, not wrapped in quotes."""
 
     def __init__(self, message: str):
         super().__init__(message)
+
+    def __str__(self) -> str:
+        return str(self.args[0]) if self.args else ""
+
+
+class KeyNotFoundError(_MessageKeyError):
+    """Raised when a key is not found."""
 
 
 class ConflictingLengthError(ValueError):
@@ -37,11 +54,8 @@ class InvalidComparisonError(ValueError):
         super().__init__(message)
 
 
-class VariableNotFoundError(Exception):
+class VariableNotFoundError(_MessageKeyError):
     """Raised when a requested variable (gene / feature) name is not present in the data."""
-
-    def __init__(self, message: str):
-        super().__init__(message)
 
 
 class AmbiguousVariableError(ValueError):
@@ -110,3 +124,36 @@ def _unsupported_data_type(received: object, *expected: type | str) -> Unsupport
     expected_names = " or ".join(cls if isinstance(cls, str) else cls.__name__ for cls in expected)
     received_name = type(received).__name__
     return UnsupportedDataTypeError(f"Expected {expected_names}, but received `{received_name}`.")
+
+
+def _did_you_mean(keys: object, candidates: Iterable[object]) -> str:
+    """
+    Return a "did you mean" hint naming the closest `candidates` to each key.
+
+    Notes
+    -----
+    Returns an empty string when nothing is close, so callers can append the
+    result to a message unconditionally. With several keys, each hint names the
+    key it belongs to. Non-string candidates are compared by their string form.
+    """
+    names = [str(candidate) for candidate in candidates]
+    if isinstance(keys, str) or not isinstance(keys, Sequence):
+        return _close_matches_sentence(str(keys), names)
+    if len(keys) == 1:
+        return _close_matches_sentence(str(keys[0]), names)
+    hints = []
+    for key in keys:
+        hint = _close_matches_sentence(str(key), names)
+        if hint:
+            hints.append(f"For {key!r}: {hint[0].lower()}{hint[1:]}")
+    return " ".join(hints)
+
+
+def _close_matches_sentence(key: str, names: list[str]) -> str:
+    """Return "Did you mean ...?" for the names closest to `key`, or an empty string."""
+    matches = get_close_matches(key, names, n=3)
+    if not matches:
+        return ""
+    if len(matches) == 1:
+        return f"Did you mean {matches[0]!r}?"
+    return f"Did you mean one of {matches!r}?"

@@ -9,6 +9,14 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Changed
+- `KeyNotFoundError` and `VariableNotFoundError` now subclass `KeyError`, so
+  `except KeyError` catches them. Their message prints without quotes.
+- Unknown keys, metadata columns, embeddings, variables and modalities name the
+  closest matches ("Did you mean 'leiden'?"). `build_frame` raises
+  `KeyNotFoundError` (a `KeyError`) for unknown `metadata_columns` and
+  `dimension_keys`.
+
 ### Fixed
 - `build_frame` keeps missing values of a numeric categorical column as null
   instead of turning them into a `"nan"` category.
