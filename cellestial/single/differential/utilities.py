@@ -9,7 +9,11 @@ import polars as pl
 from anndata import AnnData
 
 from cellestial.single.heatmap.utilities import _resolve_rank_genes_groups_key
-from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
+from cellestial.util.errors import (
+    EmptySelectionError,
+    KeyNotFoundError,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -133,6 +137,17 @@ def _build_volcano_frame(
             raise KeyError(msg)
         # SELECT: which p-value field to pull
         pvalue_field = "pvals_adj" if use_adjusted_pvalue else "pvals"
+        # CHECK: the ranking carries what a volcano needs (logistic regression does not)
+        missing_fields = [
+            field for field in ("logfoldchanges", pvalue_field) if field not in results
+        ]
+        if missing_fields:
+            msg = (
+                f"`data.uns[{key!r}]` has no {missing_fields} to draw a volcano from. "
+                "Rank with a test that reports fold changes and p-values "
+                "(e.g. method='wilcoxon' or 't-test')."
+            )
+            raise KeyNotFoundError(msg)
         # EXTRACT: per-group columns from the recarrays
         frame = pl.DataFrame(
             {
@@ -235,6 +250,8 @@ def _build_markers_frame(
     KeyNotFoundError
         If the ranking result, a requested group, or the stored grouping
         is missing.
+    EmptySelectionError
+        If `groups` is an empty sequence.
     ValueError
         If `n_genes` is out of range.
 
@@ -276,6 +293,12 @@ def _build_markers_frame(
             selected = available_groups
         else:
             selected = list(groups)
+            if not selected:
+                msg = (
+                    "`groups` is empty, so there is nothing to plot. "
+                    f"Pass None for all groups or pick from {available_groups!r}."
+                )
+                raise EmptySelectionError(msg)
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (

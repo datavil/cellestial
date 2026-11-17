@@ -328,6 +328,12 @@ def bracket(
         # size the stacking step in pixels so labels keep their room on any y range
         plot_width, plot_height = receiving_plot.size or _DEFAULT_PLOT_SIZE
         values = frame.filter(pl.col(y).is_finite())[y]
+        if values.is_empty():
+            msg = (
+                f"No valid group comparisons available: `y` column {y!r} has no finite "
+                "values. Each comparison needs at least 2 finite observations per group."
+            )
+            raise ValueError(msg)
         data_max = values.max()
         data_range = data_max - values.min()  # ty:ignore[unsupported-operator]
         panel_height = plot_height - _NON_PANEL_HEIGHT
@@ -368,8 +374,9 @@ def bracket(
         if data_range == 0:
             return layer
 
-        # grow the canvas by the stack height so the data panel keeps its size
-        stack_pixels = (positions[-1] - data_max) / units_per_pixel + step_pixels
+        # grow the canvas by the stack height so the data panel keeps its size;
+        # a stack placed below the data top (explicit `y_position`) needs no room
+        stack_pixels = max(0.0, (positions[-1] - data_max) / units_per_pixel + step_pixels)
         return layer + ggsize(plot_width, plot_height + stack_pixels)
 
     return DeferredLayer(_build)

@@ -30,7 +30,7 @@ from cellestial.single.differential.utilities import (
 )
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container
 
 # Default volcano palette (matches the conventional EnhancedVolcano-style look):
@@ -195,6 +195,11 @@ def volcano(
         If `data` is not a supported single-cell data object.
     KeyError
         If the requested differential-expression result or group is missing.
+    KeyNotFoundError
+        If the stored ranking lacks the fold changes or p-values a volcano needs.
+    InvalidArgumentError
+        If `pvalue_threshold` is outside (0, 1], or `logfoldchange_threshold`,
+        `top_n` or `nonsignificant_subsample` is negative.
     ValueError
         If requested tooltip columns are not present in the volcano frame.
 
@@ -238,6 +243,29 @@ def volcano(
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+
+    # CHECK: thresholds and counts, before any ranking is computed
+    if not 0 < pvalue_threshold <= 1:
+        msg = (
+            f"`pvalue_threshold` must be in (0, 1], got {pvalue_threshold}. "
+            "Pass a significance level such as 0.05."
+        )
+        raise InvalidArgumentError(msg)
+    if not logfoldchange_threshold >= 0:
+        msg = (
+            f"`logfoldchange_threshold` must be >= 0, got {logfoldchange_threshold}. "
+            "It is an absolute value applied to both directions; pass e.g. 1.0."
+        )
+        raise InvalidArgumentError(msg)
+    if top_n is not None and top_n < 0:
+        msg = f"`top_n` must be >= 0 or None, got {top_n}. Use 0 or None to disable labels."
+        raise InvalidArgumentError(msg)
+    if nonsignificant_subsample is not None and nonsignificant_subsample < 0:
+        msg = (
+            f"`nonsignificant_subsample` must be >= 0 or None, got {nonsignificant_subsample}. "
+            "Use None to keep every non-significant point."
+        )
+        raise InvalidArgumentError(msg)
 
     # NAME: the p-value column after the values it holds
     pvalue_column = _resolve_pvalue_column(pvalue_column, use_adjusted_pvalue=use_adjusted_pvalue)
@@ -618,7 +646,10 @@ def volcanos(
             data=data,
             group=group,
             modality=modality,
-            group_by=group_by,
+            # Only the first panel may (re)compute the ranking: arguments the stored
+            # parameters do not record (e.g. `pts`) would otherwise look stale on
+            # every panel and recompute it each time.
+            group_by=group_by if i == 0 else None,
             key=key,
             use_adjusted_pvalue=use_adjusted_pvalue,
             logfoldchange_threshold=logfoldchange_threshold,

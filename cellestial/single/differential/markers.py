@@ -169,6 +169,8 @@ def markers(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
+    EmptySelectionError
+        If `groups` is an empty sequence.
     ValueError
         If `n_genes` is out of range.
     TypeError
