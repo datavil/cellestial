@@ -376,10 +376,15 @@ def _resolve_key_groups(
     Raises
     ------
     DuplicateKeysError
-        If the same key appears in more than one group.
+        If the same key appears more than once, in one group or across groups.
     """
     if not isinstance(keys, Mapping):
-        return list(keys), None
+        flat_keys = list(keys)
+        duplicates = sorted({key for key in flat_keys if flat_keys.count(key) > 1})
+        if duplicates:
+            msg = f"`keys` contains duplicates: {duplicates}. Pass each key once."
+            raise DuplicateKeysError(msg)
+        return flat_keys, None
 
     grouped_keys = cast("Mapping[str, Sequence[str]]", keys)
     groups: dict[str, list[str]] = {}
@@ -392,6 +397,9 @@ def _resolve_key_groups(
     location: dict[str, str] = {}
     for label, values in groups.items():
         for key in values:
+            if location.get(key) == label:
+                msg = f"Key {key!r} appears more than once in group {label!r}. Pass each key once."
+                raise DuplicateKeysError(msg)
             if key in location:
                 msg = (
                     f"Key {key!r} appears in multiple groups: "

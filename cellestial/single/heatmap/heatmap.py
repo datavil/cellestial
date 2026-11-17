@@ -44,6 +44,7 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import (
+    _check_dendrogram_groups,
     _dendrogram_line_theme,
     _dendrogram_y_axis,
     _fill_gradient,
@@ -233,7 +234,10 @@ def heatmap(
         If `markers` is enabled and the requested ranking result or
         group is missing.
     DuplicateKeysError
-        If a mapping passed to `keys` assigns the same key to multiple groups.
+        If a key appears more than once in `keys`.
+    DendrogramMismatchError
+        If `dendrogram` is set and the dendrogram lacks groups present in the data,
+        or one must be computed for a grouping with categories that have no cells.
     ValueError
         If `keys` and `group_by` are missing while `markers` is
         disabled.
@@ -443,6 +447,14 @@ def heatmap(
             .to_list()
         )
         paths = None
+    if dendrogram:
+        # Unaggregated rows are cells, so every dendrogram group also needs cells.
+        _check_dendrogram_groups(
+            y_order_groups,
+            frame[group_by].cast(pl.String).unique().drop_nulls().to_list(),
+            group_by=group_by,
+            require_all=not aggregate,
+        )
 
     if not aggregate:
         # BIN: collapse cells into at most `max_rows` virtual rows (within group)

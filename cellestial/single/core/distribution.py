@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "ggrust.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
+from ggrust import element_text, theme
 from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
@@ -629,7 +630,7 @@ def histogram(
         geom_kwargs.setdefault("bins", bins)
     if binwidth is not None:
         geom_kwargs.setdefault("binwidth", binwidth)
-    return _distribution(
+    plot = _distribution(
         data=data,
         key=key,
         frame=frame,
@@ -654,3 +655,5 @@ def histogram(
         variable_column=variable_column,
         **geom_kwargs,
     )
+    # The value is on the x-axis, so it keeps the title the distribution theme blanks.
+    return plot + theme(axis_title_x=element_text())

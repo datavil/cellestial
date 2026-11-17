@@ -1,4 +1,5 @@
 from cellestial.util.dendrogram import (  # noqa: F401
+    _check_dendrogram_groups,
     _dendrogram_line_theme,
     _dendrogram_y_axis,
     _get_dendrogram,

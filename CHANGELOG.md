@@ -9,6 +9,24 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Fixed
+- `heatmap` (per cell) and `annotated_heatmap` with `dendrogram=True` no longer
+  crash when the grouping column holds non-string categories (e.g. integers).
+- `heatmap`, `matrixplot`, `dotplot`, `stacked_violin` and `annotated_heatmap`
+  raise `DendrogramMismatchError` when a stored dendrogram lacks groups present
+  in the data, or (per-cell `heatmap`, `annotated_heatmap`) includes groups with
+  no cells, instead of an internal error. `stacked_violin` used to drop those
+  groups silently.
+- Computing a dendrogram for a grouping with unused categories raises
+  `DendrogramMismatchError` naming them, instead of an internal `KeyError`.
+- Duplicate `keys` raise `DuplicateKeysError` in `heatmap`, `matrixplot`,
+  `dotplot`, `stacked_violin` and `annotated_heatmap`, instead of an internal
+  error.
+- `annotated_heatmap` leaves out cells with no `group_by` value whether or not
+  rows are binned. They used to show as an unlabelled block only when the data
+  fit in `max_rows`.
+- `histogram` shows the plotted value as the x-axis title.
+
 ## [0.62.1] - 2026-11-09
 
 Fixes for the fixed-cell plots: stable group order, area-proportional dotplot
