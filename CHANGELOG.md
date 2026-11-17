@@ -39,6 +39,25 @@ change. Versions absent from the list were never released.
 - Per-cell `heatmap` keeps cells apart when two groups share a barcode (e.g.
   concatenated samples without unique names). Such cells used to be duplicated,
   and binned rows averaged cells of both groups.
+### Breaking
+- `volcano` and `volcanos` now reject a negative `logfoldchange_threshold`,
+  `top_n` or `nonsignificant_subsample` with `InvalidArgumentError`. A negative
+  fold change threshold used to call features with negative fold changes `up`,
+  and `top_n=-1` labelled every significant feature but one. Migration: pass
+  the absolute threshold (`1.0`, not `-1.0`) and `0` or `None` to disable labels.
+
+### Fixed
+- `volcano` and `volcanos` reject a `pvalue_threshold` outside (0, 1] before
+  building the plot, instead of failing in the renderer.
+- `volcano` names the missing fields when the stored ranking has no fold
+  changes or p-values (e.g. logistic regression), instead of a bare `KeyError`.
+- `volcanos(group_by=...)` computes the ranking once, as documented, even when
+  `rank_genes_kwargs` holds arguments the stored parameters do not record
+  (e.g. `pts=True`). It used to recompute it for every panel.
+- `markers(groups=[])` raises `EmptySelectionError` instead of a polars error.
+- `bracket(y_position=...)` below the top of the data no longer gives the plot
+  a negative height, and a `y` column without finite values raises a clear
+  `ValueError` instead of a `TypeError`.
 
 ## [0.62.1] - 2026-11-09
 
