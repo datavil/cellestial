@@ -274,6 +274,8 @@ class _MuDataContainer(_Container):
         while the modality itself holds them unprefixed. Callers that hand a
         container-level column name to a single modality translate it here.
         """
+        if modality is None and len(self._data.mod) == 1:
+            modality = next(iter(self._data.mod))  # the one `select_modality` picks
         prefix = f"{modality}:"
         return column.removeprefix(prefix) if column.startswith(prefix) else column
 
@@ -294,6 +296,8 @@ class _MuDataContainer(_Container):
         preferring the bare name would silently group results by the wrong
         clustering.
         """
+        if modality is None and len(self._data.mod) == 1:
+            modality = next(iter(self._data.mod))  # the one `select_modality` picks
         qualified = f"{modality}:{column}"
         columns = self._data.obs.columns
         if qualified in columns:

@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "mudata"]
+__lazy_modules__ = ["anndata", "mudata", "scipy.sparse"]
 
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
 from mudata import MuData
+from scipy.sparse import issparse
 
 from cellestial.frames._container import _container
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _is_spatialdata
 
 if TYPE_CHECKING:
@@ -34,8 +35,8 @@ def anndata_variable_columns(
     """
     if isinstance(keys, str):
         keys = [keys]
-    # remove keys that are already in column_names to avoid repeats
-    keys = [key for key in keys if key not in column_names]
+    # remove keys that are already in column_names, or repeated, to avoid repeats
+    keys = [key for key in dict.fromkeys(keys) if key not in column_names]
 
     return _container(data).fetch_variable_columns(keys)
 
@@ -108,14 +109,15 @@ def anndata_observations_frame(
         if missing:
             msg = f"metadata_columns not found in observations: {missing}"
             raise KeyError(msg)
-        selected_columns = list(metadata_columns)
+        selected_columns = list(dict.fromkeys(metadata_columns))
     for key in selected_columns:
         # handle categorical integer data
         if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
             # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
             # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Convert to string (str) and then back to categorical
-            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
+            # Rename the categories to strings, so missing values stay null
+            # (`astype(str)` would turn them into a "nan" category)
+            columns.append(pl.Series(part[key].cat.rename_categories(str)).cast(pl.Categorical))
         else:
             columns.append(pl.Series(part[key]))
 
@@ -137,9 +139,12 @@ def anndata_observations_frame(
                 msg += f" You provided type {type(include_dimensions)}"
                 raise TypeError(msg)
 
+            embedding = partm[X]
+            if issparse(embedding):
+                embedding = embedding[:, :column_count].toarray()  # ty:ignore[unresolved-attribute]
             for column_index in range(column_count):
                 columns.append(
-                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                    pl.Series(f"{X.upper()}{column_index + 1}", embedding[:, column_index])
                 )
 
     # PART 4: ADD keys if provided
@@ -214,14 +219,15 @@ def anndata_variables_frame(
         if missing:
             msg = f"metadata_columns not found in variables: {missing}"
             raise KeyError(msg)
-        selected_columns = list(metadata_columns)
+        selected_columns = list(dict.fromkeys(metadata_columns))
     for key in selected_columns:
         # handle categorical integer data
         if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
             # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
             # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Convert to string (str) and then back to categorical
-            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
+            # Rename the categories to strings, so missing values stay null
+            # (`astype(str)` would turn them into a "nan" category)
+            columns.append(pl.Series(part[key].cat.rename_categories(str)).cast(pl.Categorical))
         else:
             columns.append(pl.Series(part[key]))
 
@@ -243,9 +249,12 @@ def anndata_variables_frame(
                 msg += f" You provided type {type(include_dimensions)}"
                 raise TypeError(msg)
 
+            embedding = partm[X]
+            if issparse(embedding):
+                embedding = embedding[:, :column_count].toarray()  # ty:ignore[unresolved-attribute]
             for column_index in range(column_count):
                 columns.append(
-                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                    pl.Series(f"{X.upper()}{column_index + 1}", embedding[:, column_index])
                 )
 
     return pl.DataFrame(columns)
@@ -263,7 +272,7 @@ def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> 
         actual = available_upper.get(key.upper())
         if actual is None:
             missing.append(key)
-        else:
+        elif actual not in selected:
             selected.append(actual)
     if missing:
         msg = f"dimension_keys not found in embeddings: {missing}"
@@ -324,6 +333,8 @@ def build_frame(
         If a bare `variable_keys` entry is present in more than one modality.
     KeyError
         If any `metadata_columns` or `dimension_keys` entry is unknown.
+    InvalidArgumentError
+        If `axis` is given but is neither 0 nor 1.
     ValueError
         If `axis` cannot be inferred, the data object does not resolve to
         exactly one annotation table, or a multimodal object does not share
@@ -414,6 +425,9 @@ def build_frame(
         elif axis is None:
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
             raise ValueError(msg)
+        else:
+            msg = f"`axis` must be 0 for observations or 1 for variables, but received {axis!r}."
+            raise InvalidArgumentError(msg)
     else:
         raise _unsupported_data_type(data, AnnData, "SpatialData", MuData)
 

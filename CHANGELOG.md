@@ -9,6 +9,18 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Fixed
+- `build_frame` keeps missing values of a numeric categorical column as null
+  instead of turning them into a `"nan"` category.
+- `build_frame` accepts repeated `variable_keys`, `metadata_columns` and
+  `dimension_keys` (the repeats are dropped) instead of failing on a duplicate
+  column, reads sparse embeddings, and raises `InvalidArgumentError` for an
+  `axis` other than 0 or 1.
+- Stored-result plots on a multimodal object with a single modality now find
+  the group column when `modality` is omitted.
+- `datasets.from_url` reads a URL whose filename has no `.h5ad` / `.h5mu`
+  suffix in the format given by `extension`, and caches it with that suffix.
+
 ## [0.62.1] - 2026-11-09
 
 Fixes for the fixed-cell plots: stable group order, area-proportional dotplot

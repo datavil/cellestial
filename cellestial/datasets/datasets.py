@@ -267,6 +267,9 @@ def from_url(
         if not filename:
             message = "Could not derive a filename from the URL; pass `name=...` explicitly."
             raise ValueError(message)
+        if Path(filename).suffix not in {".h5ad", ".h5mu"}:
+            # The URL names no format, so cache and read it as `extension` says.
+            filename = f"{filename}{extension}"
 
     cache_file = _resolve_cache_file(cache_directory, filename, use_cache=use_cache, bring=bring)
 
