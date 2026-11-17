@@ -51,61 +51,85 @@ def _bin_within_groups(
     Group boundaries are preserved, so group bars/lines remain meaningful.
     Returns `frame` unchanged when the unique observation count fits in `max_rows`.
     """
-    group_key = "_group_key"
-    frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
-    obs_per_group = (
-        frame_with_key.select(observation_id_column, group_key)
+    # Integer codes stand in for the observation ids and groups: dense ranks keep
+    # the sort order and distinctness of the originals, at a fraction of the memory.
+    observation_code = pl.col(observation_id_column).rank("dense").cast(pl.Int64)
+    group_code = pl.col(group_by).rank("dense").cast(pl.Int64).fill_null(0)
+    # Null groups never get bins, even when `y_order_groups` lists None.
+    group_positions = {
+        group: position for position, group in enumerate(y_order_groups) if group is not None
+    }
+    groups = frame.select(pl.col(group_by).unique()).select(
+        group_code.alias("_group_code"),
+        pl.col(group_by)
+        .cast(pl.String)
+        .replace_strict(group_positions, default=None, return_dtype=pl.Int64)
+        .alias("_group_index"),
+    )
+    codes = frame.select(observation_code.alias("_obs_code"), group_code.alias("_group_code"))
+    # Unique (observation, group) pairs, deduplicated as one packed integer.
+    group_stride = groups.height + 1
+    pairs = codes.select(
+        (pl.col("_obs_code").fill_null(0) * group_stride + pl.col("_group_code"))
         .unique()
-        .group_by(group_key, maintain_order=False)
+        .alias("_pair")
+    ).select(
+        (pl.col("_pair") // group_stride).alias("_obs_code"),
+        (pl.col("_pair") % group_stride).alias("_group_code"),
+    )
+    obs_per_group = (
+        pairs.group_by("_group_code", maintain_order=False)
         .agg(pl.len().alias("_n_cells"))
+        .join(groups, on="_group_code")
     )
     total = int(obs_per_group["_n_cells"].sum())
     if total <= max_rows:
         return frame
 
-    obs_per_group = obs_per_group.with_columns(
-        pl.max_horizontal(
-            pl.lit(1, dtype=pl.Int64),
-            (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
-        ).alias("_bin_count")
-    )
-
-    group_index_frame = pl.DataFrame(
-        {
-            group_key: y_order_groups,
-            "_group_index": list(range(len(y_order_groups))),
-        }
-    )
+    # Groups absent from `y_order_groups` (and null groups) count towards `total`
+    # but get no bins.
     offsets_frame = (
-        obs_per_group.join(group_index_frame, on=group_key)
+        obs_per_group.drop_nulls("_group_index")
+        .with_columns(
+            pl.max_horizontal(
+                pl.lit(1, dtype=pl.Int64),
+                (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
+            ).alias("_bin_count")
+        )
         .sort("_group_index")
         .with_columns((pl.col("_bin_count").cum_sum() - pl.col("_bin_count")).alias("_bin_offset"))
-        .select(group_key, "_bin_count", "_n_cells", "_bin_offset", "_group_index")
+        .select("_group_code", "_group_index", "_bin_count", "_n_cells", "_bin_offset")
     )
 
     obs_frame = (
-        frame_with_key.select(observation_id_column, group_key)
-        .unique(maintain_order=True)
-        .join(offsets_frame, on=group_key)
-        .sort(["_group_index", observation_id_column])
-        .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
-        .with_columns(
+        pairs.join(offsets_frame, on="_group_code")
+        .sort(["_group_index", "_obs_code"])
+        .with_columns(pl.int_range(pl.len()).over("_group_code").alias("_rank_in_group"))
+        .select(
+            "_obs_code",
             (
                 (pl.col("_rank_in_group") * pl.col("_bin_count") // pl.col("_n_cells"))
                 + pl.col("_bin_offset")
-            )
-            .cast(pl.String)
-            .alias("_binned_obs")
+            ).alias("_bin"),
         )
-        .select(observation_id_column, "_binned_obs")
     )
 
+    # Join only the narrow integer columns; the wide frame is copied (gathered) only
+    # when observations were dropped or repeated by the join.
+    row_bins = (
+        codes.select("_obs_code")
+        .with_row_index("_row")
+        .join(obs_frame, on="_obs_code", maintain_order="left")
+    )
+    binned = frame.select(group_by, *keys)
+    rows = row_bins["_row"]
+    if len(rows) != frame.height or rows.n_unique() != frame.height:
+        binned = binned[rows]
     return (
-        frame.join(obs_frame, on=observation_id_column)
-        .drop(observation_id_column)
-        .rename({"_binned_obs": observation_id_column})
-        .group_by(observation_id_column, group_by, maintain_order=False)
+        binned.with_columns(row_bins["_bin"])
+        .group_by("_bin", group_by, maintain_order=False)
         .agg(pl.col(keys).mean())
+        .select(pl.col("_bin").cast(pl.String).alias(observation_id_column), group_by, *keys)
     )
 
 

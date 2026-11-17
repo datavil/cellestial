@@ -4,6 +4,7 @@ import polars as pl
 import pytest
 from ggrust import aes, ggsize
 from ggrust.plot.core import PlotSpec
+from polars.testing import assert_frame_equal
 
 import cellestial as cl
 from cellestial.single.heatmap import utilities as heatmap_utilities
@@ -805,3 +806,181 @@ def test_dotplot_other_size_mapping_stays_in_pixels(adata, markers, group_key):
     scale = _size_scale_spec(plot)
     assert scale["range"][1] == pytest.approx(_DOT_SIZE_MAX * _CELL_SIZE / _POINT_PIXELS_PER_SIZE)
     assert "guide" not in scale
+
+
+# ---------------------------------------------------------------------------
+# _bin_within_groups: integer-keyed rewrite must match the string-keyed original
+# ---------------------------------------------------------------------------
+
+
+def _reference_bin_within_groups(
+    frame: pl.DataFrame,
+    *,
+    observation_id_column: str,
+    group_by: str,
+    keys: list[str],
+    y_order_groups: list[str],
+    max_rows: int,
+) -> pl.DataFrame:
+    """
+    String-keyed implementation of `_bin_within_groups` up to 0.62.1, kept as an oracle.
+
+    Notes
+    -----
+    `frame` is wide, one row per observation and one column per key.
+    Cells within a group are sorted by observation id and chunked into contiguous
+    bins; each bin's expression value is the per-variable mean of its members.
+    Group boundaries are preserved, so group bars/lines remain meaningful.
+    Returns `frame` unchanged when the unique observation count fits in `max_rows`.
+    """
+    group_key = "_group_key"
+    frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
+    obs_per_group = (
+        frame_with_key.select(observation_id_column, group_key)
+        .unique()
+        .group_by(group_key, maintain_order=False)
+        .agg(pl.len().alias("_n_cells"))
+    )
+    total = int(obs_per_group["_n_cells"].sum())
+    if total <= max_rows:
+        return frame
+
+    obs_per_group = obs_per_group.with_columns(
+        pl.max_horizontal(
+            pl.lit(1, dtype=pl.Int64),
+            (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
+        ).alias("_bin_count")
+    )
+
+    group_index_frame = pl.DataFrame(
+        {
+            group_key: y_order_groups,
+            "_group_index": list(range(len(y_order_groups))),
+        }
+    )
+    offsets_frame = (
+        obs_per_group.join(group_index_frame, on=group_key)
+        .sort("_group_index")
+        .with_columns((pl.col("_bin_count").cum_sum() - pl.col("_bin_count")).alias("_bin_offset"))
+        .select(group_key, "_bin_count", "_n_cells", "_bin_offset", "_group_index")
+    )
+
+    obs_frame = (
+        frame_with_key.select(observation_id_column, group_key)
+        .unique(maintain_order=True)
+        .join(offsets_frame, on=group_key)
+        .sort(["_group_index", observation_id_column])
+        .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
+        .with_columns(
+            (
+                (pl.col("_rank_in_group") * pl.col("_bin_count") // pl.col("_n_cells"))
+                + pl.col("_bin_offset")
+            )
+            .cast(pl.String)
+            .alias("_binned_obs")
+        )
+        .select(observation_id_column, "_binned_obs")
+    )
+
+    return (
+        frame.join(obs_frame, on=observation_id_column)
+        .drop(observation_id_column)
+        .rename({"_binned_obs": observation_id_column})
+        .group_by(observation_id_column, group_by, maintain_order=False)
+        .agg(pl.col(keys).mean())
+    )
+
+
+def _assert_binning_matches_reference(frame: pl.DataFrame, **kwargs: object) -> None:
+    expected = _reference_bin_within_groups(frame, **kwargs)
+    result = heatmap_utilities._bin_within_groups(frame, **kwargs)
+    sort_columns = [kwargs["observation_id_column"], kwargs["group_by"]]
+    assert_frame_equal(
+        result.sort(sort_columns, nulls_last=True), expected.sort(sort_columns, nulls_last=True)
+    )
+
+
+@pytest.mark.parametrize("max_rows", [1, 7, 100, 999])
+def test_bin_within_groups_matches_reference_on_pbmc3k(adata, markers, cluster_key, max_rows):
+    frame = pl.DataFrame(
+        {
+            "observation_id": adata.obs_names.to_list(),
+            cluster_key: adata.obs[cluster_key].to_numpy(),
+        }
+    ).with_columns(pl.col(cluster_key).cast(pl.Categorical))
+    frame = frame.hstack(pl.from_pandas(adata[:, markers].to_df().reset_index(drop=True)))
+    groups = sorted(adata.obs[cluster_key].unique().tolist(), reverse=True)
+    _assert_binning_matches_reference(
+        frame,
+        observation_id_column="observation_id",
+        group_by=cluster_key,
+        keys=markers,
+        y_order_groups=groups,
+        max_rows=max_rows,
+    )
+
+
+def _small_binning_frame(groups: list[object], dtype: pl.DataType) -> pl.DataFrame:
+    n = len(groups)
+    return pl.DataFrame(
+        {
+            "observation_id": [f"cell_{(index * 7) % n:03d}" for index in range(n)],
+            "group": pl.Series(groups, dtype=dtype),
+            "gene_a": [float(index) for index in range(n)],
+            "gene_b": [None if index % 5 == 0 else float(index * index) for index in range(n)],
+        }
+    )
+
+
+@pytest.mark.parametrize(
+    ("groups", "dtype", "y_order_groups"),
+    [
+        (["b", "a", "c"] * 20, pl.String, ["c", "a", "b"]),
+        (["b", "a", "c"] * 20, pl.Categorical, ["a", "b", "c"]),
+        ([3, 1, 2, 10] * 15, pl.Int64, ["10", "2", "1", "3"]),
+        # A group absent from the order, plus null groups.
+        (["b", "a", None, "absent"] * 15, pl.String, ["a", "b"]),
+        (["b", "a", None, "absent"] * 15, pl.Categorical, ["a", None, "b"]),
+    ],
+)
+@pytest.mark.parametrize("max_rows", [3, 10, 25])
+def test_bin_within_groups_matches_reference(groups, dtype, y_order_groups, max_rows):
+    _assert_binning_matches_reference(
+        _small_binning_frame(groups, dtype),
+        observation_id_column="observation_id",
+        group_by="group",
+        keys=["gene_a", "gene_b"],
+        y_order_groups=y_order_groups,
+        max_rows=max_rows,
+    )
+
+
+def test_bin_within_groups_matches_reference_with_null_and_duplicate_ids():
+    frame = _small_binning_frame(["a", "b"] * 20, pl.String)
+    observation_ids = frame["observation_id"].to_list()
+    observation_ids[3] = None
+    observation_ids[8] = None
+    observation_ids[5] = observation_ids[4]  # same id in two groups
+    observation_ids[6] = observation_ids[4]  # exact duplicate (same group)
+    frame = frame.with_columns(pl.Series("observation_id", observation_ids))
+    _assert_binning_matches_reference(
+        frame,
+        observation_id_column="observation_id",
+        group_by="group",
+        keys=["gene_a", "gene_b"],
+        y_order_groups=["b", "a"],
+        max_rows=9,
+    )
+
+
+def test_bin_within_groups_returns_frame_when_it_fits():
+    frame = _small_binning_frame(["a", "b"] * 10, pl.String)
+    result = heatmap_utilities._bin_within_groups(
+        frame,
+        observation_id_column="observation_id",
+        group_by="group",
+        keys=["gene_a", "gene_b"],
+        y_order_groups=["a", "b"],
+        max_rows=20,
+    )
+    assert result is frame

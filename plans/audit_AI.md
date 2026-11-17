@@ -239,3 +239,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_resolve_padding` | Claude Opus 5.5 |  |
 | `heatmap` | Claude Opus 5.5 |  |
 | `dotplot` | Claude Opus 5.5 |  |
+| `_bin_within_groups` | Claude Opus 5.5 |  |
