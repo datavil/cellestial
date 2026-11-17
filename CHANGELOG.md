@@ -26,6 +26,9 @@ change. Versions absent from the list were never released.
   rows are binned. They used to show as an unlabelled block only when the data
   fit in `max_rows`.
 - `histogram` shows the plotted value as the x-axis title.
+- Per-cell `heatmap` keeps cells apart when two groups share a barcode (e.g.
+  concatenated samples without unique names). Such cells used to be duplicated,
+  and binned rows averaged cells of both groups.
 
 ## [0.62.1] - 2026-11-09
 

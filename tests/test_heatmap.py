@@ -832,6 +832,8 @@ def _reference_bin_within_groups(
     bins; each bin's expression value is the per-variable mean of its members.
     Group boundaries are preserved, so group bars/lines remain meaningful.
     Returns `frame` unchanged when the unique observation count fits in `max_rows`.
+    Bins are matched on the observation id and the group (0.62.1 matched on the id
+    alone, mixing groups that share an id).
     """
     group_key = "_group_key"
     frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
@@ -879,12 +881,13 @@ def _reference_bin_within_groups(
             .cast(pl.String)
             .alias("_binned_obs")
         )
-        .select(observation_id_column, "_binned_obs")
+        .select(observation_id_column, group_key, "_binned_obs")
     )
 
+    # One observation id can appear in several groups, so match on the group too.
     return (
-        frame.join(obs_frame, on=observation_id_column)
-        .drop(observation_id_column)
+        frame_with_key.join(obs_frame, on=[observation_id_column, group_key])
+        .drop(observation_id_column, group_key)
         .rename({"_binned_obs": observation_id_column})
         .group_by(observation_id_column, group_by, maintain_order=False)
         .agg(pl.col(keys).mean())

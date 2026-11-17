@@ -221,3 +221,38 @@ def test_matrixplot_passes_modality_for_multimodal_dendrogram():
     gene = str(mudata["rna"].var_names[0])
     plot = cl.matrixplot(mudata, [gene], "rna:leiden", dendrogram=True, modality="rna")
     assert plot.to_svg() is not None
+
+
+@pytest.fixture(scope="module")
+def shared_barcodes(adata):
+    """Two groups' cells reuse the same barcodes, as after concatenating samples."""
+    local = adata[adata.obs["cell_type_lvl1"].isin(["B Cells", "Monocytes"])][:400].copy()
+    local.obs["batch"] = pd.Categorical(["first"] * 200 + ["second"] * 200)
+    names = local.obs_names.to_numpy().copy()
+    names[200:] = names[:200]
+    local.obs_names = names
+    return local
+
+
+def test_heatmap_keeps_cells_with_shared_barcodes_apart(shared_barcodes):
+    keys = ["CD3D", "LYZ"]
+    frame = cl.retrieve(cl.heatmap(shared_barcodes, keys, "batch", max_rows=None))
+    assert frame.height == shared_barcodes.n_obs * len(keys)
+    assert frame["position_y"].n_unique() <= shared_barcodes.n_obs
+    assert frame.group_by("position_y").agg(pl.col("batch").n_unique())["batch"].max() == 1
+
+
+def test_heatmap_bins_never_mix_groups_with_shared_barcodes(shared_barcodes):
+    keys = ["CD3D", "LYZ"]
+    frame = cl.retrieve(cl.heatmap(shared_barcodes, keys, "batch", max_rows=20))
+    assert frame["position_y"].n_unique() == 20
+    assert frame.group_by("position_y").agg(pl.col("batch").n_unique())["batch"].max() == 1
+    expression = _expression(shared_barcodes, keys)
+    batch = shared_barcodes.obs["batch"].astype(str).to_numpy()
+    for name in ("first", "second"):
+        bins = frame.filter(pl.col("batch").cast(pl.String) == name)
+        # Equal-sized bins, so the bin means average to the group mean.
+        observed = bins.group_by("variable").agg(pl.col("value").mean()).sort("variable")
+        expected = expression[batch == name].mean(axis=0)
+        for row in observed.iter_rows(named=True):
+            assert row["value"] == pytest.approx(expected[keys.index(row["variable"])], rel=1e-5)

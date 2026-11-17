@@ -107,6 +107,7 @@ def _bin_within_groups(
         .with_columns(pl.int_range(pl.len()).over("_group_code").alias("_rank_in_group"))
         .select(
             "_obs_code",
+            "_group_code",
             (
                 (pl.col("_rank_in_group") * pl.col("_bin_count") // pl.col("_n_cells"))
                 + pl.col("_bin_offset")
@@ -116,10 +117,9 @@ def _bin_within_groups(
 
     # Join only the narrow integer columns; the wide frame is copied (gathered) only
     # when observations were dropped or repeated by the join.
-    row_bins = (
-        codes.select("_obs_code")
-        .with_row_index("_row")
-        .join(obs_frame, on="_obs_code", maintain_order="left")
+    # Match on the group too: one observation id can appear in several groups.
+    row_bins = codes.with_row_index("_row").join(
+        obs_frame, on=["_obs_code", "_group_code"], maintain_order="left"
     )
     binned = frame.select(group_by, *keys)
     rows = row_bins["_row"]
@@ -259,8 +259,10 @@ def _assign_positions(
     cell_frame = cell_frame.with_columns(
         pl.int_range(pl.len()).cast(pl.Float64).alias("position_y")
     )
+    # Match on the group too: one observation id can appear in several groups.
     frame = frame.join(
-        cell_frame.select(observation_id_column, "position_y"), on=observation_id_column
+        cell_frame.select(observation_id_column, group_by, "position_y"),
+        on=[observation_id_column, group_by],
     )
     centers_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
