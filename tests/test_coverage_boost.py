@@ -11,7 +11,7 @@ from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
-from cellestial.util.errors import VariableNotFoundError
+from cellestial.util.errors import KeyNotFoundError, VariableNotFoundError
 
 # ===========================================================================
 # dimensional.py, uncovered: TypeError, use_key, legend_ondata, color_mid,
@@ -166,8 +166,8 @@ def test_plural_plotters_reject_empty_keys(adata, plotter):
 @pytest.mark.parametrize(
     ("plotter", "error"),
     [
-        (lambda data: cl.umaps(data, ["CD14", 1]), ValueError),
-        (lambda data: cl.dimensionals(data, ["CD14", 1]), ValueError),
+        (lambda data: cl.umaps(data, ["CD14", 1]), KeyNotFoundError),
+        (lambda data: cl.dimensionals(data, ["CD14", 1]), KeyNotFoundError),
         (lambda data: cl.expressions(data, ["CD14", 1]), VariableNotFoundError),
         (lambda data: cl.violins(data, ["CD14", 1]), ValueError),
         (lambda data: cl.boxplots(data, ["CD14", 1]), ValueError),

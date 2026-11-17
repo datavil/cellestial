@@ -10,7 +10,7 @@ import polars as pl
 from anndata import AnnData
 
 from cellestial.util import _is_spatialdata, _warn
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import ConflictingLengthError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -305,6 +305,27 @@ def _spatialdata_components(
             f"{sorted(geom_types)}; only Point or Polygon are supported."
         )
         raise NotImplementedError(msg)
+
+    if spot_coordinates is not None:
+        # Shapes and table rows need not share order or length: place each table row
+        # at its own instance's coordinates (NaN when it annotates no shape here).
+        instance_key = _resolve_instance_key(table)
+        if instance_key is not None:
+            positions = shapes_geo.index.get_indexer(table.obs[instance_key])
+            region_key = table.uns.get("spatialdata_attrs", {}).get("region_key")
+            if region_key in table.obs.columns:
+                positions[np.asarray(table.obs[region_key] != chosen_shapes_name)] = -1
+            aligned = np.full((table.n_obs, 2), np.nan)
+            found = positions >= 0
+            aligned[found] = spot_coordinates[positions[found]]
+            spot_coordinates = aligned
+        elif len(spot_coordinates) != table.n_obs:
+            msg = (
+                f"Shapes element `{chosen_shapes_name}` has {len(spot_coordinates)} shapes "
+                f"but the table has {table.n_obs} rows, and the table has no instance key "
+                "to match them.\nParse the table with `TableModel.parse(..., instance_key=...)`."
+            )
+            raise ConflictingLengthError(msg)
 
     image_array = None
     if image and chosen_image_name is not None:

@@ -58,6 +58,31 @@ change. Versions absent from the list were never released.
 - `bracket(y_position=...)` below the top of the data no longer gives the plot
   a negative height, and a `y` column without finite values raises a clear
   `ValueError` instead of a `TypeError`.
+### Breaking
+- `dimensionals`, `umaps`, `tsnes` and `pcas` raise `KeyNotFoundError` for an
+  unknown key instead of a `ValueError` about tooltip fields. Migration: catch
+  `KeyNotFoundError` (or `Exception`) instead of `ValueError`.
+
+### Fixed
+- `cl.spatial` and `cl.spatials` on SpatialData point (or polygon-centroid)
+  shapes now place each table row at its own shape, matched on the table's
+  instance key. Spots used to be matched by position, so a table ordered
+  differently from its shapes colored the wrong spots, and a table covering only
+  some shapes failed with a shape error.
+- `cl.stream()` on an embedding stored without the `X_` prefix (e.g.
+  `wnn_umap`) reads `velocity_wnn_umap`; it used to reuse the positions as
+  velocities and draw meaningless streams.
+- `dimensional` and its wrappers reject `xy` components that do not exist
+  (0-based values or beyond the embedding) with an `InvalidArgumentError`
+  instead of returning a plot that fails to render.
+- `xyplot` raises `KeyNotFoundError` with close matches when `x` or `y` is not
+  in the data, instead of a `ValueError` about tooltip fields.
+- `highest_expressed_genes(n=...)` and `elbow(n_pcs=...)` reject values below 1;
+  negative values used to show all but the last genes or components.
+- `violins`, `boxplots` and `ridges` reject a single string for `keys`, which
+  used to be split into characters.
+- `violin`, `boxplot` and `histogram` warn when `groups` or `drop` is passed
+  without `group_by`, where the filter is ignored.
 
 ## [0.62.1] - 2026-11-09
 

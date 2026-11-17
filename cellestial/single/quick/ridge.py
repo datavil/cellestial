@@ -383,6 +383,9 @@ def ridges(
             guides="collect",
         )
     """
+    if isinstance(keys, str):
+        msg = "keys must be a Sequence of strings, not a single string"
+        raise TypeError(msg)
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = _determine_axis(data=data, keys=keys, companions=[group_by]) if axis is None else axis
