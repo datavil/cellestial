@@ -36,9 +36,9 @@ from ggrust import (
 from mudata import MuData
 
 from cellestial.frames import build_frame
-from cellestial.single.heatmap.utilities import _scale_values
+from cellestial.single.heatmap.utilities import _resolve_key_groups, _scale_values
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _fill_gradient, _get_dendrogram, _warn
+from cellestial.util import _check_dendrogram_groups, _fill_gradient, _get_dendrogram, _warn
 from cellestial.util.errors import _unsupported_data_type
 from cellestial.util.utilities import _modality_source
 
@@ -482,6 +482,12 @@ def annotated_heatmap(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    DuplicateKeysError
+        If a key appears more than once in `keys`.
+    DendrogramMismatchError
+        If `dendrogram` is set and the dendrogram's groups differ from the groups
+        in the data, or one must be computed for a grouping with categories that
+        have no cells.
     ValueError
         If `dendrogram` is set without `group_by`.
 
@@ -519,7 +525,7 @@ def annotated_heatmap(
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
 
-    keys = list(keys)
+    keys, _ = _resolve_key_groups(list(keys))
     column_annotations = _as_list(column_annotations)
     row_annotations = _as_list(row_annotations)
     annotation_colors = annotation_colors or {}
@@ -546,6 +552,17 @@ def annotated_heatmap(
         observation_id_column=None,
         metadata_columns=list(dict.fromkeys(metadata)),
     )
+    if group_by is not None:
+        # Cells without a group have no block to sit in (and binning drops them).
+        observations = observations.filter(pl.col(group_by).is_not_null())
+    if dendrogram_order is not None:
+        assert group_by is not None
+        _check_dendrogram_groups(
+            dendrogram_order,
+            observations[group_by].cast(pl.String).unique().to_list(),
+            group_by=group_by,
+            require_all=True,
+        )
     observations, group_order = _order_observations(
         observations, group_by=group_by, group_order=dendrogram_order
     )

@@ -20,6 +20,25 @@ change. Versions absent from the list were never released.
   the group column when `modality` is omitted.
 - `datasets.from_url` reads a URL whose filename has no `.h5ad` / `.h5mu`
   suffix in the format given by `extension`, and caches it with that suffix.
+- `heatmap` (per cell) and `annotated_heatmap` with `dendrogram=True` no longer
+  crash when the grouping column holds non-string categories (e.g. integers).
+- `heatmap`, `matrixplot`, `dotplot`, `stacked_violin` and `annotated_heatmap`
+  raise `DendrogramMismatchError` when a stored dendrogram lacks groups present
+  in the data, or (per-cell `heatmap`, `annotated_heatmap`) includes groups with
+  no cells, instead of an internal error. `stacked_violin` used to drop those
+  groups silently.
+- Computing a dendrogram for a grouping with unused categories raises
+  `DendrogramMismatchError` naming them, instead of an internal `KeyError`.
+- Duplicate `keys` raise `DuplicateKeysError` in `heatmap`, `matrixplot`,
+  `dotplot`, `stacked_violin` and `annotated_heatmap`, instead of an internal
+  error.
+- `annotated_heatmap` leaves out cells with no `group_by` value whether or not
+  rows are binned. They used to show as an unlabelled block only when the data
+  fit in `max_rows`.
+- `histogram` shows the plotted value as the x-axis title.
+- Per-cell `heatmap` keeps cells apart when two groups share a barcode (e.g.
+  concatenated samples without unique names). Such cells used to be duplicated,
+  and binned rows averaged cells of both groups.
 
 ## [0.62.1] - 2026-11-09
 

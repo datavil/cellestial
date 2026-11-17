@@ -36,6 +36,7 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_DOTPLOT
 from cellestial.util import (
+    _check_dendrogram_groups,
     _dendrogram_line_theme,
     _dendrogram_y_axis,
     _drop_nonfinite_rows,
@@ -240,7 +241,10 @@ def stacked_violin(
         If `markers` is enabled and the requested ranking result or
         group is missing.
     DuplicateKeysError
-        If a mapping passed to `keys` assigns the same key to multiple groups.
+        If a key appears more than once in `keys`.
+    DendrogramMismatchError
+        If `dendrogram` is set and the dendrogram lacks groups present in the data,
+        or one must be computed for a grouping with categories that have no cells.
     ValueError
         If `keys` and `group_by` are missing while `markers` is
         disabled.
@@ -362,6 +366,12 @@ def stacked_violin(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
         y_order_groups = list(tree.ordered_labels)
+        _check_dendrogram_groups(
+            y_order_groups,
+            frame[group_by].cast(pl.String).unique().to_list(),
+            group_by=group_by,
+            require_all=False,
+        )
     else:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
