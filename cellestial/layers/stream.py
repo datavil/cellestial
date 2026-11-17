@@ -208,8 +208,10 @@ def stream(
             y_velocity = f"{velocity_key}{y_number}"
         elif velocity_key is None:  # default to velocity_prefix + embedding name
             prefix = velocity_prefix.upper()  # cellestial converts embedding names to uppercase
-            x_velocity = x.replace("X_", prefix)
-            y_velocity = y.replace("X_", prefix)
+            # an embedding stored without the `X_` prefix (e.g. `wnn_umap`) has its
+            # velocity under `velocity_wnn_umap`; never fall back to the positions
+            x_velocity = x.replace("X_", prefix) if "X_" in x else f"{prefix}{x}"
+            y_velocity = y.replace("X_", prefix) if "X_" in y else f"{prefix}{y}"
 
         missing_velocity_columns = [
             column for column in (x_velocity, y_velocity) if column not in frame.columns

@@ -19,7 +19,7 @@ from mudata import MuData
 
 from cellestial.frames import _pca_variance_frame
 from cellestial.themes import _THEME_SCATTER_BASE
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
@@ -96,6 +96,8 @@ def elbow(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentError
+        If `n_pcs` is smaller than 1.
     ValueError
         If PCA results are not available on `data`,
         or if `n_pcs` exceeds the number of available components.
@@ -132,6 +134,9 @@ def elbow(
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+    if n_pcs is not None and n_pcs < 1:
+        msg = f"`n_pcs` must be at least 1 (the number of components to show), got n_pcs={n_pcs}."
+        raise InvalidArgumentError(msg)
 
     # BUILD: variance ratio frame
     frame = _pca_variance_frame(

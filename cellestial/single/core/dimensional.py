@@ -36,7 +36,7 @@ from cellestial.util import (
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from ggrust.plot.core import PlotSpec
@@ -192,6 +192,8 @@ def dimensional(
         If `key` is not found in observation metadata or variable names.
     KeyError
         If `xy` does not contain exactly two dimensions.
+    InvalidArgumentError
+        If `xy` selects a component the embedding does not have (components are 1-based).
 
     Examples
     --------
@@ -238,7 +240,7 @@ def dimensional(
 
     # HANDLE: key
     _reject_sequence_key(key, singular="dimensional", plural="dimensionals")
-    if frame is None:
+    if frame is None or (key is not None and key not in frame.columns):
         _require_feature_key(data, key)
 
     # HANDLE: mapping
@@ -249,6 +251,12 @@ def dimensional(
         msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
         raise KeyError(msg)
     prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
+    if min(xy) < 1:
+        msg = (
+            f"`xy={tuple(xy)}` selects a component below 1 of `{prefix}`.\n"
+            "Components are 1-based: pass e.g. `xy=(1, 2)` for the first two."
+        )
+        raise InvalidArgumentError(msg)
     x = f"{prefix}{xy[0]}"  # e.g. X_UMAP1
     y = f"{prefix}{xy[1]}"  # e.g. X_UMAP2
 
@@ -301,6 +309,23 @@ def dimensional(
     # HANDLE: groups / drop filters (categorical-only)
     if key is not None:
         frame = _filter_groups(frame, column=key, groups=groups, drop=drop, column_parameter="key")
+
+    # VALIDATE: both components exist
+    if x not in frame.columns or y not in frame.columns:
+        n_components = sum(
+            1
+            for column in frame.columns
+            if column.startswith(prefix) and column.removeprefix(prefix).isdigit()
+        )
+        msg = (
+            f"`xy={tuple(xy)}` selects components outside `{prefix}`, which has "
+            f"{n_components} components.\nComponents are 1-based: pass values from 1 to "
+            f"{n_components}, e.g. `xy=(1, 2)`."
+            if n_components
+            else f"Embedding `{prefix}` has no components in the plotted data.\n"
+            "Check `use_key` / `dimensions`, or that a passed `frame` holds the embedding."
+        )
+        raise InvalidArgumentError(msg)
 
     frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)

@@ -16,7 +16,7 @@ from mudata import MuData
 from cellestial.frames import _highest_expressed_genes_frame
 from cellestial.themes import _THEME_HIGHEST
 from cellestial.util import _drop_nonfinite_rows
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
@@ -87,6 +87,8 @@ def highest_expressed_genes(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentError
+        If `n` is smaller than 1.
 
     Examples
     --------
@@ -128,6 +130,9 @@ def highest_expressed_genes(
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+    if n < 1:
+        msg = f"`n` must be at least 1 (the number of genes to show), got n={n}."
+        raise InvalidArgumentError(msg)
 
     # HANDLE: mapping
     defaults = aes(x=variable_column, y=value_column, fill=variable_column).as_dict()

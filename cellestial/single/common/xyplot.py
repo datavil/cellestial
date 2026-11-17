@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
+from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
@@ -25,7 +26,7 @@ from cellestial.util import (
     _select_variable_keys,
     _validate_tooltips,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -98,6 +99,9 @@ def xyplot(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    KeyNotFoundError
+        If `x` or `y` is not a column of the built frame (e.g. an embedding
+        component the embedding does not have).
 
     Examples
     --------
@@ -225,6 +229,17 @@ def xyplot(
             include_dimensions=include_dimensions,
             metadata_columns=metadata_columns,
         )
+    plotted = mapping.as_dict()  # `mapping` may override `x` / `y`
+    for column in (plotted["x"], plotted["y"]):
+        if column not in frame.columns:
+            close_matches = get_close_matches(column, frame.columns, n=3)
+            hint = f"; did you mean {close_matches}?" if close_matches else "."
+            msg = (
+                f"`{column}` not found in the plotted data{hint}\n"
+                "Pass an observation or variable name, or an embedding component "
+                "such as `X_UMAP1` (components are 1-based)."
+            )
+            raise KeyNotFoundError(msg)
     frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)
 

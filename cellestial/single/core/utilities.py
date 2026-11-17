@@ -189,6 +189,13 @@ def _distribution(
     # HANDLE: groups / drop filters (categorical-only) on the grouping column
     if group_by is not None:
         frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
+    else:
+        for parameter, value in (("groups", groups), ("drop", drop)):
+            if value is not None:
+                _warn(
+                    f"`{parameter}` filters the `group_by` column, but no `group_by` "
+                    f"was given; `{parameter}` filter ignored. Pass `group_by=` to use it."
+                )
 
     # unpivot into a temporary name: for a single key `value_column` equals the key,
     # which polars >= 1.44 rejects as a duplicate column
