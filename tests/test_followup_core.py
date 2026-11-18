@@ -266,3 +266,137 @@ def test_dimensionals_groups_skip_numeric_keys(adata):
     """Dimensionals groups skip numeric keys."""
     plots = cl.dimensionals(adata, ["leiden", "CD14"], groups=["0"])
     assert plots is not None
+
+
+# ---- color / fill never mean a constant; geom_color / geom_fill do ----
+
+
+def _spatial_data():
+    """AnnData with a categorical key and spatial coordinates, no image."""
+    import numpy as np
+    import pandas as pd
+    from anndata import AnnData
+
+    rng = np.random.default_rng(0)
+    n = 12
+    data = AnnData(
+        X=rng.random((n, 2)).astype("float32"),
+        obs=pd.DataFrame(
+            {"cluster": pd.Categorical(["a", "b", "c"] * 4)},
+            index=[f"cell_{i}" for i in range(n)],
+        ),
+        var=pd.DataFrame(index=["GENE_A", "GENE_B"]),
+    )
+    data.obsm["spatial"] = rng.random((n, 2))
+    return data
+
+
+_CONSTANT_CALLS = {
+    "umap": lambda data, **kw: cl.umap(data, **kw),
+    "dimensional": lambda data, **kw: cl.dimensional(data, **kw),
+    "tsne_like_pca": lambda data, **kw: cl.pca(data, **kw),
+    "umaps": lambda data, **kw: cl.umaps(data, ["leiden", "CD14"], **kw),
+    "scatter": lambda data, **kw: cl.scatter(
+        data, mapping=aes(x="total_counts", y="n_genes_by_counts"), **kw
+    ),
+    "bar": lambda data, **kw: cl.bar(data, mapping=aes(x="leiden"), **kw),
+    "xyplot": lambda data, **kw: cl.xyplot(data, "total_counts", "n_genes_by_counts", **kw),
+    "xyplots": lambda data, **kw: cl.xyplots(data, ["total_counts"], ["n_genes_by_counts"], **kw),
+}
+
+
+@pytest.mark.parametrize("name", [name for name in _CONSTANT_CALLS if name != "umaps"])
+def test_geom_color_and_geom_fill_set_constants(adata, name):
+    """Geom_color and geom_fill set constants on the main geom."""
+    plot = _CONSTANT_CALLS[name](adata, geom_color="#0f4f8f", geom_fill="#8da0cb")
+    spec = plot.as_dict()
+    layer = (spec["figures"][0] if "figures" in spec else spec)["layers"][0]
+    assert layer["color"] == "#0f4f8f"
+    assert layer["fill"] == "#8da0cb"
+
+
+@pytest.mark.parametrize("name", list(_CONSTANT_CALLS))
+@pytest.mark.parametrize("aesthetic", ["color", "fill"])
+def test_bare_color_or_fill_constant_raises(adata, name, aesthetic):
+    """Bare color or fill constant raises and points to geom_*."""
+    with pytest.raises(InvalidArgumentError, match=f"geom_{aesthetic}"):
+        _CONSTANT_CALLS[name](adata, **{aesthetic: "red"})
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda data: cl.expression(data, "CD14", color="red"),
+        lambda data: cl.expressions(data, ["CD14"], fill="red"),
+        lambda data: cl.tsnes(data, ["leiden"], color="red"),
+        lambda data: cl.pcas(data, ["leiden"], color="red"),
+        lambda data: cl.dimensionals(data, ["leiden"], color="red"),
+    ],
+)
+def test_bare_color_raises_in_every_wrapper(adata, call):
+    """Bare color raises in every wrapper."""
+    with pytest.raises(InvalidArgumentError, match="geom_"):
+        call(adata)
+
+
+def test_bare_color_error_names_the_called_function(adata):
+    """Bare color error names the called function."""
+    with pytest.raises(InvalidArgumentError, match="`umap`"):
+        cl.umap(adata, "leiden", color="red")
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda data: cl.umap(data, "leiden", geom_color="red"),
+        lambda data: cl.umaps(data, ["leiden"], geom_color="red"),
+        lambda data: cl.expression(data, "CD14", geom_color="red"),
+        lambda data: cl.umap(data, mapping=aes(color="leiden"), geom_color="red"),
+        lambda data: cl.scatter(
+            data, mapping=aes(x="total_counts", y="CD14", color="leiden"), geom_color="red"
+        ),
+        lambda data: cl.bar(data, mapping=aes(x="leiden", fill="leiden"), geom_fill="red"),
+        lambda data: cl.xyplot(
+            data, "total_counts", "CD14", mapping=aes(color="leiden"), geom_color="red"
+        ),
+    ],
+)
+def test_constant_over_mapped_aesthetic_raises(adata, call):
+    """A constant that would hide the key or mapping coloring raises."""
+    with pytest.raises(InvalidArgumentError, match="would override"):
+        call(adata)
+
+
+def test_geom_fill_with_key_on_points_is_allowed(adata):
+    """Geom_fill with key on points keeps the key on color."""
+    layer = cl.umap(adata, "leiden", geom_fill="red", shape=21).as_dict()["layers"][0]
+    assert layer["mapping"]["color"] == "leiden"
+    assert layer["fill"] == "red"
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda data: cl.blend(data, keys=("CD3E", "MS4A1"), color="red"),
+        lambda data: cl.embedding_density(data, fill="red"),
+    ],
+)
+def test_computed_color_plots_reject_color_and_fill(adata, call):
+    """Computed color plots reject color and fill."""
+    with pytest.raises(InvalidArgumentError, match="not a parameter"):
+        call(adata)
+
+
+def test_spatial_geom_color_and_key():
+    """Spatial geom_color sets a constant; with key it raises; bare color raises."""
+    data = _spatial_data()
+    layer = cl.spatial(data, geom_color="#0f4f8f").as_dict()["layers"][-1]
+    assert layer["color"] == "#0f4f8f"
+    with pytest.raises(InvalidArgumentError, match="would override"):
+        cl.spatial(data, "cluster", geom_color="red")
+    with pytest.raises(InvalidArgumentError, match="geom_color"):
+        cl.spatial(data, "cluster", color="red")
+    with pytest.raises(InvalidArgumentError, match="geom_fill"):
+        cl.spatials(data, ["cluster"], fill="red")
+    plots = cl.spatials(data, ["cluster", "GENE_A"], geom_fill="#8da0cb", shape=21)
+    assert plots.as_dict()["figures"][0]["layers"][-1]["fill"] == "#8da0cb"

@@ -109,6 +109,8 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_observation_embeddings_cover` | Claude Opus 5.5 |  |  |  |  |
 | `_require_groups_in_every_key` | Claude Opus 5.5 |  |  |  |  |
 | `_merge_shortcuts` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -260,3 +262,16 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `expression` | Claude Opus 5.5 |  |
 | `ridges` | Claude Opus 5.5 |  |
 | `elbow` | Claude Opus 5.5 |  |
+| `scatter` | Claude Opus 5.5 |  |
+| `bar` | Claude Opus 5.5 |  |
+| `blend` | Claude Opus 5.5 |  |
+| `embedding_density` | Claude Opus 5.5 |  |
+| `spatial` | Claude Opus 5.5 |  |
+| `spatials` | Claude Opus 5.5 |  |
+| `umap` | Claude Opus 5.5 |  |
+| `tsne` | Claude Opus 5.5 |  |
+| `pca` | Claude Opus 5.5 |  |
+| `umaps` | Claude Opus 5.5 |  |
+| `tsnes` | Claude Opus 5.5 |  |
+| `pcas` | Claude Opus 5.5 |  |
+| `expressions` | Claude Opus 5.5 |  |

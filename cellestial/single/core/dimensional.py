@@ -23,7 +23,11 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.layers import _modify_axis, ondata_legend
-from cellestial.layers.utilities import _reject_mapping_clash
+from cellestial.layers.utilities import (
+    _reject_constant_color_fill,
+    _reject_constant_over_mapping,
+    _reject_mapping_clash,
+)
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _collect_aes_columns,
@@ -44,6 +48,11 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
+_KEY_COLOR_HINT = (
+    "Use `geom_color=` / `geom_fill=` for a constant, or `key=` to color by a column."
+)
+
+
 def dimensional(
     data: AnnData | MuData,
     key: str | None = None,
@@ -54,6 +63,8 @@ def dimensional(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -173,6 +184,10 @@ def dimensional(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -193,8 +208,11 @@ def dimensional(
         If `key` is not found in observation metadata or variable names.
     InvalidArgumentError
         If `xy` does not hold exactly two components, selects a component the
-        embedding does not have (components are 1-based), or if `mapping` sets
-        `x`, `y`, or `color` (with `key`), which the function sets itself.
+        embedding does not have (components are 1-based), if `mapping` sets
+        `x`, `y`, or `color` (with `key`), which the function sets itself, if
+        `color` / `fill` are passed as constants (use `geom_color` /
+        `geom_fill`), or if a `geom_color` / `geom_fill` constant would hide
+        the coloring by `key` or `mapping`.
 
     Examples
     --------
@@ -251,6 +269,19 @@ def dimensional(
         set_by={"x": "`xy`", "y": "`xy`", **({"color": "`key`"} if key is not None else {})},
     )
     mapping = mapping or aes()
+    _reject_constant_color_fill(
+        geom_kwargs,
+        function="dimensional",
+        hint=_KEY_COLOR_HINT,
+    )
+    mapped_by = {
+        aesthetic: f"`mapping` column {column!r}"
+        for aesthetic, column in mapping.as_dict().items()
+        if aesthetic in ("color", "fill")
+    }
+    if key is not None:
+        mapped_by["color"] = f"`key` {key!r}"
+    _reject_constant_over_mapping(geom_color=geom_color, geom_fill=geom_fill, mapped_by=mapped_by)
 
     #  HANDLE: XY
     if len(xy) != 2:
@@ -349,6 +380,8 @@ def dimensional(
                 x=x, y=y, **({"color": key} if key is not None else {}), **mapping.as_dict()
             ),
             size=size,
+            color=geom_color,
+            fill=geom_fill,
             tooltips=tooltips,
             **geom_kwargs,
         )

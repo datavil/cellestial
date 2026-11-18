@@ -10,16 +10,18 @@ from cellestial.util.errors import ConflictingLengthError
 
 
 def test_scatter_requires_mapping(adata):
+    """Scatter requires mapping."""
     plot = cl.scatter(
         adata,
         mapping=aes(x="n_genes_by_counts", y="pct_counts_in_top_50_genes"),
-        color="grey",
+        geom_color="grey",
         alpha=0.6,
     )
     assert isinstance(plot, PlotSpec)
 
 
 def test_scatter_color_via_mapping(adata, group_key):
+    """Scatter color via mapping."""
     plot = cl.scatter(
         adata,
         mapping=aes(
@@ -33,7 +35,8 @@ def test_scatter_color_via_mapping(adata, group_key):
 
 
 def test_scatter_without_mapping_raises(adata):
-    with pytest.raises(Exception):
+    """Scatter without mapping raises."""
+    with pytest.raises(TypeError, match="mapping"):
         cl.scatter(adata)
 
 
@@ -41,11 +44,13 @@ def test_scatter_without_mapping_raises(adata):
 
 
 def test_bar_basic(adata, cluster_key):
+    """Bar basic."""
     plot = cl.bar(adata, mapping=aes(cluster_key, fill="predicted_doublet"))
     assert isinstance(plot, PlotSpec)
 
 
 def test_bar_categorical_fill(adata, group_key, cluster_key):
+    """Bar categorical fill."""
     plot = cl.bar(adata, mapping=aes(group_key, fill=cluster_key))
     assert isinstance(plot, PlotSpec)
 
@@ -54,16 +59,18 @@ def test_bar_categorical_fill(adata, group_key, cluster_key):
 
 
 def test_xyplot_basic(adata):
+    """Xyplot basic."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
         y="pct_counts_in_top_50_genes",
-        color="grey",
+        geom_color="grey",
     )
     assert isinstance(plot, PlotSpec)
 
 
 def test_xyplot_mapping_overrides(adata, group_key):
+    """Xyplot mapping overrides."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
@@ -74,6 +81,7 @@ def test_xyplot_mapping_overrides(adata, group_key):
 
 
 def test_xyplots_sequence_xy(adata):
+    """Xyplots sequence xy."""
     plot = cl.xyplots(
         adata,
         x=["n_genes_by_counts", "total_counts"],
@@ -83,6 +91,7 @@ def test_xyplots_sequence_xy(adata):
 
 
 def test_xyplots_scalar_x(adata):
+    """Xyplots scalar x."""
     plot = cl.xyplots(
         adata,
         x="n_genes_by_counts",
@@ -107,6 +116,7 @@ def test_xyplots_conflicting_lengths_raise_specific_error(adata):
 
 
 def test_plot_smoke(adata):
+    """Plot smoke."""
     # `plot` requires axis to build the frame
     plot = cl.plot(adata, axis=0, include_dimensions=2)
     assert isinstance(plot, PlotSpec)
@@ -116,6 +126,7 @@ def test_plot_smoke(adata):
 
 
 def test_xyplots_custom_metadata_tooltip(adata):
+    """Xyplots custom metadata tooltip."""
     # Regression: the shared xyplots frame must contain a custom tooltip column
     # that is not one of the x/y/mapping fields.
     obs_column = "log1p_total_counts"
@@ -131,6 +142,7 @@ def test_xyplots_custom_metadata_tooltip(adata):
 
 
 def test_xyplot_variable_axis_custom_tooltip(adata):
+    """Xyplot variable axis custom tooltip."""
     # Regression: on the variable axis, a var-metadata tooltip field outside
     # x/y must still be materialised into the frame.
     plot = cl.xyplot(
@@ -145,6 +157,7 @@ def test_xyplot_variable_axis_custom_tooltip(adata):
 
 
 def test_xyplot_add_keys_materializes_obs_metadata_and_gene(adata):
+    """Xyplot add keys materializes obs metadata and gene."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
@@ -159,6 +172,7 @@ def test_xyplot_add_keys_materializes_obs_metadata_and_gene(adata):
 
 
 def test_xyplot_variable_axis_add_keys_materializes_var_metadata(adata):
+    """Xyplot variable axis add keys materializes var metadata."""
     plot = cl.xyplot(
         adata,
         x="mean_counts",
@@ -172,6 +186,7 @@ def test_xyplot_variable_axis_add_keys_materializes_var_metadata(adata):
 
 
 def test_xyplots_add_keys_materializes_shared_frame_columns(adata):
+    """Xyplots add keys materializes shared frame columns."""
     plot = cl.xyplots(
         adata,
         x="n_genes_by_counts",

@@ -3,7 +3,8 @@ from __future__ import annotations
 from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
-from cellestial.single.core.dimensional import dimensional
+from cellestial.layers.utilities import _reject_constant_color_fill
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT, dimensional
 from cellestial.util import _is_variable_key, _reject_sequence_key
 from cellestial.util.errors import VariableNotFoundError
 from cellestial.util.utilities import _container
@@ -26,6 +27,8 @@ def umap(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -141,6 +144,10 @@ def umap(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -191,6 +198,7 @@ def umap(
 
     """
     _reject_sequence_key(key, singular="umap", plural="umaps")
+    _reject_constant_color_fill(geom_kwargs, function="umap", hint=_KEY_COLOR_HINT)
     return dimensional(
         data=data,
         key=key,
@@ -225,6 +233,8 @@ def umap(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -238,6 +248,8 @@ def tsne(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -353,6 +365,10 @@ def tsne(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -403,6 +419,7 @@ def tsne(
 
     """  # noqa: D403
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
+    _reject_constant_color_fill(geom_kwargs, function="tsne", hint=_KEY_COLOR_HINT)
     return dimensional(
         data=data,
         key=key,
@@ -437,6 +454,8 @@ def tsne(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -450,6 +469,8 @@ def pca(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -565,6 +586,10 @@ def pca(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -615,6 +640,7 @@ def pca(
 
     """
     _reject_sequence_key(key, singular="pca", plural="pcas")
+    _reject_constant_color_fill(geom_kwargs, function="pca", hint=_KEY_COLOR_HINT)
     return dimensional(
         data=data,
         key=key,
@@ -649,6 +675,8 @@ def pca(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -663,6 +691,8 @@ def expression(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -772,6 +802,10 @@ def expression(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key` (a gene).
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -804,6 +838,7 @@ def expression(
 
     """
     _reject_sequence_key(key, singular="expression", plural="expressions")
+    _reject_constant_color_fill(geom_kwargs, function="expression", hint=_KEY_COLOR_HINT)
     if not _is_variable_key(data, key):
         close_matches = get_close_matches(key, _container(data).variable_names().astype(str), n=3)
         hint = f" Did you mean {close_matches}?" if close_matches else ""
@@ -844,5 +879,7 @@ def expression(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )

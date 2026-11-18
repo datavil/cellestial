@@ -10,6 +10,11 @@ from ggrust import (
     ggtb,
 )
 
+from cellestial.layers.utilities import (
+    _MAPPING_COLOR_HINT,
+    _reject_constant_color_fill,
+    _reject_constant_over_mapping,
+)
 from cellestial.single.base import plot as baseplot
 from cellestial.util import _determine_axis, _select_variable_keys
 
@@ -31,6 +36,8 @@ def scatter(
     variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
     interactive: bool = False,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -55,6 +62,10 @@ def scatter(
         Providing an integer will limit the number of dimensions to given number.
     interactive : bool, default=False
         Whether to make the plot interactive.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, map it in `mapping`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -81,7 +92,7 @@ def scatter(
         cl.scatter(
             data,
             mapping=aes(x="n_genes_by_counts", y="pct_counts_in_top_50_genes"),
-            color="grey",
+            geom_color="grey",
             alpha=0.6,
         )
 
@@ -122,6 +133,16 @@ def scatter(
         ) + scale_color_viridis() + facet_wrap("cell_type_lvl1")
 
     """
+    _reject_constant_color_fill(geom_kwargs, function="scatter", hint=_MAPPING_COLOR_HINT)
+    _reject_constant_over_mapping(
+        geom_color=geom_color,
+        geom_fill=geom_fill,
+        mapped_by={
+            aesthetic: f"`mapping` column {column!r}"
+            for aesthetic, column in mapping.as_dict().items()
+            if aesthetic in ("color", "fill")
+        },
+    )
     keys = [v for v in mapping.as_dict().values() if v is not None]
     if variable_keys is None:
         variable_keys = _select_variable_keys(data, keys)
@@ -139,7 +160,7 @@ def scatter(
         observation_id_column=observation_id_column,
         variable_id_column=variable_id_column,
         include_dimensions=include_dimensions,
-    ) + geom_point(mapping=mapping, **geom_kwargs)
+    ) + geom_point(mapping=mapping, color=geom_color, fill=geom_fill, **geom_kwargs)
 
     if interactive:
         scttr += ggtb(size_zoomin=-1)

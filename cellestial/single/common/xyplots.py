@@ -8,6 +8,7 @@ from ggrust import gggrid, ggtb
 from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import _MAPPING_COLOR_HINT, _reject_constant_color_fill
 from cellestial.single.common.xyplot import _observation_embeddings_cover, xyplot
 from cellestial.util import (
     _collect_aes_columns,
@@ -51,6 +52,8 @@ def xyplots(
     fit: bool | None = None,
     align: bool | None = None,
     guides: str = "auto",
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     **geom_kwargs,
 ) -> SupPlotsSpec:
     """
@@ -123,6 +126,10 @@ def xyplots(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, map it in `mapping`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -183,6 +190,7 @@ def xyplots(
             layers=scale_color_viridis()
         )
     """
+    _reject_constant_color_fill(geom_kwargs, function="xyplots", hint=_MAPPING_COLOR_HINT)
     # str to list for x and y
     if isinstance(x, str):
         x = [x]
@@ -268,6 +276,8 @@ def xyplots(
             observation_id_column=observation_id_column,
             variable_id_column=variable_id_column,
             include_dimensions=include_dimensions,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
         # handle the layers

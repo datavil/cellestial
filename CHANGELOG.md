@@ -25,6 +25,16 @@ change. Versions absent from the list were never released.
 - `histogram` takes one key; a list raises `TypeError` pointing to
   `histograms`, like the other singular plots. Migration: use `histograms`
   for several keys.
+- `color=` / `fill=` no longer pass through to the geom as constants in
+  `dimensional`, `umap`, `tsne`, `pca`, `expression`, their plurals,
+  `scatter`, `bar`, `xyplot`, `xyplots`, `spatial` and `spatials`; they raise
+  `InvalidArgumentError`. These functions take `geom_color` / `geom_fill`
+  for constants instead. `blend` and `embedding_density` compute their
+  colors, so they reject `color=` / `fill=` and take no constant. A
+  `geom_color` / `geom_fill` that would hide the coloring by `key` or a
+  `mapping` column raises `InvalidArgumentError`. Migration:
+  `umap(color="red")` -> `umap(geom_color="red")`,
+  `scatter(..., color="grey")` -> `scatter(..., geom_color="grey")`.
 - `elbow` and `highest_expressed_genes` rename the constant `color` to
   `geom_color` (same default), following the convention that `color` / `fill`
   name columns. Passing `color=` raises `InvalidArgumentError` pointing to

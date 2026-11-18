@@ -10,7 +10,8 @@ from ggrust import gggrid, ggtb
 from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
-from cellestial.single.core.dimensional import dimensional
+from cellestial.layers.utilities import _reject_constant_color_fill
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT, dimensional
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 from cellestial.util import (
     _collect_aes_columns,
@@ -63,6 +64,8 @@ def dimensionals(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -241,6 +244,10 @@ def dimensionals(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -275,6 +282,7 @@ def dimensionals(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="dimensionals", hint=_KEY_COLOR_HINT)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -354,6 +362,8 @@ def dimensionals(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -399,6 +409,8 @@ def umaps(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -574,6 +586,10 @@ def umaps(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -608,6 +624,7 @@ def umaps(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="umaps", hint=_KEY_COLOR_HINT)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -686,6 +703,8 @@ def umaps(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -731,6 +750,8 @@ def tsnes(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -905,6 +926,10 @@ def tsnes(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -939,6 +964,7 @@ def tsnes(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="tsnes", hint=_KEY_COLOR_HINT)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -1016,6 +1042,8 @@ def tsnes(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -1061,6 +1089,8 @@ def pcas(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -1235,6 +1265,10 @@ def pcas(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -1269,6 +1303,7 @@ def pcas(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="pcas", hint=_KEY_COLOR_HINT)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -1347,6 +1382,8 @@ def pcas(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -1393,6 +1430,8 @@ def expressions(
     use_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -1559,6 +1598,10 @@ def expressions(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys` (genes).
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -1593,6 +1636,7 @@ def expressions(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="expressions", hint=_KEY_COLOR_HINT)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -1668,6 +1712,8 @@ def expressions(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 

@@ -17,6 +17,11 @@ from ggrust.plot.core import FeatureSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import (
+    _MAPPING_COLOR_HINT,
+    _reject_constant_color_fill,
+    _reject_constant_over_mapping,
+)
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
     _collect_aes_columns,
@@ -58,6 +63,8 @@ def xyplot(
     observation_id_column: str = "Barcode",
     variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -94,6 +101,10 @@ def xyplot(
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, map it in `mapping`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -129,7 +140,7 @@ def xyplot(
             data,
             x="n_genes_by_counts",
             y="pct_counts_in_top_50_genes",
-            color="grey",
+            geom_color="grey",
             alpha=0.6,
         )
 
@@ -184,6 +195,17 @@ def xyplot(
     elif isinstance(mapping, FeatureSpec):
         merged = _mapping.as_dict() | mapping.as_dict()
         mapping = aes(**merged)
+
+    _reject_constant_color_fill(geom_kwargs, function="xyplot", hint=_MAPPING_COLOR_HINT)
+    _reject_constant_over_mapping(
+        geom_color=geom_color,
+        geom_fill=geom_fill,
+        mapped_by={
+            aesthetic: f"`mapping` column {column!r}"
+            for aesthetic, column in mapping.as_dict().items()
+            if aesthetic in ("color", "fill")
+        },
+    )
 
     # Determine variable keys
     keys = [key for key in mapping.as_dict().values() if key is not None]
@@ -257,6 +279,8 @@ def xyplot(
         ggplot(data=frame)
         + geom_point(
             mapping=mapping,
+            color=geom_color,
+            fill=geom_fill,
             tooltips=tooltips,
             **geom_kwargs,
         )
