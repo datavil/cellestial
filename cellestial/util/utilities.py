@@ -38,6 +38,7 @@ from mudata import MuData
 
 from cellestial.util.errors import (
     CellestialWarning,
+    EmptySelectionError,
     InvalidArgumentError,
     InvalidArgumentTypeError,
     KeyNotFoundError,
@@ -945,7 +946,7 @@ def _resolve_embedding_key(
     _warn(
         f"No embedding named `{target}` found; "
         f"using `{chosen}` with (shape={shapes[chosen]})\n"
-        f"Alternatives: {alternatives}, Rest: {list(set(candidates) - set(alternatives))}.\n"
+        f"Alternatives: {alternatives}, Rest: {sorted(set(candidates) - set(alternatives))}.\n"
         "Pass `use_key='...'` to use a specific key."
     )
     return chosen.upper()
@@ -971,6 +972,8 @@ def _determine_axis(
 
     Raises
     ------
+    EmptySelectionError
+        If `keys` is empty.
     KeyNotFoundError
         If a key names no observation or variable column, nor a variable.
     InvalidArgumentError
@@ -987,6 +990,9 @@ def _determine_axis(
     if isinstance(keys, str):
         keys = [keys]
     _container(data)  # reject unsupported data objects up front
+    if len(keys) == 0:
+        msg = "Cannot determine the axis without keys; `keys` is empty. Pass at least one key."
+        raise EmptySelectionError(msg)
     on_variables = _are_variable_features(data, keys)
     on_observations = _are_observation_features(data, keys)
 

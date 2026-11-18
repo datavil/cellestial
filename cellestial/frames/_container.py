@@ -342,7 +342,8 @@ class _MuDataContainer(_Container):
         Raises
         ------
         KeyNotFoundError
-            If the column has no counterpart on the container.
+            If the column has no counterpart on the container, or `modality` is
+            omitted on an object with several modalities.
 
         Notes
         -----
@@ -352,7 +353,13 @@ class _MuDataContainer(_Container):
         preferring the bare name would silently group results by the wrong
         clustering.
         """
-        if modality is None and len(self._data.mod) == 1:
+        if modality is None:
+            if len(self._data.mod) != 1:
+                msg = (
+                    "`modality` is required for this data object. "
+                    f"Available: {self.modality_names()}."
+                )
+                raise KeyNotFoundError(msg)
             modality = next(iter(self._data.mod))  # the one `select_modality` picks
         qualified = f"{modality}:{column}"
         columns = self._data.obs.columns

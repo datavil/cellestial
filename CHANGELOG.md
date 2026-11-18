@@ -57,6 +57,10 @@ change. Versions absent from the list were never released.
   duplicate-column error.
 - Reading variables from an object without a main expression matrix raises
   `KeyNotFoundError` explaining it, instead of a `TypeError`.
+- `build_frame` rejects `axis=True` / `axis=False` with `InvalidArgumentError`
+  instead of reading them as 1 / 0.
+- The embedding fallback warning lists the other embeddings in sorted order, so
+  it reads the same on every run.
 - Singular plots reject sets and arrays passed as `key` (pointing to the plural
   function) like they reject lists, instead of failing later.
 - `build_frame` keeps missing values of a numeric categorical column as null

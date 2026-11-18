@@ -16,6 +16,7 @@ from cellestial.util.dendrogram import _dendrogram_info
 from cellestial.util.errors import (
     AmbiguousColumnError,
     ConflictingLengthError,
+    EmptySelectionError,
     GridIndexError,
     InvalidArgumentError,
     InvalidArgumentTypeError,
@@ -28,6 +29,7 @@ from cellestial.util.errors import (
 from cellestial.util.utilities import (
     _determine_axis,
     _require_feature_key,
+    _resolve_embedding_key,
     _resolve_tooltips,
     _validate_tooltips,
 )
@@ -286,3 +288,38 @@ def test_qualified_group_plots_the_dendrogram_groups(mudata, plotter):
     container_groups = set(mudata.obs["leiden"].astype(str))
     assert plotted <= clustered
     assert not plotted <= container_groups  # the modality clustering has more groups
+
+
+# --- low-priority robustness ---------------------------------------------------
+
+
+def test_embedding_fallback_warning_lists_rest_sorted(adata):
+    """The fallback warning lists the other embeddings in sorted order."""
+    data = adata.copy()
+    embedding = data.obsm["X_umap"]
+    del data.obsm["X_umap"]
+    data.obsm["X_umap_harmony"] = embedding
+    data.obsm["X_zeta"] = embedding
+    data.obsm["X_alpha"] = embedding
+    with pytest.warns(UserWarning, match=r"Rest: \['X_alpha', .*'X_zeta'\]"):
+        _resolve_embedding_key(data, "umap", None, (1, 2))
+
+
+def test_determine_axis_rejects_empty_keys(adata):
+    """An empty key list has no axis to determine."""
+    with pytest.raises(EmptySelectionError, match="keys"):
+        _determine_axis(adata, [])
+
+
+@pytest.mark.parametrize("axis", [True, False])
+def test_build_frame_rejects_boolean_axis(adata, axis):
+    """`axis=True` is not accepted as axis 1."""
+    with pytest.raises(InvalidArgumentError, match="axis"):
+        cl.build_frame(adata, axis=axis)
+
+
+def test_container_column_without_modality_names_the_problem(mudata):
+    """A missing modality on a multimodal object is reported, not printed as `None`."""
+    with pytest.raises(KeyNotFoundError, match="`modality` is required") as error:
+        _container(mudata).container_column(None, "missing")
+    assert "None" not in str(error.value)

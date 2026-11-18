@@ -511,6 +511,9 @@ def build_frame(
         raise InvalidArgumentError(msg)
 
     if isinstance(data, (AnnData, MuData)):
+        if isinstance(axis, bool):  # `True == 1`, so a bool would pass as an axis
+            msg = f"`axis` must be 0 for observations or 1 for variables, but received {axis!r}."
+            raise InvalidArgumentError(msg)
         # infer the axis if not provided
         if axis is None and variable_keys is not None:
             axis = 0
