@@ -108,6 +108,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_reject_mapping_clash` | Claude Opus 5.5 |  |  |  |  |
 | `_observation_embeddings_cover` | Claude Opus 5.5 |  |  |  |  |
 | `_require_groups_in_every_key` | Claude Opus 5.5 |  |  |  |  |
+| `_merge_shortcuts` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -257,3 +258,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `xyplot` | Claude Opus 5.5 |  |
 | `xyplots` | Claude Opus 5.5 |  |
 | `expression` | Claude Opus 5.5 |  |
+| `ridges` | Claude Opus 5.5 |  |

@@ -10,9 +10,18 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
-- `ridge` no longer fills the ridges by `group_by` on its own (no hidden
-  aesthetic promotion). Migration: pass `mapping=aes(fill="<group_by column>")`
-  to keep the colored ridges; the same applies to `ridges`.
+- `ridge` and `ridges` no longer fill the ridges by `group_by` on their own (no
+  hidden aesthetic promotion); they default to grey. Migration: pass
+  `fill=group_by` (e.g. `fill="leiden"`) to keep the colored ridges.
+- `ridge` and `ridges` take `fill` / `color` (column shortcuts for
+  `aes(fill=...)` / `aes(color=...)`) and `geom_fill` / `geom_color`
+  (constants), like `violin`. A constant `color="#..."` used to pass through
+  to the geom; it now names a column and raises `KeyNotFoundError` pointing to
+  `geom_color`. Migration: use `geom_color="#..."`. Setting `fill` / `color`
+  both as a shortcut and in `mapping` raises `InvalidArgumentError`.
+- `highest_expressed_genes` no longer fills each box by gene on its own.
+  Migration: pass `mapping=aes(fill="variable")` (the `variable_column` name)
+  to keep the per-gene colors.
 - `histogram` takes one key; a list raises `TypeError` pointing to
   `histograms`, like the other singular plots. Migration: use `histograms`
   for several keys.

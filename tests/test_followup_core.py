@@ -43,6 +43,46 @@ def test_ridge_user_fill_mapping(adata):
     assert plot.as_dict()["layers"][0]["mapping"]["fill"] == "leiden"
 
 
+def test_ridge_fill_shortcut_maps_the_column(adata):
+    """Ridge fill shortcut maps the column."""
+    plot = cl.ridge(adata, "CD14", "leiden", fill="leiden")
+    assert plot.as_dict()["layers"][0]["mapping"]["fill"] == "leiden"
+
+
+def test_ridge_geom_fill_sets_a_constant(adata):
+    """Ridge geom_fill sets a constant fill, not a mapping."""
+    layer = cl.ridge(adata, "CD14", "leiden", geom_fill="#8da0cb").as_dict()["layers"][0]
+    assert layer["fill"] == "#8da0cb"
+    assert "fill" not in layer["mapping"]
+
+
+@pytest.mark.parametrize("function", ["ridge", "ridges"])
+def test_ridge_fill_shortcut_and_mapping_fill_raise(adata, function):
+    """Ridge fill shortcut and mapping fill raise."""
+    keys = "CD14" if function == "ridge" else ["CD14"]
+    with pytest.raises(InvalidArgumentError, match="`fill`"):
+        getattr(cl, function)(adata, keys, "leiden", fill="leiden", mapping=aes(fill="leiden"))
+
+
+def test_ridges_fill_shortcut_reaches_every_panel(adata):
+    """Ridges fill shortcut reaches every panel."""
+    figures = cl.ridges(adata, ["CD14", "B2M"], "leiden", fill="leiden").as_dict()["figures"]
+    assert all(figure["layers"][0]["mapping"]["fill"] == "leiden" for figure in figures)
+
+
+def test_ridge_literal_color_points_to_geom_color(adata):
+    """Ridge literal color points to geom_color."""
+    with pytest.raises(KeyNotFoundError, match="geom_color"):
+        cl.ridge(adata, "CD14", "leiden", color="#1f1f1f")
+
+
+def test_highest_expressed_genes_does_not_map_fill(adata):
+    """Highest expressed genes does not map fill unless asked."""
+    assert "fill" not in cl.highest_expressed_genes(adata, 5).as_dict()["layers"][0]["mapping"]
+    plot = cl.highest_expressed_genes(adata, 5, mapping=aes(fill="variable"))
+    assert plot.as_dict()["layers"][0]["mapping"]["fill"] == "variable"
+
+
 # ---- mapping clash ----
 
 
