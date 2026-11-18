@@ -259,3 +259,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `xyplots` | Claude Opus 5.5 |  |
 | `expression` | Claude Opus 5.5 |  |
 | `ridges` | Claude Opus 5.5 |  |
+| `elbow` | Claude Opus 5.5 |  |

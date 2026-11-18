@@ -25,6 +25,10 @@ change. Versions absent from the list were never released.
 - `histogram` takes one key; a list raises `TypeError` pointing to
   `histograms`, like the other singular plots. Migration: use `histograms`
   for several keys.
+- `elbow` and `highest_expressed_genes` rename the constant `color` to
+  `geom_color` (same default), following the convention that `color` / `fill`
+  name columns. Passing `color=` raises `InvalidArgumentError` pointing to
+  `geom_color`. Migration: `color=` -> `geom_color=`.
 - `highest_expressed_genes` no longer accepts `observation_id_column`, which
   had no effect. Migration: drop the argument.
 - `pca` and `pcas` label the axes `PC1` / `PC2` instead of `PCA1` / `PCA2`.

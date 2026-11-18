@@ -34,7 +34,7 @@ def elbow(
     mapping: FeatureSpec | None = None,
     component_column: str = "Principal Component",
     variance_column: str = "Variance Ratio",
-    color: str = "#1f1f1f",
+    geom_color: str = "#1f1f1f",
     size: float = 4.0,
     line_size: float = 1,
     linetype: str = "dashed",
@@ -65,8 +65,8 @@ def elbow(
         The name to give to the component (x-axis) column in the dataframe.
     variance_column : str, default='Variance Ratio'
         The name to give to the variance ratio (y-axis) column in the dataframe.
-    color : str, default='#1f1f1f'
-        Color of the points and connecting line.
+    geom_color : str, default='#1f1f1f'
+        Color for all points, the connecting line and the labels in the elbow plot.
     size : float, default=4.0
         Size of the points.
     line_size : float, default=1
@@ -97,7 +97,7 @@ def elbow(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     InvalidArgumentError
-        If `n_pcs` is smaller than 1.
+        If `n_pcs` is smaller than 1, or if `color` is passed (use `geom_color`).
     ValueError
         If PCA results are not available on `data`,
         or if `n_pcs` exceeds the number of available components.
@@ -127,13 +127,20 @@ def elbow(
 
     .. jupyter-execute::
 
-        cl.elbow(data, n_pcs=20, color="#0f4f8f", size=4)
+        cl.elbow(data, n_pcs=20, geom_color="#0f4f8f", size=4)
     """
     # Handling Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+    if "color" in geom_kwargs:
+        msg = (
+            f"`color={geom_kwargs['color']!r}` is not a parameter of `elbow`; the constant "
+            "point and line color is `geom_color`.\nPass `geom_color=...` instead "
+            "(`color` / `fill` name columns, `geom_color` / `geom_fill` are constants)."
+        )
+        raise InvalidArgumentError(msg)
     if n_pcs is not None and n_pcs < 1:
         msg = f"`n_pcs` must be at least 1 (the number of components to show), got n_pcs={n_pcs}."
         raise InvalidArgumentError(msg)
@@ -155,8 +162,8 @@ def elbow(
 
     # BUILD: elbow plot
     plot = ggplot(frame, mapping=mapping)
-    plot += geom_line(color=color, size=line_size, linetype=linetype)
-    plot += geom_point(color=color, size=size, **geom_kwargs)
+    plot += geom_line(color=geom_color, size=line_size, linetype=linetype)
+    plot += geom_point(color=geom_color, size=size, **geom_kwargs)
 
     # ADD: per-component labels (PC{label_every}, PC{2*label_every}, ...)
     if label and label_every > 0:
@@ -174,7 +181,7 @@ def elbow(
             min_segment_length=0,
             point_padding=0.3,
             box_padding=0.4,
-            color=color,
+            color=geom_color,
             angle=90,
         )
 

@@ -83,6 +83,20 @@ def test_highest_expressed_genes_does_not_map_fill(adata):
     assert plot.as_dict()["layers"][0]["mapping"]["fill"] == "variable"
 
 
+@pytest.mark.parametrize("function", ["elbow", "highest_expressed_genes"])
+def test_geom_color_sets_the_constant_color(adata, function):
+    """Geom_color sets the constant color."""
+    layers = getattr(cl, function)(adata, geom_color="#0f4f8f").as_dict()["layers"]
+    assert layers[0]["color"] == "#0f4f8f"
+
+
+@pytest.mark.parametrize("function", ["elbow", "highest_expressed_genes"])
+def test_old_color_constant_points_to_geom_color(adata, function):
+    """Old color constant points to geom_color."""
+    with pytest.raises(InvalidArgumentError, match="geom_color"):
+        getattr(cl, function)(adata, color="#0f4f8f")
+
+
 # ---- mapping clash ----
 
 

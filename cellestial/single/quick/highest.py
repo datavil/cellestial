@@ -32,7 +32,7 @@ def highest_expressed_genes(
     threshold: float | None = None,
     value_column: str = "value",
     variable_column: str = "variable",
-    color: str = "#1f1f1f",
+    geom_color: str = "#1f1f1f",
     size: float = 0.5,
     outlier_size: float = 0.2,
     outlier_alpha: float = 0.5,
@@ -62,8 +62,8 @@ def highest_expressed_genes(
         The name to give to the value column after unpivoting.
     variable_column : str, default='variable'
         The name to give to the variable column after unpivoting.
-    color : str, default='#1f1f1f'
-        Border color of the boxplots.
+    geom_color : str, default='#1f1f1f'
+        Border color for all boxes in the boxplot.
     size : float, default=0.5
         Line size of the boxplots.
     outlier_size : float, default=0.2
@@ -87,7 +87,7 @@ def highest_expressed_genes(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     InvalidArgumentError
-        If `n` is smaller than 1.
+        If `n` is smaller than 1, or if `color` is passed (use `geom_color`).
 
     Examples
     --------
@@ -130,6 +130,13 @@ def highest_expressed_genes(
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+    if "color" in geom_kwargs:
+        msg = (
+            f"`color={geom_kwargs['color']!r}` is not a parameter of `highest_expressed_genes`; the constant "
+            "box border color is `geom_color`.\nPass `geom_color=...` instead "
+            "(`color` / `fill` name columns, `geom_color` / `geom_fill` are constants)."
+        )
+        raise InvalidArgumentError(msg)
     if n < 1:
         msg = f"`n` must be at least 1 (the number of genes to show), got n={n}."
         raise InvalidArgumentError(msg)
@@ -161,7 +168,7 @@ def highest_expressed_genes(
     bxplt = ggplot(frame)
     bxplt += geom_boxplot(
         mapping=mapping,
-        color=color,
+        color=geom_color,
         size=size,
         outlier_size=outlier_size,
         outlier_alpha=outlier_alpha,
