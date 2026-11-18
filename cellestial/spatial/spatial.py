@@ -23,6 +23,11 @@ from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import (
+    _reject_constant_color_fill,
+    _reject_constant_over_mapping,
+)
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT
 from cellestial.spatial.utilities import _spatial_components
 from cellestial.themes import _THEME_SPATIAL
 from cellestial.util import (
@@ -78,6 +83,8 @@ def spatial(
     mapping: FeatureSpec | None = None,
     size: float | None = 1.5,
     alpha: float = 1.0,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
@@ -193,6 +200,10 @@ def spatial(
         Color for high values in the continuous gradient.
     midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
+    geom_color : str | None, default=None
+        Color for all spots (border color for polygons). To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all polygons (or filled point shapes 21 to 25).
     **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
@@ -214,7 +225,9 @@ def spatial(
         If the spatial data holds no table, shapes or image to choose from.
     InvalidArgumentError
         If spatial components are ambiguous, `crop` is not 4 values, `mapping`
-        sets an aesthetic the plot maps itself, or `polygon=True` meets a table
+        sets an aesthetic the plot maps itself, `color` or `fill` is passed
+        as a constant (use `geom_color` / `geom_fill`), a `geom_color` /
+        `geom_fill` would hide the coloring by `key` or `mapping`, or `polygon=True` meets a table
         without an instance key.
     ConflictingLengthError
         If the shapes cannot be matched to the table rows, or a given `frame`
@@ -328,6 +341,8 @@ def spatial(
         color_mid=color_mid,
         color_high=color_high,
         midpoint=midpoint,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -369,6 +384,8 @@ def _spatial(
     color_mid: str | None = None,
     color_high: str = "#377eb8",
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -395,6 +412,7 @@ def _spatial(
     if not isinstance(data, AnnData) and not _is_spatialdata(data):
         raise _unsupported_data_type(data, AnnData, "SpatialData")
 
+    _reject_constant_color_fill(geom_kwargs, function="spatial", hint=_KEY_COLOR_HINT)
     _reject_sequence_key(key, singular="spatial", plural="spatials")
 
     if components is None:
@@ -512,6 +530,15 @@ def _spatial(
             show_legend=False,
         )
 
+    mapped_by = {
+        aesthetic: f"`mapping` column {column!r}"
+        for aesthetic, column in mapping.as_dict().items()
+        if aesthetic in ("color", "fill")
+    }
+    if key is not None:
+        mapped_by["fill" if is_polygon else "color"] = f"`key` {key!r}"
+    _reject_constant_over_mapping(geom_color=geom_color, geom_fill=geom_fill, mapped_by=mapped_by)
+
     if "size" in mapping.as_dict():
         size = None
 
@@ -527,6 +554,8 @@ def _spatial(
             size=size,
             alpha=alpha,
             tooltips=tooltips,
+            color=geom_color,
+            fill=geom_fill,
             **geom_kwargs,
         )
         if key is not None:
@@ -551,6 +580,8 @@ def _spatial(
             size=size,
             alpha=alpha,
             tooltips=tooltips,
+            color=geom_color,
+            fill=geom_fill,
             **geom_kwargs,
         )
         if key is not None:

@@ -27,6 +27,7 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.frames._container import _container
 from cellestial.layers import _modify_axis
+from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.single.core.subdimensional import expression
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _drop_nonfinite_rows, _resolve_embedding_key, _resolve_tooltips
@@ -131,7 +132,8 @@ def blend(
     ConflictingLengthError
         If `keys` or `colors` does not hold exactly two values.
     InvalidArgumentError
-        If `xy` does not hold exactly two components.
+        If `xy` does not hold exactly two components, or if `color` / `fill`
+        are passed (points are colored by the blend of `colors`).
     DuplicateKeysError
         If both `keys` name the same feature.
     VariableNotFoundError
@@ -172,6 +174,11 @@ def blend(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_constant_color_fill(
+        geom_kwargs,
+        function="blend",
+        hint="`blend` computes each point's color from the two keys and `colors`; to change them, pass `colors=(...)`.",
+    )
 
     # HANDLE: keys and colors
     keys = [keys] if isinstance(keys, str) else list(keys)

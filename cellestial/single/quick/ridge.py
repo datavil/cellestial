@@ -26,9 +26,10 @@ from cellestial.util import (
     _filter_groups,
     _reject_sequence_key,
     _resolve_tooltips,
+    _validate_aesthetic_columns,
     _validate_tooltips,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -36,6 +37,25 @@ if TYPE_CHECKING:
     from ggrust.plot.core import PlotSpec
     from ggrust.plot.subplots import SupPlotsSpec
     from polars import DataFrame
+
+
+def _merge_shortcuts(
+    mapping: FeatureSpec | None, *, fill: str | None, color: str | None, function: str
+) -> FeatureSpec:
+    """Merge the `fill` / `color` column shortcuts into `mapping`, refusing a double setting."""
+    merged = mapping.as_dict() if mapping is not None else {}
+    for aesthetic, column in (("fill", fill), ("color", color)):
+        if column is None:
+            continue
+        if aesthetic in merged:
+            msg = (
+                f"`{aesthetic}={column!r}` and `mapping` both set `{aesthetic}` in "
+                f"`{function}`.\nPass the column once: either `{aesthetic}=` or "
+                f"`mapping=aes({aesthetic}=...)`."
+            )
+            raise InvalidArgumentError(msg)
+        merged[aesthetic] = column
+    return aes(**merged)
 
 
 def ridge(
@@ -47,6 +67,10 @@ def ridge(
     scale: float = 2.0,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
+    color: str | None = None,
+    fill: str | None = None,
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -77,10 +101,24 @@ def ridge(
         Scaling factor for the height of the ridges.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-        Ridges are not filled by group unless mapped, e.g. `aes(fill='leiden')`.
+        Ridges are not filled by group unless mapped, e.g. `fill='leiden'`.
         `x` and `y` are set from `key` and `group_by`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
+    color : str | None, default=None
+        Color aesthetic to split the ridges (categorical).
+        Shortcut for mapping=aes(color=...)
+        e,g., 'cell_type' or 'leiden'.
+        For a constant color on every geom, use `geom_color`.
+    fill : str | None, default=None
+        Fill aesthetic to split the ridges (categorical).
+        Shortcut for mapping=aes(fill=...)
+        e,g., 'cell_type' or 'leiden'.
+        For a constant fill on every geom, use `geom_fill`.
+    geom_fill : str | None, default=None
+        Fill color for all ridges in the ridge plot.
+    geom_color : str | None, default=None
+        Border color for all ridges in the ridge plot.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
@@ -116,7 +154,11 @@ def ridge(
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
     InvalidArgumentError
-        If `mapping` sets `x` or `y`, which come from `key` and `group_by`.
+        If `mapping` sets `x` or `y`, which come from `key` and `group_by`, or
+        sets `fill` / `color` while the `fill` / `color` shortcut is also given.
+    KeyNotFoundError
+        If `fill` or `color` does not name a column (use `geom_fill` /
+        `geom_color` for a constant).
 
     Examples
     --------
@@ -135,7 +177,7 @@ def ridge(
                 data,
                 key="B2M",
                 group_by="cell_type_lvl1",
-                mapping=aes(fill="cell_type_lvl1"),
+                fill="cell_type_lvl1",
             )
         )
 
@@ -151,9 +193,9 @@ def ridge(
                 data,
                 key="B2M",
                 group_by="cell_type_lvl1",
-                mapping=aes(fill="cell_type_lvl1"),
+                fill="cell_type_lvl1",
                 alpha=0.7,
-                color="#1f1f1f",
+                geom_color="#1f1f1f",
             )
         )
 
@@ -167,7 +209,7 @@ def ridge(
 
     # HANDLE: mapping
     _reject_mapping_clash(mapping, function="ridge", set_by={"x": "`key`", "y": "`group_by`"})
-    mapping = mapping or aes()
+    mapping = _merge_shortcuts(mapping, fill=fill, color=color, function="ridge")
 
     keys = [key]
 
@@ -179,14 +221,18 @@ def ridge(
         index.extend(add_keys)
 
     # DETERMINE: axis if not provided
-    axis = _determine_axis(data=data, keys=keys, companions=[group_by]) if axis is None else axis
+    axis = (
+        _determine_axis(data=data, keys=keys, companions=[group_by, fill, color])
+        if axis is None
+        else axis
+    )
 
     # BUILD: the DataFrame (variable_keys is still needed for tooltip resolution)
     variable_keys: list[str] = []
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*keys, group_by, *(add_keys or [])],
+        keys=[*keys, group_by, fill, color, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -213,6 +259,12 @@ def ridge(
             metadata_columns=metadata_columns,
         )
 
+    # `color` / `fill` name columns; a literal color here is a common mix-up
+    mapped = mapping.as_dict()
+    _validate_aesthetic_columns(
+        frame, data=data, color=mapped.get("color"), fill=mapped.get("fill"), group_by=group_by
+    )
+
     # HANDLE: groups / drop filters (categorical-only) on the grouping column
     frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
 
@@ -235,6 +287,8 @@ def ridge(
             **mapping.as_dict(),
         ),
         scale=scale,
+        fill=geom_fill,
+        color=geom_color,
         tooltips=tooltips,
         **geom_kwargs,
     )
@@ -254,6 +308,10 @@ def ridges(
     scale: float = 2.0,
     mapping: FeatureSpec | None = None,
     axis: Literal[0, 1] | None = None,
+    color: str | None = None,
+    fill: str | None = None,
+    geom_fill: str | None = None,
+    geom_color: str | None = None,
     threshold: float | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
@@ -294,9 +352,23 @@ def ridges(
         Scaling factor for the height of the ridges.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-        Ridges are not filled by group unless mapped, e.g. `aes(fill='leiden')`.
+        Ridges are not filled by group unless mapped, e.g. `fill='leiden'`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
+    color : str | None, default=None
+        Color aesthetic to split the ridges (categorical).
+        Shortcut for mapping=aes(color=...)
+        e,g., 'cell_type' or 'leiden'.
+        For a constant color on every geom, use `geom_color`.
+    fill : str | None, default=None
+        Fill aesthetic to split the ridges (categorical).
+        Shortcut for mapping=aes(fill=...)
+        e,g., 'cell_type' or 'leiden'.
+        For a constant fill on every geom, use `geom_fill`.
+    geom_fill : str | None, default=None
+        Fill color for all ridges in the ridge plot.
+    geom_color : str | None, default=None
+        Border color for all ridges in the ridge plot.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
     add_keys : Sequence[str] | str | None, default=None
@@ -372,7 +444,6 @@ def ridges(
 
         import numpy as np
         import scanpy as sc
-        from ggrust import aes
 
         import cellestial as cl
 
@@ -385,27 +456,32 @@ def ridges(
             data,
             keys=top8_genes,
             group_by="cell_type_lvl1",
-            mapping=aes(fill="cell_type_lvl1"),
+            fill="cell_type_lvl1",
             alpha=0.7,
             scale=2,
             ncol=2,
-            color="#3f3f3f",
+            geom_color="#3f3f3f",
             guides="collect",
         )
     """
     if isinstance(keys, str):
         msg = "keys must be a Sequence of strings, not a single string"
         raise TypeError(msg)
+    _merge_shortcuts(mapping, fill=fill, color=color, function="ridges")  # fail early on a clash
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
-    axis = _determine_axis(data=data, keys=keys, companions=[group_by]) if axis is None else axis
+    axis = (
+        _determine_axis(data=data, keys=keys, companions=[group_by, fill, color])
+        if axis is None
+        else axis
+    )
     if isinstance(add_keys, str):
         add_keys = [add_keys]
     variable_keys: list[str] = []
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
-        keys=[*keys, group_by, *(add_keys or [])],
+        keys=[*keys, group_by, fill, color, *(add_keys or [])],
         mapping=mapping,
         metadata_columns=metadata_columns,
         variable_keys=variable_keys,
@@ -444,6 +520,10 @@ def ridges(
             scale=scale,
             mapping=mapping,
             axis=axis,
+            color=color,
+            fill=fill,
+            geom_fill=geom_fill,
+            geom_color=geom_color,
             threshold=threshold,
             add_keys=add_keys,
             tooltips=tooltips,

@@ -119,6 +119,9 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_reject_duplicate_keys` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
 | `_reject_id_column_collision` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
 | `_Container._require_matrix` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_merge_shortcuts` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -315,3 +318,18 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_MuDataContainer.resolve_variable` | Claude Opus 5.5 | ✓ |
 | `_Container.fetch_variable_columns` | Claude Opus 5.5 | ✓ |
 | `_select_variable_keys` | Claude Opus 5.5 | ✓ |
+| `ridges` | Claude Opus 5.5 |  |
+| `elbow` | Claude Opus 5.5 |  |
+| `scatter` | Claude Opus 5.5 |  |
+| `bar` | Claude Opus 5.5 |  |
+| `blend` | Claude Opus 5.5 |  |
+| `embedding_density` | Claude Opus 5.5 |  |
+| `spatial` | Claude Opus 5.5 |  |
+| `spatials` | Claude Opus 5.5 |  |
+| `umap` | Claude Opus 5.5 |  |
+| `tsne` | Claude Opus 5.5 |  |
+| `pca` | Claude Opus 5.5 |  |
+| `umaps` | Claude Opus 5.5 |  |
+| `tsnes` | Claude Opus 5.5 |  |
+| `pcas` | Claude Opus 5.5 |  |
+| `expressions` | Claude Opus 5.5 |  |

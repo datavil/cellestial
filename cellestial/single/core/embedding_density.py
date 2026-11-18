@@ -21,6 +21,7 @@ from pandas import CategoricalDtype
 
 from cellestial.frames import build_frame
 from cellestial.layers import _modify_axis
+from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _drop_nonfinite_rows, _filter_groups, _resolve_embedding_key
 from cellestial.util.errors import (
@@ -131,7 +132,8 @@ def embedding_density(
     EmptySelectionError
         If no cell is left after `groups` and `drop`.
     InvalidArgumentError
-        If `xy` does not contain exactly two components.
+        If `xy` does not contain exactly two components, or if `color` / `fill`
+        are passed (points are colored by density).
 
     Notes
     -----
@@ -162,6 +164,11 @@ def embedding_density(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_constant_color_fill(
+        geom_kwargs,
+        function="embedding_density",
+        hint="`embedding_density` colors points by density; to change the gradient, pass `color_low=` / `color_high=`.",
+    )
 
     # HANDLE: group_by
     if group_by is not None:

@@ -11,6 +11,8 @@ from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import _reject_constant_color_fill
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT
 from cellestial.spatial.spatial import _spatial
 from cellestial.spatial.utilities import _spatial_components
 from cellestial.util import (
@@ -50,6 +52,8 @@ def spatials(
     mapping: FeatureSpec | None = None,
     size: float | None = 1.5,
     alpha: float = 1.0,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
     variable_keys: Sequence[str] | str | None = None,
@@ -193,6 +197,10 @@ def spatials(
         Whether to align inner geom areas.
     guides : str, default='auto'
         How guides (legends, colorbars) are collected by `gggrid`.
+    geom_color : str | None, default=None
+        Color for all spots (border color for polygons). To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all polygons (or filled point shapes 21 to 25).
     **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
@@ -214,7 +222,9 @@ def spatials(
         If the spatial data holds no table, shapes or image to choose from.
     InvalidArgumentError
         If spatial components are ambiguous, `crop` is not 4 values, `mapping`
-        sets an aesthetic the plot maps itself, or `polygon=True` meets a table
+        sets an aesthetic the plot maps itself, `color` or `fill` is passed
+        as a constant (use `geom_color` / `geom_fill`), a `geom_color` /
+        `geom_fill` would hide the coloring by `key` or `mapping`, or `polygon=True` meets a table
         without an instance key.
     ConflictingLengthError
         If the shapes cannot be matched to the table rows, or a given `frame`
@@ -272,6 +282,7 @@ def spatials(
     if not isinstance(keys, Sequence) or isinstance(keys, str):
         msg = "keys must be a Sequence of strings"
         raise TypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="spatials", hint=_KEY_COLOR_HINT)
 
     if isinstance(data, MuData):
         msg = (
@@ -382,6 +393,8 @@ def spatials(
             color_mid=color_mid,
             color_high=color_high,
             midpoint=midpoint,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
