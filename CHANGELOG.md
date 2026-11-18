@@ -83,6 +83,40 @@ change. Versions absent from the list were never released.
   used to be split into characters.
 - `violin`, `boxplot` and `histogram` warn when `groups` or `drop` is passed
   without `group_by`, where the filter is ignored.
+### Breaking
+- `spatial` and `spatials` raise `KeyNotFoundError` (with a close match) for an
+  unknown `table_name`, `image_name`, `shapes_name`, `coordinate_system`,
+  `library_id` or `spatial_key`, instead of `KeyError`. Ambiguous or missing
+  components raise `InvalidArgumentError` or `EmptySelectionError` (both
+  `ValueError` subclasses) instead of `ValueError`, and a non-SpatialData object
+  passed where one is needed raises `UnsupportedDataTypeError` (a `TypeError`).
+  Migration: catch `KeyNotFoundError` instead of `KeyError`.
+- `spatial` and `spatials` raise `InvalidArgumentError` when `mapping` sets an
+  aesthetic they map themselves (`x`, `y`, `group` for polygons, and `color`, or
+  `fill` for polygons, when `key` is given), instead of a raw `TypeError`.
+  Migration: drop the aesthetic from `mapping`, or pass `key=None` and map
+  `color`/`fill` in `mapping` (which now works).
+- `spatial(polygon=True)` with a `frame` whose rows differ from the table raises
+  `ConflictingLengthError`; polygons are now matched to frame rows by position,
+  as points already were. Migration: build `frame` from the same table without
+  filtering rows, and use `groups`/`drop` to filter.
+
+### Fixed
+- `spatial(polygon=True)` draws holes in polygons as holes; a hole wound the
+  same way as its exterior used to be filled. The outline still draws a line
+  from the exterior to each hole until ggrust splits polygon rings.
+- `spatial(polygon=True)` keeps the instance key column, so `add_keys` and
+  `tooltips` can use it; it used to fail with a column-not-found error.
+- `spatial(polygon=True)` joins only table rows annotating the chosen shapes
+  element. A table annotating several shapes elements with overlapping instance
+  ids used to draw rows of the other elements on these shapes.
+- `spatial` and `spatials` raise `DuplicateKeysError` naming the repeated ids
+  when a SpatialData shapes element repeats an instance id, instead of an
+  internal pandas error.
+- `spatials` resolves the image and geometry once for all keys instead of once
+  per key.
+- `spatial` and `spatials` document that with several Visium libraries every
+  spot is drawn on the chosen library's image.
 
 ## [0.62.1] - 2026-11-09
 

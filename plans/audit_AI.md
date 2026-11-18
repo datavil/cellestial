@@ -105,6 +105,10 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `DendrogramMismatchError` | Claude Opus 5.5 |  |  |  |  |
 | `_fixed_cell_padding` | Claude Opus 5.5 |  |  |  |  |
 | `_label_width` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_mapping_conflicts` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
+| `_table_shape_positions` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
+| `_not_found` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
+| `_spatial` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
 
 ## Modified functions
 
@@ -242,3 +246,12 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `heatmap` | Claude Opus 5.5 |  |
 | `dotplot` | Claude Opus 5.5 |  |
 | `_bin_within_groups` | Claude Opus 5.5 |  |
+| `spatial` | Claude Opus 5.5 | ✓ |
+| `spatials` | Claude Opus 5.5 | ✓ |
+| `_spatial_components` | Claude Opus 5.5 | ✓ |
+| `_polygon_vertex_frame` | Claude Opus 5.5 | ✓ |
+| `_select_one` | Claude Opus 5.5 | ✓ |
+| `_resolve_shapes_name` | Claude Opus 5.5 | ✓ |
+| `_resolve_coordinate_system` | Claude Opus 5.5 | ✓ |
+| `_resolve_image_name` | Claude Opus 5.5 | ✓ |
+| `_resolve_table` | Claude Opus 5.5 | ✓ |

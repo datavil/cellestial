@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "numpy"]
 
 import warnings
+from difflib import get_close_matches
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -10,30 +11,44 @@ import polars as pl
 from anndata import AnnData
 
 from cellestial.util import _is_spatialdata, _warn
-from cellestial.util.errors import ConflictingLengthError, _unsupported_data_type
+from cellestial.util.errors import (
+    ConflictingLengthError,
+    DuplicateKeysError,
+    EmptySelectionError,
+    InvalidArgumentError,
+    KeyNotFoundError,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     from spatialdata import SpatialData
 
 
+def _not_found(kind: str, name: str, available: list[str], parameter: str) -> KeyNotFoundError:
+    """Build a `KeyNotFoundError` for an unknown `name`, with a close match when one exists."""
+    matches = get_close_matches(name, available, n=1)
+    hint = f"; did you mean '{matches[0]}'?" if matches else "."
+    return KeyNotFoundError(
+        f"{kind} `{name}` not found{hint} Available: {available}.\n"
+        f"Pass one of them as `{parameter}=`."
+    )
+
+
 def _select_one(name: str | None, available: list[str], kind: str) -> str:
     """Return `name` if given, else the single available entry, else raise."""
     if name is not None:
         if name not in available:
-            msg = f"{kind} `{name}` not found. Available: {available}"
-            raise KeyError(msg)
+            error = _not_found(kind, name, available, f"{kind}_name")
+            raise error
         return name
     if len(available) == 1:
         return available[0]
     if len(available) == 0:
         msg = f"No {kind} elements found in the SpatialData object."
-        raise ValueError(msg)
-    msg = (
-        f"Multiple {kind} elements found: {available}. "
-        f"Pass the corresponding `*_name` argument to select one."
-    )
-    raise ValueError(msg)
+        raise EmptySelectionError(msg)
+    msg = f"Multiple {kind} elements found: {available}. Pass `{kind}_name=` to select one."
+    raise InvalidArgumentError(msg)
 
 
 def _element_in_coordinate_system(element, coordinate_system: str) -> bool:
@@ -47,8 +62,8 @@ def _resolve_shapes_name(data: SpatialData, shapes_name: str | None, table: AnnD
     """Pick a shapes element, falling back to the table's annotated region."""
     if shapes_name is not None:
         if shapes_name not in data.shapes:
-            msg = f"shapes `{shapes_name}` not found. Available: {list(data.shapes)}"
-            raise KeyError(msg)
+            error = _not_found("shapes", shapes_name, list(data.shapes), "shapes_name")
+            raise error
         return shapes_name
 
     region = table.uns.get("spatialdata_attrs", {}).get("region")
@@ -82,8 +97,10 @@ def _resolve_coordinate_system(
 
     if coordinate_system is not None:
         if coordinate_system not in systems:
-            msg = f"coordinate_system `{coordinate_system}` not found. Available: {systems}"
-            raise KeyError(msg)
+            error = _not_found(
+                "coordinate_system", coordinate_system, systems, "coordinate_system"
+            )
+            raise error
         return coordinate_system
 
     if len(systems) == 1:
@@ -126,7 +143,7 @@ def _resolve_coordinate_system(
     msg = (
         f"Multiple coordinate systems present: {systems}. Pass `coordinate_system=` to select one."
     )
-    raise ValueError(msg)
+    raise InvalidArgumentError(msg)
 
 
 def _resolve_image_name(
@@ -135,8 +152,8 @@ def _resolve_image_name(
     """Pick the image element that lives in the chosen coordinate system."""
     if image_name is not None:
         if image_name not in data.images:
-            msg = f"image `{image_name}` not found. Available: {list(data.images)}"
-            raise KeyError(msg)
+            error = _not_found("image", image_name, list(data.images), "image_name")
+            raise error
         return image_name
 
     in_cs = [
@@ -152,7 +169,7 @@ def _resolve_image_name(
         f"Multiple image elements in coordinate system `{coordinate_system}`: "
         f"{in_cs}. Pass `image_name=` to select one."
     )
-    raise ValueError(msg)
+    raise InvalidArgumentError(msg)
 
 
 def _resolve_table(data: SpatialData, table_name: str | None) -> AnnData:
@@ -160,8 +177,7 @@ def _resolve_table(data: SpatialData, table_name: str | None) -> AnnData:
     from spatialdata import SpatialData
 
     if not isinstance(data, SpatialData):
-        msg = f"Expected a SpatialData object, got {type(data)}."
-        raise TypeError(msg)
+        raise _unsupported_data_type(data, "SpatialData")
     name = _select_one(table_name, list(data.tables.keys()), "table")
     return data.tables[name]
 
@@ -194,31 +210,72 @@ def _image_to_yxc(element) -> NDArray:
     return array
 
 
-def _polygon_vertex_frame(shapes_geo) -> pl.DataFrame:
+def _polygon_vertex_frame(shapes_geo, table_positions: NDArray) -> pl.DataFrame:
     """
-    Long-format vertex frame for `geom_polygon`.
+    Long-format vertex frame for `geom_polygon`, one polygon per matched table row.
 
     Notes
     -----
-    Columns: `instance_id`, `polygon_x`, `polygon_y`.
+    Columns: `table_row` (position of the table row the polygon annotates),
+    `instance_id`, `polygon_x`, `polygon_y`. `table_positions` holds, per table
+    row, the position of its shape (-1 when it has none here).
+
+    Each polygon lists its exterior ring, then each hole, every ring ending on
+    its first vertex. Rings are oriented so the exterior winds counter-clockwise
+    and holes clockwise, which leaves holes unfilled under the nonzero rule.
     """
     import shapely
 
-    geoms = shapes_geo.geometry.values
+    geoms = shapely.orient_polygons(shapes_geo.geometry.values)
     coordinates = shapely.get_coordinates(geoms)
     per_geom_counts = np.fromiter(
         (shapely.count_coordinates(g) for g in geoms),
         dtype=np.int64,
         count=len(geoms),
     )
-    instance_ids = np.repeat(np.asarray(shapes_geo.index), per_geom_counts)
-    return pl.DataFrame(
+    vertices = pl.DataFrame(
         {
-            "instance_id": instance_ids,
+            "shape_position": np.repeat(np.arange(len(geoms)), per_geom_counts),
+            "instance_id": np.repeat(np.asarray(shapes_geo.index), per_geom_counts),
             "polygon_x": coordinates[:, 0],
             "polygon_y": coordinates[:, 1],
         }
     )
+    found = np.flatnonzero(table_positions >= 0)
+    rows = pl.DataFrame({"table_row": found, "shape_position": table_positions[found]})
+    return rows.join(vertices, on="shape_position", how="inner", maintain_order="left").drop(
+        "shape_position"
+    )
+
+
+def _table_shape_positions(
+    table: AnnData, shapes_index, shapes_name: str
+) -> NDArray[np.intp] | None:
+    """
+    Position of each table row's shape in `shapes_index`, -1 when it has none.
+
+    Notes
+    -----
+    Rows are matched on the table's instance key and limited to rows whose
+    region is `shapes_name`. None when the table has no instance key. Raises
+    `DuplicateKeysError` when the shapes repeat an instance id.
+    """
+    instance_key = _resolve_instance_key(table)
+    if instance_key is None:
+        return None
+    if not shapes_index.is_unique:
+        duplicated = sorted(set(shapes_index[shapes_index.duplicated()].tolist()))
+        msg = (
+            f"Shapes element `{shapes_name}` repeats the instance ids {duplicated[:10]}, "
+            "so table rows cannot be matched to one shape each.\n"
+            "Give every shape a unique id before plotting."
+        )
+        raise DuplicateKeysError(msg)
+    positions = shapes_index.get_indexer(table.obs[instance_key])
+    region_key = table.uns.get("spatialdata_attrs", {}).get("region_key")
+    if region_key in table.obs.columns:
+        positions[np.asarray(table.obs[region_key] != shapes_name)] = -1
+    return positions
 
 
 def _spatialdata_components(
@@ -259,8 +316,7 @@ def _spatialdata_components(
     from spatialdata import SpatialData
 
     if not isinstance(data, SpatialData):
-        msg = f"Expected a SpatialData object, got {type(data)}."
-        raise TypeError(msg)
+        raise _unsupported_data_type(data, "SpatialData")
 
     table = _resolve_table(data, table_name)
     chosen_shapes_name = _resolve_shapes_name(data, shapes_name, table)
@@ -286,6 +342,7 @@ def _spatialdata_components(
         )
         shapes_geo = data.transform_element_to_coordinate_system(chosen_shapes_name, target_cs)
 
+    table_positions = _table_shape_positions(table, shapes_geo.index, chosen_shapes_name)
     geom_types = set(shapes_geo.geometry.geom_type.unique())
     spot_coordinates: NDArray | None = None
     polygon_frame: pl.DataFrame | None = None
@@ -295,7 +352,15 @@ def _spatialdata_components(
         )
     elif geom_types.issubset({"Polygon"}):
         if polygon:
-            polygon_frame = _polygon_vertex_frame(shapes_geo)
+            if table_positions is None:
+                msg = (
+                    "`polygon=True` needs the table to name the shape each row annotates, "
+                    "but the table has no instance key column.\n"
+                    "Parse the table with `TableModel.parse(..., instance_key=...)`, "
+                    "or pass `polygon=False` to draw the polygon centroids."
+                )
+                raise InvalidArgumentError(msg)
+            polygon_frame = _polygon_vertex_frame(shapes_geo, table_positions)
         else:
             centroids = shapes_geo.geometry.centroid
             spot_coordinates = np.column_stack([centroids.x.to_numpy(), centroids.y.to_numpy()])
@@ -309,15 +374,10 @@ def _spatialdata_components(
     if spot_coordinates is not None:
         # Shapes and table rows need not share order or length: place each table row
         # at its own instance's coordinates (NaN when it annotates no shape here).
-        instance_key = _resolve_instance_key(table)
-        if instance_key is not None:
-            positions = shapes_geo.index.get_indexer(table.obs[instance_key])
-            region_key = table.uns.get("spatialdata_attrs", {}).get("region_key")
-            if region_key in table.obs.columns:
-                positions[np.asarray(table.obs[region_key] != chosen_shapes_name)] = -1
+        if table_positions is not None:
             aligned = np.full((table.n_obs, 2), np.nan)
-            found = positions >= 0
-            aligned[found] = spot_coordinates[positions[found]]
+            found = table_positions >= 0
+            aligned[found] = spot_coordinates[table_positions[found]]
             spot_coordinates = aligned
         elif len(spot_coordinates) != table.n_obs:
             msg = (
@@ -370,8 +430,10 @@ def _spatial_components(
 
     if isinstance(data, AnnData):
         if spatial_key not in data.obsm:
-            msg = f"spot coordinates not found under `{spatial_key}`"
-            raise KeyError(msg)
+            error = _not_found(
+                "spot coordinates", spatial_key, list(data.obsm.keys()), "spatial_key"
+            )
+            raise error
 
         spatial_uns = data.uns.get("spatial", {})
 
@@ -380,9 +442,10 @@ def _spatial_components(
             if library_id is not None:
                 msg = (
                     f"library_id `{library_id}` was provided but no spatial "
-                    "library metadata is present"
+                    "library metadata is present.\n"
+                    "Pass `library_id=None` to plot the spot coordinates without an image."
                 )
-                raise KeyError(msg)
+                raise KeyNotFoundError(msg)
             return None, data.obsm[spatial_key], None, data
 
         # Visium mode.
@@ -394,10 +457,10 @@ def _spatial_components(
                     f"Multiple spatial libraries found: {list(spatial_uns)}. "
                     "Pass `library_id=` to select one."
                 )
-                raise ValueError(msg)
+                raise InvalidArgumentError(msg)
         elif library_id not in spatial_uns:
-            msg = f"library_id `{library_id}` not found in spatial libraries"
-            raise KeyError(msg)
+            error = _not_found("library_id", library_id, list(spatial_uns), "library_id")
+            raise error
 
         library = spatial_uns[library_id]
         images = library.get("images", {})
