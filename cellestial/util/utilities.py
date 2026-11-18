@@ -760,12 +760,19 @@ def _select_variable_keys(
     data: AnnData | MuData,
     keys: Sequence[str] | None,
 ) -> list[str]:
-    """From given keys, select only those that are variable keys."""
+    """
+    From given keys, select only those that are variable keys, each once.
+
+    Notes
+    -----
+    Keys often come from several aesthetics, and one gene mapped to two of
+    them (`x` and `color`) is still one frame column.
+    """
     if keys is None:
         return []
 
     container = _container(data)
-    return [key for key in keys if container.owns_variable(key)]
+    return [key for key in dict.fromkeys(keys) if container.owns_variable(key)]
 
 
 def _collect_aes_columns(

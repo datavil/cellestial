@@ -35,6 +35,7 @@
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 - [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 - [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
+- [Project: build_frame categoricals are pl.Enum](project_build_frame_enum.md) — Source category order via pl.Enum; accept Enum in dtype checks, cast to String before string compares/joins
 
 
 ---
@@ -996,3 +997,18 @@ Two ggrust 0.8 limits that shaped `cl.tracksplot` (issue #73, 2026-11-08):
 **Why:** Both cost a render-and-look cycle to diagnose.
 
 **How to apply:** Avoid facets when a plot needs side annotations. Zero the outline on dense rect/ribbon layers. Related: [[project-ggrust-tile-width-relative]].
+
+## Source: project_build_frame_enum.md
+
+---
+name: project-build-frame-enum
+description: build_frame returns categorical metadata as pl.Enum (source category order); check isinstance(dtype, (pl.Categorical, pl.Enum)) and cast to String before comparing/joining with strings
+metadata:
+  type: project
+---
+
+Since 2026-11-18 (branch `claude/fix-frames-2b9508`), `build_frame` turns categorical metadata into a `pl.Enum` in the source category order, because ggrust only carries factor order (`factor_levels`) for `pl.Enum`; a `pl.Categorical` is ordered by first appearance (Visium clusters legend read 0, 2, 3, ...).
+
+**Why:** `dtype == pl.Categorical` is False for an Enum, and polars raises on `is_in` / `==` with a value that is not a category, on Enum vs String joins, and on concat of different Enums.
+
+**How to apply:** Test categorical columns with `isinstance(dtype, (pl.Categorical, pl.Enum))`. Validate user group values against the column first (as `_filter_groups` does) or `.cast(pl.String)` before comparing or joining. Related: [[project-polars-drop-null-gotcha]].

@@ -323,3 +323,14 @@ def test_container_column_without_modality_names_the_problem(mudata):
     with pytest.raises(KeyNotFoundError, match="`modality` is required") as error:
         _container(mudata).container_column(None, "missing")
     assert "None" not in str(error.value)
+
+
+def test_same_gene_on_two_aesthetics_still_plots(adata):
+    """A gene mapped to two aesthetics is one frame column, not a duplicate key."""
+    from ggrust import aes
+
+    gene, other = (str(name) for name in adata.var_names[:2])
+    assert isinstance(cl.xyplot(adata, x=gene, y=gene), PlotSpec)
+    assert isinstance(cl.xyplot(adata, x=gene, y=other, mapping=aes(color=gene)), PlotSpec)
+    assert isinstance(cl.scatter(adata, aes(x=gene, y=other, color=gene)), PlotSpec)
+    assert isinstance(cl.bar(adata, aes(x=gene, fill=gene)), PlotSpec)
