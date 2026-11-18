@@ -17,7 +17,7 @@ from cellestial.single.heatmap.utilities import (
     _compute_violin_polygons,
     _panel_size,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
 
 
 def test_heatmap_default_aggregate(adata, markers, group_key):
@@ -523,7 +523,7 @@ def test_dotplot_tooltips_sequence(adata, markers, group_key):
 
 
 def test_dotplot_tooltips_missing_column(adata, markers, group_key):
-    with pytest.raises(ValueError, match="not in data"):
+    with pytest.raises(KeyNotFoundError, match="not in data"):
         cl.dotplot(
             adata,
             keys=markers,

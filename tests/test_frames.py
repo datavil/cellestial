@@ -9,6 +9,7 @@ from spatialdata import SpatialData
 import cellestial as cl
 from cellestial.frames.build import anndata_observations_frame, anndata_variables_frame
 from cellestial.frames.operations import _highest_expressed_genes_frame, _pca_variance_frame
+from cellestial.util.errors import KeyNotFoundError
 
 
 def test_build_frame_requires_axis(adata):
@@ -215,7 +216,7 @@ def test_pca_variance_frame_and_elbow_label():
 def test_pca_variance_frame_errors():
     data = AnnData(X=np.ones((2, 3)))
 
-    with pytest.raises(ValueError, match="PCA variance ratio"):
+    with pytest.raises(KeyNotFoundError, match="PCA variance ratio"):
         _pca_variance_frame(data)
 
     data.uns["pca"] = {"variance_ratio": np.array([0.5])}
@@ -234,7 +235,7 @@ def test_pca_variance_frame_custom_use_key():
 
 def test_pca_variance_frame_missing_custom_key_names_it():
     data = AnnData(X=np.ones((2, 3)))
-    with pytest.raises(ValueError, match="`pca_harmony`"):
+    with pytest.raises(KeyNotFoundError, match="`pca_harmony`"):
         _pca_variance_frame(data, use_key="pca_harmony")
 
 

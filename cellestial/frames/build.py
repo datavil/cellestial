@@ -12,6 +12,7 @@ from scipy.sparse import issparse
 from cellestial.frames._container import _container
 from cellestial.util.errors import (
     InvalidArgumentError,
+    InvalidArgumentTypeError,
     KeyNotFoundError,
     _did_you_mean,
     _unsupported_data_type,
@@ -95,8 +96,10 @@ def anndata_observations_frame(
     KeyNotFoundError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
-    ValueError
+    InvalidArgumentError
         If `include_dimensions` is a negative integer.
+    InvalidArgumentTypeError
+        If `include_dimensions` is neither a bool nor an int.
     """
     container = _container(data)
     part = container.observation_metadata()
@@ -138,14 +141,17 @@ def anndata_observations_frame(
                 if include_dimensions >= 0:
                     column_count = min(include_dimensions, total_columns)
                 else:
-                    msg = "Number of dimensions cannot be a negative number."
-                    raise ValueError(msg)
+                    msg = (
+                        "`include_dimensions` cannot be a negative number, "
+                        f"but received {include_dimensions}."
+                    )
+                    raise InvalidArgumentError(msg)
             elif isinstance(include_dimensions, bool):
                 column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
-                raise TypeError(msg)
+                raise InvalidArgumentTypeError(msg)
 
             embedding = partm[X]
             if issparse(embedding):
@@ -207,8 +213,10 @@ def anndata_variables_frame(
     KeyNotFoundError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
-    ValueError
+    InvalidArgumentError
         If `include_dimensions` is a negative integer.
+    InvalidArgumentTypeError
+        If `include_dimensions` is neither a bool nor an int.
     """
     # PART 1: INITIALIZE
     container = _container(data)
@@ -251,14 +259,17 @@ def anndata_variables_frame(
                 if include_dimensions >= 0:
                     column_count = min(include_dimensions, total_columns)
                 else:
-                    msg = "Number of dimensions cannot be a negative number."
-                    raise ValueError(msg)
+                    msg = (
+                        "`include_dimensions` cannot be a negative number, "
+                        f"but received {include_dimensions}."
+                    )
+                    raise InvalidArgumentError(msg)
             elif isinstance(include_dimensions, bool):
                 column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
-                raise TypeError(msg)
+                raise InvalidArgumentTypeError(msg)
 
             embedding = partm[X]
             if issparse(embedding):
@@ -345,14 +356,15 @@ def build_frame(
         If any `variable_keys` entry is not present in variable names.
     AmbiguousVariableError
         If a bare `variable_keys` entry is present in more than one modality.
-    KeyError
+    KeyNotFoundError
         If any `metadata_columns` or `dimension_keys` entry is unknown.
     InvalidArgumentError
-        If `axis` is given but is neither 0 nor 1.
-    ValueError
-        If `axis` cannot be inferred, the data object does not resolve to
-        exactly one annotation table, or a multimodal object does not share
-        observations across its modalities.
+        If `axis` is missing or is neither 0 nor 1, `include_dimensions` is
+        negative, the data object does not resolve to exactly one annotation
+        table, or a multimodal object does not share observations across its
+        modalities.
+    InvalidArgumentTypeError
+        If `include_dimensions` is neither a bool nor an int.
 
     Notes
     -----
@@ -395,14 +407,14 @@ def build_frame(
             data = data.tables[tables[0]]
         elif len(tables) == 0:
             msg = "No annotation tables found in the SpatialData object."
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
         else:
             msg = (
                 f"Multiple annotation tables found: {tables}. "
                 "Pass a SpatialData with a single table, or extract the table "
                 "yourself before calling `build_frame`."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
     if isinstance(data, MuData) and data.axis != 0:
         # Only shared observations keep the observations-frame contract; the
@@ -412,7 +424,7 @@ def build_frame(
             f"(`axis=0`), but this object has `axis={data.axis}`. "
             "Pass a single modality instead, e.g. `data['rna']`."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, (AnnData, MuData)):
         # infer the axis if not provided
@@ -438,7 +450,7 @@ def build_frame(
             )
         elif axis is None:
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
         else:
             msg = f"`axis` must be 0 for observations or 1 for variables, but received {axis!r}."
             raise InvalidArgumentError(msg)

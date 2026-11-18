@@ -18,7 +18,11 @@ from ggrust import (
 )
 from ggrust.plot.core import FeatureSpec, FeatureSpecArray
 
-from cellestial.util.errors import DendrogramMismatchError, KeyNotFoundError
+from cellestial.util.errors import (
+    DendrogramMismatchError,
+    KeyNotFoundError,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -36,8 +40,7 @@ def _dendrogram_info(
 ) -> dict:
     """Get or compute the scanpy dendrogram of `group_by` stored in `data.uns`."""
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
     key = use_key if use_key is not None else f"dendrogram_{group_by}"
     if key not in data.uns:
         if group_by not in data.obs.columns:
@@ -137,8 +140,7 @@ def _get_dendrogram(
                 path_group.append(i)
         paths = pl.DataFrame({"x": path_x, "y": path_y, "group": path_group})
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     return categories_ordered, paths
 

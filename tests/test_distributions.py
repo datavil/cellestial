@@ -345,9 +345,9 @@ def test_histograms_materialize_shared_columns_and_grid_options(adata, group_key
 def test_histogram_validation_paths(adata):
     with pytest.raises(TypeError):
         cl.histogram("not anndata", "CD14")
-    with pytest.raises(ValueError, match="axis"):
+    with pytest.raises(KeyNotFoundError, match="not_a_key"):
         cl.histogram(adata, "not_a_key")
     with pytest.raises(ValueError, match="empty"):
         cl.histograms(adata, [])
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyNotFoundError):
         cl.histograms(adata, ["CD14", 1])

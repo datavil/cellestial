@@ -7,7 +7,12 @@ from collections.abc import Sequence
 from anndata import AnnData
 from mudata import MuData
 
-from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _container
 
 
@@ -28,12 +33,12 @@ def _marker_names_per_group(
     no cross-group de-duplication.
     """
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
-        msg = "`groups` must be a Sequence of strings or None"
-        raise TypeError(msg)
+        msg = f"`groups` must be a Sequence of strings or None, but received {type(groups)}."
+        raise InvalidArgumentTypeError(msg)
 
     if n_genes < 1:
         msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, AnnData):
         if key not in data.uns:
@@ -71,9 +76,9 @@ def _marker_names_per_group(
         if n_genes > n_available:
             msg = (
                 f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{key!r}]`."
+                f"stored in `adata.uns[{key!r}]`. Pass `n_genes` <= {n_available}."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
         markers = {group: [str(gene) for gene in names[group][:n_genes]] for group in selected}
     else:
@@ -123,9 +128,9 @@ def marker_genes(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
-    ValueError
+    InvalidArgumentError
         If `n_genes` is out of range.
-    TypeError
+    InvalidArgumentTypeError
         If `groups` is neither a Sequence of strings nor None.
 
     Notes
@@ -221,9 +226,9 @@ def marker_genes_dict(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
-    ValueError
+    InvalidArgumentError
         If `n_genes` is out of range.
-    TypeError
+    InvalidArgumentTypeError
         If `groups` is neither a Sequence of strings nor None.
 
     Notes

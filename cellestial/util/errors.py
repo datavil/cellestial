@@ -114,6 +114,34 @@ class InvalidArgumentError(ValueError):
         super().__init__(message)
 
 
+class InvalidArgumentTypeError(TypeError):
+    """Raised when a parameter receives a value of a type the function does not accept."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class GridIndexError(IndexError):
+    """Raised when a figure index is out of range for a grid of plots."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class IncompleteDownloadError(OSError):
+    """Raised when a download ends before the size announced by the server."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class MissingPlotDataError(ValueError):
+    """Raised when a plot carries no data frame to retrieve."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
 

@@ -169,10 +169,10 @@ def test_plural_plotters_reject_empty_keys(adata, plotter):
         (lambda data: cl.umaps(data, ["CD14", 1]), KeyNotFoundError),
         (lambda data: cl.dimensionals(data, ["CD14", 1]), KeyNotFoundError),
         (lambda data: cl.expressions(data, ["CD14", 1]), VariableNotFoundError),
-        (lambda data: cl.violins(data, ["CD14", 1]), ValueError),
-        (lambda data: cl.boxplots(data, ["CD14", 1]), ValueError),
-        (lambda data: cl.histograms(data, ["CD14", 1]), ValueError),
-        (lambda data: cl.ridges(data, ["CD14", 1], group_by="cell_type_lvl1"), ValueError),
+        (lambda data: cl.violins(data, ["CD14", 1]), KeyNotFoundError),
+        (lambda data: cl.boxplots(data, ["CD14", 1]), KeyNotFoundError),
+        (lambda data: cl.histograms(data, ["CD14", 1]), KeyNotFoundError),
+        (lambda data: cl.ridges(data, ["CD14", 1], group_by="cell_type_lvl1"), KeyNotFoundError),
     ],
 )
 def test_plural_plotters_reject_non_string_keys(adata, plotter, error):

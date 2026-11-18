@@ -36,7 +36,13 @@ from ggrust.plot.core import FeatureSpec
 from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 
-from cellestial.util.errors import CellestialWarning, KeyNotFoundError, _did_you_mean
+from cellestial.util.errors import (
+    CellestialWarning,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _did_you_mean,
+)
 
 if TYPE_CHECKING:
     from cellestial.frames._container import _Container
@@ -317,7 +323,7 @@ def _validate_tooltips(
     tooltips: Sequence[str] | FeatureSpec | Literal["none"] | None,
     frame: pl.DataFrame,
 ) -> None:
-    """Raise ValueError if any tooltip field is not a column in `frame`."""
+    """Raise KeyNotFoundError if any tooltip field is not a column in `frame`."""
     if isinstance(tooltips, FeatureSpec):
         fields = _tooltip_fields(tooltips)
     elif isinstance(tooltips, Sequence) and not isinstance(tooltips, str):
@@ -326,8 +332,11 @@ def _validate_tooltips(
         return
     missing = [f for f in fields if f not in frame.columns]
     if missing:
-        msg = f"Tooltip fields not in data: {missing}"
-        raise ValueError(msg)
+        msg = f"Tooltip fields not in data: {missing}."
+        hint = _did_you_mean(missing, frame.columns)
+        if hint:
+            msg += f" {hint}"
+        raise KeyNotFoundError(msg)
 
 
 def _qualified_alternatives(data: AnnData | MuData | None, key: str) -> list[str]:
@@ -405,8 +414,11 @@ def _resolve_tooltips(
         fields = list(tooltips)
         resolved = fields
     else:
-        msg = f"Invalid tooltips type: {type(tooltips)}"
-        raise TypeError(msg)
+        msg = (
+            "`tooltips` must be 'none', a sequence of column names or a `layer_tooltips()` "
+            f"spec, but received {type(tooltips)}."
+        )
+        raise InvalidArgumentTypeError(msg)
 
     if metadata_columns is None:
         # No narrowing requested; only pull gene tooltip fields into variable_keys.
@@ -429,7 +441,7 @@ def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     """Return a list of rounded numbers between start and stop, inclusive."""
     if step < 1:
         msg = f"`step` must be >= 1, but received {step}."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     span = abs(stop - start)
     if span == 0:
         return [start]
@@ -453,13 +465,13 @@ def _resolve_midpoint(
     finite_series = series.filter(series.is_not_null() & series.is_finite())
     if finite_series.is_empty():
         msg = "Cannot resolve `midpoint` without finite data values."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     data_min = cast("float", finite_series.min())
     data_max = cast("float", finite_series.max())
 
     if isinstance(midpoint, bool):
         msg = "`midpoint` must be a number or one of 'mean', 'median', or 'mid'."
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
     if isinstance(midpoint, Real):
         mid_value = float(midpoint)
     elif midpoint == "mean":
@@ -470,21 +482,21 @@ def _resolve_midpoint(
         mid_value = (data_min + data_max) / 2
     elif isinstance(midpoint, str):
         msg = "`midpoint` must be one of 'mean', 'median', or 'mid', or a number."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     else:
         msg = "`midpoint` must be a number or one of 'mean', 'median', or 'mid'."
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
 
     if not isfinite(mid_value):
         msg = "`midpoint` must be finite."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     if not data_min <= mid_value <= data_max:
         msg = (
             f"`midpoint` ({mid_value}) must be within the finite data range "
             f"[{data_min}, {data_max}]."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     return mid_value
 
@@ -633,7 +645,7 @@ def _share_axis(
         pass
     else:
         msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     return plot
 
@@ -687,7 +699,7 @@ def _reject_sequence_key(key: object, *, singular: str, plural: str) -> None:
             f"`{singular}` plots a single key but received {len(key)} keys. "
             f"Use `{plural}` for multiple keys."
         )
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
 
 
 def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
@@ -948,6 +960,13 @@ def _determine_axis(
         Other column references from the same call, such as the grouping and
         aesthetic keys. Used only to break a tie. `None` entries are ignored.
 
+    Raises
+    ------
+    KeyNotFoundError
+        If a key names no observation or variable column, nor a variable.
+    InvalidArgumentError
+        If the keys mix observation-only and variable-only columns.
+
     Notes
     -----
     A name can sit on both axes: quality-control metrics like `total_counts`
@@ -978,5 +997,30 @@ def _determine_axis(
     if on_observations:
         return 0
 
-    msg = f"Could not determine the axis with given keys ({keys})."
-    raise ValueError(msg)
+    unknown = [
+        key
+        for key in keys
+        if not (_is_observation_feature(data, key) or _is_variable_feature(data, key))
+    ]
+    if not unknown:
+        msg = (
+            f"Could not determine the axis with given keys ({keys}): they mix observation "
+            "and variable columns. Pass keys from one axis only."
+        )
+        raise InvalidArgumentError(msg)
+    container = _container(data)
+    msg = (
+        f"Keys {unknown} not found; looked in observation metadata, variable metadata "
+        "and variable names."
+    )
+    hint = _did_you_mean(
+        unknown,
+        [
+            *container.observation_columns(),
+            *container.variable_columns(),
+            *container.variable_names(),
+        ],
+    )
+    if hint:
+        msg += f" {hint}"
+    raise KeyNotFoundError(msg)

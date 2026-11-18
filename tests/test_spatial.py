@@ -22,6 +22,7 @@ from cellestial.spatial.utilities import (
     _select_one,
     _spatial_components,
 )
+from cellestial.util.errors import KeyNotFoundError
 
 # ---- fixtures ----
 
@@ -807,5 +808,5 @@ def test_spatials_rejects_empty_keys(data_minimal):
 
 
 def test_spatials_rejects_non_string_keys(data_minimal):
-    with pytest.raises(ValueError, match="not in data"):
+    with pytest.raises(KeyNotFoundError, match="not in data"):
         cl.spatials(data_minimal, [1])

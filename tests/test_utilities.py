@@ -410,7 +410,7 @@ def test_determine_axis_string_key(adata):
 
 
 def test_determine_axis_invalid(adata):
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyNotFoundError, match="NOT_REAL_KEY_xyz"):
         _determine_axis(adata, ["NOT_REAL_KEY_xyz"])
 
 

@@ -9,7 +9,21 @@ change. Versions absent from the list were never released.
 
 ## [Unreleased]
 
+### Breaking
+- Unknown keys whose axis cannot be determined (e.g. `violin(data, "not_a_key")`),
+  tooltip fields missing from the data and a missing stored PCA variance now
+  raise `KeyNotFoundError` (a `KeyError`) instead of `ValueError`. Keys that
+  mix observation-only and variable-only columns raise `InvalidArgumentError`.
+  Migration: catch `KeyError` (or `KeyNotFoundError`) instead of `ValueError`
+  for these cases.
+
 ### Changed
+- Remaining built-in exceptions in frame building, layout and grid helpers,
+  marker and dataset helpers are now `errors.py` classes that subclass the same
+  built-in (`InvalidArgumentError`, the new `InvalidArgumentTypeError`,
+  `ConflictingLengthError`, `GridIndexError`, `MissingPlotDataError`,
+  `IncompleteDownloadError`), so existing `except` clauses keep working.
+- `layout(widths=...)` accepts numpy arrays (1D, 2D, or one array per row).
 - `KeyNotFoundError` and `VariableNotFoundError` now subclass `KeyError`, so
   `except KeyError` catches them. Their message prints without quotes.
 - Unknown keys, metadata columns, embeddings, variables and modalities name the

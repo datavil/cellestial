@@ -9,6 +9,8 @@ from typing import cast
 from anndata import AnnData, read_h5ad
 from mudata import MuData
 
+from cellestial.util.errors import IncompleteDownloadError, InvalidArgumentError
+
 _GLOBAL_CACHE = Path.home() / ".cache" / "cellestial" / "datasets"
 
 _UUID_PATTERN = re.compile(
@@ -84,7 +86,7 @@ def pbmc3k(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
@@ -126,7 +128,7 @@ def pancreas(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
@@ -169,7 +171,7 @@ def pbmc_cite(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
@@ -247,9 +249,9 @@ def from_url(
 
     Raises
     ------
-    ValueError
+    InvalidArgumentError
         If `name` is not given and no filename can be derived from `url`.
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
 
     Notes
@@ -266,7 +268,7 @@ def from_url(
         filename = Path(urlparse(url).path).name
         if not filename:
             message = "Could not derive a filename from the URL; pass `name=...` explicitly."
-            raise ValueError(message)
+            raise InvalidArgumentError(message)
         if Path(filename).suffix not in {".h5ad", ".h5mu"}:
             # The URL names no format, so cache and read it as `extension` says.
             filename = f"{filename}{extension}"
@@ -299,7 +301,7 @@ def from_url(
                 message = (
                     f"Download incomplete: expected {total_size} bytes, got {downloaded_size}."
                 )
-                raise OSError(message)  # noqa: TRY301
+                raise IncompleteDownloadError(message)  # noqa: TRY301
 
             partial_file.replace(cache_file)
         except BaseException:
@@ -351,9 +353,9 @@ def from_cellxgene(
 
     Raises
     ------
-    ValueError
+    InvalidArgumentError
         If `source` is neither a CELLxGENE dataset UUID nor a URL containing one.
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
 
     Notes
@@ -366,7 +368,7 @@ def from_cellxgene(
         message = (
             f"source must be a CELLxGENE dataset UUID or a URL containing one, got {source!r}"
         )
-        raise ValueError(message)
+        raise InvalidArgumentError(message)
 
     uuid = match.group(0)
     url = (
@@ -415,7 +417,7 @@ def breast_cancer_atlas(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
 
     Notes
@@ -459,7 +461,7 @@ def human_lymph_node(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
