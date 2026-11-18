@@ -543,7 +543,7 @@ def test_markers_accept_the_container_group_column(ranked):
 
 def test_markers_still_reject_a_mismatched_group_column(ranked):
     with pytest.raises(ValueError, match="does not match"):
-        cl.heatmap(ranked, markers=True, n_genes=2, modality="rna", group_by="celltype")
+        cl.heatmap(ranked, markers=True, n_genes=2, modality="rna", group_by="rna:celltype")
 
 
 def test_markers_and_dendrogram_round_trip(ranked):

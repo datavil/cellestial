@@ -65,6 +65,13 @@ class AmbiguousVariableError(ValueError):
         super().__init__(message)
 
 
+class AmbiguousColumnError(ValueError):
+    """Raised when a column name could mean more than one column (e.g. a container's and a modality's)."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class DuplicateKeysError(ValueError):
     """Raised when grouped keys (e.g. heatmap key groups) contain the same key in multiple groups."""
 

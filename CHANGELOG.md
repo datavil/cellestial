@@ -23,6 +23,13 @@ change. Versions absent from the list were never released.
   checks `dtype == pl.Categorical` on a built frame should also accept
   `pl.Enum`; compare or join the column with strings after
   `.cast(pl.String)`.
+- On a multimodal object, a bare `group_by` that names both a container column
+  and a column of `modality` (e.g. `leiden` on `pbmc_cite`) raises
+  `AmbiguousColumnError` in plots that use stored results (`markers`,
+  `dendrogram`). `dotplot`, `matrixplot` and `stacked_violin` used to plot the
+  container's column while clustering the modality's, and the per-cell plots
+  failed with `DendrogramMismatchError`. Migration: pass the qualified name,
+  `group_by="rna:leiden"`.
 - A string other than `"none"` for `tooltips` raises `InvalidArgumentError`
   (it used to reach the renderer unchecked). Migration: pass a list for one
   column, `tooltips=["CD14"]`.

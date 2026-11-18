@@ -7,12 +7,14 @@ import pandas as pd
 import polars as pl
 import pytest
 from anndata import AnnData
+from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.frames._container import _container
 from cellestial.frames.operations import _pca_variance_frame
 from cellestial.util.dendrogram import _dendrogram_info
 from cellestial.util.errors import (
+    AmbiguousColumnError,
     ConflictingLengthError,
     GridIndexError,
     InvalidArgumentError,
@@ -257,3 +259,30 @@ def test_resolve_tooltips_rejects_strings_other_than_none(adata):
     with pytest.raises(InvalidArgumentError, match=r"tooltips=\['CD14'\]"):
         _resolve_tooltips("CD14", data=adata, variable_keys=[], defaults=[])
     assert _resolve_tooltips("none", data=adata, variable_keys=[], defaults=[]) == "none"
+
+
+# --- MuData: plotted and dendrogram group columns ------------------------------
+
+
+@pytest.mark.parametrize(
+    "plotter",
+    [cl.dotplot, cl.matrixplot, cl.stacked_violin, cl.heatmap, cl.tracksplot],
+)
+def test_bare_group_on_container_and_modality_is_ambiguous(mudata, plotter):
+    """A bare `group_by` on both the container and the modality must be qualified."""
+    gene = str(mudata["rna"].var_names[0])
+    with pytest.raises(AmbiguousColumnError, match="rna:leiden"):
+        plotter(mudata, [gene], group_by="leiden", modality="rna", dendrogram=True)
+
+
+@pytest.mark.parametrize("plotter", [cl.dotplot, cl.matrixplot, cl.stacked_violin])
+def test_qualified_group_plots_the_dendrogram_groups(mudata, plotter):
+    """With `rna:leiden`, the plotted groups are the groups the dendrogram clusters."""
+    gene = str(mudata["rna"].var_names[0])
+    plot = plotter(mudata, [gene], group_by="rna:leiden", modality="rna", dendrogram=True)
+    frame = cl.retrieve(plot) if isinstance(plot, PlotSpec) else cl.retrieve(plot, 0)
+    plotted = set(pl.Series(frame["rna:leiden"]).cast(pl.String).drop_nulls().to_list())
+    clustered = set(mudata["rna"].obs["leiden"].astype(str))
+    container_groups = set(mudata.obs["leiden"].astype(str))
+    assert plotted <= clustered
+    assert not plotted <= container_groups  # the modality clustering has more groups

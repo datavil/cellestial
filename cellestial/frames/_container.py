@@ -12,6 +12,7 @@ from mudata import MuData
 from scipy.sparse import issparse
 
 from cellestial.util.errors import (
+    AmbiguousColumnError,
     AmbiguousVariableError,
     KeyNotFoundError,
     VariableNotFoundError,
@@ -299,16 +300,40 @@ class _MuDataContainer(_Container):
         """
         Return `column` as the selected modality names it.
 
+        Raises
+        ------
+        AmbiguousColumnError
+            If a bare `column` names both a container column and a column of
+            the modality.
+
         Notes
         -----
         A container carries modality columns prefixed as `modality:column`,
         while the modality itself holds them unprefixed. Callers that hand a
-        container-level column name to a single modality translate it here.
+        container-level column name to a single modality translate it here. A
+        bare name the container also holds is its own column, unrelated to the
+        modality's, so translating it would pair one column's groups with
+        results computed on another.
         """
         if modality is None and len(self._data.mod) == 1:
             modality = next(iter(self._data.mod))  # the one `select_modality` picks
         prefix = f"{modality}:"
-        return column.removeprefix(prefix) if column.startswith(prefix) else column
+        if column.startswith(prefix):
+            return column.removeprefix(prefix)
+        if (
+            column in self._data.obs.columns
+            and modality in self._data.mod
+            and column in self._data.mod[modality].obs.columns
+        ):
+            msg = (
+                f"`group_by={column!r}` is ambiguous: the container has its own `{column}` "
+                f"column and modality `{modality}` has another one. Results stored in the "
+                f"modality (rankings, dendrograms) describe the modality's column, so pass "
+                f"`group_by='{prefix}{column}'`. The container's `{column}` cannot be used "
+                "with results stored in a modality."
+            )
+            raise AmbiguousColumnError(msg)
+        return column
 
     def container_column(self, modality: str | None, column: str) -> str:
         """
