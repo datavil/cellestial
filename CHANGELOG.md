@@ -16,6 +16,16 @@ change. Versions absent from the list were never released.
   mix observation-only and variable-only columns raise `InvalidArgumentError`.
   Migration: catch `KeyError` (or `KeyNotFoundError`) instead of `ValueError`
   for these cases.
+- `build_frame` returns categorical metadata as `pl.Enum` in the source
+  category order (was `pl.Categorical`, ordered by first appearance), so
+  legends and group axes list categories as the data defines them (e.g.
+  clusters `0, 1, 2, ...` instead of `0, 2, 3, ...`). Migration: code that
+  checks `dtype == pl.Categorical` on a built frame should also accept
+  `pl.Enum`; compare or join the column with strings after
+  `.cast(pl.String)`.
+- A string other than `"none"` for `tooltips` raises `InvalidArgumentError`
+  (it used to reach the renderer unchecked). Migration: pass a list for one
+  column, `tooltips=["CD14"]`.
 
 ### Changed
 - Remaining built-in exceptions in frame building, layout and grid helpers,
@@ -24,11 +34,8 @@ change. Versions absent from the list were never released.
   `ConflictingLengthError`, `GridIndexError`, `MissingPlotDataError`,
   `IncompleteDownloadError`), so existing `except` clauses keep working.
 - `layout(widths=...)` accepts numpy arrays (1D, 2D, or one array per row).
-- `build_frame` returns categorical metadata as `pl.Enum` in the source
-  category order (was `pl.Categorical`, ordered by first appearance), so
-  legends and group axes list categories as the data defines them (e.g.
-  clusters `0, 1, 2, ...` instead of `0, 2, 3, ...`). Code that checks
-  `dtype == pl.Categorical` on a built frame should also accept `pl.Enum`.
+- `build_frame` accepts a single string for `metadata_columns` and
+  `dimension_keys` as one key (it used to be split into characters).
 - `KeyNotFoundError` and `VariableNotFoundError` now subclass `KeyError`, so
   `except KeyError` catches them. Their message prints without quotes.
 - Unknown keys, metadata columns, embeddings, variables and modalities name the
@@ -37,6 +44,14 @@ change. Versions absent from the list were never released.
   `dimension_keys`.
 
 ### Fixed
+- An observation or variable metadata column named like the id column
+  (`Barcode`, `Variable`) raises `InvalidArgumentError` naming
+  `observation_id_column` / `variable_id_column` instead of a polars
+  duplicate-column error.
+- Reading variables from an object without a main expression matrix raises
+  `KeyNotFoundError` explaining it, instead of a `TypeError`.
+- Singular plots reject sets and arrays passed as `key` (pointing to the plural
+  function) like they reject lists, instead of failing later.
 - `build_frame` keeps missing values of a numeric categorical column as null
   instead of turning them into a `"nan"` category.
 - `build_frame` raises `DuplicateKeysError` naming the repeat for repeated

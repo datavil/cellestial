@@ -23,7 +23,12 @@ from cellestial.util.errors import (
     VariableNotFoundError,
     _did_you_mean,
 )
-from cellestial.util.utilities import _determine_axis, _require_feature_key, _validate_tooltips
+from cellestial.util.utilities import (
+    _determine_axis,
+    _require_feature_key,
+    _resolve_tooltips,
+    _validate_tooltips,
+)
 
 # --- errors ------------------------------------------------------------------
 
@@ -198,3 +203,57 @@ def test_umap_legend_follows_category_order(adata):
     annotations = spec["data_meta"]["series_annotations"]
     levels = next(item["factor_levels"] for item in annotations if item["column"] == "leiden")
     assert levels == adata.obs["leiden"].cat.categories.astype(str).to_list()
+
+
+# --- frames report O1 to O5 ----------------------------------------------------
+
+
+def test_id_column_colliding_with_metadata_names_the_parameter(adata):
+    """O1: an id column named like a metadata column raises, naming the parameter."""
+    data = adata.copy()
+    data.obs["Barcode"] = data.obs_names.to_numpy()
+    data.var["Variable"] = data.var_names.to_numpy()
+    with pytest.raises(InvalidArgumentError, match="observation_id_column"):
+        cl.build_frame(data, axis=0)
+    with pytest.raises(InvalidArgumentError, match="variable_id_column"):
+        cl.build_frame(data, axis=1)
+    frame = cl.build_frame(data, axis=0, observation_id_column="cell")
+    assert frame["cell"].to_list() == frame["Barcode"].to_list()
+
+
+def test_single_string_metadata_and_dimension_keys_are_one_key(adata):
+    """O2: a string `metadata_columns` / `dimension_keys` is one key, like `variable_keys`."""
+    frame = cl.build_frame(
+        adata,
+        axis=0,
+        metadata_columns="leiden",
+        include_dimensions=2,
+        dimension_keys="X_umap",
+        observation_id_column=None,
+    )
+    assert frame.columns == ["leiden", "X_UMAP1", "X_UMAP2"]
+
+
+def test_variables_without_matrix_raise_clear_error():
+    """O3: reading variables from an object without a main matrix raises a clear error."""
+    data = AnnData(
+        obs=pd.DataFrame(index=["a", "b"]),
+        var=pd.DataFrame(index=["g1", "g2"]),
+        layers={"counts": np.ones((2, 2), dtype=np.float32)},
+    )
+    with pytest.raises(KeyNotFoundError, match="no main expression matrix"):
+        cl.build_frame(data, variable_keys=["g1"])
+
+
+@pytest.mark.parametrize("key", [{"CD14"}, np.array(["CD14", "LYZ"]), pd.Index(["CD14"])])
+def test_singular_rejects_sets_and_arrays(adata, key):
+    """O4: sets and arrays where one key is expected point to the plural."""
+    with pytest.raises(InvalidArgumentTypeError, match="umaps"):
+        cl.umap(adata, key=key)
+
+
+def test_resolve_tooltips_rejects_strings_other_than_none(adata):
+    """O5: a string other than 'none' for `tooltips` raises with a fix."""
+    with pytest.raises(InvalidArgumentError, match=r"tooltips=\['CD14'\]"):
+        _resolve_tooltips("CD14", data=adata, variable_keys=[], defaults=[])
+    assert _resolve_tooltips("none", data=adata, variable_keys=[], defaults=[]) == "none"

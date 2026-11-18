@@ -50,6 +50,27 @@ def _categorical_series(values: pd.Series) -> pl.Series:
     return series
 
 
+def _reject_id_column_collision(
+    columns: list[pl.Series], selected_columns: list[str], parameter: str, axis_name: str
+) -> None:
+    """
+    Raise `InvalidArgumentError` when the id column shares its name with a metadata column.
+
+    Notes
+    -----
+    Both would become columns of the same name, which a frame cannot hold.
+    """
+    if columns and columns[0].name in selected_columns:
+        name = columns[0].name
+        msg = (
+            f"`{parameter}={name!r}` collides with the {axis_name} metadata column `{name}`. "
+            f"Pass another name, e.g. `{parameter}='{name}_id'`, or `{parameter}=None` to "
+            f"omit the id column. Where the function has no `{parameter}`, rename the "
+            "metadata column."
+        )
+        raise InvalidArgumentError(msg)
+
+
 def _reject_duplicate_keys(
     keys: Sequence[str], parameter: str, *, case_sensitive: bool = True
 ) -> None:
@@ -107,8 +128,8 @@ def anndata_observations_frame(
     *,
     observation_id_column: str | None = "Barcode",
     include_dimensions: bool | int = False,
-    metadata_columns: Sequence[str] | None = None,
-    dimension_keys: Sequence[str] | None = None,
+    metadata_columns: str | Sequence[str] | None = None,
+    dimension_keys: str | Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build an Observations DataFrame from an AnnData object.
@@ -125,12 +146,14 @@ def anndata_observations_frame(
     include_dimensions : bool | int
         Whether to include dimensions from embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-    metadata_columns : Sequence[str] | None
+    metadata_columns : str | Sequence[str] | None
         Restrict which observation metadata columns are materialised. `None`
         includes all metadata columns (default). An empty sequence skips them.
-    dimension_keys : Sequence[str] | None
+        A single string selects one column.
+    dimension_keys : str | Sequence[str] | None
         Restrict which embeddings are materialised when `include_dimensions`
         is truthy. Case-insensitive. `None` includes all embeddings (default).
+        A single string selects one embedding.
         An empty sequence skips embeddings entirely.
 
     Returns
@@ -150,7 +173,8 @@ def anndata_observations_frame(
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
     InvalidArgumentError
-        If `include_dimensions` is a negative integer.
+        If `include_dimensions` is a negative integer, or the id column shares
+        its name with a selected metadata column.
     InvalidArgumentTypeError
         If `include_dimensions` is neither a bool nor an int.
     """
@@ -163,6 +187,8 @@ def anndata_observations_frame(
     else:
         columns = [pl.Series(observation_id_column, container.observation_names())]
     # PART 2: ADD AnnData.obs
+    if isinstance(metadata_columns, str):
+        metadata_columns = [metadata_columns]
     if metadata_columns is None:
         selected_columns = list(part.columns)
     else:
@@ -175,6 +201,7 @@ def anndata_observations_frame(
             raise KeyNotFoundError(msg)
         _reject_duplicate_keys(metadata_columns, "metadata_columns")
         selected_columns = list(metadata_columns)
+    _reject_id_column_collision(columns, selected_columns, "observation_id_column", "observation")
     for key in selected_columns:
         if part.dtypes[key] == "category":
             columns.append(_categorical_series(part[key]))
@@ -226,8 +253,8 @@ def anndata_variables_frame(
     *,
     variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
-    metadata_columns: Sequence[str] | None = None,
-    dimension_keys: Sequence[str] | None = None,
+    metadata_columns: str | Sequence[str] | None = None,
+    dimension_keys: str | Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build a Variables DataFrame from an AnnData object.
@@ -242,13 +269,15 @@ def anndata_variables_frame(
     include_dimensions : bool | int
         Whether to include variable-axis embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-    metadata_columns : Sequence[str] | None
+    metadata_columns : str | Sequence[str] | None
         Restrict which variable metadata columns are materialised. `None`
         includes all metadata columns (default). An empty sequence skips them.
-    dimension_keys : Sequence[str] | None
+        A single string selects one column.
+    dimension_keys : str | Sequence[str] | None
         Restrict which variable-axis embeddings are materialised when
         `include_dimensions` is truthy. Case-insensitive. `None` includes all
         embeddings (default). An empty sequence skips embeddings entirely.
+        A single string selects one embedding.
 
     Returns
     -------
@@ -263,7 +292,8 @@ def anndata_variables_frame(
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
     InvalidArgumentError
-        If `include_dimensions` is a negative integer.
+        If `include_dimensions` is a negative integer, or the id column shares
+        its name with a selected metadata column.
     InvalidArgumentTypeError
         If `include_dimensions` is neither a bool nor an int.
     """
@@ -277,6 +307,8 @@ def anndata_variables_frame(
     else:
         columns = [pl.Series(variable_id_column, container.variable_names())]
     # PART 3: ADD AnnData.var
+    if isinstance(metadata_columns, str):
+        metadata_columns = [metadata_columns]
     if metadata_columns is None:
         selected_columns = list(part.columns)
     else:
@@ -289,6 +321,7 @@ def anndata_variables_frame(
             raise KeyNotFoundError(msg)
         _reject_duplicate_keys(metadata_columns, "metadata_columns")
         selected_columns = list(metadata_columns)
+    _reject_id_column_collision(columns, selected_columns, "variable_id_column", "variable")
     for key in selected_columns:
         if part.dtypes[key] == "category":
             columns.append(_categorical_series(part[key]))
@@ -327,9 +360,11 @@ def anndata_variables_frame(
     return pl.DataFrame(columns)
 
 
-def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> list[str]:
+def _select_embedding_keys(embeddings, dimension_keys: str | Sequence[str] | None) -> list[str]:
     """Return the subset of embedding keys to materialise, matched case-insensitively."""
     available = list(embeddings.keys())
+    if isinstance(dimension_keys, str):
+        dimension_keys = [dimension_keys]
     if dimension_keys is None:
         return available
     _reject_duplicate_keys(dimension_keys, "dimension_keys", case_sensitive=False)
@@ -359,8 +394,8 @@ def build_frame(
     observation_id_column: str | None = "Barcode",
     variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
-    metadata_columns: Sequence[str] | None = None,
-    dimension_keys: Sequence[str] | None = None,
+    metadata_columns: str | Sequence[str] | None = None,
+    dimension_keys: str | Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build a DataFrame from a single-cell object.
@@ -382,12 +417,14 @@ def build_frame(
     include_dimensions : bool | int
         Whether to include dimensions in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-    metadata_columns : Sequence[str] | None
+    metadata_columns : str | Sequence[str] | None
         Restrict which metadata columns from the selected axis are materialised.
         `None` includes all metadata columns (default). An empty sequence skips them.
-    dimension_keys : Sequence[str] | None
+        A single string selects one column.
+    dimension_keys : str | Sequence[str] | None
         Restrict which embeddings are materialised when `include_dimensions`
         is truthy. Case-insensitive. `None` includes all embeddings (default).
+        A single string selects one embedding.
 
     Returns
     -------
@@ -406,7 +443,8 @@ def build_frame(
         If any `metadata_columns` or `dimension_keys` entry is unknown.
     InvalidArgumentError
         If `axis` is missing or is neither 0 nor 1, `include_dimensions` is
-        negative, the data object does not resolve to exactly one annotation
+        negative, an id column shares its name with a selected metadata column,
+        the data object does not resolve to exactly one annotation
         table, or a multimodal object does not share observations across its
         modalities.
     InvalidArgumentTypeError

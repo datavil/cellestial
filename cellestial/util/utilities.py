@@ -12,7 +12,7 @@ import inspect
 import re
 import sys
 import warnings
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence, Sized
 from functools import lru_cache
 from math import ceil, floor, isfinite, log10
 from numbers import Real
@@ -405,6 +405,12 @@ def _resolve_tooltips(
         fields = list(defaults)
         resolved: Sequence[str] | FeatureSpec | Literal["none"] = fields
     elif isinstance(tooltips, str):
+        if tooltips != "none":
+            msg = (
+                f"`tooltips={tooltips!r}` is not accepted: the only string is 'none'. "
+                f"For one column, pass a list: `tooltips=[{tooltips!r}]`."
+            )
+            raise InvalidArgumentError(msg)
         fields = []
         resolved = tooltips
     elif isinstance(tooltips, FeatureSpec):
@@ -691,12 +697,15 @@ def _wrap_legend(frame: pl.DataFrame, fill: str | None, color: str | None) -> Fe
 
 
 def _reject_sequence_key(key: object, *, singular: str, plural: str) -> None:
-    """Reject a non-string sequence where a single key is expected, pointing to the plural API."""
-    if key is None or isinstance(key, str):
+    """Reject a collection (sequence, set, array) where one key is expected, naming the plural."""
+    if key is None or isinstance(key, (str, bytes)):
         return
-    if isinstance(key, Sequence):
+    if isinstance(key, Iterable):
+        count = "several keys"
+        if isinstance(key, Sized):
+            count = f"{len(key)} key" if len(key) == 1 else f"{len(key)} keys"
         msg = (
-            f"`{singular}` plots a single key but received {len(key)} keys. "
+            f"`{singular}` plots a single key but received {count}. "
             f"Use `{plural}` for multiple keys."
         )
         raise InvalidArgumentTypeError(msg)

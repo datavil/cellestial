@@ -180,6 +180,24 @@ class _Container:
         return None, key
 
     @staticmethod
+    def _require_matrix(part: AnnData | MuData, keys: Sequence[str], where: str) -> None:
+        """
+        Reject reading variables from an object that has no main expression matrix.
+
+        Raises
+        ------
+        KeyNotFoundError
+            If the main matrix is absent (values only stored elsewhere).
+        """
+        if keys and part.X is None:
+            msg = (
+                f"Cannot read variables {list(keys)!r}: {where} has no main expression "
+                "matrix. Store the values to plot as the main matrix (e.g. copy a layer "
+                "into it) and try again."
+            )
+            raise KeyNotFoundError(msg)
+
+    @staticmethod
     def _require_unique_variables(names: pd.Index, keys: Sequence[str], where: str) -> None:
         """
         Reject keys that name more than one variable.
@@ -215,6 +233,8 @@ class _Container:
             If any key is not present in the variable names.
         AmbiguousVariableError
             If any key matches more than one variable.
+        KeyNotFoundError
+            If the data object has no main expression matrix.
         """
         missing = [key for key in keys if key not in self._data.var_names]
         if missing:
@@ -224,6 +244,7 @@ class _Container:
                 msg += f". {hint}"
             raise VariableNotFoundError(msg)
         self._require_unique_variables(self._data.var_names, keys, "the data")
+        self._require_matrix(self._data, keys, "the data")
 
         # Index `X` directly: an AnnData view also slices `.raw`, copying all of it.
         positions = self._data.var_names.get_indexer_for(keys)
@@ -416,6 +437,7 @@ class _MuDataContainer(_Container):
         modality, name = self.resolve_variable(key)
         part = self._data.mod[modality]
         self._require_unique_variables(part.var_names, [name], f"modality `{modality}`")
+        self._require_matrix(part, [name], f"modality `{modality}`")
         matrix = part.X[:, part.var_names.get_indexer_for([name])]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
