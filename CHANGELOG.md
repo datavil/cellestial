@@ -10,6 +10,7 @@ change. Versions absent from the list were never released.
 ## [Unreleased]
 
 ### Breaking
+
 - Unknown keys whose axis cannot be determined (e.g. `violin(data, "not_a_key")`),
   tooltip fields missing from the data and a missing stored PCA variance now
   raise `KeyNotFoundError` (a `KeyError`) instead of `ValueError`. Keys that
@@ -34,7 +35,54 @@ change. Versions absent from the list were never released.
   (it used to reach the renderer unchecked). Migration: pass a list for one
   column, `tooltips=["CD14"]`.
 
+- `volcano` and `volcanos` now reject a negative `logfoldchange_threshold`,
+  `top_n` or `nonsignificant_subsample` with `InvalidArgumentError`. A negative
+  fold change threshold used to call features with negative fold changes `up`,
+  and `top_n=-1` labelled every significant feature but one. Migration: pass
+  the absolute threshold (`1.0`, not `-1.0`) and `0` or `None` to disable labels.
+
+- `volcano` raises `KeyNotFoundError` (with a close match) instead of a bare
+  `KeyError` for a missing ranking key or group. Migration: catch
+  `KeyNotFoundError`; once it subclasses `KeyError`, `except KeyError` works
+  again.
+- `marker_genes(groups=[])` and `marker_genes_dict(groups=[])` raise
+  `EmptySelectionError` instead of returning an empty result that failed later.
+- `bracket` raises `InvalidArgumentError` for an unknown `test`, `correction`
+  or `label`, and `InvalidComparisonError` when there are too few finite
+  observations. Both subclass `ValueError`, so `except ValueError` still works.
+
+- `dimensionals`, `umaps`, `tsnes` and `pcas` raise `KeyNotFoundError` for an
+  unknown key instead of a `ValueError` about tooltip fields. Migration: catch
+  `KeyNotFoundError` (or `Exception`) instead of `ValueError`.
+
+- `spatial` and `spatials` raise `KeyNotFoundError` (with a close match) for an
+  unknown `table_name`, `image_name`, `shapes_name`, `coordinate_system`,
+  `library_id` or `spatial_key`, instead of `KeyError`. Ambiguous or missing
+  components raise `InvalidArgumentError` or `EmptySelectionError` (both
+  `ValueError` subclasses) instead of `ValueError`, and a non-SpatialData object
+  passed where one is needed raises `UnsupportedDataTypeError` (a `TypeError`).
+  Migration: catch `KeyNotFoundError` instead of `KeyError`.
+- `spatial` and `spatials` raise `InvalidArgumentError` when `mapping` sets an
+  aesthetic they map themselves (`x`, `y`, `group` for polygons, and `color`, or
+  `fill` for polygons, when `key` is given), instead of a raw `TypeError`.
+  Migration: drop the aesthetic from `mapping`, or pass `key=None` and map
+  `color`/`fill` in `mapping` (which now works).
+- `spatial(polygon=True)` with a `frame` whose rows differ from the table raises
+  `ConflictingLengthError`; polygons are now matched to frame rows by position,
+  as points already were. Migration: build `frame` from the same table without
+  filtering rows, and use `groups`/`drop` to filter.
+
+### Added
+
+- `volcano` and `volcanos` take `min_fraction_expressed` (default `None`) to
+  drop features detected in fewer than that fraction of the group's cells
+  (e.g. `0.1`). Such features get huge fold changes from the pseudocount and
+  used to dominate the plot. It reads the detection rates stored with the
+  ranking; with `group_by` they are recorded when the ranking is (re)computed,
+  otherwise a missing record raises `KeyNotFoundError` naming the fix.
+
 ### Changed
+
 - Remaining built-in exceptions in frame building, layout and grid helpers,
   marker and dataset helpers are now `errors.py` classes that subclass the same
   built-in (`InvalidArgumentError`, the new `InvalidArgumentTypeError`,
@@ -51,6 +99,7 @@ change. Versions absent from the list were never released.
   `dimension_keys`.
 
 ### Fixed
+
 - An observation or variable metadata column named like the id column
   (`Barcode`, `Variable`) raises `InvalidArgumentError` naming
   `observation_id_column` / `variable_id_column` instead of a polars
@@ -90,7 +139,6 @@ change. Versions absent from the list were never released.
   unknown group and `EmptySelectionError` when no outline can be computed (both
   were `ValueError`). Migration: catch the new classes.
 
-### Fixed
 - `violin`, `boxplot` and `histogram` raise `InvalidArgumentError` when `key`
   is also the `group_by` / `color` / `fill` column or is not numeric (booleans
   still plot as 0 / 1), instead of a polars `DuplicateError` or a late failure.
@@ -132,14 +180,7 @@ change. Versions absent from the list were never released.
 - Per-cell `heatmap` keeps cells apart when two groups share a barcode (e.g.
   concatenated samples without unique names). Such cells used to be duplicated,
   and binned rows averaged cells of both groups.
-### Breaking
-- `volcano` and `volcanos` now reject a negative `logfoldchange_threshold`,
-  `top_n` or `nonsignificant_subsample` with `InvalidArgumentError`. A negative
-  fold change threshold used to call features with negative fold changes `up`,
-  and `top_n=-1` labelled every significant feature but one. Migration: pass
-  the absolute threshold (`1.0`, not `-1.0`) and `0` or `None` to disable labels.
 
-### Fixed
 - `volcano` and `volcanos` reject a `pvalue_threshold` outside (0, 1] before
   building the plot, instead of failing in the renderer.
 - `volcano` names the missing fields when the stored ranking has no fold
@@ -151,24 +192,7 @@ change. Versions absent from the list were never released.
 - `bracket(y_position=...)` below the top of the data no longer gives the plot
   a negative height, and a `y` column without finite values raises a clear
   `ValueError` instead of a `TypeError`.
-### Added
-- `volcano` and `volcanos` take `min_fraction_expressed` (default `None`) to
-  drop features detected in fewer than that fraction of the group's cells
-  (e.g. `0.1`). Such features get huge fold changes from the pseudocount and
-  used to dominate the plot. It reads the detection rates stored with the
-  ranking; with `group_by` they are recorded when the ranking is (re)computed,
-  otherwise a missing record raises `KeyNotFoundError` naming the fix.
-### Breaking
-- `volcano` raises `KeyNotFoundError` (with a close match) instead of a bare
-  `KeyError` for a missing ranking key or group. Migration: catch
-  `KeyNotFoundError`; once it subclasses `KeyError`, `except KeyError` works
-  again.
-- `marker_genes(groups=[])` and `marker_genes_dict(groups=[])` raise
-  `EmptySelectionError` instead of returning an empty result that failed later.
-- `bracket` raises `InvalidArgumentError` for an unknown `test`, `correction`
-  or `label`, and `InvalidComparisonError` when there are too few finite
-  observations. Both subclass `ValueError`, so `except ValueError` still works.
-### Fixed
+
 - `volcano` labels: features tied on p-value and fold change are picked by
   name, so the labelled set no longer depends on sort order.
 - `volcanos(groups=[])` raises `EmptySelectionError`; `volcanos` and `markers`
@@ -197,12 +221,7 @@ change. Versions absent from the list were never released.
   group present in the data; that group's cells used to be dropped silently.
 - The `DendrogramMismatchError` hint also names a same-named column with
   different groups (e.g. a modality's own column) as a possible cause.
-### Breaking
-- `dimensionals`, `umaps`, `tsnes` and `pcas` raise `KeyNotFoundError` for an
-  unknown key instead of a `ValueError` about tooltip fields. Migration: catch
-  `KeyNotFoundError` (or `Exception`) instead of `ValueError`.
 
-### Fixed
 - `cl.spatial` and `cl.spatials` on SpatialData point (or polygon-centroid)
   shapes now place each table row at its own shape, matched on the table's
   instance key. Spots used to be matched by position, so a table ordered
@@ -222,25 +241,7 @@ change. Versions absent from the list were never released.
   used to be split into characters.
 - `violin`, `boxplot` and `histogram` warn when `groups` or `drop` is passed
   without `group_by`, where the filter is ignored.
-### Breaking
-- `spatial` and `spatials` raise `KeyNotFoundError` (with a close match) for an
-  unknown `table_name`, `image_name`, `shapes_name`, `coordinate_system`,
-  `library_id` or `spatial_key`, instead of `KeyError`. Ambiguous or missing
-  components raise `InvalidArgumentError` or `EmptySelectionError` (both
-  `ValueError` subclasses) instead of `ValueError`, and a non-SpatialData object
-  passed where one is needed raises `UnsupportedDataTypeError` (a `TypeError`).
-  Migration: catch `KeyNotFoundError` instead of `KeyError`.
-- `spatial` and `spatials` raise `InvalidArgumentError` when `mapping` sets an
-  aesthetic they map themselves (`x`, `y`, `group` for polygons, and `color`, or
-  `fill` for polygons, when `key` is given), instead of a raw `TypeError`.
-  Migration: drop the aesthetic from `mapping`, or pass `key=None` and map
-  `color`/`fill` in `mapping` (which now works).
-- `spatial(polygon=True)` with a `frame` whose rows differ from the table raises
-  `ConflictingLengthError`; polygons are now matched to frame rows by position,
-  as points already were. Migration: build `frame` from the same table without
-  filtering rows, and use `groups`/`drop` to filter.
 
-### Fixed
 - `spatial(polygon=True)` draws holes in polygons as holes; a hole wound the
   same way as its exterior used to be filled. The outline still draws a line
   from the exterior to each hole until ggrust splits polygon rings.
