@@ -216,12 +216,12 @@ def test_spatial_data_smart_resolution_with_image_name(data_multi):
 
 
 def test_spatial_sdata_unknown_table_raises(data_minimal):
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyNotFoundError):
         cl.spatial(data_minimal, table_name="does_not_exist")
 
 
 def test_spatial_sdata_unknown_coordinate_system_raises(data_minimal):
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyNotFoundError):
         cl.spatial(data_minimal, coordinate_system="not_a_cs")
 
 
@@ -432,7 +432,7 @@ def test_spatial_anndata_visium_errors_and_warnings():
 
     with pytest.raises(ValueError, match="Multiple spatial libraries"):
         cl.spatial(data)
-    with pytest.raises(KeyError, match="library_id"):
+    with pytest.raises(KeyNotFoundError, match="library_id"):
         cl.spatial(data, library_id="missing")
     with pytest.warns(cl.util.errors.CellestialWarning, match="image"):
         cl.spatial(data, library_id="a", image=True)
@@ -529,7 +529,7 @@ def test_spatial_components_falls_back_to_available_image():
 def test_spatial_components_anndata_errors():
     data = AnnData(X=np.ones((2, 2)), var=pd.DataFrame(index=["G1", "G2"]))
 
-    with pytest.raises(KeyError, match="spot coordinates"):
+    with pytest.raises(KeyNotFoundError, match="spot coordinates"):
         _spatial_components(
             data,
             library_id=None,
@@ -539,7 +539,7 @@ def test_spatial_components_anndata_errors():
         )
 
     data.obsm["spatial"] = np.ones((2, 2))
-    with pytest.raises(KeyError, match="no spatial"):
+    with pytest.raises(KeyNotFoundError, match="no spatial"):
         _spatial_components(
             data,
             library_id="lib",
@@ -574,7 +574,7 @@ def test_spatial_component_selection_helpers(data_minimal, data_multi):
     assert _select_one("img", ["img"], "image") == "img"
     assert _select_one(None, ["img"], "image") == "img"
 
-    with pytest.raises(KeyError, match="image"):
+    with pytest.raises(KeyNotFoundError, match="image"):
         _select_one("missing", ["img"], "image")
     with pytest.raises(ValueError, match="No image"):
         _select_one(None, [], "image")
@@ -582,7 +582,7 @@ def test_spatial_component_selection_helpers(data_minimal, data_multi):
         _select_one(None, ["a", "b"], "image")
     with pytest.raises(TypeError, match="SpatialData"):
         _resolve_table("not sdata", None)
-    with pytest.raises(KeyError, match="image"):
+    with pytest.raises(KeyNotFoundError, match="image"):
         _resolve_image_name(data_minimal, "missing", coordinate_system="global")
     with pytest.raises(ValueError, match="Multiple image"):
         _resolve_image_name(data_multi, None, coordinate_system="global")

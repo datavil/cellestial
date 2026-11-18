@@ -11,15 +11,16 @@ from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
-from cellestial.spatial.spatial import spatial
-from cellestial.spatial.utilities import _resolve_instance_key, _spatial_components
+from cellestial.spatial.spatial import _spatial
+from cellestial.spatial.utilities import _spatial_components
 from cellestial.util import (
     _collect_aes_columns,
+    _is_spatialdata,
     _is_variable_key,
     _resolve_tooltips,
     _share_labels,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from ggrust.plot.subplots import SupPlotsSpec
@@ -200,10 +201,40 @@ def spatials(
     SupPlotsSpec
         Grid of spatial plots, one per key.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported spatial data object.
+    TypeError
+        If `keys` is not a sequence of strings.
+    KeyNotFoundError
+        If a requested table, image, shapes element, coordinate system, library
+        or `spatial_key` is missing. The message suggests a close match.
+    EmptySelectionError
+        If the spatial data holds no table, shapes or image to choose from.
+    InvalidArgumentError
+        If spatial components are ambiguous, `crop` is not 4 values, `mapping`
+        sets an aesthetic the plot maps itself, or `polygon=True` meets a table
+        without an instance key.
+    ConflictingLengthError
+        If the shapes cannot be matched to the table rows, or a given `frame`
+        has a different number of rows than the table in polygon mode.
+    DuplicateKeysError
+        If the shapes element repeats an instance id.
+    NotImplementedError
+        If polygon rendering encounters unsupported MultiPolygon geometry.
+
     Notes
     -----
     If no tissue image metadata is present, the plot falls back to a plain
     spatial scatter using the raw coordinates.
+
+    With several libraries, `library_id` picks the tissue image and its scale
+    factor, but every spot in `data` is drawn on that image. Subset `data` to
+    the spots of one library first.
+
+    `polygon=True` draws holes in polygon geometries unfilled. The outline also
+    draws a line from each polygon's exterior to its holes.
 
     `cmap`, `norm`, `vmin` and `vmax` are passed to `geom_imshow`.
 
@@ -254,23 +285,24 @@ def spatials(
         )
         raise UnsupportedDataTypeError(msg)
 
-    # Resolve the annotation table once (mirrors `spatial`); SpatialData needs extraction
-    # for the variable-key check below, while `build_frame` accepts either type.
-    if isinstance(data, AnnData):
-        table = data
-    else:
-        _, _, _, table = _spatial_components(
-            data,
-            library_id=library_id,
-            image_key=image_key,
-            image=image,
-            spatial_key=spatial_key,
-            table_name=table_name,
-            image_name=image_name,
-            shapes_name=shapes_name,
-            coordinate_system=coordinate_system,
-            polygon=polygon,
-        )
+    if not isinstance(data, AnnData) and not _is_spatialdata(data):
+        raise _unsupported_data_type(data, AnnData, "SpatialData")
+
+    # Resolve image, geometry and the annotation table once and share them with
+    # every subplot, instead of transforming and loading them once per key.
+    components = _spatial_components(
+        data,
+        library_id=library_id,
+        image_key=image_key,
+        image=image,
+        spatial_key=spatial_key,
+        table_name=table_name,
+        image_name=image_name,
+        shapes_name=shapes_name,
+        coordinate_system=coordinate_system,
+        polygon=polygon,
+    )
+    table = components[3]
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # spatial is always observations-axis; only gene keys are pulled from X.
@@ -303,10 +335,6 @@ def spatials(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    # Polygon mode joins on an instance key; include it up front.
-    instance_key = _resolve_instance_key(table)
-    if polygon and instance_key is not None and instance_key not in metadata_columns:
-        metadata_columns.append(instance_key)
     observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=table,
@@ -319,9 +347,10 @@ def spatials(
 
     plots = []
     for i, key in enumerate(keys):
-        plot = spatial(
-            data=data,
-            key=key,
+        plot = _spatial(
+            data,
+            key,
+            components=components,
             frame=frame,
             library_id=library_id,
             image=image,
