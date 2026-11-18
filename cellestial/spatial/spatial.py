@@ -420,7 +420,7 @@ def spatial(
             **geom_kwargs,
         )
         if key is not None:
-            if frame[key].dtype == pl.Categorical:
+            if isinstance(frame[key].dtype, (pl.Categorical, pl.Enum)):
                 sptl += scale_fill_brewer(palette="Set2")
             elif frame[key].dtype.is_numeric():
                 sptl += _fill_gradient(
@@ -439,7 +439,7 @@ def spatial(
             **geom_kwargs,
         )
         if key is not None:
-            if frame[key].dtype == pl.Categorical:
+            if isinstance(frame[key].dtype, (pl.Categorical, pl.Enum)):
                 sptl += scale_color_brewer(palette="Set2")
             elif frame[key].dtype.is_numeric():
                 sptl += _color_gradient(

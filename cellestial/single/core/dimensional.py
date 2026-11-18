@@ -346,7 +346,7 @@ def dimensional(
 
     if key is not None:
         # CASE1 ---------------------- CATEGORICAL DATA ----------------------
-        if frame[key].dtype == pl.Categorical:
+        if isinstance(frame[key].dtype, (pl.Categorical, pl.Enum)):
             scttr += scale_color_brewer(palette="Set2")
 
         # CASE2 ---------------------- CONTINUOUS DATA ----------------------
@@ -386,7 +386,7 @@ def dimensional(
 
     # HANDLE: legend on data
     if key is not None and legend_ondata:
-        if frame[key].dtype == pl.Categorical:
+        if isinstance(frame[key].dtype, (pl.Categorical, pl.Enum)):
             scttr += ondata_legend(
                 size=ondata_size,
                 color=ondata_color,
@@ -397,7 +397,7 @@ def dimensional(
                 halo_width=halo_width,
                 halo_color=halo_color,
             )
-        elif frame[key].dtype != pl.Categorical:
+        else:
             msg = f"key `{key}` is not categorical, legend on data will not be added"
             _warn(msg)
 

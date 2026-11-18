@@ -77,11 +77,11 @@ def test_numeric_categories_keep_missing_values_null(numeric_categories):
     """Missing values of a numeric categorical stay null, not a `"nan"` category."""
     observations = cl.build_frame(numeric_categories, axis=0)
     assert observations["cluster"].to_list() == ["1", "2", None, "1"]
-    assert observations["cluster"].dtype == pl.Categorical
+    assert observations["cluster"].dtype == pl.Enum(["1", "2"])
 
     variables = cl.build_frame(numeric_categories, axis=1)
     assert variables["bin"].to_list() == ["0.5", None, "1.5"]
-    assert variables["bin"].dtype == pl.Categorical
+    assert variables["bin"].dtype == pl.Enum(["0.5", "1.5"])
 
 
 def test_sparse_embedding_becomes_columns(numeric_categories):

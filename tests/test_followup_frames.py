@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import polars as pl
 import pytest
+from anndata import AnnData
 
 import cellestial as cl
 from cellestial.frames._container import _container
@@ -168,3 +170,31 @@ def test_from_cellxgene_rejects_source_without_uuid():
     """A source holding no dataset UUID raises `InvalidArgumentError`."""
     with pytest.raises(InvalidArgumentError, match="UUID"):
         cl.datasets.from_cellxgene("not-a-uuid")
+
+
+# --- category order ----------------------------------------------------------
+
+
+def test_build_frame_keeps_source_category_order(adata):
+    """Categorical metadata keeps its source category order, not first appearance."""
+    source = adata.obs["leiden"].cat.categories.astype(str).to_list()
+    frame = cl.build_frame(adata, axis=0, metadata_columns=["leiden"])
+    assert frame["leiden"].dtype == pl.Enum(source)
+    assert frame["leiden"].to_list() == adata.obs["leiden"].astype(str).to_list()
+
+
+def test_build_frame_keeps_numeric_category_order():
+    """Numeric categories keep their order and missing values stay null."""
+    data = AnnData(X=np.zeros((4, 1), dtype=np.float32))
+    data.obs["cluster"] = pd.Categorical([10, 2, None, 1], categories=[1, 2, 10])
+    frame = cl.build_frame(data, axis=0, metadata_columns=["cluster"])
+    assert frame["cluster"].dtype == pl.Enum(["1", "2", "10"])
+    assert frame["cluster"].to_list() == ["10", "2", None, "1"]
+
+
+def test_umap_legend_follows_category_order(adata):
+    """The plotted factor levels follow the source categories."""
+    spec = cl.umap(adata, key="leiden").as_dict()
+    annotations = spec["data_meta"]["series_annotations"]
+    levels = next(item["factor_levels"] for item in annotations if item["column"] == "leiden")
+    assert levels == adata.obs["leiden"].cat.categories.astype(str).to_list()

@@ -24,6 +24,11 @@ change. Versions absent from the list were never released.
   `ConflictingLengthError`, `GridIndexError`, `MissingPlotDataError`,
   `IncompleteDownloadError`), so existing `except` clauses keep working.
 - `layout(widths=...)` accepts numpy arrays (1D, 2D, or one array per row).
+- `build_frame` returns categorical metadata as `pl.Enum` in the source
+  category order (was `pl.Categorical`, ordered by first appearance), so
+  legends and group axes list categories as the data defines them (e.g.
+  clusters `0, 1, 2, ...` instead of `0, 2, 3, ...`). Code that checks
+  `dtype == pl.Categorical` on a built frame should also accept `pl.Enum`.
 - `KeyNotFoundError` and `VariableNotFoundError` now subclass `KeyError`, so
   `except KeyError` catches them. Their message prints without quotes.
 - Unknown keys, metadata columns, embeddings, variables and modalities name the

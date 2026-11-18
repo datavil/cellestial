@@ -227,7 +227,7 @@ def _filter_groups(
     if groups is None and drop is None:
         return frame
 
-    if frame[column].dtype != pl.Categorical:
+    if not isinstance(frame[column].dtype, (pl.Categorical, pl.Enum)):
         if groups is not None:
             _warn(f"{column_parameter} `{column}` is not categorical, `groups` filter ignored")
         if drop is not None:

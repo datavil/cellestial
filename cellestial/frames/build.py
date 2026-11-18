@@ -23,8 +23,31 @@ from cellestial.util.utilities import _is_spatialdata
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import pandas as pd
     from polars import DataFrame
     from spatialdata import SpatialData
+
+
+def _categorical_series(values: pd.Series) -> pl.Series:
+    """
+    Convert a categorical metadata column, keeping its category order.
+
+    Notes
+    -----
+    Categories become a `pl.Enum` in their source order, so legends and group
+    axes list them as the data defines them rather than by first appearance
+    (polars `Categorical` keeps no order of its own). Numeric categories are
+    renamed to strings first, so missing values stay null (`astype(str)` would
+    turn them into a "nan" category). Categoricals that polars reads as another
+    type (e.g. boolean or datetime categories) keep that type.
+    """
+    if values.cat.categories.dtype.kind in "iuf":
+        values = values.cat.rename_categories(str)
+    series = pl.Series(values)
+    if series.dtype == pl.Categorical:
+        levels = list(dict.fromkeys(str(category) for category in values.cat.categories))
+        series = series.cast(pl.String).cast(pl.Enum(levels))
+    return series
 
 
 def _reject_duplicate_keys(
@@ -153,13 +176,8 @@ def anndata_observations_frame(
         _reject_duplicate_keys(metadata_columns, "metadata_columns")
         selected_columns = list(metadata_columns)
     for key in selected_columns:
-        # handle categorical integer data
-        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
-            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Rename the categories to strings, so missing values stay null
-            # (`astype(str)` would turn them into a "nan" category)
-            columns.append(pl.Series(part[key].cat.rename_categories(str)).cast(pl.Categorical))
+        if part.dtypes[key] == "category":
+            columns.append(_categorical_series(part[key]))
         else:
             columns.append(pl.Series(part[key]))
 
@@ -272,13 +290,8 @@ def anndata_variables_frame(
         _reject_duplicate_keys(metadata_columns, "metadata_columns")
         selected_columns = list(metadata_columns)
     for key in selected_columns:
-        # handle categorical integer data
-        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
-            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Rename the categories to strings, so missing values stay null
-            # (`astype(str)` would turn them into a "nan" category)
-            columns.append(pl.Series(part[key].cat.rename_categories(str)).cast(pl.Categorical))
+        if part.dtypes[key] == "category":
+            columns.append(_categorical_series(part[key]))
         else:
             columns.append(pl.Series(part[key]))
 
