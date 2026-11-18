@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
 from cellestial.single.core.dimensional import dimensional
 from cellestial.util import _is_variable_key, _reject_sequence_key
 from cellestial.util.errors import VariableNotFoundError
+from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -803,7 +805,12 @@ def expression(
     """
     _reject_sequence_key(key, singular="expression", plural="expressions")
     if not _is_variable_key(data, key):
-        msg = f"'{key}' is not present in `variable` names"
+        close_matches = get_close_matches(key, _container(data).variable_names().astype(str), n=3)
+        hint = f" Did you mean {close_matches}?" if close_matches else ""
+        msg = (
+            f"'{key}' is not present in `variable` names.{hint}\n"
+            "`expression` colors by a gene (variable); for observation metadata use `dimensional`."
+        )
         raise VariableNotFoundError(msg)
     return dimensional(
         data=data,

@@ -35,6 +35,15 @@ if TYPE_CHECKING:
     from polars import DataFrame
 
 
+def _observation_embeddings_cover(data: AnnData | MuData, feature_keys: Sequence[str]) -> bool:
+    """Whether `data` holds observation embeddings and every key is an observation column or variable."""
+    if isinstance(data, (AnnData, MuData)):
+        return bool(data.obsm) and all(
+            key in data.obs.columns or key in data.var_names for key in feature_keys
+        )
+    raise _unsupported_data_type(data, AnnData, MuData)
+
+
 def xyplot(
     data: AnnData | MuData,
     x: str,
@@ -187,8 +196,8 @@ def xyplot(
 
     # BUILD: the dataframe
     if axis is None:
-        observation_dimensions = bool(include_dimensions and data.obsm) and all(
-            key in data.obs.columns or key in data.var_names for key in feature_keys
+        observation_dimensions = bool(include_dimensions) and _observation_embeddings_cover(
+            data, feature_keys
         )
         axis = (
             0

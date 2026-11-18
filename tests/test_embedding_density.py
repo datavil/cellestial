@@ -10,6 +10,7 @@ from ggrust.plot.core import PlotSpec
 import cellestial as cl
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentError,
     KeyNotFoundError,
     NonCategoricalColumnError,
     UnsupportedDataTypeError,
@@ -139,7 +140,7 @@ def test_wrong_data_type_is_rejected():
 
 def test_xy_must_hold_two_dimensions(adata):
     """`xy` needs exactly two dimensions."""
-    with pytest.raises(KeyError, match="exactly two dimensions"):
+    with pytest.raises(InvalidArgumentError, match="exactly 2 components"):
         cl.embedding_density(adata, xy=(1, 2, 3))
 
 

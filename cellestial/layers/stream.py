@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["ggrust"]
 
 import re
+from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -16,8 +17,13 @@ from ggrust import (
 )
 
 from cellestial.layers._deferred import DeferredLayer
+from cellestial.layers.utilities import _reject_mapping_clash
 from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
-from cellestial.util.errors import MissingAestheticError
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    KeyNotFoundError,
+    MissingAestheticError,
+)
 
 if TYPE_CHECKING:
     from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
@@ -119,9 +125,10 @@ def stream(
     ------
     MissingAestheticError
         If `x` or `y` cannot be inferred from the receiving plot.
-    ValueError
-        If dimension numbers cannot be parsed when `velocity_key` is provided.
-    KeyError
+    InvalidArgumentError
+        If dimension numbers cannot be parsed when `velocity_key` is provided,
+        or if `mapping` sets `x`, `y` or `group`, which the layer sets itself.
+    KeyNotFoundError
         If the required velocity columns are not present in the plot data.
 
     Notes
@@ -179,6 +186,11 @@ def stream(
         gggrid([plot, ggplot() + cl.stream(plot=plot)])
 
     """
+    _reject_mapping_clash(
+        mapping,
+        function="stream",
+        set_by={"x": "the plot's `x`", "y": "the plot's `y`", "group": "each stream line"},
+    )
     explicit_plot = plot
 
     def _build(receiving_plot: PlotSpec) -> FeatureSpecArray:
@@ -200,8 +212,13 @@ def stream(
             x_match = re.match(r"(.+?)(\d+)$", x)
             y_match = re.match(r"(.+?)(\d+)$", y)
             if x_match is None or y_match is None:
-                msg = f"Could not parse dimension number from mapping keys: x={x!r}, y={y!r}"
-                raise ValueError(msg)
+                msg = (
+                    f"Could not parse a component number from the plot's x={x!r} and "
+                    f"y={y!r}, needed to name the `velocity_key` columns.\n"
+                    "`velocity_key` works with embedding axes ending in a component "
+                    "number (e.g. `X_UMAP1`); otherwise pass `velocity_prefix=`."
+                )
+                raise InvalidArgumentError(msg)
             *_, x_number = x_match.groups()
             *_, y_number = y_match.groups()
             x_velocity = f"{velocity_key}{x_number}"
@@ -217,12 +234,14 @@ def stream(
             column for column in (x_velocity, y_velocity) if column not in frame.columns
         ]
         if missing_velocity_columns:
+            close_matches = get_close_matches(missing_velocity_columns[0], frame.columns, n=3)
+            hint = f" Did you mean {close_matches}?" if close_matches else ""
             msg = (
-                f"Velocity columns not found: {missing_velocity_columns}. "
+                f"Velocity columns not found: {missing_velocity_columns}.{hint}\n"
                 "Pass `velocity_prefix=` or `velocity_key=` if your velocity columns "
                 "use different names."
             )
-            raise KeyError(msg)
+            raise KeyNotFoundError(msg)
 
         frame = _drop_nonfinite_rows(frame, [x, y, x_velocity, y_velocity])
 

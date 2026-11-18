@@ -18,6 +18,7 @@ from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import _reject_mapping_clash
 from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
@@ -76,6 +77,8 @@ def ridge(
         Scaling factor for the height of the ridges.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
+        Ridges are not filled by group unless mapped, e.g. `aes(fill='leiden')`.
+        `x` and `y` are set from `key` and `group_by`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     threshold : float | None, default=None
@@ -112,6 +115,8 @@ def ridge(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentError
+        If `mapping` sets `x` or `y`, which come from `key` and `group_by`.
 
     Examples
     --------
@@ -130,6 +135,7 @@ def ridge(
                 data,
                 key="B2M",
                 group_by="cell_type_lvl1",
+                mapping=aes(fill="cell_type_lvl1"),
             )
         )
 
@@ -138,13 +144,14 @@ def ridge(
     Customize the geom.
 
     .. jupyter-execute::
-        :emphasize-lines: 6-7
+        :emphasize-lines: 7-8
 
         ridge = (
             cl.ridge(
                 data,
                 key="B2M",
                 group_by="cell_type_lvl1",
+                mapping=aes(fill="cell_type_lvl1"),
                 alpha=0.7,
                 color="#1f1f1f",
             )
@@ -159,6 +166,7 @@ def ridge(
     _reject_sequence_key(key, singular="ridge", plural="ridges")
 
     # HANDLE: mapping
+    _reject_mapping_clash(mapping, function="ridge", set_by={"x": "`key`", "y": "`group_by`"})
     mapping = mapping or aes()
 
     keys = [key]
@@ -224,7 +232,6 @@ def ridge(
         mapping=aes(
             x=key,
             y=group_by,
-            fill=group_by,
             **mapping.as_dict(),
         ),
         scale=scale,
@@ -287,6 +294,7 @@ def ridges(
         Scaling factor for the height of the ridges.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
+        Ridges are not filled by group unless mapped, e.g. `aes(fill='leiden')`.
     axis : {0,1} | None, default=None
         axis of the data, 0 for observations and 1 for variables.
     threshold : float | None, default=None
@@ -364,6 +372,7 @@ def ridges(
 
         import numpy as np
         import scanpy as sc
+        from ggrust import aes
 
         import cellestial as cl
 
@@ -376,6 +385,7 @@ def ridges(
             data,
             keys=top8_genes,
             group_by="cell_type_lvl1",
+            mapping=aes(fill="cell_type_lvl1"),
             alpha=0.7,
             scale=2,
             ncol=2,

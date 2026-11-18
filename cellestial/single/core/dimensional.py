@@ -23,6 +23,7 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.layers import _modify_axis, ondata_legend
+from cellestial.layers.utilities import _reject_mapping_clash
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _collect_aes_columns,
@@ -190,10 +191,10 @@ def dimensional(
         If `key` is a sequence of keys; use `dimensionals` for multiple keys.
     KeyNotFoundError
         If `key` is not found in observation metadata or variable names.
-    KeyError
-        If `xy` does not contain exactly two dimensions.
     InvalidArgumentError
-        If `xy` selects a component the embedding does not have (components are 1-based).
+        If `xy` does not hold exactly two components, selects a component the
+        embedding does not have (components are 1-based), or if `mapping` sets
+        `x`, `y`, or `color` (with `key`), which the function sets itself.
 
     Examples
     --------
@@ -244,12 +245,20 @@ def dimensional(
         _require_feature_key(data, key)
 
     # HANDLE: mapping
+    _reject_mapping_clash(
+        mapping,
+        function="dimensional",
+        set_by={"x": "`xy`", "y": "`xy`", **({"color": "`key`"} if key is not None else {})},
+    )
     mapping = mapping or aes()
 
     #  HANDLE: XY
     if len(xy) != 2:
-        msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
-        raise KeyError(msg)
+        msg = (
+            f"`xy` must hold exactly 2 components, but received {len(xy)}: {tuple(xy)}.\n"
+            "Pass two 1-based components, e.g. `xy=(1, 2)`."
+        )
+        raise InvalidArgumentError(msg)
     prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
     if min(xy) < 1:
         msg = (
@@ -336,7 +345,9 @@ def dimensional(
     scttr = (
         ggplot(data=frame)
         + geom_point(
-            mapping=aes(x=x, y=y, color=key, **mapping.as_dict()),
+            mapping=aes(
+                x=x, y=y, **({"color": key} if key is not None else {}), **mapping.as_dict()
+            ),
             size=size,
             tooltips=tooltips,
             **geom_kwargs,
@@ -365,6 +376,8 @@ def dimensional(
         x_label = f"tSNE{xy[0]}"
         y_label = f"tSNE{xy[1]}"
         scttr += labs(x=x_label, y=y_label)
+    elif dimensions == "pca":
+        scttr += labs(x=f"PC{xy[0]}", y=f"PC{xy[1]}")
     else:
         # UMAP1 and UMAP2 rather than X_UMAP1 and X_UMAP2 etc.,
         scttr += labs(

@@ -25,6 +25,7 @@ from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import _drop_nonfinite_rows, _filter_groups, _resolve_embedding_key
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentError,
     KeyNotFoundError,
     NonCategoricalColumnError,
     _unsupported_data_type,
@@ -129,8 +130,8 @@ def embedding_density(
         If `group_by` holds numeric values.
     EmptySelectionError
         If no cell is left after `groups` and `drop`.
-    KeyError
-        If `xy` does not contain exactly two dimensions.
+    InvalidArgumentError
+        If `xy` does not contain exactly two components.
 
     Notes
     -----
@@ -168,8 +169,11 @@ def embedding_density(
 
     # HANDLE: XY
     if len(xy) != 2:
-        msg = f"`xy` must hold exactly two dimensions, e.g. (1, 2), but got {tuple(xy)!r}."
-        raise KeyError(msg)
+        msg = (
+            f"`xy` must hold exactly 2 components, but received {len(xy)}: {tuple(xy)}.\n"
+            "Pass two 1-based components, e.g. `xy=(1, 2)`."
+        )
+        raise InvalidArgumentError(msg)
     prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
     x = f"{prefix}{xy[0]}"  # e.g. X_UMAP1
     y = f"{prefix}{xy[1]}"  # e.g. X_UMAP2

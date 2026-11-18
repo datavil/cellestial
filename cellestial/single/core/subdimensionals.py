@@ -5,6 +5,7 @@ __lazy_modules__ = ["ggrust", "ggrust.plot.core"]
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
+import polars as pl
 from ggrust import gggrid, ggtb
 from ggrust.plot.core import FeatureSpec, LayerSpec
 
@@ -18,11 +19,39 @@ from cellestial.util import (
     _share_axis,
     _share_labels,
 )
+from cellestial.util.errors import KeyNotFoundError
 
 if TYPE_CHECKING:
     from anndata import AnnData
     from ggrust.plot.subplots import SupPlotsSpec
     from mudata import MuData
+
+
+def _require_groups_in_every_key(
+    frame: pl.DataFrame,
+    keys: Sequence[str],
+    *,
+    groups: Sequence[str] | str | None,
+    drop: Sequence[str] | str | None,
+) -> None:
+    """Raise `KeyNotFoundError` naming the categorical key that lacks a `groups` / `drop` value."""
+    for parameter, values in (("groups", groups), ("drop", drop)):
+        if values is None:
+            continue
+        values = [values] if isinstance(values, str) else list(values)
+        for key in keys:
+            if key not in frame.columns or frame[key].dtype != pl.Categorical:
+                continue  # numeric keys are not filtered (`dimensional` warns)
+            available = frame[key].unique().drop_nulls().to_list()
+            unknown = [value for value in values if value not in available]
+            if unknown:
+                msg = (
+                    f"`{parameter}` {unknown!r} not found in key `{key}`. "
+                    f"Available: {sorted(available)!r}.\n"
+                    f"`{parameter}` applies to every categorical key in `keys`; plot "
+                    f"`{key}` in its own call, or remove it from `keys`."
+                )
+                raise KeyNotFoundError(msg)
 
 
 def dimensionals(
@@ -107,10 +136,12 @@ def dimensionals(
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -286,6 +317,7 @@ def dimensionals(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
     for i, key in enumerate(keys):
@@ -437,10 +469,12 @@ def umaps(
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -616,6 +650,7 @@ def umaps(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
     for i, key in enumerate(keys):
@@ -766,10 +801,12 @@ def tsnes(
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -944,6 +981,7 @@ def tsnes(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
     for i, key in enumerate(keys):
@@ -1093,10 +1131,12 @@ def pcas(
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -1271,6 +1311,7 @@ def pcas(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
     for i, key in enumerate(keys):

@@ -11,7 +11,11 @@ from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
-from cellestial.util.errors import KeyNotFoundError, VariableNotFoundError
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    KeyNotFoundError,
+    VariableNotFoundError,
+)
 
 # ===========================================================================
 # dimensional.py, uncovered: TypeError, use_key, legend_ondata, color_mid,
@@ -20,42 +24,50 @@ from cellestial.util.errors import KeyNotFoundError, VariableNotFoundError
 
 
 def test_dimensional_invalid_data():
+    """Dimensional invalid data."""
     with pytest.raises(TypeError):
         cl.dimensional("not anndata", "leiden")
 
 
 def test_dimensional_use_key(adata):
+    """Dimensional use key."""
     plot = cl.umap(adata, "leiden", use_key="X_umap")
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_legend_ondata(adata, group_key):
+    """Dimensional legend ondata."""
     plot = cl.umap(adata, group_key, legend_ondata=True)
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_color_mid(adata):
+    """Dimensional color mid."""
     plot = cl.umap(adata, "CD14", color_mid="yellow", midpoint="mean")
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_color_mid_midpoint(adata):
+    """Dimensional color mid midpoint."""
     plot = cl.umap(adata, "CD14", color_mid="yellow", midpoint="mid")
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_interactive(adata):
+    """Dimensional interactive."""
     plot = cl.umap(adata, "leiden", interactive=True)
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_tooltips_featurespec(adata, group_key):
+    """Dimensional tooltips featurespec."""
     plot = cl.umap(adata, group_key, tooltips=layer_tooltips([group_key]))
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_xy_invalid_length(adata):
-    with pytest.raises(KeyError):
+    """Dimensional xy invalid length."""
+    with pytest.raises(InvalidArgumentError, match="exactly 2 components"):
         cl.umap(adata, "leiden", xy=(1, 2, 3))
 
 
@@ -66,31 +78,37 @@ def test_dimensional_xy_invalid_length(adata):
 
 
 def test_violin_invalid_data():
+    """Violin invalid data."""
     with pytest.raises(TypeError):
         cl.violin("not anndata", "CD14")
 
 
 def test_violin_tooltips_featurespec(adata, group_key):
+    """Violin tooltips featurespec."""
     plot = cl.violin(adata, "CD14", fill=group_key, tooltips=layer_tooltips(["variable"]))
     assert isinstance(plot, PlotSpec)
 
 
 def test_violin_interactive(adata, group_key):
+    """Violin interactive."""
     plot = cl.violin(adata, "CD14", fill=group_key, interactive=True)
     assert isinstance(plot, PlotSpec)
 
 
 def test_boxplot_interactive(adata, group_key):
+    """Boxplot interactive."""
     plot = cl.boxplot(adata, "CD14", fill=group_key, interactive=True)
     assert isinstance(plot, PlotSpec)
 
 
 def test_violin_tooltips_none(adata, group_key):
+    """Violin tooltips none."""
     plot = cl.violin(adata, "CD14", fill=group_key, tooltips="none")
     assert isinstance(plot, PlotSpec)
 
 
 def test_violin_multi_key_with_group(adata, group_key):
+    """Violin multi key with group."""
     plot = cl.violin(adata, ["CD14", "MS4A1"], group_by=group_key)
     assert isinstance(plot, PlotSpec)
 
@@ -101,26 +119,31 @@ def test_violin_multi_key_with_group(adata, group_key):
 
 
 def test_violins_share_ticks(adata, group_key):
+    """Violins share ticks."""
     plot = cl.violins(adata, ["CD14", "MS4A1"], fill=group_key, ncol=1, share_ticks=True)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_violins_share_axis(adata, group_key):
+    """Violins share axis."""
     plot = cl.violins(adata, ["CD14", "MS4A1"], fill=group_key, ncol=1, share_axis=True)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_boxplots_share_ticks(adata, group_key):
+    """Boxplots share ticks."""
     plot = cl.boxplots(adata, ["CD14", "MS4A1"], fill=group_key, ncol=1, share_ticks=True)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_boxplots_share_axis(adata, group_key):
+    """Boxplots share axis."""
     plot = cl.boxplots(adata, ["CD14", "MS4A1"], fill=group_key, ncol=1, share_axis=True)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_violins_interactive_with_layers(adata, group_key):
+    """Violins interactive with layers."""
     from ggrust import geom_point
 
     plot = cl.violins(
@@ -134,6 +157,7 @@ def test_violins_interactive_with_layers(adata, group_key):
 
 
 def test_boxplots_interactive_with_layers(adata, group_key):
+    """Boxplots interactive with layers."""
     from ggrust import geom_point
 
     plot = cl.boxplots(
@@ -159,6 +183,7 @@ def test_boxplots_interactive_with_layers(adata, group_key):
     ],
 )
 def test_plural_plotters_reject_empty_keys(adata, plotter):
+    """Plural plotters reject empty keys."""
     with pytest.raises(ValueError, match="empty"):
         plotter(adata)
 
@@ -176,6 +201,7 @@ def test_plural_plotters_reject_empty_keys(adata, plotter):
     ],
 )
 def test_plural_plotters_reject_non_string_keys(adata, plotter, error):
+    """Plural plotters reject non string keys."""
     with pytest.raises(error):
         plotter(adata)
 
@@ -186,61 +212,73 @@ def test_plural_plotters_reject_non_string_keys(adata, plotter, error):
 
 
 def test_umaps_share_labels(adata, group_key):
+    """Umaps share labels."""
     plot = cl.umaps(adata, [group_key, "CD14"], ncol=1, share_labels=True)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_umaps_share_axis(adata, group_key):
+    """Umaps share axis."""
     plot = cl.umaps(adata, [group_key, "CD14"], ncol=1, share_axis=True, axis_type="axis")
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_dimensionals_share_labels(adata, group_key):
+    """Dimensionals share labels."""
     plot = cl.dimensionals(adata, [group_key, "CD14"], ncol=1, share_labels=True)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_dimensionals_share_axis(adata, group_key):
+    """Dimensionals share axis."""
     plot = cl.dimensionals(adata, [group_key, "CD14"], ncol=1, share_axis=True, axis_type="axis")
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_umaps_invalid_keys_type(adata):
+    """Umaps invalid keys type."""
     with pytest.raises(TypeError):
         cl.umaps(adata, "single_string")
 
 
 def test_dimensionals_invalid_keys_type(adata):
+    """Dimensionals invalid keys type."""
     with pytest.raises(TypeError):
         cl.dimensionals(adata, "single_string")
 
 
 def test_tsnes_basic(adata, group_key):
+    """Tsnes basic."""
     plot = cl.tsnes(adata, [group_key, "CD14"])
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_tsnes_invalid_keys_type(adata):
+    """Tsnes invalid keys type."""
     with pytest.raises(TypeError):
         cl.tsnes(adata, "single_string")
 
 
 def test_pcas_basic(adata, group_key):
+    """Pcas basic."""
     plot = cl.pcas(adata, [group_key, "CD14"])
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_pcas_invalid_keys_type(adata):
+    """Pcas invalid keys type."""
     with pytest.raises(TypeError):
         cl.pcas(adata, "single_string")
 
 
 def test_expressions_invalid_keys_type(adata):
+    """Expressions invalid keys type."""
     with pytest.raises(TypeError):
         cl.expressions(adata, "single_string")
 
 
 def test_tsnes_interactive_share_axis_with_layers(adata, group_key):
+    """Tsnes interactive share axis with layers."""
     from ggrust import geom_point
 
     plot = cl.tsnes(
@@ -256,6 +294,7 @@ def test_tsnes_interactive_share_axis_with_layers(adata, group_key):
 
 
 def test_pcas_interactive_share_axis_with_layers(adata, group_key):
+    """Pcas interactive share axis with layers."""
     from ggrust import geom_point
 
     plot = cl.pcas(
@@ -271,6 +310,7 @@ def test_pcas_interactive_share_axis_with_layers(adata, group_key):
 
 
 def test_expressions_interactive_share_axis_with_layers(adata, group_key):
+    """Expressions interactive share axis with layers."""
     from ggrust import geom_point
 
     plot = cl.expressions(
@@ -286,6 +326,7 @@ def test_expressions_interactive_share_axis_with_layers(adata, group_key):
 
 
 def test_umaps_with_layers(adata, group_key):
+    """Umaps with layers."""
     from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
@@ -294,6 +335,7 @@ def test_umaps_with_layers(adata, group_key):
 
 
 def test_dimensionals_with_layers(adata, group_key):
+    """Dimensionals with layers."""
     from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
@@ -307,16 +349,19 @@ def test_dimensionals_with_layers(adata, group_key):
 
 
 def test_dimensional_axis_type_arrow(adata):
+    """Dimensional axis type arrow."""
     plot = cl.umap(adata, "CD14", axis_type="arrow")
     assert isinstance(plot, PlotSpec)
 
 
 def test_dimensional_axis_type_none(adata):
+    """Dimensional axis type none."""
     plot = cl.umap(adata, "CD14", axis_type=None)
     assert isinstance(plot, PlotSpec)
 
 
 def test_arrow_axis_default(adata):
+    """Arrow axis default."""
     umap = cl.umap(adata, "CD14")
     combined = umap + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
@@ -333,16 +378,19 @@ def test_arrow_axis_default(adata):
 
 
 def test_get_figure_invalid_grid_type():
+    """Get figure invalid grid type."""
     with pytest.raises(TypeError):
         cl.get_figure("not a grid", index=0)
 
 
 def test_get_figures_invalid_grid_type():
+    """Get figures invalid grid type."""
     with pytest.raises(TypeError):
         cl.get_figures("not a grid", indices=[0])
 
 
 def test_retrieve_invalid_type():
+    """Retrieve invalid type."""
     with pytest.raises(TypeError):
         cl.retrieve("not a plot")
 
@@ -353,11 +401,13 @@ def test_retrieve_invalid_type():
 
 
 def test_xyplot_invalid_data():
+    """Xyplot invalid data."""
     with pytest.raises(TypeError):
         cl.xyplot("not anndata", x="a", y="b")
 
 
 def test_xyplot_tooltips_sequence(adata):
+    """Xyplot tooltips sequence."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
@@ -368,6 +418,7 @@ def test_xyplot_tooltips_sequence(adata):
 
 
 def test_xyplot_tooltips_featurespec(adata):
+    """Xyplot tooltips featurespec."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
@@ -378,6 +429,7 @@ def test_xyplot_tooltips_featurespec(adata):
 
 
 def test_xyplot_tooltips_none(adata):
+    """Xyplot tooltips none."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
@@ -388,6 +440,7 @@ def test_xyplot_tooltips_none(adata):
 
 
 def test_xyplot_interactive(adata):
+    """Xyplot interactive."""
     plot = cl.xyplot(
         adata,
         x="n_genes_by_counts",
@@ -403,6 +456,7 @@ def test_xyplot_interactive(adata):
 
 
 def test_xyplots_scalar_y(adata):
+    """Xyplots scalar y."""
     plot = cl.xyplots(
         adata,
         x=["n_genes_by_counts", "total_counts"],
@@ -412,6 +466,7 @@ def test_xyplots_scalar_y(adata):
 
 
 def test_xyplots_with_layers(adata):
+    """Xyplots with layers."""
     from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
@@ -430,21 +485,25 @@ def test_xyplots_with_layers(adata):
 
 
 def test_ridge_invalid_data(group_key):
+    """Ridge invalid data."""
     with pytest.raises(TypeError):
         cl.ridge("not anndata", key="CD14", group_by=group_key)
 
 
 def test_ridge_tooltips_none(adata, group_key):
+    """Ridge tooltips none."""
     plot = cl.ridge(adata, key="CD14", group_by=group_key, tooltips="none")
     assert isinstance(plot, PlotSpec)
 
 
 def test_ridge_tooltips_sequence(adata, group_key):
+    """Ridge tooltips sequence."""
     plot = cl.ridge(adata, key="CD14", group_by=group_key, tooltips=[group_key, "CD14"])
     assert isinstance(plot, PlotSpec)
 
 
 def test_ridge_tooltips_featurespec(adata, group_key):
+    """Ridge tooltips featurespec."""
     plot = cl.ridge(
         adata,
         key="CD14",
@@ -455,11 +514,13 @@ def test_ridge_tooltips_featurespec(adata, group_key):
 
 
 def test_ridge_interactive(adata, group_key):
+    """Ridge interactive."""
     plot = cl.ridge(adata, key="CD14", group_by=group_key, interactive=True)
     assert isinstance(plot, PlotSpec)
 
 
 def test_ridges_with_layers(adata, group_key):
+    """Ridges with layers."""
     from ggrust import geom_point
 
     layer = geom_point(size=0.1, alpha=0.1)
@@ -473,11 +534,13 @@ def test_ridges_with_layers(adata, group_key):
 
 
 def test_highest_expressed_genes_invalid_data():
+    """Highest expressed genes invalid data."""
     with pytest.raises(TypeError):
         cl.highest_expressed_genes("not anndata", n=10)
 
 
 def test_highest_expressed_genes_with_mapping(adata):
+    """Highest expressed genes with mapping."""
     plot = cl.highest_expressed_genes(adata, n=5, mapping=aes(color="variable"))
     assert isinstance(plot, PlotSpec)
 
@@ -488,11 +551,13 @@ def test_highest_expressed_genes_with_mapping(adata):
 
 
 def test_heatmap_invalid_data(markers, group_key):
+    """Heatmap invalid data."""
     with pytest.raises(TypeError):
         cl.heatmap("not anndata", group_by=group_key, keys=markers)
 
 
 def test_heatmap_raster_tooltips_warning(adata, markers, group_key):
+    """Heatmap raster tooltips warning."""
     import warnings
 
     with warnings.catch_warnings():
@@ -508,5 +573,6 @@ def test_heatmap_raster_tooltips_warning(adata, markers, group_key):
 
 
 def test_heatmap_scale_axis_1(adata, markers, group_key):
+    """Heatmap scale axis 1."""
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, scale_axis=1, aggregate=False)
     assert isinstance(plot, PlotSpec)

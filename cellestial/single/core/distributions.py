@@ -815,6 +815,9 @@ def histograms(
             guides="collect",
         )
     """
+    if isinstance(keys, str):
+        msg = "keys must be a Sequence of strings, not a single string"
+        raise TypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (

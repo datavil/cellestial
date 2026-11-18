@@ -105,6 +105,9 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `DendrogramMismatchError` | Claude Opus 5.5 |  |  |  |  |
 | `_fixed_cell_padding` | Claude Opus 5.5 |  |  |  |  |
 | `_label_width` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_mapping_clash` | Claude Opus 5.5 |  |  |  |  |
+| `_observation_embeddings_cover` | Claude Opus 5.5 |  |  |  |  |
+| `_require_groups_in_every_key` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -242,3 +245,15 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `heatmap` | Claude Opus 5.5 |  |
 | `dotplot` | Claude Opus 5.5 |  |
 | `_bin_within_groups` | Claude Opus 5.5 |  |
+| `_distribution` | Claude Opus 5.5 |  |
+| `dimensional` | Claude Opus 5.5 |  |
+| `ridge` | Claude Opus 5.5 |  |
+| `histogram` | Claude Opus 5.5 |  |
+| `histograms` | Claude Opus 5.5 |  |
+| `highest_expressed_genes` | Claude Opus 5.5 |  |
+| `cluster_outlines` | Claude Opus 5.5 |  |
+| `stream` | Claude Opus 5.5 |  |
+| `dimensionals` | Claude Opus 5.5 |  |
+| `xyplot` | Claude Opus 5.5 |  |
+| `xyplots` | Claude Opus 5.5 |  |
+| `expression` | Claude Opus 5.5 |  |
