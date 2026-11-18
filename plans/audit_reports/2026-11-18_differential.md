@@ -140,3 +140,24 @@ null categories (`drop` keeps nulls, `groups` excludes them, `"None"` is not a c
   may show fewer genes than asked, with a gap in ranks. Unlikely with real rankings.
 - `volcano` / `markers` use the flattened `if not isinstance(...): raise` form at the
   top of the plot body; the per-modality dispatch below keeps it harmless.
+
+## Follow-up fixes
+
+Branch `claude/fix-diff-heatmap-3f96af`. Each fix has a test that failed first, in
+`tests/test_followup_differential.py` unless noted; run on pbmc3k.
+
+| Item | Outcome |
+| --- | --- |
+| Volcano logFC artifact (math audit item 8) | **Fixed.** `volcano`/`volcanos` take `min_fraction_expressed: float \| None = None`. Reads `pts` from the stored ranking; when absent raises `KeyNotFoundError` naming `group_by` / `pts=True`; a `group_by` recompute passes `pts=True` (a ranking without `pts` counts as stale when the filter is set). Values outside [0, 1] raise `InvalidArgumentError`, as do non-unique feature names (found by the bug-hunting subagent: pandas `reindex` raised a bare `ValueError`). pbmc3k B Cells at 0.1: 873 of 23427 features remain (169 up, 442 down); rendered and inspected. CHANGELOG `### Added`; item 8 marked resolved. |
+| `volcano` bare `KeyError` | **Fixed.** Missing key or group raises `KeyNotFoundError` with a case-insensitive close match (`did you mean 'A'`). `KeyNotFoundError` still subclasses `Exception` on this base (fix-frames had not landed), so three `tests/test_differential.py` assertions moved from `KeyError` to `KeyNotFoundError`. CHANGELOG `### Breaking`. |
+| Constant `y` in `bracket` | **Fixed.** Zero range is taken as 1 for both the padding and the pixel-sized step; brackets stack above the data (rendered). |
+| `bracket(y="missing")` | **Fixed.** A missing `x` or `y` column raises `MissingAestheticError` with a close match. |
+| `bracket` plain `ValueError` guards | **Fixed.** Too few finite observations / no pairs raise `InvalidComparisonError`; unknown `test`/`correction`/`label` raise `InvalidArgumentError`. Both subclass `ValueError`, so no new class in `errors.py` was needed. |
+| Volcano label ties | **Fixed.** Feature name is the final ascending sort key. |
+| `volcanos(groups=[])`, `marker_genes(groups=[])` | **Fixed.** `EmptySelectionError` (also `marker_genes_dict`). CHANGELOG `### Breaking` for the marker helpers. |
+| Plural `ncol >= 1` | **Fixed** for `volcanos` and `markers` (`InvalidArgumentError`). |
+| `_require_categories` hint | **Fixed.** Case-insensitive close match per unknown value. |
+| `_build_markers_frame` non-finite scores | **Fixed.** Non-finite scores are dropped per group before taking the top `n_genes`; ranks stay gapless. |
+| Bug-hunting subagent | One confirmed bug (duplicate feature names with `min_fraction_expressed`), fixed with `test_volcano_detection_rate_with_duplicate_feature_names_names_the_fix`. No regressions found elsewhere. |
+| `_range_inclusive` | **Reported, not deleted.** Still no callers in `cellestial/`. |
+| pbmc3k annotation | **Investigated**, see `plans/pbmc3k_labels.md`: "B Cells" and "Erythroid" are swapped, the null cluster is erythroblasts, and the tissue is bone marrow. Dataset unchanged. |

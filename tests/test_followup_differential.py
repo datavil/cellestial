@@ -278,3 +278,12 @@ def test_bracket_rejects_an_unknown_test():
     """An unknown test name raises `InvalidArgumentError`."""
     with pytest.raises(InvalidArgumentError, match="`test`"):
         cl.bracket(test="anova")
+
+
+def test_volcano_detection_rate_with_duplicate_feature_names_names_the_fix(ranked_adata):
+    """Duplicate feature names cannot be matched to detection rates; the error says so."""
+    rank = ranked_adata.uns["rank_genes_groups"]
+    rank["pts"].index = ["broad_up", "broad_up", "broad_down", "rare_down", "flat"]
+
+    with pytest.raises(InvalidArgumentError, match="unique"):
+        _build_volcano_frame(ranked_adata, "A", min_fraction_expressed=0.1)

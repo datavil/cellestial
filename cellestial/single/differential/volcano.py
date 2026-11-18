@@ -210,8 +210,9 @@ def volcano(
         or `min_fraction_expressed` is set and no detection rates are stored.
     InvalidArgumentError
         If `pvalue_threshold` or `min_fraction_expressed` is outside its
-        accepted range, or `logfoldchange_threshold`, `top_n` or
-        `nonsignificant_subsample` is negative.
+        accepted range, `logfoldchange_threshold`, `top_n` or
+        `nonsignificant_subsample` is negative, or `min_fraction_expressed` is
+        set while feature names are not unique.
     ValueError
         If requested tooltip columns are not present in the volcano frame.
 

@@ -12,6 +12,7 @@ from anndata import AnnData
 from cellestial.single.heatmap.utilities import _resolve_rank_genes_groups_key
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentError,
     KeyNotFoundError,
     _unsupported_data_type,
 )
@@ -116,6 +117,8 @@ def _build_volcano_frame(
     KeyNotFoundError
         If the ranking, `group`, the fields a volcano needs, or the detection
         rates `min_fraction_expressed` needs are missing.
+    InvalidArgumentError
+        If `min_fraction_expressed` is set and feature names are not unique.
 
     Notes
     -----
@@ -199,7 +202,16 @@ def _build_volcano_frame(
         )
         # FILTER: features detected in too few of the group's cells
         if min_fraction_expressed is not None:
-            detection_rates = results["pts"][group].reindex(frame[variable_column].to_list())
+            detection_rates = results["pts"][group]
+            if not detection_rates.index.is_unique:
+                duplicated = sorted(set(detection_rates.index[detection_rates.index.duplicated()]))
+                msg = (
+                    "`min_fraction_expressed` matches detection rates to features by name, "
+                    f"but feature names are not unique: {duplicated[:5]}. Make the feature "
+                    "names unique (then rerank), or pass `min_fraction_expressed=None`."
+                )
+                raise InvalidArgumentError(msg)
+            detection_rates = detection_rates.reindex(frame[variable_column].to_list())
             frame = frame.filter(pl.Series(detection_rates.to_numpy() >= min_fraction_expressed))
     else:
         raise _unsupported_data_type(data, AnnData)

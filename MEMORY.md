@@ -35,6 +35,7 @@
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 - [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 - [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
+- [Project: pbmc3k labels swapped](project_pbmc3k_labels.md): Bundled pbmc3k is bone marrow; cell_type_lvl1 "B Cells"/"Erythroid" are swapped, null cluster is erythroblasts (plans/pbmc3k_labels.md)
 
 
 ---
@@ -996,3 +997,23 @@ Two ggrust 0.8 limits that shaped `cl.tracksplot` (issue #73, 2026-11-08):
 **Why:** Both cost a render-and-look cycle to diagnose.
 
 **How to apply:** Avoid facets when a plot needs side annotations. Zero the outline on dense rect/ribbon layers. Related: [[project-ggrust-tile-width-relative]].
+
+---
+
+## Source: project_pbmc3k_labels.md
+
+---
+name: project-pbmc3k-labels
+description: "Bundled pbmc3k is bone marrow and its cell_type_lvl1 \"B Cells\"/\"Erythroid\" labels are swapped; null cluster is erythroblasts"
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: 82ca22c0-b113-4735-9658-f8f67b33f30d
+  modified: 2026-11-18T04:48:48.561Z
+---
+
+`cl.datasets.pbmc3k()` (17041 cells, samples s1d1/s1d3) is bone marrow, not PBMC. `cell_type_lvl1` is a 1:1 relabel of `leiden_res_0.02`: cluster 3 "B Cells" is red cells (HBB 8.2, 92% hemoglobin counts), cluster 2 "Erythroid" is B cells (MS4A1 81%, CD79A 87%), cluster 4 (null, 1767 cells) is erythroblasts (GYPA, TFRC, MKI67). Lymphocytes and Monocytes are right. Evidence and a proposed mapping: `plans/pbmc3k_labels.md` (2026-11-18). The dataset was not changed.
+
+**Why:** Marker plots on "B Cells" show hemoglobin genes, which looks like a plotting bug but is the labels.
+
+**How to apply:** Do not read biology off `cell_type_lvl1` in renders or tests until the user decides on the relabel; HBB is ambient in every cell. Related: [[project-math-audit-open-findings]].
