@@ -112,6 +112,13 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_reject_mapping_clash` | Claude Opus 5.5 |  |  |  |  |
 | `_observation_embeddings_cover` | Claude Opus 5.5 |  |  |  |  |
 | `_require_groups_in_every_key` | Claude Opus 5.5 |  |  |  |  |
+| `_MessageKeyError` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_did_you_mean` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_close_matches_sentence` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_categorical_series` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_duplicate_keys` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_id_column_collision` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container._require_matrix` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
 
 ## Modified functions
 
@@ -286,3 +293,25 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `tracksplot` | Claude Opus 5.5 | ✓ |
 | `_bin_observations` | Claude Opus 5.5 | ✓ |
 | `_annotation_scale` | Claude Opus 5.5 | ✓ |
+| `layout` | Claude Opus 5.5 | ✓ |
+| `_normalize_widths` | Claude Opus 5.5 | ✓ |
+| `get_figure` | Claude Opus 5.5 | ✓ |
+| `get_figures` | Claude Opus 5.5 | ✓ |
+| `retrieve` | Claude Opus 5.5 | ✓ |
+| `build_frame` | Claude Opus 5.5 | ✓ |
+| `anndata_observations_frame` | Claude Opus 5.5 | ✓ |
+| `anndata_variables_frame` | Claude Opus 5.5 | ✓ |
+| `anndata_variable_columns` | Claude Opus 5.5 | ✓ |
+| `_select_embedding_keys` | Claude Opus 5.5 | ✓ |
+| `_determine_axis` | Claude Opus 5.5 | ✓ |
+| `_reject_sequence_key` | Claude Opus 5.5 | ✓ |
+| `_resolve_tooltips` | Claude Opus 5.5 | ✓ |
+| `_validate_tooltips` | Claude Opus 5.5 | ✓ |
+| `_require_feature_key` | Claude Opus 5.5 | ✓ |
+| `_filter_groups` | Claude Opus 5.5 | ✓ |
+| `_resolve_embedding_key` | Claude Opus 5.5 | ✓ |
+| `_MuDataContainer.modality_column` | Claude Opus 5.5 | ✓ |
+| `_MuDataContainer.container_column` | Claude Opus 5.5 | ✓ |
+| `_MuDataContainer.resolve_variable` | Claude Opus 5.5 | ✓ |
+| `_Container.fetch_variable_columns` | Claude Opus 5.5 | ✓ |
+| `_select_variable_keys` | Claude Opus 5.5 | ✓ |
