@@ -40,18 +40,21 @@ def _embedding_data() -> AnnData:
 
 @pytest.mark.parametrize("xy", [(0, 1), (-1, 2)])
 def test_dimensional_rejects_zero_based_components(xy):
+    """Dimensional rejects zero based components."""
     data = _embedding_data()
     with pytest.raises(InvalidArgumentError, match=r"(?s)X_UMAP.*1-based"):
         cl.umap(data, "cluster", xy=xy)
 
 
 def test_dimensional_rejects_components_beyond_embedding():
+    """Dimensional rejects components beyond embedding."""
     data = _embedding_data()
     with pytest.raises(InvalidArgumentError, match=r"(?s)X_UMAP.*2 components.*1-based"):
         cl.umap(data, "cluster", xy=(1, 3))
 
 
 def test_dimensionals_rejects_components_outside_embedding():
+    """Dimensionals rejects components outside embedding."""
     data = _embedding_data()
     with pytest.raises(InvalidArgumentError, match="1-based"):
         cl.umaps(data, ["cluster", "GENE_A"], xy=(0, 1))
@@ -62,6 +65,7 @@ def test_dimensionals_rejects_components_outside_embedding():
 
 @pytest.mark.parametrize("function", [cl.dimensionals, cl.umaps])
 def test_dimensional_plurals_unknown_key_raises_key_error(function):
+    """Dimensional plurals unknown key raises key error."""
     data = _embedding_data()
     with pytest.raises(KeyNotFoundError, match="clustr"):
         function(data, ["cluster", "clustr"])
@@ -72,12 +76,14 @@ def test_dimensional_plurals_unknown_key_raises_key_error(function):
 
 @pytest.mark.parametrize("function", [cl.violins, cl.boxplots])
 def test_distribution_plurals_reject_string_keys(function):
+    """Distribution plurals reject string keys."""
     data = _embedding_data()
     with pytest.raises(TypeError, match="Sequence"):
         function(data, "GENE_A", group_by="cluster")
 
 
 def test_ridges_reject_string_keys():
+    """Ridges reject string keys."""
     data = _embedding_data()
     with pytest.raises(TypeError, match="Sequence"):
         cl.ridges(data, "GENE_A", "cluster")
@@ -85,6 +91,7 @@ def test_ridges_reject_string_keys():
 
 @pytest.mark.parametrize("keys", [np.array(["GENE_A", "GENE_B"]), pd.Index(["GENE_A", "GENE_B"])])
 def test_distribution_plurals_accept_array_like_keys(keys):
+    """Distribution plurals accept array like keys."""
     data = _embedding_data()
     cl.violins(data, keys, group_by="cluster")
     cl.ridges(data, keys, "cluster")
@@ -95,6 +102,7 @@ def test_distribution_plurals_accept_array_like_keys(keys):
 
 @pytest.mark.parametrize("parameter", ["groups", "drop"])
 def test_violin_groups_without_group_by_warns(parameter):
+    """Violin groups without group by warns."""
     data = _embedding_data()
     with pytest.warns(CellestialWarning, match=f"`{parameter}`.*`group_by`"):
         cl.violin(data, "GENE_A", **{parameter: ["a"]})
@@ -104,12 +112,14 @@ def test_violin_groups_without_group_by_warns(parameter):
 
 
 def test_xyplot_missing_embedding_component_raises_key_error():
+    """Xyplot missing embedding component raises key error."""
     data = _embedding_data()
     with pytest.raises(KeyNotFoundError, match=r"X_UMAP3.*did you mean"):
         cl.xyplot(data, "X_UMAP3", "X_UMAP1")
 
 
 def test_xyplot_mapping_override_skips_missing_column_check():
+    """Xyplot mapping override skips missing column check."""
     data = _embedding_data()
     data.obs["score"] = np.arange(data.n_obs, dtype=float)
     plot = cl.xyplot(data, "not_a_column", "GENE_A", mapping=aes(x="score"))
@@ -121,6 +131,7 @@ def test_xyplot_mapping_override_skips_missing_column_check():
 
 @pytest.mark.parametrize("n", [0, -1])
 def test_highest_expressed_genes_rejects_non_positive_n(n):
+    """Highest expressed genes rejects non positive n."""
     data = _embedding_data()
     with pytest.raises(InvalidArgumentError, match="`n`"):
         cl.highest_expressed_genes(data, n=n)
@@ -128,6 +139,7 @@ def test_highest_expressed_genes_rejects_non_positive_n(n):
 
 @pytest.mark.parametrize("n_pcs", [0, -1])
 def test_elbow_rejects_non_positive_n_pcs(n_pcs):
+    """Elbow rejects non positive n pcs."""
     data = _embedding_data()
     data.uns["pca"] = {"variance_ratio": np.array([0.5, 0.3, 0.2])}
     with pytest.raises(InvalidArgumentError, match="`n_pcs`"):
@@ -138,6 +150,7 @@ def test_elbow_rejects_non_positive_n_pcs(n_pcs):
 
 
 def test_stream_derives_velocity_for_unprefixed_embedding():
+    """Stream derives velocity for unprefixed embedding."""
     data = _embedding_data()
     data.obsm["wnn_umap"] = data.obsm["X_umap"]
     # constant rightward velocity, so every arrow must point right
@@ -152,10 +165,11 @@ def test_stream_derives_velocity_for_unprefixed_embedding():
 
 
 def test_stream_unprefixed_embedding_without_velocity_raises():
+    """Stream unprefixed embedding without velocity raises."""
     data = _embedding_data()
     data.obsm["wnn_umap"] = data.obsm["X_umap"]
     plot = cl.dimensional(data, "cluster", use_key="wnn_umap")
-    with pytest.raises(KeyError, match="VELOCITY_WNN_UMAP1"):
+    with pytest.raises(KeyNotFoundError, match="VELOCITY_WNN_UMAP1"):
         plot + cl.stream(n_neighbors=5)
 
 
@@ -190,6 +204,7 @@ def _spatialdata_reordered(table_ids: list[int]) -> SpatialData:
 
 @pytest.mark.parametrize("table_ids", [[3, 2, 1, 0], [2, 0]])
 def test_spatialdata_points_align_on_instance_key(table_ids):
+    """Spatialdata points align on instance key."""
     data = _spatialdata_reordered(table_ids)
     frame = retrieve(cl.spatial(data, "label", image=False))
     positions = dict(zip(frame["label"].to_list(), frame["spatial_x"].to_list(), strict=True))

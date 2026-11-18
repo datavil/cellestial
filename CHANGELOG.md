@@ -63,6 +63,45 @@ change. Versions absent from the list were never released.
   it reads the same on every run.
 - Singular plots reject sets and arrays passed as `key` (pointing to the plural
   function) like they reject lists, instead of failing later.
+- `ridge` no longer fills the ridges by `group_by` on its own (no hidden
+  aesthetic promotion). Migration: pass `mapping=aes(fill="<group_by column>")`
+  to keep the colored ridges; the same applies to `ridges`.
+- `histogram` takes one key; a list raises `TypeError` pointing to
+  `histograms`, like the other singular plots. Migration: use `histograms`
+  for several keys.
+- `highest_expressed_genes` no longer accepts `observation_id_column`, which
+  had no effect. Migration: drop the argument.
+- `pca` and `pcas` label the axes `PC1` / `PC2` instead of `PCA1` / `PCA2`.
+  Migration: update any `labs` or text matching the old titles.
+- A `mapping` that sets an aesthetic the function sets itself raises
+  `InvalidArgumentError` naming both, instead of a raw `TypeError`:
+  `dimensional`, `umap`, `tsne`, `pca`, `expression` and their plurals
+  (`x`, `y`, and `color` when `key` is given), `violin` / `boxplot` (`x`, `y`,
+  also in `point_mapping`), `histogram` (`x`), `ridge` (`x`, `y`),
+  `cluster_outlines` and `stream` (`x`, `y`, `group`). Migration: remove the
+  aesthetic from `mapping` (pass the column as `key` / `group_by` instead).
+- Error classes changed from builtins to `cellestial` errors:
+  `xy` of the wrong length in `dimensional` (and wrappers), `blend` and
+  `embedding_density` raises `InvalidArgumentError` (was `KeyError`); an unknown
+  `point_geom` or `axis_type` raises `InvalidArgumentError` (was `ValueError`);
+  `stream` raises `KeyNotFoundError` for missing velocity columns (was
+  `KeyError`) and `InvalidArgumentError` when `velocity_key` cannot name them
+  (was `ValueError`); `cluster_outlines` raises `KeyNotFoundError` for an
+  unknown group and `EmptySelectionError` when no outline can be computed (both
+  were `ValueError`). Migration: catch the new classes.
+
+### Fixed
+- `violin`, `boxplot` and `histogram` raise `InvalidArgumentError` when `key`
+  is also the `group_by` / `color` / `fill` column or is not numeric (booleans
+  still plot as 0 / 1), instead of a polars `DuplicateError` or a late failure.
+- `histograms` with a string `keys` raises a `TypeError` instead of splitting
+  it into characters.
+- `dimensional` (and wrappers) without `key` accepts `mapping=aes(color=...)`.
+- `dimensionals`, `umaps`, `tsnes` and `pcas` name the categorical key that
+  lacks a `groups` / `drop` value and explain that the filter applies to every
+  categorical key. Numeric keys are still left unfiltered.
+- `expression`, `cluster_outlines` and `stream` suggest close matches for an
+  unknown gene, group or velocity column.
 - `build_frame` keeps missing values of a numeric categorical column as null
   instead of turning them into a `"nan"` category.
 - `build_frame` raises `DuplicateKeysError` naming the repeat for repeated

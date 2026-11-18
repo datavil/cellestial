@@ -5,25 +5,28 @@ from ggrust.plot.subplots import SupPlotsSpec
 
 import cellestial as cl
 from cellestial.util import retrieve
-from cellestial.util.errors import KeyNotFoundError
+from cellestial.util.errors import InvalidArgumentError, KeyNotFoundError
 
 # ---- violin / boxplot (singular) ----
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_single_key_gene(adata, fn, group_key):
+    """Single key gene."""
     plot = fn(adata, "CD14", fill=group_key)
     assert isinstance(plot, PlotSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_single_key_obs(adata, fn, group_key):
+    """Single key obs."""
     plot = fn(adata, "n_genes_by_counts", fill=group_key)
     assert isinstance(plot, PlotSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_sequence_of_keys_returns_single_plot(adata, fn, group_key):
+    """Sequence of keys returns single plot."""
     # Singular violin/boxplot accepts a list of keys and still returns a single PlotSpec
     # (keys become facets / panels within one plot).
     plot = fn(
@@ -36,30 +39,35 @@ def test_sequence_of_keys_returns_single_plot(adata, fn, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_threshold(adata, fn, group_key):
+    """Threshold."""
     plot = fn(adata, "CD14", fill=group_key, threshold=0.1)
     assert isinstance(plot, PlotSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_points_false(adata, fn, group_key):
+    """Points false."""
     plot = fn(adata, "CD14", fill=group_key, points=False)
     assert isinstance(plot, PlotSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_group_by(adata, fn, group_key):
+    """Group by."""
     plot = fn(adata, "CD14", group_by=group_key)
     assert isinstance(plot, PlotSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_add_keys(adata, fn, group_key):
+    """Add keys."""
     plot = fn(adata, "CD14", group_by=group_key, add_keys=["MS4A1", "NKG7"])
     assert isinstance(plot, PlotSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot, cl.histogram])
 def test_single_key_value_column_named_after_key(adata, fn, group_key):
+    """Single key value column named after key."""
     # polars >= 1.44 rejects an unpivot whose value_name equals an unpivoted column
     plot = fn(adata, "CD14", group_by=group_key)
     columns = plot.as_dict()["data"].columns
@@ -69,13 +77,16 @@ def test_single_key_value_column_named_after_key(adata, fn, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_invalid_key(adata, fn):
-    with pytest.raises(Exception):
+    """Invalid key."""
+    # `_determine_axis` raises a builtin today; util may move it to a cellestial error
+    with pytest.raises((ValueError, KeyError), match="NOT_A_REAL_KEY_xyz"):
         fn(adata, "NOT_A_REAL_KEY_xyz")
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot, cl.histogram])
 @pytest.mark.parametrize("aesthetic", ["fill", "color"])
 def test_literal_color_suggests_geom_variant(adata, fn, aesthetic):
+    """Literal color suggests geom variant."""
     # `fill`/`color` map a column; a literal color is a common mix-up coming from
     # lets-plot, so the error points at `geom_fill`/`geom_color`.
     with pytest.raises(KeyNotFoundError, match=f"use `geom_{aesthetic}='red'`"):
@@ -84,18 +95,21 @@ def test_literal_color_suggests_geom_variant(adata, fn, aesthetic):
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots, cl.histograms])
 def test_plural_literal_color_suggests_geom_variant(adata, fn):
+    """Plural literal color suggests geom variant."""
     with pytest.raises(KeyNotFoundError, match="use `geom_fill='red'`"):
         fn(adata, ["CD14", "MS4A1"], fill="red")
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_invalid_point_geom_raises_value_error(adata, fn, group_key):
-    with pytest.raises(ValueError, match="point_geom must be one of"):
+    """Invalid point geom raises value error."""
+    with pytest.raises(InvalidArgumentError, match="`point_geom` must be one of"):
         fn(adata, "CD14", fill=group_key, point_geom="bad")
 
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_point_kwargs_not_mutated(adata, fn, group_key):
+    """Point kwargs not mutated."""
     point_kwargs = {"stroke": 0, "color": "red"}
     expected = dict(point_kwargs)
 
@@ -116,6 +130,7 @@ def test_point_kwargs_not_mutated(adata, fn, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
 def test_plural_grid(adata, fn, group_key):
+    """Plural grid."""
     plot = fn(
         adata,
         ["n_genes_by_counts", "HLA-DRA", "pct_counts_hb"],
@@ -127,18 +142,21 @@ def test_plural_grid(adata, fn, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
 def test_plural_single_key_list(adata, fn, group_key):
+    """Plural single key list."""
     plot = fn(adata, ["CD14"], fill=group_key)
     assert isinstance(plot, SupPlotsSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
 def test_plural_group_by(adata, fn, group_key):
+    """Plural group by."""
     plot = fn(adata, ["CD14", "MS4A1"], group_by=group_key)
     assert isinstance(plot, SupPlotsSpec)
 
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots, cl.histograms])
 def test_plural_threshold_filters_each_panel(adata, fn):
+    """Plural threshold filters each panel."""
     keys = ["CD14", "MS4A1"]
     plot = fn(adata, keys, threshold=0.1)
 
@@ -148,6 +166,7 @@ def test_plural_threshold_filters_each_panel(adata, fn):
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
 def test_plural_point_mapping_materializes_its_column(adata, fn):
+    """Plural point mapping materializes its column."""
     plot = fn(
         adata,
         ["CD14", "MS4A1"],
@@ -166,26 +185,31 @@ def test_plural_point_mapping_materializes_its_column(adata, fn):
 
 
 def test_ridge_basic(adata, group_key):
+    """Ridge basic."""
     plot = cl.ridge(adata, key="CD14", group_by=group_key)
     assert isinstance(plot, PlotSpec)
 
 
 def test_ridge_threshold_and_scale(adata, group_key):
+    """Ridge threshold and scale."""
     plot = cl.ridge(adata, key="CD14", group_by=group_key, threshold=0.1, scale=1.5)
     assert isinstance(plot, PlotSpec)
 
 
 def test_ridge_add_keys(adata, group_key):
+    """Ridge add keys."""
     plot = cl.ridge(adata, key="CD14", group_by=group_key, add_keys=["MS4A1"])
     assert isinstance(plot, PlotSpec)
 
 
 def test_ridges_multiple(adata, group_key):
+    """Ridges multiple."""
     plot = cl.ridges(adata, keys=["CD14", "MS4A1", "NKG7"], group_by=group_key)
     assert isinstance(plot, SupPlotsSpec)
 
 
 def test_ridges_ncol(adata, group_key):
+    """Ridges ncol."""
     plot = cl.ridges(adata, keys=["CD14", "MS4A1", "NKG7", "CST3"], group_by=group_key, ncol=2)
     assert isinstance(plot, SupPlotsSpec)
 
@@ -194,6 +218,7 @@ def test_ridges_ncol(adata, group_key):
 
 
 def test_violin_mapping_extra_aes(adata, group_key):
+    """Violin mapping extra aes."""
     plot = cl.violin(adata, "CD14", fill=group_key, mapping=aes(color=group_key))
     assert isinstance(plot, PlotSpec)
 
@@ -203,6 +228,7 @@ def test_violin_mapping_extra_aes(adata, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_distribution_drop_removes_group(adata, fn, group_key):
+    """Distribution drop removes group."""
     full = set(fn(adata, "CD14", group_by=group_key).as_dict()["data"][group_key].to_list())
     dropped = sorted(full)[0]
     remaining = set(
@@ -213,6 +239,7 @@ def test_distribution_drop_removes_group(adata, fn, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_distribution_groups_keeps_only_selected(adata, fn, group_key):
+    """Distribution groups keeps only selected."""
     full = sorted(
         set(fn(adata, "CD14", group_by=group_key).as_dict()["data"][group_key].to_list())
     )
@@ -224,11 +251,13 @@ def test_distribution_groups_keeps_only_selected(adata, fn, group_key):
 
 
 def test_distribution_drop_non_categorical_warns(adata):
+    """Distribution drop non categorical warns."""
     with pytest.warns(cl.util.errors.CellestialWarning, match="`drop` filter ignored"):
         cl.violin(adata, "CD14", group_by="n_genes_by_counts", drop="x")
 
 
 def test_ridge_drop_removes_group(adata, group_key):
+    """Ridge drop removes group."""
     full = set(
         cl.ridge(adata, key="CD14", group_by=group_key).as_dict()["data"][group_key].to_list()
     )
@@ -242,6 +271,7 @@ def test_ridge_drop_removes_group(adata, group_key):
 
 
 def test_ridge_custom_metadata_tooltip(adata, group_key):
+    """Ridge custom metadata tooltip."""
     # Regression: tooltips are resolved before the frame is built, so a custom
     # obs tooltip column is materialised rather than failing validation.
     plot = cl.ridge(adata, key="CD14", group_by=group_key, tooltips=["n_genes_by_counts"])
@@ -249,6 +279,7 @@ def test_ridge_custom_metadata_tooltip(adata, group_key):
 
 
 def test_ridges_custom_metadata_tooltip(adata, group_key):
+    """Ridges custom metadata tooltip."""
     # Regression: the shared ridges frame must contain the custom tooltip column.
     plot = cl.ridges(
         adata, keys=["CD14", "MS4A1"], group_by=group_key, tooltips=["n_genes_by_counts"]
@@ -260,6 +291,7 @@ def test_ridges_custom_metadata_tooltip(adata, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violin, cl.boxplot])
 def test_distribution_custom_metadata_tooltip(adata, fn, group_key):
+    """Distribution custom metadata tooltip."""
     # Regression mirror of ridge: custom tooltip columns must be included before
     # the narrowed frame is validated.
     plot = fn(adata, "CD14", fill=group_key, tooltips=["n_genes_by_counts"])
@@ -268,6 +300,7 @@ def test_distribution_custom_metadata_tooltip(adata, fn, group_key):
 
 @pytest.mark.parametrize("fn", [cl.violins, cl.boxplots])
 def test_plural_distribution_custom_metadata_tooltip(adata, fn, group_key):
+    """Plural distribution custom metadata tooltip."""
     # Regression mirror of ridges: shared frames must contain tooltip-only columns.
     plot = fn(
         adata,
@@ -284,6 +317,7 @@ def test_plural_distribution_custom_metadata_tooltip(adata, fn, group_key):
 
 
 def test_histogram_builds_expected_geom_and_filters_threshold(adata, group_key):
+    """Histogram builds expected geom and filters threshold."""
     plot = cl.histogram(
         adata,
         "n_genes_by_counts",
@@ -304,6 +338,7 @@ def test_histogram_builds_expected_geom_and_filters_threshold(adata, group_key):
 
 
 def test_histogram_group_filters_and_variable_axis(adata, group_key):
+    """Histogram group filters and variable axis."""
     groups = sorted(adata.obs[group_key].dropna().unique())
     kept = groups[:2]
     dropped = groups[0]
@@ -318,6 +353,7 @@ def test_histogram_group_filters_and_variable_axis(adata, group_key):
 
 
 def test_histograms_materialize_shared_columns_and_grid_options(adata, group_key):
+    """Histograms materialize shared columns and grid options."""
     grid = cl.histograms(
         adata,
         ["CD14", "MS4A1"],
@@ -343,6 +379,7 @@ def test_histograms_materialize_shared_columns_and_grid_options(adata, group_key
 
 
 def test_histogram_validation_paths(adata):
+    """Histogram validation paths."""
     with pytest.raises(TypeError):
         cl.histogram("not anndata", "CD14")
     with pytest.raises(KeyNotFoundError, match="not_a_key"):

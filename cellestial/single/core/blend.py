@@ -33,6 +33,7 @@ from cellestial.util import _drop_nonfinite_rows, _resolve_embedding_key, _resol
 from cellestial.util.errors import (
     ConflictingLengthError,
     DuplicateKeysError,
+    InvalidArgumentError,
     InvalidColorError,
     VariableNotFoundError,
     _unsupported_data_type,
@@ -129,6 +130,8 @@ def blend(
     ------
     ConflictingLengthError
         If `keys` or `colors` does not hold exactly two values.
+    InvalidArgumentError
+        If `xy` does not hold exactly two components.
     DuplicateKeysError
         If both `keys` name the same feature.
     VariableNotFoundError
@@ -192,8 +195,11 @@ def blend(
 
     # HANDLE: XY
     if len(xy) != 2:
-        msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
-        raise KeyError(msg)
+        msg = (
+            f"`xy` must hold exactly 2 components, but received {len(xy)}: {tuple(xy)}.\n"
+            "Pass two 1-based components, e.g. `xy=(1, 2)`."
+        )
+        raise InvalidArgumentError(msg)
     prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
     x = f"{prefix}{xy[0]}"
     y = f"{prefix}{xy[1]}"

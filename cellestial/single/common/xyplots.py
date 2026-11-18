@@ -8,7 +8,7 @@ from ggrust import gggrid, ggtb
 from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
-from cellestial.single.common.xyplot import xyplot
+from cellestial.single.common.xyplot import _observation_embeddings_cover, xyplot
 from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
@@ -212,8 +212,8 @@ def xyplots(
     if has_dimensions:
         include_dimensions = True
     if axis is None:
-        observation_dimensions = bool(include_dimensions and data.obsm) and all(
-            key in data.obs.columns or key in data.var_names for key in feature_keys
+        observation_dimensions = bool(include_dimensions) and _observation_embeddings_cover(
+            data, feature_keys
         )
         axis = (
             0

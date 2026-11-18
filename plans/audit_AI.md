@@ -109,6 +109,9 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_table_shape_positions` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
 | `_not_found` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
 | `_spatial` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_mapping_clash` | Claude Opus 5.5 |  |  |  |  |
+| `_observation_embeddings_cover` | Claude Opus 5.5 |  |  |  |  |
+| `_require_groups_in_every_key` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -255,3 +258,15 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_resolve_coordinate_system` | Claude Opus 5.5 | ✓ |
 | `_resolve_image_name` | Claude Opus 5.5 | ✓ |
 | `_resolve_table` | Claude Opus 5.5 | ✓ |
+| `_distribution` | Claude Opus 5.5 |  |
+| `dimensional` | Claude Opus 5.5 |  |
+| `ridge` | Claude Opus 5.5 |  |
+| `histogram` | Claude Opus 5.5 |  |
+| `histograms` | Claude Opus 5.5 |  |
+| `highest_expressed_genes` | Claude Opus 5.5 |  |
+| `cluster_outlines` | Claude Opus 5.5 |  |
+| `stream` | Claude Opus 5.5 |  |
+| `dimensionals` | Claude Opus 5.5 |  |
+| `xyplot` | Claude Opus 5.5 |  |
+| `xyplots` | Claude Opus 5.5 |  |
+| `expression` | Claude Opus 5.5 |  |
