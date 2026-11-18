@@ -11,6 +11,7 @@ from scipy.sparse import issparse
 
 from cellestial.frames._container import _container
 from cellestial.util.errors import (
+    DuplicateKeysError,
     InvalidArgumentError,
     InvalidArgumentTypeError,
     KeyNotFoundError,
@@ -26,6 +27,32 @@ if TYPE_CHECKING:
     from spatialdata import SpatialData
 
 
+def _reject_duplicate_keys(
+    keys: Sequence[str], parameter: str, *, case_sensitive: bool = True
+) -> None:
+    """
+    Raise `DuplicateKeysError` when `keys` names the same key more than once.
+
+    Notes
+    -----
+    With `case_sensitive=False`, case variants (`X_umap`, `x_UMAP`) count as one
+    key, matching how embeddings are looked up.
+    """
+    seen: dict[str, str] = {}
+    repeated: list[str] = []
+    for key in keys:
+        normalized = key if case_sensitive else key.upper()
+        if normalized in seen and key not in repeated:
+            repeated.append(key)
+        seen.setdefault(normalized, key)
+    if repeated:
+        msg = (
+            f"`{parameter}` names {repeated!r} more than once. "
+            f"Pass each key once: {list(seen.values())!r}."
+        )
+        raise DuplicateKeysError(msg)
+
+
 def anndata_variable_columns(
     data: AnnData | MuData, column_names: list[str], keys: str | Sequence[str]
 ) -> list[pl.Series]:
@@ -38,11 +65,14 @@ def anndata_variable_columns(
         If any key is not present in the variable names.
     AmbiguousVariableError
         If a bare key is present in more than one modality.
+    DuplicateKeysError
+        If a key is repeated.
     """
     if isinstance(keys, str):
         keys = [keys]
-    # remove keys that are already in column_names, or repeated, to avoid repeats
-    keys = [key for key in dict.fromkeys(keys) if key not in column_names]
+    _reject_duplicate_keys(keys, "variable_keys")
+    # remove keys that are already in column_names, to avoid repeats
+    keys = [key for key in keys if key not in column_names]
 
     return _container(data).fetch_variable_columns(keys)
 
@@ -120,7 +150,8 @@ def anndata_observations_frame(
             if hint:
                 msg += f" {hint}"
             raise KeyNotFoundError(msg)
-        selected_columns = list(dict.fromkeys(metadata_columns))
+        _reject_duplicate_keys(metadata_columns, "metadata_columns")
+        selected_columns = list(metadata_columns)
     for key in selected_columns:
         # handle categorical integer data
         if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
@@ -238,7 +269,8 @@ def anndata_variables_frame(
             if hint:
                 msg += f" {hint}"
             raise KeyNotFoundError(msg)
-        selected_columns = list(dict.fromkeys(metadata_columns))
+        _reject_duplicate_keys(metadata_columns, "metadata_columns")
+        selected_columns = list(metadata_columns)
     for key in selected_columns:
         # handle categorical integer data
         if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
@@ -287,6 +319,7 @@ def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> 
     available = list(embeddings.keys())
     if dimension_keys is None:
         return available
+    _reject_duplicate_keys(dimension_keys, "dimension_keys", case_sensitive=False)
     available_upper = {name.upper(): name for name in available}
     selected = []
     missing = []
@@ -294,7 +327,7 @@ def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> 
         actual = available_upper.get(key.upper())
         if actual is None:
             missing.append(key)
-        elif actual not in selected:
+        else:
             selected.append(actual)
     if missing:
         msg = f"`dimension_keys` not found in embeddings: {missing}. Available: {available}."

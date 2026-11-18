@@ -34,10 +34,11 @@ change. Versions absent from the list were never released.
 ### Fixed
 - `build_frame` keeps missing values of a numeric categorical column as null
   instead of turning them into a `"nan"` category.
-- `build_frame` accepts repeated `variable_keys`, `metadata_columns` and
-  `dimension_keys` (the repeats are dropped) instead of failing on a duplicate
-  column, reads sparse embeddings, and raises `InvalidArgumentError` for an
-  `axis` other than 0 or 1.
+- `build_frame` raises `DuplicateKeysError` naming the repeat for repeated
+  `variable_keys`, `metadata_columns` and `dimension_keys` (case variants of one
+  embedding count as a repeat) instead of failing on a duplicate column, reads
+  sparse embeddings, and raises `InvalidArgumentError` for an `axis` other than
+  0 or 1.
 - Stored-result plots on a multimodal object with a single modality now find
   the group column when `modality` is omitted.
 - `datasets.from_url` reads a URL whose filename has no `.h5ad` / `.h5mu`
