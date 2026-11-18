@@ -17,20 +17,23 @@ from cellestial.single.heatmap.utilities import (
     _compute_violin_polygons,
     _panel_size,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import UnsupportedDataTypeError, VariableNotFoundError
 
 
 def test_heatmap_default_aggregate(adata, markers, group_key):
+    """`heatmap` renders with its defaults (aggregated per group)."""
     plot = cl.heatmap(adata, group_by=group_key, keys=markers)
     assert isinstance(plot, PlotSpec)
 
 
 def test_heatmap_tile_with_tooltips(adata, markers, group_key):
+    """`heatmap` with `geom='tile'` accepts tooltips."""
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, geom="tile", tooltips=["value"])
     assert isinstance(plot, PlotSpec)
 
 
 def test_heatmap_dendrogram(adata, markers, group_key):
+    """`heatmap` renders with a dendrogram."""
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, dendrogram=True)
     assert isinstance(plot, PlotSpec)
     assert plot.to_svg() is not None
@@ -59,6 +62,7 @@ def _y_labels(plot):
 
 @pytest.mark.parametrize("function", ["heatmap", "matrixplot", "dotplot", "stacked_violin"])
 def test_group_order_is_deterministic(adata, markers, group_key, function):
+    """Group order is the same on every call."""
     keyword_arguments = {"aggregate": True} if function == "heatmap" else {}
     orders = [
         _y_labels(
@@ -75,6 +79,7 @@ def test_group_order_is_deterministic(adata, markers, group_key, function):
 
 @pytest.mark.parametrize("function", ["dotplot", "stacked_violin", "matrixplot"])
 def test_dendrogram_leaf_order_matches_scanpy(adata, markers, group_key, function):
+    """Groups follow the dendrogram leaf order scanpy computes."""
     import scanpy as sc
 
     local = adata.copy()
@@ -85,6 +90,7 @@ def test_dendrogram_leaf_order_matches_scanpy(adata, markers, group_key, functio
 
 
 def test_heatmap_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    """`heatmap` reads a dendrogram stored under a custom key."""
     local, custom = _stage_custom_dendrogram(adata, group_key)
     plot = cl.heatmap(
         local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
@@ -95,6 +101,7 @@ def test_heatmap_dendrogram_key_uses_custom_key(adata, markers, group_key):
 
 
 def test_matrixplot_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    """`matrixplot` reads a dendrogram stored under a custom key."""
     local, custom = _stage_custom_dendrogram(adata, group_key)
     plot = cl.matrixplot(
         local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
@@ -104,6 +111,7 @@ def test_matrixplot_dendrogram_key_uses_custom_key(adata, markers, group_key):
 
 
 def test_dotplot_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    """`dotplot` reads a dendrogram stored under a custom key."""
     local, custom = _stage_custom_dendrogram(adata, group_key)
     plot = cl.dotplot(
         local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
@@ -113,6 +121,7 @@ def test_dotplot_dendrogram_key_uses_custom_key(adata, markers, group_key):
 
 
 def test_stacked_violin_dendrogram_key_uses_custom_key(adata, markers, group_key):
+    """`stacked_violin` reads a dendrogram stored under a custom key."""
     local, custom = _stage_custom_dendrogram(adata, group_key)
     plot = cl.stacked_violin(
         local, group_by=group_key, keys=markers, dendrogram=True, dendrogram_key=custom
@@ -123,17 +132,20 @@ def test_stacked_violin_dendrogram_key_uses_custom_key(adata, markers, group_key
 
 @pytest.mark.parametrize("scale_axis", [0, 1])
 def test_heatmap_scale_axis(adata, markers, group_key, scale_axis):
+    """`heatmap` renders with each `scale_axis` value."""
     plot = cl.heatmap(adata, group_by=group_key, keys=markers, scale_axis=scale_axis)
     assert isinstance(plot, PlotSpec)
 
 
 def test_heatmap_scale_values_constant_partition_returns_zero():
+    """Min-max scaling a constant partition gives 0, not NaN."""
     frame = pl.DataFrame({"group": ["a", "a", "b"], "value": [2.0, 2.0, 5.0]})
     scaled = _scale_values(frame, value_column="value", partition_key="group")
     assert scaled["value"].to_list() == [0.0, 0.0, 0.0]
 
 
 def test_heatmap_aggregate_false(adata, markers, group_key):
+    """`heatmap(aggregate=False)` draws one row per cell."""
     # Non-aggregated: one row per cell. Keep small: few cells x 5 genes.
     sub = adata[:300].copy()
     plot = cl.heatmap(sub, group_by=group_key, keys=markers[:5], aggregate=False, geom="raster")
@@ -141,6 +153,7 @@ def test_heatmap_aggregate_false(adata, markers, group_key):
 
 
 def test_heatmap_aggregate_false_with_group_bars(adata, markers, group_key):
+    """The per-cell `heatmap` renders with group bars."""
     sub = adata[:300].copy()
     plot = cl.heatmap(
         sub,
@@ -154,12 +167,14 @@ def test_heatmap_aggregate_false_with_group_bars(adata, markers, group_key):
 
 
 def test_heatmap_invalid_group_by(adata, markers):
-    with pytest.raises(Exception):
+    """An unknown `group_by` column raises `KeyError`."""
+    with pytest.raises(KeyError):
         cl.heatmap(adata, group_by="NOT_AN_OBS_COL_xyz", keys=markers)
 
 
 def test_heatmap_invalid_gene(adata, group_key):
-    with pytest.raises(Exception):
+    """An unknown key raises `VariableNotFoundError`."""
+    with pytest.raises(VariableNotFoundError):
         cl.heatmap(adata, group_by=group_key, keys=["NOT_A_GENE_xyz"])
 
 
@@ -175,32 +190,38 @@ def _marker_groups():
 
 
 def test_heatmap_dict_keys_aggregate(adata, group_key):
+    """Mapping `keys` render in the aggregated `heatmap`."""
     plot = cl.heatmap(adata, group_by=group_key, keys=_marker_groups(), aggregate=True)
     assert isinstance(plot, PlotSpec)
 
 
 def test_heatmap_dict_keys_non_aggregate(adata, group_key):
+    """Mapping `keys` render in the per-cell `heatmap`."""
     sub = adata[:300].copy()
     plot = cl.heatmap(sub, group_by=group_key, keys=_marker_groups(), aggregate=False)
     assert isinstance(plot, PlotSpec)
 
 
 def test_matrixplot_dict_keys(adata, group_key):
+    """Mapping `keys` render in `matrixplot`."""
     plot = cl.matrixplot(adata, group_by=group_key, keys=_marker_groups())
     assert isinstance(plot, PlotSpec)
 
 
 def test_dotplot_dict_keys(adata, group_key):
+    """Mapping `keys` render in `dotplot`."""
     plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
     assert isinstance(plot, PlotSpec)
 
 
 def test_stacked_violin_dict_keys(adata, group_key):
+    """Mapping `keys` render in `stacked_violin`."""
     plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
     assert isinstance(plot, PlotSpec)
 
 
 def test_stacked_violin_options(adata, group_key):
+    """`stacked_violin` accepts its styling options."""
     sub = adata[:300].copy()
     plot = cl.stacked_violin(
         sub,
@@ -220,6 +241,7 @@ def test_stacked_violin_options(adata, group_key):
 
 
 def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
+    """`fill_statistic='variable'` renders without the outer rectangle."""
     sub = adata[:300].copy()
     plot = cl.stacked_violin(
         sub,
@@ -234,6 +256,7 @@ def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
 
 
 def test_stacked_violin_required_inputs_and_data_type(adata):
+    """`stacked_violin` rejects missing inputs and unsupported data types."""
     with pytest.raises(ValueError, match="keys"):
         cl.stacked_violin(adata)
     with pytest.raises(UnsupportedDataTypeError):
@@ -241,6 +264,7 @@ def test_stacked_violin_required_inputs_and_data_type(adata):
 
 
 def test_compute_violin_polygons_edge_paths():
+    """The violin polygon builder handles its edge cases."""
     frame = pl.DataFrame(
         {
             "variable": ["a", "a", "a", "b"],
@@ -263,7 +287,7 @@ def test_compute_violin_polygons_edge_paths():
         aggregate="mean",
         aggregate_column="expression",
     )
-    empty = _compute_violin_polygons(
+    single = _compute_violin_polygons(
         frame,
         variable_column="variable",
         value_column="value",
@@ -279,7 +303,9 @@ def test_compute_violin_polygons_edge_paths():
     )
 
     assert polygons.height > 0
-    assert empty.is_empty()
+    # a single observation has no density: a flat two-point line, not nothing
+    assert single.height == 2
+    assert single["y"].n_unique() == 1
     with pytest.raises(ValueError, match="scale"):
         _compute_violin_polygons(
             frame,
@@ -298,6 +324,7 @@ def test_compute_violin_polygons_edge_paths():
 
 
 def test_heatmap_dict_keys_duplicate_raises(adata, group_key):
+    """A key in two mapping groups raises."""
     from cellestial.util.errors import DuplicateKeysError
 
     with pytest.raises(DuplicateKeysError, match="multiple groups"):
@@ -312,6 +339,7 @@ def test_heatmap_dict_keys_duplicate_raises(adata, group_key):
 
 
 def test_resolve_key_groups_flat_passthrough():
+    """Flat keys pass through without key groups."""
     from cellestial.single.heatmap.utilities import _resolve_key_groups
 
     flat, groups = _resolve_key_groups(["A", "B", "C"])
@@ -320,6 +348,7 @@ def test_resolve_key_groups_flat_passthrough():
 
 
 def test_resolve_key_groups_dict_flatten_preserves_order():
+    """Mapping keys flatten in mapping order."""
     from cellestial.single.heatmap.utilities import _resolve_key_groups
 
     flat, groups = _resolve_key_groups({"G1": ["A", "B"], "G2": ["C"]})
@@ -328,6 +357,7 @@ def test_resolve_key_groups_dict_flatten_preserves_order():
 
 
 def test_resolve_key_groups_dict_rejects_single_string_value():
+    """A mapping value that is a bare string raises."""
     from cellestial.single.heatmap.utilities import _resolve_key_groups
 
     with pytest.raises(TypeError, match="not a single string"):
@@ -335,6 +365,7 @@ def test_resolve_key_groups_dict_rejects_single_string_value():
 
 
 def test_key_groups_bar_y_above_top_edge():
+    """Key group brackets sit above the top edge."""
     from cellestial.single.heatmap.utilities import _key_groups_bar_y
 
     top_edge = 7.5
@@ -344,6 +375,7 @@ def test_key_groups_bar_y_above_top_edge():
 
 
 def test_resolve_padding_scales_with_label_length():
+    """Bracket padding grows with the label length."""
     from cellestial.single.heatmap.utilities import _resolve_padding
 
     short = _resolve_padding({"A": ["x"], "B": ["y"]}, padding=None)
@@ -353,6 +385,7 @@ def test_resolve_padding_scales_with_label_length():
 
 
 def test_resolve_padding_explicit_overrides_auto():
+    """An explicit padding overrides the automatic one."""
     from cellestial.single.heatmap.utilities import _resolve_padding
 
     explicit = _resolve_padding({"Lymphocytes": ["x"]}, padding=0.5)
@@ -360,6 +393,7 @@ def test_resolve_padding_explicit_overrides_auto():
 
 
 def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
+    """Mapping keys extend the `dotplot` y limit to fit the brackets."""
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
     n_y = adata.obs[group_key].nunique()
@@ -371,6 +405,7 @@ def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
 
 
 def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_key):
+    """Without key labels the `dotplot` y limit stays tight."""
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups, key_labels=False)
     n_y = adata.obs[group_key].nunique()
@@ -381,6 +416,7 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
 
 
 def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
+    """`dotplot` key labels use an absolute text size."""
     plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
     text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
     assert "size_unit" not in text_layers[-1]
@@ -388,6 +424,7 @@ def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
 
 
 def test_fixed_cell_padding_grows_with_label_width():
+    """Fixed-cell padding grows with the label width."""
     from cellestial.single.heatmap.utilities import _fixed_cell_padding
 
     def padding(label: str) -> float:
@@ -420,6 +457,7 @@ def test_fixed_cell_padding_fits_rendered_labels(adata, group_key):
 
 
 def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
+    """`stacked_violin` key labels use an absolute text size."""
     plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
     text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
     assert "size_unit" not in text_layers[-1]
@@ -430,16 +468,19 @@ def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
 
 
 def test_dotplot_basic(adata, markers, group_key):
+    """`dotplot` renders with its defaults."""
     plot = cl.dotplot(adata, keys=markers, group_by=group_key)
     assert isinstance(plot, PlotSpec)
 
 
 def test_dotplot_sort_by_avg_exp(adata, markers, group_key):
+    """`dotplot` renders when sorting by average expression."""
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, sort_by="avg_exp")
     assert isinstance(plot, PlotSpec)
 
 
 def test_dotplot_fill_mapping(adata, markers, group_key):
+    """`dotplot` accepts a fill mapping."""
     from ggrust import aes
 
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(fill="avg_exp"))
@@ -447,6 +488,7 @@ def test_dotplot_fill_mapping(adata, markers, group_key):
 
 
 def test_dotplot_custom_colors(adata, markers, group_key):
+    """`dotplot` accepts custom gradient colors."""
     plot = cl.dotplot(
         adata,
         keys=markers,
@@ -458,16 +500,19 @@ def test_dotplot_custom_colors(adata, markers, group_key):
 
 
 def test_dotplot_threshold(adata, markers, group_key):
+    """`dotplot` accepts an expression threshold."""
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, threshold=0.2)
     assert isinstance(plot, PlotSpec)
 
 
 def test_dotplot_invalid_gene(adata, group_key):
-    with pytest.raises(Exception):
+    """An unknown key raises `VariableNotFoundError`."""
+    with pytest.raises(VariableNotFoundError):
         cl.dotplot(adata, keys=["NOT_A_GENE_xyz"], group_by=group_key)
 
 
 def test_dotplot_dendrogram(adata, markers, group_key):
+    """`dotplot` renders with a dendrogram."""
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, dendrogram=True)
     assert isinstance(plot, PlotSpec)
     # Render to SVG so lets-plot validates the computed x/y limits against all layers.
@@ -475,12 +520,14 @@ def test_dotplot_dendrogram(adata, markers, group_key):
 
 
 def test_dotplot_dendrogram_without_rectangle(adata, markers, group_key):
+    """`dotplot` renders a dendrogram without the outer rectangle."""
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, dendrogram=True, rectangle=False)
     assert isinstance(plot, PlotSpec)
     assert plot.to_svg() is not None
 
 
 def test_dotplot_single_key(adata, group_key):
+    """`dotplot` renders a single key."""
     # n_x == 1: x limits collapse to [-0.5, 0.5]; dendrogram extends rightward.
     plot = cl.dotplot(adata, keys=["CD3D"], group_by=group_key, dendrogram=True)
     assert isinstance(plot, PlotSpec)
@@ -488,6 +535,7 @@ def test_dotplot_single_key(adata, group_key):
 
 
 def test_dotplot_dendrogram_custom_style(adata, markers, group_key):
+    """`dotplot` accepts dendrogram styling options."""
     plot = cl.dotplot(
         adata,
         keys=markers,
@@ -501,6 +549,7 @@ def test_dotplot_dendrogram_custom_style(adata, markers, group_key):
 
 
 def test_dotplot_no_dendrogram_no_rectangle(adata, markers, group_key):
+    """`dotplot` renders with neither dendrogram nor rectangle."""
     # Fallback path: x_max_limit should default to n_x - 0.5.
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, dendrogram=False, rectangle=False)
     assert isinstance(plot, PlotSpec)
@@ -508,11 +557,13 @@ def test_dotplot_no_dendrogram_no_rectangle(adata, markers, group_key):
 
 
 def test_dotplot_invalid_data_type(markers, group_key):
+    """`dotplot` rejects an unsupported data type."""
     with pytest.raises(UnsupportedDataTypeError, match="Expected"):
         cl.dotplot({"not": "anndata"}, keys=markers, group_by=group_key)
 
 
 def test_dotplot_tooltips_sequence(adata, markers, group_key):
+    """`dotplot` accepts tooltips as a sequence of columns."""
     plot = cl.dotplot(
         adata,
         keys=markers,
@@ -523,6 +574,7 @@ def test_dotplot_tooltips_sequence(adata, markers, group_key):
 
 
 def test_dotplot_tooltips_missing_column(adata, markers, group_key):
+    """Tooltip columns absent from the frame raise."""
     with pytest.raises(ValueError, match="not in data"):
         cl.dotplot(
             adata,
@@ -533,6 +585,7 @@ def test_dotplot_tooltips_missing_column(adata, markers, group_key):
 
 
 def test_dotplot_tooltips_feature_spec(adata, markers, group_key):
+    """`dotplot` accepts tooltips built with `layer_tooltips`."""
     from ggrust import layer_tooltips
 
     plot = cl.dotplot(
@@ -545,6 +598,7 @@ def test_dotplot_tooltips_feature_spec(adata, markers, group_key):
 
 
 def test_dotplot_tooltips_none_string(adata, markers, group_key):
+    """`dotplot` accepts `tooltips='none'`."""
     plot = cl.dotplot(
         adata,
         keys=markers,
@@ -555,6 +609,7 @@ def test_dotplot_tooltips_none_string(adata, markers, group_key):
 
 
 def test_dotplot_interactive(adata, markers, group_key):
+    """`dotplot(interactive=True)` adds the toolbar."""
     plot = cl.dotplot(adata, keys=markers, group_by=group_key, interactive=True)
     assert isinstance(plot, PlotSpec)
 
@@ -563,16 +618,19 @@ def test_dotplot_interactive(adata, markers, group_key):
 
 
 def test_highest_expressed_genes_default(adata):
+    """`highest_expressed_genes` renders with its defaults."""
     plot = cl.highest_expressed_genes(adata, n=10)
     assert isinstance(plot, PlotSpec)
 
 
 def test_highest_expressed_genes_threshold(adata):
+    """`highest_expressed_genes` accepts a threshold."""
     plot = cl.highest_expressed_genes(adata, n=10, threshold=0.1)
     assert isinstance(plot, PlotSpec)
 
 
 def test_highest_expressed_genes_custom_outliers(adata):
+    """`highest_expressed_genes` accepts custom outlier styling."""
     plot = cl.highest_expressed_genes(
         adata, n=5, outlier_size=0.1, outlier_alpha=0.2, outlier_shape=5
     )
@@ -580,12 +638,14 @@ def test_highest_expressed_genes_custom_outliers(adata):
 
 
 def test_highest_expressed_genes_n_larger_than_var(adata):
+    """An `n` above the variable count is capped."""
     # n larger than var count should clip gracefully, not crash.
     with pytest.raises(ValueError):
         cl.highest_expressed_genes(adata, n=adata.n_vars + 100)
 
 
 def test_heatmap_variable_axis_aggregate(adata):
+    """`heatmap` aggregates along the variable axis."""
     # Regression: on the variable axis the `keys` are variable metadata columns
     # (not genes from X), so they must be materialised via metadata_columns or
     # the unpivot raises ColumnNotFoundError.
@@ -879,6 +939,8 @@ def _reference_bin_within_groups(
                 + pl.col("_bin_offset")
             )
             .cast(pl.String)
+            # bin names are zero-padded to the widest bin index (2026-11-18 follow-up S1)
+            .str.zfill(len(str(int(offsets_frame["_bin_count"].sum()) - 1)))
             .alias("_binned_obs")
         )
         .select(observation_id_column, group_key, "_binned_obs")
@@ -905,6 +967,7 @@ def _assert_binning_matches_reference(frame: pl.DataFrame, **kwargs: object) -> 
 
 @pytest.mark.parametrize("max_rows", [1, 7, 100, 999])
 def test_bin_within_groups_matches_reference_on_pbmc3k(adata, markers, cluster_key, max_rows):
+    """Binning matches the reference implementation on pbmc3k."""
     frame = pl.DataFrame(
         {
             "observation_id": adata.obs_names.to_list(),
@@ -948,6 +1011,7 @@ def _small_binning_frame(groups: list[object], dtype: pl.DataType) -> pl.DataFra
 )
 @pytest.mark.parametrize("max_rows", [3, 10, 25])
 def test_bin_within_groups_matches_reference(groups, dtype, y_order_groups, max_rows):
+    """Binning matches the reference implementation across group dtypes."""
     _assert_binning_matches_reference(
         _small_binning_frame(groups, dtype),
         observation_id_column="observation_id",
@@ -959,6 +1023,7 @@ def test_bin_within_groups_matches_reference(groups, dtype, y_order_groups, max_
 
 
 def test_bin_within_groups_matches_reference_with_null_and_duplicate_ids():
+    """Binning matches the reference with null groups and repeated ids."""
     frame = _small_binning_frame(["a", "b"] * 20, pl.String)
     observation_ids = frame["observation_id"].to_list()
     observation_ids[3] = None
@@ -977,6 +1042,7 @@ def test_bin_within_groups_matches_reference_with_null_and_duplicate_ids():
 
 
 def test_bin_within_groups_returns_frame_when_it_fits():
+    """A frame that fits in `max_rows` is returned unchanged."""
     frame = _small_binning_frame(["a", "b"] * 10, pl.String)
     result = heatmap_utilities._bin_within_groups(
         frame,

@@ -35,9 +35,8 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _get_dendrogram, _get_dendrogram_path_frame
+from cellestial.util.dendrogram import _check_dendrogram_groups
 from cellestial.util.errors import (
-    DendrogramMismatchError,
-    DuplicateKeysError,
     InvalidArgumentError,
     _unsupported_data_type,
 )
@@ -199,6 +198,11 @@ def tracksplot(
         If `group_by` is not found.
     VariableNotFoundError
         If a key is not found.
+    DuplicateKeysError
+        If a key appears more than once in `keys`.
+    DendrogramMismatchError
+        If `dendrogram` is set and the dendrogram's groups differ from the groups
+        in the data.
 
     Notes
     -----
@@ -256,10 +260,6 @@ def tracksplot(
 
     mapping = mapping or aes()
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
-    duplicates = sorted({key for key in keys if keys.count(key) > 1})
-    if duplicates:
-        msg = f"`keys` contains duplicates: {duplicates}. Pass each key once."
-        raise DuplicateKeysError(msg)
 
     # BUILD: wide frame, one row per cell and one column per key
     frame = build_frame(
@@ -278,15 +278,12 @@ def tracksplot(
         group_order, paths = _get_dendrogram(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
-        present = set(frame[group_by].cast(pl.String).unique().to_list())
-        absent = [group for group in group_order if group not in present]
-        if absent:
-            msg = (
-                f"The dendrogram for `group_by={group_by!r}` includes groups with no cells "
-                f"in the data: {absent}. It was likely computed before the data was "
-                "subset; recompute it on this data, or set `dendrogram=False`."
-            )
-            raise DendrogramMismatchError(msg)
+        _check_dendrogram_groups(
+            group_order,
+            frame[group_by].cast(pl.String).unique().to_list(),
+            group_by=group_by,
+            require_all=True,
+        )
     else:
         group_order = _group_order(frame[group_by])
         paths = None

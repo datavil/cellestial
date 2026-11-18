@@ -88,6 +88,22 @@ change. Versions absent from the list were never released.
   (the range is taken as 1) instead of drawing them all on the data line, and
   an `x` or `y` naming a column the plot lacks raises `MissingAestheticError`
   with a close match instead of a polars error.
+- `matrixplot` declares `modality` in its signature (it used to reach `heatmap`
+  only through `**geom_kwargs`).
+- Binned per-cell `heatmap` and `tracksplot` keep bins in barcode order within
+  a group (bin names are zero-padded; they used to sort as 0, 1, 10, 11, ..., 2).
+- `stacked_violin` draws a flat line for a key whose values are all equal in a
+  group (e.g. all zeros) instead of leaving the cell empty, and rejects an
+  unknown `fill_statistic` or `scale` with `InvalidArgumentError` (an unknown
+  `fill_statistic` used to drop the fill silently).
+- `annotated_heatmap` settles ties for the most frequent label of a binned
+  categorical track the same way on every run, and raises
+  `InvalidArgumentError` for a category -> color mapping on a numeric track
+  instead of drawing it with the wrong scale.
+- `tracksplot` raises `DendrogramMismatchError` when the dendrogram lacks a
+  group present in the data; that group's cells used to be dropped silently.
+- The `DendrogramMismatchError` hint also names a same-named column with
+  different groups (e.g. a modality's own column) as a possible cause.
 ### Breaking
 - `dimensionals`, `umaps`, `tsnes` and `pcas` raise `KeyNotFoundError` for an
   unknown key instead of a `ValueError` about tooltip fields. Migration: catch
