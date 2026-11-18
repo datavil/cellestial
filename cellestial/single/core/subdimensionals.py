@@ -40,7 +40,9 @@ def _require_groups_in_every_key(
             continue
         values = [values] if isinstance(values, str) else list(values)
         for key in keys:
-            if key not in frame.columns or frame[key].dtype != pl.Categorical:
+            if key not in frame.columns or not isinstance(
+                frame[key].dtype, (pl.Categorical, pl.Enum)
+            ):
                 continue  # numeric keys are not filtered (`dimensional` warns)
             available = frame[key].unique().drop_nulls().to_list()
             unknown = [value for value in values if value not in available]
