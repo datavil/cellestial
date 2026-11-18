@@ -95,7 +95,15 @@ a false statement rather than changing an API.
 
 ---
 
-## 8. Volcano inherits scanpy's log fold change artifact
+## 8. Volcano inherits scanpy's log fold change artifact (RESOLVED)
+
+**Resolution (2026-11-18, branch `claude/fix-diff-heatmap-3f96af`).** Implemented as
+specified below with the default `None`. `volcano`/`volcanos` take
+`min_fraction_expressed`; the filter reads `pts` from the stored ranking, raises
+`KeyNotFoundError` naming `group_by` / `pts=True` when it is absent, and a `group_by`
+recompute passes `pts=True` (a stored ranking without `pts` counts as stale when the
+filter is set). pbmc3k B Cells with `0.1`: 873 of 23427 features remain (169 up, 442
+down). Tests in `tests/test_followup_differential.py`. Revisiting the default is still open.
 
 **Problem.** `cl.volcano` plots every feature in the ranking. scanpy computes
 `logfoldchanges` as `log2((expm1(mean_group) + 1e-9) / (expm1(mean_rest) + 1e-9))`,

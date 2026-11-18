@@ -270,3 +270,19 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `xyplot` | Claude Opus 5.5 |  |
 | `xyplots` | Claude Opus 5.5 |  |
 | `expression` | Claude Opus 5.5 |  |
+| `_build_volcano_frame` | Claude Opus 5.5 | ✓ |
+| `volcano` | Claude Opus 5.5 | ✓ |
+| `volcanos` | Claude Opus 5.5 | ✓ |
+| `markers` | Claude Opus 5.5 | ✓ |
+| `_build_markers_frame` | Claude Opus 5.5 | ✓ |
+| `_marker_names_per_group` | Claude Opus 5.5 | ✓ |
+| `_require_categories` | Claude Opus 5.5 | ✓ |
+| `bracket` | Claude Opus 5.5 | ✓ |
+| `_bracket_layout` | Claude Opus 5.5 | ✓ |
+| `_bin_within_groups` | Claude Opus 5.5 | ✓ |
+| `_compute_violin_polygons` | Claude Opus 5.5 | ✓ |
+| `stacked_violin` | Claude Opus 5.5 | ✓ |
+| `matrixplot` | Claude Opus 5.5 | ✓ |
+| `tracksplot` | Claude Opus 5.5 | ✓ |
+| `_bin_observations` | Claude Opus 5.5 | ✓ |
+| `_annotation_scale` | Claude Opus 5.5 | ✓ |

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "numpy"]
 
+from difflib import get_close_matches
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -11,6 +12,7 @@ from anndata import AnnData
 from cellestial.single.heatmap.utilities import _resolve_rank_genes_groups_key
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentError,
     KeyNotFoundError,
     _unsupported_data_type,
 )
@@ -19,6 +21,13 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from polars import DataFrame
+
+
+def _close_match_hint(value: object, options: Sequence[object]) -> str:
+    """Return `"; did you mean 'x'?"` for the closest option (ignoring case), else `"."`."""
+    by_lowercase = {str(option).lower(): str(option) for option in options}
+    matches = get_close_matches(str(value).lower(), list(by_lowercase), n=1)
+    return f"; did you mean {by_lowercase[matches[0]]!r}?" if matches else "."
 
 
 def _resolve_pvalue_column(pvalue_column: str | None, *, use_adjusted_pvalue: bool) -> str:
@@ -46,6 +55,7 @@ def _build_volcano_frame(
     down_label: str = "down",
     nonsignificant_label: str = "ns",
     rank_genes_kwargs: dict | None = None,
+    min_fraction_expressed: float | None = None,
 ) -> DataFrame:
     """
     Build a volcano-plot-ready frame.
@@ -91,12 +101,24 @@ def _build_volcano_frame(
         Additional keyword arguments forwarded to the ranking call when
         `group_by` triggers a (re)compute (e.g. `method='t-test'`,
         `use_raw=False`, `layer=...`, `corr_method='bonferroni'`).
+    min_fraction_expressed : float | None, default=None
+        Drop features detected in fewer than this fraction of `group`'s cells.
+        Reads the detection rates stored with the ranking; when `group_by`
+        triggers a (re)compute, they are recorded. `None` keeps every feature.
 
     Returns
     -------
     DataFrame
         A polars DataFrame with one row per feature and the columns named
         according to the `*_column` parameters above.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If the ranking, `group`, the fields a volcano needs, or the detection
+        rates `min_fraction_expressed` needs are missing.
+    InvalidArgumentError
+        If `min_fraction_expressed` is set and feature names are not unique.
 
     Notes
     -----
@@ -113,28 +135,48 @@ def _build_volcano_frame(
             existing_params = data.uns.get(key, {}).get("params", {})
             desired_params = {"groupby": group_by, **(rank_genes_kwargs or {})}
             stale = any(existing_params.get(k) != v for k, v in desired_params.items())
-            if key not in data.uns or stale:
+            # The stored parameters do not record `pts`, so check the result itself.
+            lacks_detection_rates = (
+                min_fraction_expressed is not None and "pts" not in data.uns.get(key, {})
+            )
+            if key not in data.uns or stale or lacks_detection_rates:
                 import scanpy as sc
 
+                ranking_kwargs = dict(rank_genes_kwargs or {})
+                if min_fraction_expressed is not None:
+                    ranking_kwargs["pts"] = True
                 sc.tl.rank_genes_groups(
                     data,
                     groupby=group_by,
                     key_added=key,
-                    **(rank_genes_kwargs or {}),
+                    **ranking_kwargs,
                 )
         # CHECK: differential expression results exist
         if key not in data.uns:
+            hint = _close_match_hint(key, list(data.uns))
             msg = (
-                f"`{key}` not found in `data.uns`. "
+                f"`{key}` not found in `data.uns`{hint} "
                 "Run `scanpy.tl.rank_genes_groups` first or pass `group_by`."
             )
-            raise KeyError(msg)
+            raise KeyNotFoundError(msg)
         results = data.uns[key]
         # CHECK: group exists in the results
         available_groups = list(results["names"].dtype.names)
         if group not in available_groups:
-            msg = f"Group `{group}` not found. Available groups: {available_groups}"
-            raise KeyError(msg)
+            hint = _close_match_hint(group, available_groups)
+            msg = (
+                f"Group `{group}` not found{hint} Available groups: {available_groups}. "
+                "Pass one of them as `group`."
+            )
+            raise KeyNotFoundError(msg)
+        # CHECK: detection rates exist when the filter needs them
+        if min_fraction_expressed is not None and "pts" not in results:
+            msg = (
+                f"`min_fraction_expressed` needs detection rates, but the ranking under "
+                f"`{key}` was computed without them. Pass `group_by` to recompute it with "
+                "them recorded, or rank with `pts=True`."
+            )
+            raise KeyNotFoundError(msg)
         # SELECT: which p-value field to pull
         pvalue_field = "pvals_adj" if use_adjusted_pvalue else "pvals"
         # CHECK: the ranking carries what a volcano needs (logistic regression does not)
@@ -158,6 +200,19 @@ def _build_volcano_frame(
                 pvalue_column: np.asarray(results[pvalue_field][group], dtype=np.float64),
             }
         )
+        # FILTER: features detected in too few of the group's cells
+        if min_fraction_expressed is not None:
+            detection_rates = results["pts"][group]
+            if not detection_rates.index.is_unique:
+                duplicated = sorted(set(detection_rates.index[detection_rates.index.duplicated()]))
+                msg = (
+                    "`min_fraction_expressed` matches detection rates to features by name, "
+                    f"but feature names are not unique: {duplicated[:5]}. Make the feature "
+                    "names unique (then rerank), or pass `min_fraction_expressed=None`."
+                )
+                raise InvalidArgumentError(msg)
+            detection_rates = detection_rates.reindex(frame[variable_column].to_list())
+            frame = frame.filter(pl.Series(detection_rates.to_numpy() >= min_fraction_expressed))
     else:
         raise _unsupported_data_type(data, AnnData)
 
@@ -315,18 +370,28 @@ def _build_markers_frame(
             )
             raise ValueError(msg)
 
-        ranks = np.arange(n_genes)
-        group_frames = [
-            pl.DataFrame(
-                {
-                    group_column: group,
-                    rank_column: ranks,
-                    variable_column: [str(name) for name in names[group][:n_genes]],
-                    score_column: np.asarray(scores[group][:n_genes], dtype=np.float64),
-                }
+        # Non-finite scores are dropped before taking the top `n_genes`, so every
+        # panel keeps `n_genes` genes (when that many are finite) with gapless ranks.
+        group_frames = []
+        for group in selected:
+            group_frame = (
+                pl.DataFrame(
+                    {
+                        variable_column: [str(name) for name in names[group]],
+                        score_column: np.asarray(scores[group], dtype=np.float64),
+                    }
+                )
+                .filter(pl.col(score_column).is_finite())
+                .head(n_genes)
             )
-            for group in selected
-        ]
+            group_frames.append(
+                group_frame.select(
+                    pl.lit(group).alias(group_column),
+                    pl.int_range(pl.len(), dtype=pl.Int64).alias(rank_column),
+                    variable_column,
+                    score_column,
+                )
+            )
         frame = pl.concat(group_frames)
 
         params = record["params"]
@@ -341,7 +406,6 @@ def _build_markers_frame(
         # Round scores to keep the embedded JSON compact when the frame is
         # serialized into the plot output.
         frame = frame.with_columns(pl.col(score_column).round(4))
-        frame = frame.filter(pl.col(score_column).is_not_null() & pl.col(score_column).is_finite())
 
         return frame, list(selected), str(stored_group_by)
 

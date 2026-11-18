@@ -8,6 +8,7 @@ from anndata import AnnData
 from mudata import MuData
 
 from cellestial.util.errors import (
+    EmptySelectionError,
     InvalidArgumentError,
     InvalidArgumentTypeError,
     KeyNotFoundError,
@@ -64,6 +65,12 @@ def _marker_names_per_group(
             selected = available_groups
         else:
             selected = list(groups)
+            if not selected:
+                msg = (
+                    "`groups` is empty, so no marker genes would be selected. "
+                    f"Pass None for all groups or pick from {available_groups!r}."
+                )
+                raise EmptySelectionError(msg)
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
@@ -128,6 +135,8 @@ def marker_genes(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
+    EmptySelectionError
+        If `groups` is an empty sequence.
     InvalidArgumentError
         If `n_genes` is out of range.
     InvalidArgumentTypeError
@@ -226,6 +235,8 @@ def marker_genes_dict(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
+    EmptySelectionError
+        If `groups` is an empty sequence.
     InvalidArgumentError
         If `n_genes` is out of range.
     InvalidArgumentTypeError

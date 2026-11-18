@@ -30,7 +30,11 @@ from cellestial.single.differential.utilities import (
 )
 from cellestial.themes import _THEME_SCATTER_BASE
 from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
+from cellestial.util.errors import (
+    EmptySelectionError,
+    InvalidArgumentError,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _container
 
 # Default volcano palette (matches the conventional EnhancedVolcano-style look):
@@ -77,6 +81,7 @@ def volcano(
     down_label: str = "down",
     nonsignificant_label: str = "ns",
     rank_genes_kwargs: dict | None = None,
+    min_fraction_expressed: float | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -175,6 +180,12 @@ def volcano(
         Additional keyword arguments forwarded to the ranking call when
         `group_by` triggers a (re)compute (e.g. `method='t-test'`,
         `use_raw=False`, `layer=...`, `corr_method='bonferroni'`).
+    min_fraction_expressed : float | None, default=None
+        Drop features detected in fewer than this fraction of `group`'s cells,
+        e.g. 0.1. Features detected almost nowhere get huge, meaningless fold
+        changes, so filtering them makes the plot readable. Needs detection
+        rates stored with the ranking: pass `group_by` to have them recorded.
+        `None` keeps every feature.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -193,13 +204,15 @@ def volcano(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
-    KeyError
-        If the requested differential-expression result or group is missing.
     KeyNotFoundError
-        If the stored ranking lacks the fold changes or p-values a volcano needs.
+        If the requested differential-expression result or group is missing,
+        the stored ranking lacks the fold changes or p-values a volcano needs,
+        or `min_fraction_expressed` is set and no detection rates are stored.
     InvalidArgumentError
-        If `pvalue_threshold` is outside (0, 1], or `logfoldchange_threshold`,
-        `top_n` or `nonsignificant_subsample` is negative.
+        If `pvalue_threshold` or `min_fraction_expressed` is outside its
+        accepted range, `logfoldchange_threshold`, `top_n` or
+        `nonsignificant_subsample` is negative, or `min_fraction_expressed` is
+        set while feature names are not unique.
     ValueError
         If requested tooltip columns are not present in the volcano frame.
 
@@ -266,6 +279,12 @@ def volcano(
             "Use None to keep every non-significant point."
         )
         raise InvalidArgumentError(msg)
+    if min_fraction_expressed is not None and not 0 <= min_fraction_expressed <= 1:
+        msg = (
+            f"`min_fraction_expressed` must be in [0, 1] or None, got {min_fraction_expressed}. "
+            "Pass a fraction of the group's cells such as 0.1."
+        )
+        raise InvalidArgumentError(msg)
 
     # NAME: the p-value column after the values it holds
     pvalue_column = _resolve_pvalue_column(pvalue_column, use_adjusted_pvalue=use_adjusted_pvalue)
@@ -288,6 +307,7 @@ def volcano(
         down_label=down_label,
         nonsignificant_label=nonsignificant_label,
         rank_genes_kwargs=rank_genes_kwargs,
+        min_fraction_expressed=min_fraction_expressed,
     )
     # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
     # Dropping them would silently hide the most significant features (and their labels).
@@ -366,17 +386,23 @@ def volcano(
     if top_n:
         # Every feature whose p-value underflowed to zero shares the capped
         # `-log10(pvalue)`, so absolute log fold change breaks those ties
-        # instead of leaving the pick to the sort's arbitrary tie order.
-        label_ranking = [pl.col(negative_log_pvalue_column), pl.col(logfoldchange_column).abs()]
+        # instead of leaving the pick to the sort's arbitrary tie order. The
+        # feature name settles whatever ties remain.
+        label_ranking = [
+            pl.col(negative_log_pvalue_column),
+            pl.col(logfoldchange_column).abs(),
+            pl.col(variable_column),
+        ]
+        label_descending = [True, True, False]
         significant = frame.filter(pl.col(significance_column) != nonsignificant_label)
         top_up = (
             significant.filter(pl.col(significance_column) == up_label)
-            .sort(label_ranking, descending=True)
+            .sort(label_ranking, descending=label_descending)
             .head(top_n)
         )
         top_down = (
             significant.filter(pl.col(significance_column) == down_label)
-            .sort(label_ranking, descending=True)
+            .sort(label_ranking, descending=label_descending)
             .head(top_n)
         )
         label_frame = pl.concat([top_up, top_down])
@@ -461,6 +487,7 @@ def volcanos(
     down_label: str = "down",
     nonsignificant_label: str = "ns",
     rank_genes_kwargs: dict | None = None,
+    min_fraction_expressed: float | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     # multi plot args
@@ -568,6 +595,9 @@ def volcanos(
     rank_genes_kwargs : dict | None, default=None
         Additional keyword arguments forwarded to the ranking call when
         `group_by` triggers a (re)compute.
+    min_fraction_expressed : float | None, default=None
+        Drop features detected in fewer than this fraction of each panel's
+        group, e.g. 0.1. See :func:`volcano`. `None` keeps every feature.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
     interactive : bool, default=False
@@ -606,6 +636,14 @@ def volcanos(
     SupPlotsSpec
         Grid of volcano plots.
 
+    Raises
+    ------
+    EmptySelectionError
+        If `groups` is empty.
+    InvalidArgumentError
+        If `ncol` is below 1, or a threshold is outside its accepted range
+        (see :func:`volcano`).
+
     Notes
     -----
     Builds a volcano plot for each entry in `groups` (vs the rest) and
@@ -639,6 +677,12 @@ def volcanos(
     if not isinstance(groups, Sequence) or isinstance(groups, str):
         msg = "groups must be a Sequence of strings"
         raise TypeError(msg)
+    if len(groups) == 0:
+        msg = "`groups` is empty, so there is nothing to plot. Pass at least one group."
+        raise EmptySelectionError(msg)
+    if ncol is not None and ncol < 1:
+        msg = f"`ncol` must be >= 1 or None, got {ncol}. Pass None to put every panel in one row."
+        raise InvalidArgumentError(msg)
 
     plots = []
     for i, group in enumerate(groups):
@@ -680,6 +724,7 @@ def volcanos(
             down_label=down_label,
             nonsignificant_label=nonsignificant_label,
             rank_genes_kwargs=rank_genes_kwargs,
+            min_fraction_expressed=min_fraction_expressed,
             tooltips=tooltips,
             **geom_kwargs,
         )

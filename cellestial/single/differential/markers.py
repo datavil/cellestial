@@ -27,7 +27,7 @@ from mudata import MuData
 
 from cellestial.single.differential.utilities import _build_markers_frame
 from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
@@ -171,6 +171,8 @@ def markers(
         If the ranking result or a requested group is missing.
     EmptySelectionError
         If `groups` is an empty sequence.
+    InvalidArgumentError
+        If `ncol` is below 1.
     ValueError
         If `n_genes` is out of range.
     TypeError
@@ -223,6 +225,10 @@ def markers(
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
         msg = "`groups` must be a Sequence of strings or None"
         raise TypeError(msg)
+
+    if ncol is not None and ncol < 1:
+        msg = f"`ncol` must be >= 1 or None, got {ncol}. Pass None to put every panel in one row."
+        raise InvalidArgumentError(msg)
 
     # BUILD: long-form frame via the helper
     frame, selected_groups, _ = _build_markers_frame(

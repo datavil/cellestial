@@ -645,6 +645,7 @@ def matrixplot(
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
     group_by: str | None = None,
     *,
+    modality: str | None = None,
     markers: bool | str = False,
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
@@ -692,6 +693,10 @@ def matrixplot(
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
         when `markers` is set.
+    modality : str | None, default=None
+        Which modality's stored analysis results to use when `markers` or
+        `dendrogram` is enabled. Required for a multimodal object holding more
+        than one modality, and not accepted otherwise.
     markers : bool | str, default=False
         Derive `keys` from a precomputed ranking. Pass `True` to use the
         default ranking key, or a string to read a custom key (e.g.
@@ -826,6 +831,7 @@ def matrixplot(
         data,
         keys=keys,
         group_by=group_by,
+        modality=modality,
         markers=markers,
         n_genes=n_genes,
         groups=groups,

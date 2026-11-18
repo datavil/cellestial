@@ -151,6 +151,52 @@ change. Versions absent from the list were never released.
 - `bracket(y_position=...)` below the top of the data no longer gives the plot
   a negative height, and a `y` column without finite values raises a clear
   `ValueError` instead of a `TypeError`.
+### Added
+- `volcano` and `volcanos` take `min_fraction_expressed` (default `None`) to
+  drop features detected in fewer than that fraction of the group's cells
+  (e.g. `0.1`). Such features get huge fold changes from the pseudocount and
+  used to dominate the plot. It reads the detection rates stored with the
+  ranking; with `group_by` they are recorded when the ranking is (re)computed,
+  otherwise a missing record raises `KeyNotFoundError` naming the fix.
+### Breaking
+- `volcano` raises `KeyNotFoundError` (with a close match) instead of a bare
+  `KeyError` for a missing ranking key or group. Migration: catch
+  `KeyNotFoundError`; once it subclasses `KeyError`, `except KeyError` works
+  again.
+- `marker_genes(groups=[])` and `marker_genes_dict(groups=[])` raise
+  `EmptySelectionError` instead of returning an empty result that failed later.
+- `bracket` raises `InvalidArgumentError` for an unknown `test`, `correction`
+  or `label`, and `InvalidComparisonError` when there are too few finite
+  observations. Both subclass `ValueError`, so `except ValueError` still works.
+### Fixed
+- `volcano` labels: features tied on p-value and fold change are picked by
+  name, so the labelled set no longer depends on sort order.
+- `volcanos(groups=[])` raises `EmptySelectionError`; `volcanos` and `markers`
+  reject `ncol` below 1 with `InvalidArgumentError` (it used to fail in the
+  grid or with `ZeroDivisionError`).
+- `markers` drops non-finite scores before taking the top `n_genes`, so a
+  panel keeps `n_genes` genes with gapless ranks.
+- Unknown `groups` errors from the group filters suggest a close match.
+- `bracket` on a constant `y` column stacks the brackets above the data
+  (the range is taken as 1) instead of drawing them all on the data line, and
+  an `x` or `y` naming a column the plot lacks raises `MissingAestheticError`
+  with a close match instead of a polars error.
+- `matrixplot` declares `modality` in its signature (it used to reach `heatmap`
+  only through `**geom_kwargs`).
+- Binned per-cell `heatmap` and `tracksplot` keep bins in barcode order within
+  a group (bin names are zero-padded; they used to sort as 0, 1, 10, 11, ..., 2).
+- `stacked_violin` draws a flat line for a key whose values are all equal in a
+  group (e.g. all zeros) instead of leaving the cell empty, and rejects an
+  unknown `fill_statistic` or `scale` with `InvalidArgumentError` (an unknown
+  `fill_statistic` used to drop the fill silently).
+- `annotated_heatmap` settles ties for the most frequent label of a binned
+  categorical track the same way on every run, and raises
+  `InvalidArgumentError` for a category -> color mapping on a numeric track
+  instead of drawing it with the wrong scale.
+- `tracksplot` raises `DendrogramMismatchError` when the dendrogram lacks a
+  group present in the data; that group's cells used to be dropped silently.
+- The `DendrogramMismatchError` hint also names a same-named column with
+  different groups (e.g. a modality's own column) as a possible cause.
 ### Breaking
 - `dimensionals`, `umaps`, `tsnes` and `pcas` raise `KeyNotFoundError` for an
   unknown key instead of a `ValueError` about tooltip fields. Migration: catch

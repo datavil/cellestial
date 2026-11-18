@@ -122,6 +122,8 @@ def _bin_within_groups(
         obs_frame, on=["_obs_code", "_group_code"], maintain_order="left"
     )
     binned = frame.select(group_by, *keys)
+    # Zero-padded names sort as text in bin order, so rows keep barcode order.
+    name_width = len(str(int(offsets_frame["_bin_count"].sum()) - 1))
     rows = row_bins["_row"]
     if len(rows) != frame.height or rows.n_unique() != frame.height:
         binned = binned[rows]
@@ -129,7 +131,11 @@ def _bin_within_groups(
         binned.with_columns(row_bins["_bin"])
         .group_by("_bin", group_by, maintain_order=False)
         .agg(pl.col(keys).mean())
-        .select(pl.col("_bin").cast(pl.String).alias(observation_id_column), group_by, *keys)
+        .select(
+            pl.col("_bin").cast(pl.String).str.zfill(name_width).alias(observation_id_column),
+            group_by,
+            *keys,
+        )
     )
 
 
@@ -944,7 +950,7 @@ def _compute_violin_polygons(
         if var_key not in var_range:
             continue
         var_min, var_max = var_range[var_key]
-        if var_min is None or var_max is None or var_max <= var_min:
+        if var_min is None or var_max is None:
             continue
         value_span = var_max - var_min
 
@@ -957,7 +963,29 @@ def _compute_violin_polygons(
                 .drop_nulls()
                 .to_numpy()
             )
-            if len(group_values) < 2 or group_values.std() == 0:
+            if len(group_values) == 0:
+                continue
+            aggregated_value = (
+                float(np.median(group_values))
+                if aggregate == "median"
+                else float(group_values.mean())
+            )
+            if group_values.std() == 0:
+                # No density to estimate: draw a flat line at the value, full width.
+                value_fraction = (group_values[0] - var_min) / value_span if value_span else 0.0
+                y_flat = (y_index - half_height) + value_fraction * height_scale
+                for px in (x_index + half_width_max, x_index - half_width_max):
+                    rows.append(
+                        {
+                            "polygon_id": polygon_id,
+                            "x": px,
+                            "y": y_flat,
+                            variable_column: var_key,
+                            group_by: group_key,
+                            aggregate_column: aggregated_value,
+                        }
+                    )
+                polygon_id += 1
                 continue
             if rng is not None and len(group_values) > kde_max_samples:
                 kde_input = group_values[
@@ -975,11 +1003,6 @@ def _compute_violin_polygons(
                     "its values are too uniform to estimate a density."
                 )
                 continue
-            aggregated_value = (
-                float(np.median(group_values))
-                if aggregate == "median"
-                else float(group_values.mean())
-            )
             kde_results[group_key] = (
                 y_index,
                 grid,

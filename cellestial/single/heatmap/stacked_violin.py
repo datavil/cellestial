@@ -45,7 +45,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _validate_tooltips,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container_column, _modality_source
 
 if TYPE_CHECKING:
@@ -245,6 +245,8 @@ def stacked_violin(
     DendrogramMismatchError
         If `dendrogram` is set and the dendrogram lacks groups present in the data,
         or one must be computed for a grouping with categories that have no cells.
+    InvalidArgumentError
+        If `fill_statistic` or `scale` is not one of the accepted values.
     ValueError
         If `keys` and `group_by` are missing while `markers` is
         disabled.
@@ -311,6 +313,15 @@ def stacked_violin(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    # CHECK: options, before any data is read
+    fill_statistics = ["median", "mean", "group", "variable", None]
+    if fill_statistic not in fill_statistics:
+        msg = f"`fill_statistic` must be one of {fill_statistics}. Received: {fill_statistic!r}."
+        raise InvalidArgumentError(msg)
+    scales = ["area", "count", "width"]
+    if scale not in scales:
+        msg = f"`scale` must be one of {scales}. Received: {scale!r}."
+        raise InvalidArgumentError(msg)
 
     if markers:
         results, local_group_by = _modality_source(data, modality, group_by)

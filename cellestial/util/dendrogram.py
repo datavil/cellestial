@@ -187,8 +187,9 @@ def _check_dendrogram_groups(
     if missing:
         msg = (
             f"The dendrogram for `group_by={group_by!r}` lacks groups in the data: {missing}. "
-            "It was likely computed on other data; recompute it on this data, "
-            "or set `dendrogram=False`."
+            "It was likely computed on other data, or on a same-named column with "
+            "different groups (e.g. a modality's own column of a multimodal object); "
+            "recompute it on this data, or set `dendrogram=False`."
         )
         raise DendrogramMismatchError(msg)
     absent = [group for group in dendrogram_groups if group not in data_groups]
@@ -196,6 +197,8 @@ def _check_dendrogram_groups(
         msg = (
             f"The dendrogram for `group_by={group_by!r}` includes groups with no cells "
             f"in the data: {absent}. It was likely computed before the data was "
-            "subset; recompute it on this data, or set `dendrogram=False`."
+            "subset, or on a same-named column with different groups (e.g. a "
+            "modality's own column of a multimodal object); recompute it on this "
+            "data, or set `dendrogram=False`."
         )
         raise DendrogramMismatchError(msg)

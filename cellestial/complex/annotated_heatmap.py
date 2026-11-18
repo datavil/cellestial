@@ -39,7 +39,7 @@ from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import _resolve_key_groups, _scale_values
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _check_dendrogram_groups, _fill_gradient, _get_dendrogram, _warn
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _modality_source
 
 if TYPE_CHECKING:
@@ -162,7 +162,8 @@ def _bin_observations(
             (
                 pl.col(column).mean()
                 if frame.schema[column].is_numeric()
-                else pl.col(column).mode().first()
+                # sorted so a tie for the most frequent value is settled the same way
+                else pl.col(column).mode().sort().first()
             ).alias(column)
             for column in columns
         ]
@@ -234,6 +235,13 @@ def _annotation_scale(
             return scale_fill_gradient(low="#f0f0f0", high="#1a1a1a", name=series.name)
         return scale_fill_brewer(palette=palette, name=series.name)
     if isinstance(colors, Mapping):
+        if numeric:
+            msg = (
+                f"Annotation track {series.name!r} is numeric, so a category -> color "
+                "mapping in `annotation_colors` cannot color it. Pass a list of colors "
+                "for a gradient instead, e.g. ['#f0f0f0', '#1a1a1a']."
+            )
+            raise InvalidArgumentError(msg)
         return scale_fill_manual(values=dict(colors), name=series.name)
     colors = list(colors)
     if numeric:
@@ -376,8 +384,8 @@ def annotated_heatmap(
     keys : Sequence[str]
         Variable keys to include, placed on the x-axis.
     modality : str | None, default=None
-        Which modality's stored analysis results to use when `markers` or
-        `dendrogram` is enabled. Required for a multimodal object holding more
+        Which modality's stored analysis results to use when `dendrogram` is
+        enabled. Required for a multimodal object holding more
         than one modality, and not accepted otherwise.
     group_by : str | None, default=None
         The observation key to group the rows by. When `None`, rows keep their
@@ -429,7 +437,8 @@ def annotated_heatmap(
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
     dendrogram_kwargs : dict | None, default=None
-        Additional parameters for the dendrogram `geom_path`.
+        Additional parameters for the dendrogram side line (`geom_xsideline` or
+        `geom_ysideline`, depending on `orientation`).
     column_annotation_height : float, default=0.025
         Height of each column annotation track, relative to the heatmap.
     row_annotation_width : float, default=0.025
@@ -488,6 +497,9 @@ def annotated_heatmap(
         If `dendrogram` is set and the dendrogram's groups differ from the groups
         in the data, or one must be computed for a grouping with categories that
         have no cells.
+    InvalidArgumentError
+        If `annotation_colors` gives a category -> color mapping for a numeric
+        track.
     ValueError
         If `dendrogram` is set without `group_by`.
 
