@@ -37,6 +37,7 @@
 - [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
 - [Project: pbmc3k labels swapped](project_pbmc3k_labels.md): Bundled pbmc3k is bone marrow; cell_type_lvl1 "B Cells"/"Erythroid" are swapped, null cluster is erythroblasts (plans/pbmc3k_labels.md)
 - [Project: build_frame categoricals are pl.Enum](project_build_frame_enum.md) — Source category order via pl.Enum; accept Enum in dtype checks, cast to String before string compares/joins
+- [Feedback: Quick plots keep default fill](feedback_quick_plots_keep_default_fill.md) — `highest_expressed_genes` keeps per-gene fill; no-promotion rule not applied to convenience plots
 
 
 ---
@@ -1032,3 +1033,23 @@ Since 2026-11-18 (branch `claude/fix-frames-2b9508`), `build_frame` turns catego
 **Why:** `dtype == pl.Categorical` is False for an Enum, and polars raises on `is_in` / `==` with a value that is not a category, on Enum vs String joins, and on concat of different Enums.
 
 **How to apply:** Test categorical columns with `isinstance(dtype, (pl.Categorical, pl.Enum))`. Validate user group values against the column first (as `_filter_groups` does) or `.cast(pl.String)` before comparing or joining. Related: [[project-polars-drop-null-gotcha]].
+
+---
+
+## Source: feedback_quick_plots_keep_default_fill.md
+
+---
+name: feedback-quick-plots-keep-default-fill
+description: Convenience/quick plots like highest_expressed_genes keep their default per-category fill; the no-hidden-promotion rule is not applied there
+metadata:
+  node_type: memory
+  type: feedback
+  originSessionId: 8e6ad63f-f0a8-463a-bd57-6e93b380b314
+  modified: 2026-11-18T11:29:19.373Z
+---
+
+`highest_expressed_genes` fills each box by gene by default, and that stays. The user reverted its removal on 2026-11-18: it is a convenience function, so strict convention work is not worth it there.
+
+**Why:** the "no hidden aesthetic promotion" rule targets `group_by` in the general plots (ridge, violin, ...), where users wire aesthetics themselves. Quick one-call plots are meant to look finished with no extra arguments.
+
+**How to apply:** don't strip default colouring from quick/convenience plots (`cellestial/single/quick/`) for convention's sake; ask first. Renames to the `geom_color`/`geom_fill` convention still apply. Related: [[feedback-no-hidden-aesthetic-promotion]].

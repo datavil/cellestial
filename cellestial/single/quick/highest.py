@@ -54,8 +54,7 @@ def highest_expressed_genes(
         otherwise.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-        Boxes are not filled per gene unless mapped, e.g. `aes(fill='variable')`
-        (the `variable_column` name).
+        Boxes are filled per gene by default; override with e.g. `aes(fill=...)`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
     value_column : str, default='value'
@@ -118,7 +117,6 @@ def highest_expressed_genes(
         cl.highest_expressed_genes(
             data,
             n=10,
-            mapping=aes(fill="variable"),
             outlier_size=0.1,
             outlier_alpha=0.2,
             outlier_shape=5)+scale_fill_viridis()
@@ -142,7 +140,7 @@ def highest_expressed_genes(
         raise InvalidArgumentError(msg)
 
     # HANDLE: mapping
-    defaults = aes(x=variable_column, y=value_column).as_dict()
+    defaults = aes(x=variable_column, y=value_column, fill=variable_column).as_dict()
     if mapping is not None:
         defaults.update(mapping.as_dict())
     mapping = aes(**defaults)

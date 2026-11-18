@@ -76,11 +76,9 @@ def test_ridge_literal_color_points_to_geom_color(adata):
         cl.ridge(adata, "CD14", "leiden", color="#1f1f1f")
 
 
-def test_highest_expressed_genes_does_not_map_fill(adata):
-    """Highest expressed genes does not map fill unless asked."""
-    assert "fill" not in cl.highest_expressed_genes(adata, 5).as_dict()["layers"][0]["mapping"]
-    plot = cl.highest_expressed_genes(adata, 5, mapping=aes(fill="variable"))
-    assert plot.as_dict()["layers"][0]["mapping"]["fill"] == "variable"
+def test_highest_expressed_genes_fills_by_gene(adata):
+    """Highest expressed genes fills each box by gene by default."""
+    assert cl.highest_expressed_genes(adata, 5).as_dict()["layers"][0]["mapping"]["fill"] == "variable"
 
 
 @pytest.mark.parametrize("function", ["elbow", "highest_expressed_genes"])

@@ -124,9 +124,6 @@ change. Versions absent from the list were never released.
   to the geom; it now names a column and raises `KeyNotFoundError` pointing to
   `geom_color`. Migration: use `geom_color="#..."`. Setting `fill` / `color`
   both as a shortcut and in `mapping` raises `InvalidArgumentError`.
-- `highest_expressed_genes` no longer fills each box by gene on its own.
-  Migration: pass `mapping=aes(fill="variable")` (the `variable_column` name)
-  to keep the per-gene colors.
 - `histogram` takes one key; a list raises `TypeError` pointing to
   `histograms`, like the other singular plots. Migration: use `histograms`
   for several keys.
