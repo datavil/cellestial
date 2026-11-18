@@ -13,6 +13,7 @@ import re
 import sys
 import warnings
 from collections.abc import Sequence
+from difflib import get_close_matches
 from functools import lru_cache
 from math import ceil, floor, isfinite, log10
 from numbers import Real
@@ -255,8 +256,15 @@ def _require_categories(
     """Raise `KeyNotFoundError` naming the `values` missing from `available`."""
     unknown = [value for value in values if value not in available]
     if unknown:
+        by_lowercase = {str(option).lower(): str(option) for option in available}
+        suggestions = []
+        for value in unknown:
+            matches = get_close_matches(str(value).lower(), list(by_lowercase), n=1)
+            if matches:
+                suggestions.append(repr(by_lowercase[matches[0]]))
+        hint = f"; did you mean {', '.join(suggestions)}?" if suggestions else "."
         msg = (
-            f"`{parameter}` {unknown!r} not found in {column_parameter} `{column}`. "
+            f"`{parameter}` {unknown!r} not found in {column_parameter} `{column}`{hint} "
             f"Available: {sorted(available)!r}."
         )
         raise KeyNotFoundError(msg)

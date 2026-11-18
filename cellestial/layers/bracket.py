@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["ggrust"]
 
+from difflib import get_close_matches
 from itertools import combinations
 from typing import TYPE_CHECKING, Literal
 
@@ -10,7 +11,11 @@ from ggrust import aes, ggsize, stat_compare_means
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
-from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidComparisonError,
+    MissingAestheticError,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -37,7 +42,7 @@ def _option(name: str, value: str, options: dict[str, str]) -> str:
     """Translate a cellestial option into its `stat_compare_means` name."""
     if value not in options:
         msg = f"`{name}` must be one of {list(options)}. Received: {value!r}"
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     return options[value]
 
 
@@ -111,7 +116,7 @@ def _bracket_layout(
 
     if len(pairs) == 0:
         msg = "No group pairs available to compare."
-        raise ValueError(msg)
+        raise InvalidComparisonError(msg)
 
     # every compared group needs at least 2 finite observations
     counts = dict(finite_frame[x].value_counts().iter_rows())
@@ -131,12 +136,14 @@ def _bracket_layout(
             f"{prefix}Each comparison needs at least 2 observations per group after "
             f"removing non-finite values. Received: {details}."
         )
-        raise ValueError(msg)
+        raise InvalidComparisonError(msg)
 
     # stack the brackets above the data without overlapping
     data_min = finite_frame[y].min()
     data_max = finite_frame[y].max()
     data_range = data_max - data_min  # ty:ignore[unsupported-operator]
+    # constant data has no range to pad by; use 1, as the continuous scale does
+    data_range = data_range or 1.0
     _y_position = data_max + data_range * y_padding if y_position is None else y_position
     _y_step = data_range * y_padding if y_step is None else y_step
     positions = [_y_position + _y_step * index for index in range(len(pairs))]
@@ -227,13 +234,13 @@ def bracket(
     ------
     MissingAestheticError
         If `x` or `y` cannot be provided explicitly or inferred from the
-        receiving plot.
+        receiving plot, or names a column the plot data lacks.
     InvalidComparisonError
         If `comparisons` contains malformed pairs or groups not present in
-        the plot data.
-    ValueError
-        If `test`, `correction` or `label` is invalid, or there are too few
-        observations to compute brackets.
+        the plot data, or there are too few finite observations to compute
+        brackets.
+    InvalidArgumentError
+        If `test`, `correction` or `label` is invalid.
 
     Notes
     -----
@@ -324,6 +331,15 @@ def bracket(
         if y is None:
             msg = "`y` is present neither as argument nor in the plot aesthetics."
             raise MissingAestheticError(msg)
+        for aesthetic, column in (("x", x), ("y", y)):
+            if column not in frame.columns:
+                matches = get_close_matches(column, frame.columns, n=1)
+                hint = f"; did you mean {matches[0]!r}?" if matches else "."
+                msg = (
+                    f"`{aesthetic}` column {column!r} is not in the plot data{hint} "
+                    f"Available columns: {frame.columns}."
+                )
+                raise MissingAestheticError(msg)
 
         # size the stacking step in pixels so labels keep their room on any y range
         plot_width, plot_height = receiving_plot.size or _DEFAULT_PLOT_SIZE
@@ -333,11 +349,12 @@ def bracket(
                 f"No valid group comparisons available: `y` column {y!r} has no finite "
                 "values. Each comparison needs at least 2 finite observations per group."
             )
-            raise ValueError(msg)
+            raise InvalidComparisonError(msg)
         data_max = values.max()
         data_range = data_max - values.min()  # ty:ignore[unsupported-operator]
         panel_height = plot_height - _NON_PANEL_HEIGHT
-        units_per_pixel = data_range * (1 + 2 * _Y_EXPAND) / panel_height
+        # constant data: size the step as if the range were 1 so brackets still stack
+        units_per_pixel = (data_range or 1.0) * (1 + 2 * _Y_EXPAND) / panel_height
         step_pixels = _BRACKET_STEP_PIXELS * (label_size or _DEFAULT_LABEL_SIZE)
         step_pixels /= _DEFAULT_LABEL_SIZE
         resolved_y_step = step_pixels * units_per_pixel if y_step is None else y_step
