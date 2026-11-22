@@ -2,6 +2,8 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
+import math
+from numbers import Real
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
@@ -29,7 +31,11 @@ from cellestial.util import (
     _validate_aesthetic_columns,
     _validate_tooltips,
 )
-from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -56,6 +62,26 @@ def _merge_shortcuts(
             raise InvalidArgumentError(msg)
         merged[aesthetic] = column
     return aes(**merged)
+
+
+def _check_ridge_scale(scale: object) -> None:
+    """Raise unless `scale` is a positive finite number."""
+    accepted = "`scale` sets how much the ridges overlap: a positive number (default 2.0)"
+    if isinstance(scale, bool) or not isinstance(scale, Real):
+        msg = f"{accepted}, got {scale!r} ({type(scale).__name__})."
+        if isinstance(scale, str):
+            msg += (
+                "\nHere `scale` is the ridge overlap, not a width method like the "
+                "violin's 'area', 'count' or 'width'; pass a number such as `scale=2.0`."
+            )
+        raise InvalidArgumentTypeError(msg)
+    try:
+        finite = math.isfinite(scale)
+    except OverflowError:  # an int too large for a float
+        finite = False
+    if not finite or scale <= 0:
+        msg = f"{accepted}, got {scale!r}.\nPass a number above 0, such as `scale=2.0`."
+        raise InvalidArgumentError(msg)
 
 
 def ridge(
@@ -98,7 +124,8 @@ def ridge(
         A prebuilt frame to plot from. If provided, the frame is used directly and
         building from `data` is skipped. Must contain the `key` and `group_by` columns.
     scale : float, default=2.0
-        Scaling factor for the height of the ridges.
+        How much the ridges overlap. At 1 the tallest ridge just touches the
+        one above; larger values overlap more. Must be a positive number.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
         Ridges are not filled by group unless mapped, e.g. `fill='leiden'`.
@@ -153,9 +180,12 @@ def ridge(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentTypeError
+        If `scale` is not a number.
     InvalidArgumentError
-        If `mapping` sets `x` or `y`, which come from `key` and `group_by`, or
-        sets `fill` / `color` while the `fill` / `color` shortcut is also given.
+        If `scale` is not a positive finite number, if `mapping` sets `x` or `y`,
+        which come from `key` and `group_by`, or if it sets `fill` / `color` while
+        the `fill` / `color` shortcut is also given.
     KeyNotFoundError
         If `fill` or `color` does not name a column (use `geom_fill` /
         `geom_color` for a constant).
@@ -206,6 +236,7 @@ def ridge(
         raise _unsupported_data_type(data, AnnData, MuData)
 
     _reject_sequence_key(key, singular="ridge", plural="ridges")
+    _check_ridge_scale(scale)
 
     # HANDLE: mapping
     _reject_mapping_clash(mapping, function="ridge", set_by={"x": "`key`", "y": "`group_by`"})
@@ -349,7 +380,8 @@ def ridges(
         The key to group the ridges by (categorical).
         e.g., 'cell_type' or 'leiden'.
     scale : float, default=2.0
-        Scaling factor for the height of the ridges.
+        How much the ridges overlap. At 1 the tallest ridge just touches the
+        one above; larger values overlap more. Must be a positive number.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
         Ridges are not filled by group unless mapped, e.g. `fill='leiden'`.
@@ -437,6 +469,13 @@ def ridges(
     SupPlotsSpec
         Ridge plot.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If `scale` is not a number.
+    InvalidArgumentError
+        If `scale` is not a positive finite number.
+
     Examples
     --------
 
@@ -467,6 +506,7 @@ def ridges(
     if isinstance(keys, str):
         msg = "keys must be a Sequence of strings, not a single string"
         raise TypeError(msg)
+    _check_ridge_scale(scale)
     _merge_shortcuts(mapping, fill=fill, color=color, function="ridges")  # fail early on a clash
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
