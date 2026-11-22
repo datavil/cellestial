@@ -39,6 +39,21 @@ def test_ridge_sequence_key_points_to_plural(adata, group_key):
         cl.ridge(adata, ["CD14", "MS4A1"], group_key)
 
 
+@pytest.mark.parametrize(
+    ("sort_by", "parts"),
+    [
+        ("avg_exp", ["'avg_exp'", "percent_expressed", "mean_expression", "`sort_by`"]),
+        (["mean_expresion"], ["Did you mean 'mean_expression'?", "`sort_by`"]),
+    ],
+)
+def test_dotplot_unknown_sort_by_column(adata, group_key, sort_by, parts):
+    with pytest.raises(KeyNotFoundError) as info:
+        cl.dotplot(adata, keys=["CD14", "MS4A1"], group_by=group_key, sort_by=sort_by)
+    message = str(info.value)
+    for part in parts:
+        assert part in message
+
+
 # ---- Category 2: missing key says where Cellestial looked ----
 
 

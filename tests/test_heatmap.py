@@ -473,9 +473,9 @@ def test_dotplot_basic(adata, markers, group_key):
     assert isinstance(plot, PlotSpec)
 
 
-def test_dotplot_sort_by_avg_exp(adata, markers, group_key):
+def test_dotplot_sort_by_mean_expression(adata, markers, group_key):
     """`dotplot` renders when sorting by average expression."""
-    plot = cl.dotplot(adata, keys=markers, group_by=group_key, sort_by="avg_exp")
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, sort_by="mean_expression")
     assert isinstance(plot, PlotSpec)
 
 
@@ -483,7 +483,7 @@ def test_dotplot_fill_mapping(adata, markers, group_key):
     """`dotplot` accepts a fill mapping."""
     from ggrust import aes
 
-    plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(fill="avg_exp"))
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(fill="mean_expression"))
     assert isinstance(plot, PlotSpec)
 
 
@@ -828,16 +828,18 @@ def test_fixed_cells_are_cell_size_wide(adata, markers, request, function, dendr
 
 
 def test_fixed_cells_single_key_keeps_legend_room(adata, group_key):
-    """One key gets the backend's minimum panel instead of clipping the legend."""
+    """One key gets at least the backend's minimum panel instead of clipping the legend."""
     plot = cl.dotplot(adata, keys=["LYZ"], group_by=group_key)
     panel = _panel_size(plot)
     assert panel is not None
-    assert panel[0] == pytest.approx(_PANEL_MIN_SIZE, abs=0.1)
+    assert panel[0] >= _PANEL_MIN_SIZE - 0.1
+    # The size legend keeps all its keys instead of a "+K more" entry.
+    assert "more" not in plot.to_svg()
     # A wider canvas widens the panel: nothing was squeezed at the chosen size.
     width = plot.as_dict()["ggsize"]["width"]
     wider = _panel_size(plot + ggsize(width + 10, plot.as_dict()["ggsize"]["height"]))
     assert wider is not None
-    assert wider[0] == pytest.approx(_PANEL_MIN_SIZE + 10, abs=0.1)
+    assert wider[0] == pytest.approx(panel[0] + 10, abs=0.1)
 
 
 def test_fixed_cell_layout_falls_back_to_estimates(adata, markers, group_key, monkeypatch):
@@ -860,7 +862,7 @@ def test_dotplot_constant_size_stays_in_pixels(adata, markers, group_key):
 
 def test_dotplot_other_size_mapping_stays_in_pixels(adata, markers, group_key):
     """Sizes mapped to another column keep pixel sizes and their plain legend."""
-    plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(size="avg_exp"))
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, mapping=aes(size="mean_expression"))
     point_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "point")
     assert "size_unit" not in point_layer
     scale = _size_scale_spec(plot)

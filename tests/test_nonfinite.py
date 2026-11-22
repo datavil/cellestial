@@ -72,8 +72,8 @@ def test_aggregated_plots_use_only_finite_expression():
         cl.heatmap(data, ["gene_a", "gene_b"], "group", aggregate=True, geom="tile")
     )
 
-    assert dot_frame["avg_exp"].is_finite().all()
-    assert dot_frame["pct_exp"].is_finite().all()
+    assert dot_frame["mean_expression"].is_finite().all()
+    assert dot_frame["percent_expressed"].is_finite().all()
     assert heatmap_frame["value"].is_finite().all()
 
 

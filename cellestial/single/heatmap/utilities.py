@@ -687,6 +687,7 @@ def _fixed_cell_layout(
     legend_width: float,
     legend_height: float,
     cell_height_ratio: float = 1.0,
+    minimum_width: float = 0,
 ) -> PlotSpec:
     """
     Lock the cell aspect ratio and size the canvas so every cell is `_CELL_SIZE` wide.
@@ -700,7 +701,7 @@ def _fixed_cell_layout(
     shorter than `legend_height`. The panel keeps at least `_PANEL_MIN_SIZE` pixels
     per side, so a single key or group gets wider cells instead of a clipped legend.
     `y_limits` are passed to the fixed coordinates, which replace any coordinates
-    added before.
+    added before. The canvas is never narrower than `minimum_width`.
     """
     panel_width = x_span * _CELL_SIZE
     panel_height = y_span * _CELL_SIZE * cell_height_ratio
@@ -720,7 +721,7 @@ def _fixed_cell_layout(
         other_width = probe_width - tall[0]
         other_height = probe_height - wide[1]
     return plot + ggsize(
-        other_width + max(panel_width, _PANEL_MIN_SIZE),
+        max(other_width + max(panel_width, _PANEL_MIN_SIZE), minimum_width),
         max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height),
     )
 

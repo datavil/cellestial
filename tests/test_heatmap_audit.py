@@ -125,8 +125,8 @@ def test_dotplot_percentages_match_numpy(adata):
     labels = adata.obs[group_key].astype(str).to_numpy()
     for row in frame.iter_rows(named=True):
         values = expression[labels == str(row[group_key]), KEYS.index(row["variable"])]
-        assert row["pct_exp"] == pytest.approx((values > threshold).mean() * 100)
-        assert row["avg_exp"] == pytest.approx(values.mean(), rel=1e-5, abs=1e-6)
+        assert row["percent_expressed"] == pytest.approx((values > threshold).mean() * 100)
+        assert row["mean_expression"] == pytest.approx(values.mean(), rel=1e-5, abs=1e-6)
 
 
 def test_heatmap_bins_average_their_cells(adata):
