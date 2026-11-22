@@ -17,6 +17,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _is_variable_key,
     _reject_renamed_embedding_kwargs,
+    _require_add_keys,
     _resolve_tooltips,
     _share_axis,
     _share_labels,
@@ -317,6 +318,7 @@ def dimensionals(
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(data, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
@@ -679,6 +681,7 @@ def umaps(
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(data, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
@@ -1039,6 +1042,7 @@ def tsnes(
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(data, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
@@ -1398,6 +1402,7 @@ def pcas(
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(data, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
@@ -1750,6 +1755,7 @@ def expressions(
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(data, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,

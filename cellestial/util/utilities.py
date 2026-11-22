@@ -734,6 +734,51 @@ def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
     raise KeyNotFoundError(msg)
 
 
+def _require_add_keys(
+    data: AnnData | MuData,
+    add_keys: Sequence[str] | None,
+    frame_columns: Sequence[str] = (),
+) -> None:
+    """
+    Validate that every `add_keys` name resolves to a column or variable.
+
+    Parameters
+    ----------
+    data : AnnData | MuData
+        The single-cell data object.
+    add_keys : Sequence[str] | None
+        The extra names to materialise into the frame.
+    frame_columns : Sequence[str], default=()
+        Columns of a frame passed in by the caller; names found there are accepted.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If a name is neither a metadata column, a variable name, nor a frame column.
+    """
+    if not add_keys:
+        return
+    container = _container(data)
+    observation_columns = container.observation_columns()
+    missing = [
+        key
+        for key in add_keys
+        if key not in observation_columns
+        and key not in frame_columns
+        and not container.owns_variable(key)
+    ]
+    if not missing:
+        return
+    msg = (
+        f"`add_keys` names not found: {missing}.\n"
+        "Looked in observation metadata and variable (gene) names."
+    )
+    hint = _did_you_mean(missing, [*observation_columns, *container.variable_names()])
+    if hint:
+        msg += f"\n{hint}"
+    raise KeyNotFoundError(msg)
+
+
 def _is_variable_key(data: AnnData | MuData, key: str | None) -> bool:
     if key is None:
         return False

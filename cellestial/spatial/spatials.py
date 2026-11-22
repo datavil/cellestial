@@ -19,6 +19,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _is_spatialdata,
     _is_variable_key,
+    _require_add_keys,
     _resolve_tooltips,
     _share_labels,
 )
@@ -327,6 +328,7 @@ def spatials(
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(table, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         table,

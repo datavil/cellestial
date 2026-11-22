@@ -22,6 +22,7 @@ from cellestial.util.utilities import (  # noqa: F401
     _range_inclusive,
     _reject_renamed_embedding_kwargs,
     _reject_sequence_key,
+    _require_add_keys,
     _require_feature_key,
     _resolve_embedding_key,
     _resolve_tooltips,

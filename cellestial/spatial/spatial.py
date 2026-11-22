@@ -38,6 +38,7 @@ from cellestial.util import (
     _filter_groups,
     _is_spatialdata,
     _reject_sequence_key,
+    _require_add_keys,
     _resolve_tooltips,
     _validate_tooltips,
 )
@@ -446,6 +447,7 @@ def _spatial(
     # Collect the frame columns from the color key, aes refs, and `add_keys`.
     if isinstance(add_keys, str):
         add_keys = [add_keys]
+    _require_add_keys(data, add_keys, frame_columns=frame.columns if frame is not None else ())
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
