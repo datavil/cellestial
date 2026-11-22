@@ -120,13 +120,13 @@ def test_matrixplot_values_match_numpy_group_means(adata):
 def test_dotplot_percentages_match_numpy(adata):
     group_key = "leiden"
     threshold = 0.5
-    frame = cl.retrieve(cl.dotplot(adata, KEYS, group_key, threshold=threshold))
+    frame = cl.retrieve(cl.dotplot(adata, KEYS, group_key, expression_threshold=threshold))
     expression = _expression(adata, KEYS)
     labels = adata.obs[group_key].astype(str).to_numpy()
     for row in frame.iter_rows(named=True):
         values = expression[labels == str(row[group_key]), KEYS.index(row["variable"])]
-        assert row["pct_exp"] == pytest.approx((values > threshold).mean() * 100)
-        assert row["avg_exp"] == pytest.approx(values.mean(), rel=1e-5, abs=1e-6)
+        assert row["percent_expressed"] == pytest.approx((values > threshold).mean() * 100)
+        assert row["mean_expression"] == pytest.approx(values.mean(), rel=1e-5, abs=1e-6)
 
 
 def test_heatmap_bins_average_their_cells(adata):

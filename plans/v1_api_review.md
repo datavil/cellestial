@@ -146,6 +146,7 @@ Rank = cost of fixing after the freeze x how often users hit it.
 - Recommendation: fix only the clear rule violations: `pct_exp` -> `percent_expressed`,
   `avg_exp` -> `mean_expression`. Leave the rest (they are readable and already
   documented). **Breaking** (default values).
+- Status (2026-11-22): done for `dotplot`; the other names are kept.
 
 ### F7. `threshold` and `scale` each mean different things (breaking)
 
@@ -159,6 +160,10 @@ Rank = cost of fixing after the freeze x how often users hit it.
   without an error.
 - Recommendation: `dotplot(expression_threshold=0)`, `ridge(s)(overlap=2.0)`; validate
   numeric `overlap`. **Breaking** (two renames).
+- Status (2026-11-22): `dotplot(expression_threshold=0)` done. `ridge(s)` keeps
+  `scale` (lets-plot's `geom_area_ridges` parameter, so ggrust users recognize it) and
+  validates it: a non-number raises `InvalidArgumentTypeError`, a non-positive or
+  non-finite number `InvalidArgumentError`.
 
 ### F8. `markers()` styling parameters (breaking)
 
@@ -315,9 +320,9 @@ Recommended choice first. Approve batch by batch.
 - A1. Drop `variable_keys` from plot functions, keep `add_keys` (F1). / keep both.
   - Done.
 - A2. (`ranking_key` and `embedding_key` done 2026-11-22) Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
-- A3. `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
+- A3. (done 2026-11-22: `dotplot(expression_threshold=)`; `ridge(s)` keeps `scale`, the `geom_area_ridges` name, now validated as a positive number) `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
 - A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep.
-- A5. `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.
+- A5. (done 2026-11-22) `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.
 - A6. Spatial image: `grayscale`, `image_colormap`, `image_normalize`, `image_min`, `image_max` (F14). / keep lets-plot names.
 - A7. `stream`: drop `arrows` (F15). / keep.
 

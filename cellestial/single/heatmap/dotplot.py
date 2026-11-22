@@ -27,6 +27,8 @@ from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _BRACKET_REFERENCE_SPAN,
     _CELL_SIZE,
+    _CHARACTER_WIDTH,
+    _MARGIN,
     _check_markers_flag,
     _fixed_cell_layout,
     _fixed_cell_padding,
@@ -48,7 +50,7 @@ from cellestial.util import (
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import KeyNotFoundError, _did_you_mean, _unsupported_data_type
 from cellestial.util.utilities import _container_column, _modality_source
 
 if TYPE_CHECKING:
@@ -63,6 +65,24 @@ _LEGEND_WIDTH = 70  # pixels
 _LEGEND_HEIGHT = 400  # pixels; fits the color bar and size legend
 
 
+def _check_sort_by(sort_by: str | Sequence[str] | None, *, columns: list[str]) -> None:
+    """Raise unless every `sort_by` column is one the dotplot frame will hold."""
+    if sort_by is None:
+        return
+    requested = [sort_by] if isinstance(sort_by, str) else list(sort_by)
+    missing = [column for column in requested if column not in columns]
+    if not missing:
+        return
+    hint = _did_you_mean(missing, columns)
+    msg = (
+        f"`sort_by` column(s) {missing!r} not found. "
+        + (f"{hint} " if hint else "")
+        + f"Sort by one of the dotplot columns: {columns!r} "
+        "(the defaults are named by `percentage_column` and `mean_column`)."
+    )
+    raise KeyNotFoundError(msg)
+
+
 def dotplot(
     data: AnnData | MuData,
     keys: Sequence[str] | Mapping[str, Sequence[str]] | None = None,
@@ -74,7 +94,7 @@ def dotplot(
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
-    threshold: float = 0,
+    expression_threshold: float = 0,
     size_scale: float = 1.0,
     variable_column: str = "variable",
     color_low: str = "#e6e6e6",
@@ -83,8 +103,8 @@ def dotplot(
     midpoint: Literal["mean", "median", "mid"] | float = "mid",
     sort_by: str | Sequence[str] | None = None,
     sort_order: Literal["ascending", "descending"] = "descending",
-    percentage_column: str = "pct_exp",
-    mean_column: str = "avg_exp",
+    percentage_column: str = "percent_expressed",
+    mean_column: str = "mean_expression",
     rectangle: bool = True,
     dendrogram: bool = False,
     dendrogram_color: str = "black",
@@ -134,8 +154,9 @@ def dotplot(
         `None` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
-    threshold : float, default=0
-        The expression threshold to consider a gene as expressed.
+    expression_threshold : float, default=0
+        A cell counts as expressing a key when its value is above this
+        threshold; sets the percentage shown as dot size.
     size_scale : float, default=1.0
         Scaling factor for the point sizes in the plot. At 1 a dot for 100% of
         cells is 80% of a cell wide; keep it below 1.25 so dots stay in their cells.
@@ -153,9 +174,9 @@ def dotplot(
         The column or columns to sort the results by.
     sort_order : str, default='descending'
         The sort order, either 'ascending' or 'descending'.
-    percentage_column : str, default='pct_exp'
+    percentage_column : str, default='percent_expressed'
         The name of the percentage column.
-    mean_column : str, default='avg_exp'
+    mean_column : str, default='mean_expression'
         The name of the mean expression column.
     rectangle : bool, default=True
         Whether to add a rectangle border around the data area
@@ -211,7 +232,8 @@ def dotplot(
         If `markers` is not a bool (pass a ranking name as `ranking_key`).
     KeyNotFoundError
         If `markers` is enabled and the requested ranking result or
-        group is missing.
+        group is missing, or if `sort_by` names a column the dotplot does
+        not compute.
     DuplicateKeysError
         If a key appears more than once in `keys`.
     DendrogramMismatchError
@@ -309,6 +331,8 @@ def dotplot(
         msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
         raise ValueError(msg)
 
+    _check_sort_by(sort_by, columns=[group_by, variable_column, mean_column, percentage_column])
+
     mapping = mapping or aes()
 
     # RESOLVE: dict `keys` into a flat list while preserving mapping order
@@ -328,9 +352,9 @@ def dotplot(
     if overall_min is not None and overall_min < 0:
         _warn(
             "Expression matrix contains negative values, which suggests scaled data. "
-            "Dot size (percentage of cells above `threshold`, default 0) assumes "
+            "Dot size (percentage of cells above `expression_threshold`, default 0) assumes "
             "non-negative expression and may be misleading here; pass raw or "
-            "log-normalized expression, or set `threshold` explicitly."
+            "log-normalized expression, or set `expression_threshold` explicitly."
         )
     # DROP: rows with null group_by to avoid null labels downstream
     frame = frame.filter(pl.col(group_by).is_not_null())
@@ -345,7 +369,7 @@ def dotplot(
     frame = frame.group_by(group_by, maintain_order=True).agg(
         [values.mean().alias(key) for values, key in zip(finite_values, keys, strict=True)]
         + [
-            (values > threshold).mean().mul(100).alias(name)
+            (values > expression_threshold).mean().mul(100).alias(name)
             for values, name in zip(finite_values, percentage_names, strict=True)
         ]
     )
@@ -422,6 +446,11 @@ def dotplot(
         color_or_fill: mean_column,
     }
     _mapping.update(mapping.as_dict())
+    legend_titles = [
+        title
+        for aesthetic in ("size", color_or_fill)
+        if isinstance(title := _mapping.get(aesthetic), str)
+    ] or [""]
 
     # Adjust point size range (keeps aes(size=...) mapping and its legend).
     # Percentage sizes are in x units (one unit is one cell), so dots shrink with
@@ -552,6 +581,10 @@ def dotplot(
         y_labels=y_order_groups,
         legend_width=_LEGEND_WIDTH,
         legend_height=_LEGEND_HEIGHT,
+        # The backend gives a legend at most half the canvas width and cuts the
+        # keys of a wider one, so leave room for the longest legend title.
+        minimum_width=2
+        * (max(len(title) for title in legend_titles) * _CHARACTER_WIDTH + _MARGIN),
     )
 
     # HANDLE: interactive

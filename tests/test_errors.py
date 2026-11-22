@@ -6,6 +6,7 @@ import pytest
 import cellestial as cl
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentError,
     InvalidArgumentTypeError,
     InvalidPlotSpecError,
     KeyNotFoundError,
@@ -37,6 +38,58 @@ def test_singular_sequence_key_points_to_plural(adata, fn, plural):
 def test_ridge_sequence_key_points_to_plural(adata, group_key):
     with pytest.raises(TypeError, match="ridges"):
         cl.ridge(adata, ["CD14", "MS4A1"], group_key)
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda data, scale: cl.ridge(data, "CD14", GROUP_KEY, scale=scale),
+        lambda data, scale: cl.ridges(data, ["CD14", "MS4A1"], GROUP_KEY, scale=scale),
+    ],
+    ids=["ridge", "ridges"],
+)
+@pytest.mark.parametrize(
+    ("scale", "error", "parts"),
+    [
+        ("width", InvalidArgumentTypeError, ["'width'", "str", "overlap", "not a width method"]),
+        (True, InvalidArgumentTypeError, ["True", "bool", "positive number", "2.0"]),
+        (None, InvalidArgumentTypeError, ["None", "positive number"]),
+        (0, InvalidArgumentError, ["got 0", "above 0"]),
+        (-1.5, InvalidArgumentError, ["got -1.5", "above 0"]),
+        (float("nan"), InvalidArgumentError, ["got nan", "positive number"]),
+        (float("inf"), InvalidArgumentError, ["got inf", "positive number"]),
+        (10**400, InvalidArgumentError, ["got 1000", "positive number"]),
+    ],
+)
+def test_ridge_scale_rejects_non_positive_numbers(adata, call, scale, error, parts):
+    with pytest.raises(error) as info:
+        call(adata, scale)
+    message = str(info.value)
+    assert "`scale`" in message
+    for part in parts:
+        assert part in message
+
+
+@pytest.mark.parametrize("scale", [1, 0.5, np.float64(3.0), np.int64(2)])
+def test_ridge_scale_accepts_positive_numbers(adata, group_key, scale):
+    cl.ridge(adata, "CD14", group_key, scale=scale)
+    cl.ridges(adata, ["CD14", "MS4A1"], group_key, scale=scale)
+
+
+
+@pytest.mark.parametrize(
+    ("sort_by", "parts"),
+    [
+        ("avg_exp", ["'avg_exp'", "percent_expressed", "mean_expression", "`sort_by`"]),
+        (["mean_expresion"], ["Did you mean 'mean_expression'?", "`sort_by`"]),
+    ],
+)
+def test_dotplot_unknown_sort_by_column(adata, group_key, sort_by, parts):
+    with pytest.raises(KeyNotFoundError) as info:
+        cl.dotplot(adata, keys=["CD14", "MS4A1"], group_by=group_key, sort_by=sort_by)
+    message = str(info.value)
+    for part in parts:
+        assert part in message
 
 
 # ---- Category 2: missing key says where Cellestial looked ----
