@@ -6,10 +6,12 @@ import pytest
 import cellestial as cl
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentTypeError,
     InvalidPlotSpecError,
     KeyNotFoundError,
     MissingAestheticError,
     NonCategoricalColumnError,
+    UnknownParameterError,
     UnsupportedDataTypeError,
 )
 from tests.conftest import GROUP_KEY
@@ -135,3 +137,70 @@ def test_highlight_empty_groups_fails_early():
 def test_highlight_on_a_grid_points_to_singular(adata, cluster_key):
     with pytest.raises(InvalidPlotSpecError, match=r"adds to a single plot.*SupPlotsSpec"):
         cl.umaps(adata, [cluster_key]) + cl.highlight("0")
+
+
+# ---- stored ranking: `ranking_key` replaces `key` and string `markers` ----
+
+
+@pytest.fixture(scope="module")
+def ranked_pbmc(adata):
+    """pbmc3k with a ranking on `leiden_res_0.02` stored under a custom key."""
+    import scanpy as sc
+
+    data = adata.copy()
+    sc.tl.rank_genes_groups(data, groupby="leiden_res_0.02", key_added="rank_leiden")
+    return data
+
+
+@pytest.mark.parametrize(
+    ("name", "call"),
+    [
+        ("markers", lambda data: cl.markers(data, key="rank_leiden")),
+        ("volcano", lambda data: cl.volcano(data, "0", key="rank_leiden")),
+        ("volcanos", lambda data: cl.volcanos(data, ["0", "1"], key="rank_leiden")),
+    ],
+)
+def test_old_ranking_key_parameter_is_rejected(ranked_pbmc, name, call):
+    """`key=` is not swallowed by the geom kwargs; it points to `ranking_key`."""
+    with pytest.raises(UnknownParameterError) as error:
+        call(ranked_pbmc)
+    message = str(error.value)
+    assert f"`key` is not a parameter of `{name}`" in message
+    assert "ranking_key='rank_leiden'" in message
+
+
+@pytest.mark.parametrize("fn", [cl.marker_genes, cl.marker_genes_dict])
+def test_marker_genes_old_key_parameter_is_rejected(ranked_pbmc, fn):
+    """The marker-name helpers take no extra keywords, so `key=` fails loudly."""
+    with pytest.raises(TypeError, match="key"):
+        fn(ranked_pbmc, key="rank_leiden")
+
+
+@pytest.mark.parametrize(
+    "fn", [cl.heatmap, cl.matrixplot, cl.dotplot, cl.stacked_violin, cl.tracksplot]
+)
+def test_string_markers_points_to_ranking_key(ranked_pbmc, fn):
+    """`markers='x'` raises and says to pass `markers=True, ranking_key='x'`."""
+    with pytest.raises(InvalidArgumentTypeError) as error:
+        fn(ranked_pbmc, markers="rank_leiden")
+    message = str(error.value)
+    assert "`markers` must be True or False" in message
+    assert "markers=True, ranking_key='rank_leiden'" in message
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda data: cl.dotplot(data, markers=True, ranking_key="rank_leidn"),
+        lambda data: cl.markers(data, ranking_key="rank_leidn"),
+        lambda data: cl.marker_genes(data, ranking_key="rank_leidn"),
+    ],
+)
+def test_unknown_ranking_key_suggests_a_close_match(ranked_pbmc, call):
+    """A misspelled `ranking_key` names the parameter and the closest stored key."""
+    with pytest.raises(KeyNotFoundError) as error:
+        call(ranked_pbmc)
+    message = str(error.value)
+    assert "ranking_key='rank_leidn'" in message
+    assert "rank_leiden" in message
+    assert "adata" not in message

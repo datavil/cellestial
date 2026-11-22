@@ -36,6 +36,11 @@ Rank = cost of fixing after the freeze x how often users hit it.
 
 ### F2. `key` means two different things; stored-result keys have four names (breaking)
 
+- Status: `ranking_key` part done (A2, 2026-11-22): `markers`, `volcano(s)`,
+  `marker_genes(_dict)` take `ranking_key`, the heatmap family takes
+  `markers: bool` plus `ranking_key`, and old-style calls raise. `embedding_key`
+  (was `use_key`) is still open.
+
 - Evidence: in every plot `key` is the column/feature to plot (`umap`, `violin`,
   `spatial`, ...). In `markers`, `volcano(s)`, `marker_genes(_dict)` `key='rank_genes_groups'`
   is the stored ranking (`markers.py:37`, `volcano.py:48`). The heatmap family carries
@@ -288,7 +293,7 @@ Recommended choice first. Approve batch by batch.
 
 **Batch A: consistency renames (breaking, cheap now)**
 - A1. Drop `variable_keys` from plot functions, keep `add_keys` (F1). / keep both.
-- A2. Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
+- A2. (`ranking_key` done 2026-11-22; `embedding_key` open) Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
 - A3. `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
 - A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep.
 - A5. `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.

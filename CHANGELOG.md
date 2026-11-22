@@ -11,6 +11,16 @@ change. Versions absent from the list were never released.
 
 ### Breaking
 
+- The stored ranking is chosen with `ranking_key` (was `key`) in `markers`,
+  `volcano`, `volcanos`, `marker_genes` and `marker_genes_dict`, so `key`
+  always means the column or feature to plot. The heatmap family (`heatmap`,
+  `matrixplot`, `dotplot`, `stacked_violin`, `tracksplot`) takes
+  `markers: bool` plus `ranking_key` (was `markers: bool | str`).
+  `ranking_key` is ignored when `markers` is False. Old-style calls raise:
+  `key=` in `markers`/`volcano(s)` raises `UnknownParameterError` (a
+  `TypeError`) instead of reaching the geom, and a string `markers` raises
+  `InvalidArgumentTypeError`. Migration: `key="x"` -> `ranking_key="x"`;
+  `markers="x"` -> `markers=True, ranking_key="x"`.
 - Unknown keys whose axis cannot be determined (e.g. `violin(data, "not_a_key")`),
   tooltip fields missing from the data and a missing stored PCA variance now
   raise `KeyNotFoundError` (a `KeyError`) instead of `ValueError`. Keys that

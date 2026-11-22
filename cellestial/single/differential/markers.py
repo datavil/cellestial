@@ -25,7 +25,10 @@ from ggrust import (
 from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
-from cellestial.single.differential.utilities import _build_markers_frame
+from cellestial.single.differential.utilities import (
+    _build_markers_frame,
+    _reject_renamed_ranking_key,
+)
 from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container
@@ -39,7 +42,7 @@ def markers(
     groups: Sequence[str] | None = None,
     *,
     modality: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 20,
     mapping: FeatureSpec | None = None,
     text_color: str = "#1f1f1f",
@@ -89,7 +92,7 @@ def markers(
         Which modality's stored analysis results to use. Required for a
         multimodal object holding more than one modality, and not accepted
         otherwise.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=20
         Number of top genes to show per panel.
@@ -167,6 +170,8 @@ def markers(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    UnknownParameterError
+        If `key` is passed (renamed to `ranking_key`).
     KeyNotFoundError
         If the ranking result or a requested group is missing.
     EmptySelectionError
@@ -219,6 +224,7 @@ def markers(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_renamed_ranking_key(geom_kwargs, "markers")
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
 
@@ -233,7 +239,7 @@ def markers(
     # BUILD: long-form frame via the helper
     frame, selected_groups, _ = _build_markers_frame(
         data=data,
-        key=key,
+        ranking_key=ranking_key,
         n_genes=n_genes,
         groups=groups,
         variable_column=variable_column,

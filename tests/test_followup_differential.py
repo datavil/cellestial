@@ -131,7 +131,7 @@ def test_volcano_missing_group_suggests_a_close_match(ranked_adata):
 def test_volcano_missing_key_suggests_a_close_match(ranked_adata):
     """An unknown ranking key raises `KeyNotFoundError` with a close match."""
     with pytest.raises(KeyNotFoundError, match="did you mean 'rank_genes_groups'"):
-        cl.volcano(ranked_adata, "A", key="rank_gene_groups")
+        cl.volcano(ranked_adata, "A", ranking_key="rank_gene_groups")
 
 
 # ---- label ties ----
@@ -194,7 +194,7 @@ def test_markers_frame_skips_non_finite_scores_before_taking_the_top(ranked_adat
     ranked_adata.uns["rank_genes_groups"]["scores"]["A"][0] = np.nan
     frame, _, _ = _build_markers_frame(
         ranked_adata,
-        key=True,
+        ranking_key="rank_genes_groups",
         n_genes=3,
         groups=["A"],
         variable_column="variable",

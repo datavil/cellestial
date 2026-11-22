@@ -25,6 +25,7 @@ from cellestial.single.heatmap.utilities import (
     _BRACKET_REFERENCE_SPAN,
     _CELL_SIZE,
     _CHARACTER_WIDTH,
+    _check_markers_flag,
     _compute_violin_polygons,
     _fixed_cell_layout,
     _fixed_cell_padding,
@@ -63,7 +64,8 @@ def stacked_violin(
     group_by: str | None = None,
     *,
     modality: str | None = None,
-    markers: bool | str = False,
+    markers: bool = False,
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -122,10 +124,12 @@ def stacked_violin(
     group_by : str | None, default=None
         The key used to group observations along the y-axis. Inferred from a
         precomputed ranking when `markers` is set.
-    markers : bool | str, default=False
-        Derive `keys` from a precomputed ranking. Pass `True` to use the
-        default ranking key, or a string to read a custom key (e.g.
-        `"rank_genes_groups_wilcoxon"`).
+    markers : bool, default=False
+        Whether to derive `keys` from a precomputed ranking, read from
+        `ranking_key`.
+    ranking_key : str, default='rank_genes_groups'
+        The key under which the precomputed ranking is stored on `data`.
+        Ignored when `markers` is False.
     n_genes : int, default=5
         Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
@@ -237,6 +241,8 @@ def stacked_violin(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentTypeError
+        If `markers` is not a bool (pass a ranking name as `ranking_key`).
     KeyNotFoundError
         If `markers` is enabled and the requested ranking result or
         group is missing.
@@ -323,11 +329,12 @@ def stacked_violin(
         msg = f"`scale` must be one of {scales}. Received: {scale!r}."
         raise InvalidArgumentError(msg)
 
+    _check_markers_flag(markers)
     if markers:
         results, local_group_by = _modality_source(data, modality, group_by)
         keys, group_by = _resolve_rank_genes_groups_args(
             results,
-            rank_genes_groups=markers,
+            ranking_key=ranking_key,
             n_genes=n_genes,
             groups=groups,
             keys=keys,

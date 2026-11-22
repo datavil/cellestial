@@ -9,8 +9,8 @@ import cellestial as cl
 from cellestial.single.differential.utilities import _build_markers_frame, _build_volcano_frame
 from cellestial.single.heatmap.utilities import (
     _extract_rank_genes_groups,
+    _check_markers_flag,
     _resolve_rank_genes_groups_args,
-    _resolve_rank_genes_groups_key,
 )
 from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError
 
@@ -46,10 +46,11 @@ def ranked_adata():
     return data
 
 
-def test_resolve_rank_genes_groups_key_default_and_custom():
-    """`True` resolves to the default key and a string is kept as given."""
-    assert _resolve_rank_genes_groups_key(True) == "rank_genes_groups"
-    assert _resolve_rank_genes_groups_key("custom") == "custom"
+def test_check_markers_flag_accepts_bools():
+    """`True` and `False` pass the `markers` check."""
+    _check_markers_flag(True)
+    _check_markers_flag(False)
+    _check_markers_flag(np.True_)
 
 
 def test_volcano_frame_drops_nonfinite_values_but_keeps_zero_pvalue(ranked_adata):
@@ -67,10 +68,10 @@ def test_volcano_frame_drops_nonfinite_values_but_keeps_zero_pvalue(ranked_adata
     assert np.isinf(frame["negative_log_pvalue"][0])
 
 
-def test_resolve_rank_genes_groups_key_invalid():
-    """An invalid ranking key raises."""
-    with pytest.raises(TypeError, match="must be True or a string"):
-        _resolve_rank_genes_groups_key(False)
+def test_check_markers_flag_rejects_non_bool():
+    """A non-bool `markers` value raises."""
+    with pytest.raises(TypeError, match="must be True or False"):
+        _check_markers_flag(1)
 
 
 def test_extract_rank_genes_groups_deduplicates_with_warning(ranked_adata):
@@ -78,7 +79,7 @@ def test_extract_rank_genes_groups_deduplicates_with_warning(ranked_adata):
     with pytest.warns(cl.util.errors.CellestialWarning, match="Some genes"):
         keys, group_by = _extract_rank_genes_groups(
             ranked_adata,
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=2,
         )
 
@@ -90,7 +91,7 @@ def test_extract_rank_genes_groups_subset(ranked_adata):
     """A subset of groups keeps only their genes, in order."""
     keys, group_by = _extract_rank_genes_groups(
         ranked_adata,
-        rank_genes_groups=True,
+        ranking_key="rank_genes_groups",
         n_genes=1,
         groups=["B"],
     )
@@ -105,17 +106,17 @@ def test_extract_rank_genes_groups_invalid_n_genes(ranked_adata, n_genes):
     with pytest.raises(ValueError):
         _extract_rank_genes_groups(
             ranked_adata,
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=n_genes,
         )
 
 
 def test_extract_rank_genes_groups_missing_key(ranked_adata):
     """A missing ranking key raises."""
-    with pytest.raises(Exception, match="not found"):
+    with pytest.raises(KeyNotFoundError, match="No precomputed ranking found"):
         _extract_rank_genes_groups(
             ranked_adata,
-            rank_genes_groups="missing",
+            ranking_key="missing",
             n_genes=1,
         )
 
@@ -125,7 +126,7 @@ def test_extract_rank_genes_groups_missing_group(ranked_adata):
     with pytest.raises(Exception, match="Groups"):
         _extract_rank_genes_groups(
             ranked_adata,
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=1,
             groups=["C"],
         )
@@ -138,7 +139,7 @@ def test_extract_rank_genes_groups_missing_params_groupby(ranked_adata):
     with pytest.raises(Exception, match="missing 'groupby'"):
         _extract_rank_genes_groups(
             ranked_adata,
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=1,
         )
 
@@ -148,7 +149,7 @@ def test_extract_rank_genes_groups_rejects_wrong_data_type():
     with pytest.raises(Exception, match="Expected"):
         _extract_rank_genes_groups(
             "not adata",
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=1,
         )
 
@@ -158,7 +159,7 @@ def test_resolve_rank_genes_groups_args_rejects_keys(ranked_adata):
     with pytest.raises(ValueError, match="keys"):
         _resolve_rank_genes_groups_args(
             ranked_adata,
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=1,
             groups=None,
             keys=["gene_a"],
@@ -171,7 +172,7 @@ def test_resolve_rank_genes_groups_args_rejects_group_by_mismatch(ranked_adata):
     with pytest.raises(ValueError, match="does not match"):
         _resolve_rank_genes_groups_args(
             ranked_adata,
-            rank_genes_groups=True,
+            ranking_key="rank_genes_groups",
             n_genes=1,
             groups=None,
             keys=None,
@@ -183,7 +184,7 @@ def test_build_markers_frame(ranked_adata):
     """The markers frame holds the top genes, scores and ranks per group."""
     frame, groups, group_by = _build_markers_frame(
         ranked_adata,
-        key=True,
+        ranking_key="rank_genes_groups",
         n_genes=2,
         groups=["A"],
         variable_column="gene",
@@ -205,7 +206,7 @@ def test_build_markers_frame_missing_scores(ranked_adata):
     with pytest.raises(Exception, match="missing"):
         _build_markers_frame(
             ranked_adata,
-            key=True,
+            ranking_key="rank_genes_groups",
             n_genes=1,
             groups=None,
             variable_column="gene",
@@ -238,7 +239,7 @@ def test_marker_gene_helpers_accept_custom_ranking_key(ranked_adata, helper):
     """Marker helpers read a custom ranking key."""
     ranked_adata.uns["custom_ranking"] = ranked_adata.uns.pop("rank_genes_groups")
 
-    result = helper(ranked_adata, groups=["A"], key="custom_ranking", n_genes=1)
+    result = helper(ranked_adata, groups=["A"], ranking_key="custom_ranking", n_genes=1)
 
     expected = ["gene_a"] if helper is cl.marker_genes else {"A": ["gene_a"]}
     assert result == expected
@@ -264,8 +265,8 @@ def test_marker_gene_helpers_validate_inputs(ranked_adata, helper):
 @pytest.mark.parametrize("helper", [cl.marker_genes, cl.marker_genes_dict])
 def test_marker_gene_helpers_validate_ranking_record(ranked_adata, helper):
     """Marker helpers reject a malformed ranking record."""
-    with pytest.raises(KeyNotFoundError, match="not found"):
-        helper(ranked_adata, key="missing", n_genes=1)
+    with pytest.raises(KeyNotFoundError, match="No precomputed ranking found"):
+        helper(ranked_adata, ranking_key="missing", n_genes=1)
 
     del ranked_adata.uns["rank_genes_groups"]["names"]
     with pytest.raises(KeyNotFoundError, match="missing 'names'"):
@@ -275,7 +276,7 @@ def test_marker_gene_helpers_validate_ranking_record(ranked_adata, helper):
 def test_build_markers_frame_validation_paths(ranked_adata):
     """The markers frame builder rejects invalid inputs."""
     kwargs = {
-        "key": True,
+        "ranking_key": "rank_genes_groups",
         "n_genes": 1,
         "groups": None,
         "variable_column": "gene",
@@ -351,7 +352,7 @@ def test_build_volcano_frame_errors(ranked_adata):
         _build_volcano_frame(ranked_adata, "C")
 
     with pytest.raises(KeyNotFoundError, match="not found"):
-        _build_volcano_frame(ranked_adata, "A", key="missing")
+        _build_volcano_frame(ranked_adata, "A", ranking_key="missing")
 
     with pytest.raises(Exception, match="Expected"):
         _build_volcano_frame("not adata", "A")
@@ -477,3 +478,31 @@ def test_volcanos_rejects_non_string_groups(ranked_adata):
     """`volcanos` rejects groups that are not in the ranking."""
     with pytest.raises(KeyNotFoundError, match="Group"):
         cl.volcanos(ranked_adata, [1])
+
+
+def test_ranking_key_reads_a_custom_ranking_on_real_data(adata):
+    """Every ranking consumer reads a ranking stored under a custom `ranking_key`."""
+    import scanpy as sc
+
+    data = adata.copy()
+    sc.tl.rank_genes_groups(data, groupby="leiden_res_0.02", key_added="rank_leiden")
+    names = data.uns["rank_leiden"]["names"]
+
+    assert cl.marker_genes(data, ["0"], ranking_key="rank_leiden", n_genes=2) == [
+        str(gene) for gene in names["0"][:2]
+    ]
+    assert list(cl.marker_genes_dict(data, ranking_key="rank_leiden", n_genes=1)) == list(
+        names.dtype.names
+    )
+    assert isinstance(cl.markers(data, ranking_key="rank_leiden", n_genes=3), SupPlotsSpec)
+    assert isinstance(cl.volcano(data, "0", ranking_key="rank_leiden"), PlotSpec)
+    assert isinstance(cl.volcanos(data, ["0", "1"], ranking_key="rank_leiden"), SupPlotsSpec)
+    for fn in (cl.heatmap, cl.matrixplot, cl.dotplot, cl.stacked_violin, cl.tracksplot):
+        plot = fn(data, markers=True, ranking_key="rank_leiden", n_genes=2)
+        assert isinstance(plot, PlotSpec), fn.__name__
+
+
+def test_ranking_key_is_ignored_without_markers(adata):
+    """`ranking_key` is not read when `markers` is False."""
+    plot = cl.dotplot(adata, ["CD3D", "LYZ"], "leiden_res_0.02", ranking_key="missing")
+    assert isinstance(plot, PlotSpec)

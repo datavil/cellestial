@@ -123,6 +123,10 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
 | `_outline_layers` | Claude Opus 5.5 |  |  |  |  |
+| `_check_markers_flag` | Claude Opus 5.5 |  |  |  |  |
+| `_ranking_not_found_message` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_renamed_ranking_key` | Claude Opus 5.5 |  |  |  |  |
+| `UnknownParameterError` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -335,3 +339,6 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `pcas` | Claude Opus 5.5 |  |
 | `expressions` | Claude Opus 5.5 |  |
 | `dimensional` (`outline`, `outline_width`, `outline_color`; threaded through `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`) | Claude Opus 5.5 |  |
+| `markers`, `volcano`, `volcanos`, `marker_genes`, `marker_genes_dict` (`key` renamed to `ranking_key`; `key=` rejected) | Claude Opus 5.5 |  |
+| `heatmap`, `matrixplot`, `dotplot`, `stacked_violin`, `tracksplot` (`markers: bool` plus `ranking_key`) | Claude Opus 5.5 |  |
+| `_extract_rank_genes_groups`, `_resolve_rank_genes_groups_args`, `_build_markers_frame`, `_build_volcano_frame`, `_marker_names_per_group` (`ranking_key`) | Claude Opus 5.5 |  |
