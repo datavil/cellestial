@@ -348,3 +348,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `markers`, `marker_genes`, `marker_genes_dict` (`groups` keyword-only) | Claude Opus 5.5 |  |
 | `dimensional` (`use_key` renamed to `embedding_key`, rejects `use_key`/`basis`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `embedding_density`, `blend`) | Claude Opus 5.5 |  |
 | `_resolve_embedding_key` (`use_key` renamed to `embedding_key`) | Claude Opus 5.5 |  |
+| `save` (thin `ggsave` wrapper) | Claude Opus 5.5 |  |

@@ -168,6 +168,9 @@ Rank = cost of fixing after the freeze x how often users hit it.
 
 ### F9. `save` freezes a copy of `ggsave` with abbreviations and changed defaults (breaking)
 
+- **Done (B3):** `save(plot, filename, *, scale=2.0, **ggsave_kwargs)`, a thin `ggsave`
+  wrapper; see CHANGELOG.
+
 - Evidence: `util/save.py:14`: `w`, `h` (abbreviations), `GGBunch` in the type
   (a lets-plot legacy class), defaults differ from `ggrust.ggsave` (`scale=2.0`,
   `unit='in'`, `dpi=300` passed even for `unit='px'`; ggsave defaults are `None`).
@@ -313,7 +316,7 @@ Recommended choice first. Approve batch by batch.
 **Batch B: signature shape (breaking)**
 - B1. (`groups` part done 2026-11-22; the rest kept positional) Make `n_pcs`, `n`, `groups` (markers, marker_genes(_dict)), `retrieve(index)`, `borders` colours, `cache_directory` keyword-only (F5). / leave positional.
 - B2. Drop the `arrow_*` and `ondata_*` styling copies, keep the toggles (F17). / keep all.
-- B3. `save`: remove in favour of `ggsave` (F9). / thin `save(plot, filename, **ggsave_kwargs)` / keep.
+- B3. `save`: remove in favour of `ggsave` (F9). / thin `save(plot, filename, **ggsave_kwargs)` / keep. **Done: thin wrapper.**
 
 **Batch C: exports and errors**
 - C1. Public `cellestial.errors` module + `CellestialError` base (F3). / leave in `cellestial.util.errors`. **Done.**
