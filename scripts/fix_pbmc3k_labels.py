@@ -13,8 +13,10 @@ Usage
 -----
     poetry run python scripts/fix_pbmc3k_labels.py [cache_directory]
 
-`cache_directory` defaults to `data`. The original file is loaded (or copied from
-the global cache) there, and the fixed file is written next to it.
+`cache_directory` defaults to `data/pbmc3k_hosted`. The hosted original is
+downloaded (or copied from the global cache) there, and the fixed file is written
+next to it. Do not point it at a folder holding a locally modified
+`pbmc3k_pped.h5ad`: the output must differ from the hosted file only in labels.
 """
 
 import sys
@@ -29,6 +31,9 @@ import cellestial as cl
 
 ORIGINAL_URL = "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped.h5ad"
 OUTPUT_NAME = "pbmc3k_pped_v2.h5ad"
+# A folder of its own, so the input is the hosted file and never a local
+# `data/pbmc3k_pped.h5ad`, which may carry extra layers (e.g. `counts`).
+DEFAULT_CACHE_DIRECTORY = Path("data") / "pbmc3k_hosted"
 CLUSTER_KEY = "leiden_res_0.02"
 LABEL_KEY = "cell_type_lvl1"
 # Coarse annotation from the scanpy "Preprocessing and clustering" tutorial.
@@ -135,7 +140,7 @@ def main() -> None:
     if len(sys.argv) > 2:
         print(__doc__)
         raise SystemExit(1)
-    cache_directory = Path(sys.argv[1]) if len(sys.argv) == 2 else Path("data")
+    cache_directory = Path(sys.argv[1]) if len(sys.argv) == 2 else DEFAULT_CACHE_DIRECTORY
     output_file = cache_directory / OUTPUT_NAME
 
     original = cl.datasets.from_url(ORIGINAL_URL, cache_directory=cache_directory)
