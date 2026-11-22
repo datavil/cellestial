@@ -16,6 +16,7 @@ from cellestial.util import (
     _share_axis,
     _share_ticks,
 )
+from cellestial.util.errors import InvalidArgumentTypeError, _plural_type_message
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -221,8 +222,8 @@ def violins(
         )
     """
     if isinstance(keys, str):
-        msg = "keys must be a Sequence of strings, not a single string"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "violin")
+        raise InvalidArgumentTypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (
@@ -529,8 +530,8 @@ def boxplots(
         )
     """
     if isinstance(keys, str):
-        msg = "keys must be a Sequence of strings, not a single string"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "boxplot")
+        raise InvalidArgumentTypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (
@@ -816,8 +817,8 @@ def histograms(
         )
     """
     if isinstance(keys, str):
-        msg = "keys must be a Sequence of strings, not a single string"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "histogram")
+        raise InvalidArgumentTypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (

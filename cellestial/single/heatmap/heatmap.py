@@ -54,7 +54,7 @@ from cellestial.util import (
     _get_dendrogram_tree,
     _warn,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container_column, _modality_source
 
 if TYPE_CHECKING:
@@ -362,8 +362,14 @@ def heatmap(
         )
         group_by = _container_column(data, modality, group_by)
     elif keys is None or group_by is None:
-        msg = "`keys` and `group_by` are required (or enable `markers` to derive them)."
-        raise ValueError(msg)
+        missing = [
+            name for name, value in (("keys", keys), ("group_by", group_by)) if value is None
+        ]
+        msg = (
+            f"`keys` and `group_by` are required when `markers=False`; missing {missing}. "
+            "Pass both, or set `markers=True` to take them from a stored ranking."
+        )
+        raise InvalidArgumentError(msg)
 
     mapping = mapping or aes()
 

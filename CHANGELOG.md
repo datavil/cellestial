@@ -160,6 +160,19 @@ change. Versions absent from the list were never released.
 
 ### Changed
 
+- Public calls that raised bare `ValueError`, `TypeError` or `NotImplementedError`
+  now raise the matching cellestial classes: `InvalidArgumentError` (a
+  `ValueError`), `InvalidArgumentTypeError` (a `TypeError`) and the new
+  `UnsupportedGeometryError` (a `NotImplementedError`, exported from
+  `cellestial.errors`, raised for shapes that are neither points nor polygons).
+  Each subclasses the builtin it replaces, so existing `except` clauses keep
+  working. Affected: the plurals (`umaps`, `tsnes`, `pcas`, `dimensionals`,
+  `expressions`, `violins`, `boxplots`, `histograms`, `ridges`, `spatials`,
+  `volcanos`), `markers`, `volcano`, `heatmap`, `dotplot`, `stacked_violin`,
+  `annotated_heatmap` and `spatial`. Messages no longer name storage slots or
+  scanpy functions; a plural given one key says "pass a list of keys, or use
+  `umap` for one key".
+
 - `datasets.pbmc3k()` now downloads `pbmc3k_pped_v2.h5ad` with corrected
   `cell_type_lvl1` labels, following the scanpy tutorial's coarse annotation of
   `leiden_res_0.02`. The old file had "B Cells" and "Erythroid" swapped and left

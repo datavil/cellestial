@@ -136,7 +136,7 @@ def test_extract_rank_genes_groups_missing_params_groupby(ranked_adata):
     """A ranking without a stored grouping raises."""
     del ranked_adata.uns["rank_genes_groups"]["params"]["groupby"]
 
-    with pytest.raises(Exception, match="missing 'groupby'"):
+    with pytest.raises(Exception, match="does not record the column it grouped by"):
         _extract_rank_genes_groups(
             ranked_adata,
             ranking_key="rank_genes_groups",
@@ -203,7 +203,7 @@ def test_build_markers_frame_missing_scores(ranked_adata):
     """A ranking without scores raises."""
     del ranked_adata.uns["rank_genes_groups"]["scores"]
 
-    with pytest.raises(Exception, match="missing"):
+    with pytest.raises(Exception, match="not a differential expression ranking"):
         _build_markers_frame(
             ranked_adata,
             ranking_key="rank_genes_groups",
@@ -269,7 +269,7 @@ def test_marker_gene_helpers_validate_ranking_record(ranked_adata, helper):
         helper(ranked_adata, ranking_key="missing", n_genes=1)
 
     del ranked_adata.uns["rank_genes_groups"]["names"]
-    with pytest.raises(KeyNotFoundError, match="missing 'names'"):
+    with pytest.raises(KeyNotFoundError, match="not a differential expression ranking"):
         helper(ranked_adata, n_genes=1)
 
 
@@ -293,7 +293,7 @@ def test_build_markers_frame_validation_paths(ranked_adata):
         _build_markers_frame(ranked_adata, **(kwargs | {"groups": ["missing"]}))
 
     del ranked_adata.uns["rank_genes_groups"]["params"]["groupby"]
-    with pytest.raises(KeyNotFoundError, match="missing 'groupby'"):
+    with pytest.raises(KeyNotFoundError, match="does not record the column it grouped by"):
         _build_markers_frame(ranked_adata, **kwargs)
 
     with pytest.raises(UnsupportedDataTypeError, match="Expected"):
@@ -351,7 +351,7 @@ def test_build_volcano_frame_errors(ranked_adata):
     with pytest.raises(KeyNotFoundError, match="Group"):
         _build_volcano_frame(ranked_adata, "C")
 
-    with pytest.raises(KeyNotFoundError, match="not found"):
+    with pytest.raises(KeyNotFoundError, match="No stored ranking named"):
         _build_volcano_frame(ranked_adata, "A", ranking_key="missing")
 
     with pytest.raises(Exception, match="Expected"):
@@ -427,7 +427,7 @@ def test_volcano_plot_options(ranked_adata):
 
 def test_volcano_tooltip_validation(ranked_adata):
     """Unknown tooltip columns raise."""
-    with pytest.raises(ValueError, match="tooltip columns"):
+    with pytest.raises(ValueError, match="`tooltips` names columns"):
         cl.volcano(ranked_adata, "A", tooltips=["missing"])
 
 

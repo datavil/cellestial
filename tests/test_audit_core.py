@@ -78,14 +78,14 @@ def test_dimensional_plurals_unknown_key_raises_key_error(function):
 def test_distribution_plurals_reject_string_keys(function):
     """Distribution plurals reject string keys."""
     data = _embedding_data()
-    with pytest.raises(TypeError, match="Sequence"):
+    with pytest.raises(TypeError, match="must be a sequence"):
         function(data, "GENE_A", group_by="cluster")
 
 
 def test_ridges_reject_string_keys():
     """Ridges reject string keys."""
     data = _embedding_data()
-    with pytest.raises(TypeError, match="Sequence"):
+    with pytest.raises(TypeError, match="must be a sequence"):
         cl.ridges(data, "GENE_A", "cluster")
 
 

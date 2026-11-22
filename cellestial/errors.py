@@ -28,6 +28,7 @@ from cellestial.util.errors import (
     NonCategoricalColumnError,
     UnknownParameterError,
     UnsupportedDataTypeError,
+    UnsupportedGeometryError,
     VariableNotFoundError,
 )
 
@@ -53,5 +54,6 @@ __all__ = [
     "NonCategoricalColumnError",
     "UnknownParameterError",
     "UnsupportedDataTypeError",
+    "UnsupportedGeometryError",
     "VariableNotFoundError",
 ]

@@ -30,7 +30,11 @@ from cellestial.single.differential.utilities import (
     _reject_renamed_ranking_key,
 )
 from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
@@ -229,8 +233,14 @@ def markers(
     data = _container(data).select_modality(modality)
 
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
-        msg = "`groups` must be a Sequence of strings or None"
-        raise TypeError(msg)
+        received = (
+            f"the string {groups!r}" if isinstance(groups, str) else f"`{type(groups).__name__}`"
+        )
+        msg = (
+            f"`groups` must be a sequence of group names or None, got {received}. "
+            "Pass a list of groups, or None for all groups."
+        )
+        raise InvalidArgumentTypeError(msg)
 
     if ncol is not None and ncol < 1:
         msg = f"`ncol` must be >= 1 or None, got {ncol}. Pass None to put every panel in one row."

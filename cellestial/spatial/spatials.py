@@ -24,7 +24,12 @@ from cellestial.util import (
     _resolve_tooltips,
     _share_labels,
 )
-from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentTypeError,
+    UnsupportedDataTypeError,
+    _plural_type_message,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from ggrust.plot.subplots import SupPlotsSpec
@@ -279,8 +284,8 @@ def spatials(
         cl.spatials(data_hne,keys=["leiden","Mef2c"], ncol=1, interactive=True) + ggsize(500,1000)
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be a Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "spatial")
+        raise InvalidArgumentTypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="spatials", hint=_KEY_COLOR_HINT)
     _reject_removed_variable_keys(geom_kwargs, "spatials")
     _reject_renamed_greyscale(geom_kwargs)

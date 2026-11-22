@@ -24,7 +24,7 @@ def test_histogram_rejects_a_list_of_keys(adata):
 
 def test_histograms_reject_string_keys(adata):
     """Histograms reject string keys."""
-    with pytest.raises(TypeError, match="Sequence"):
+    with pytest.raises(TypeError, match="must be a sequence"):
         cl.histograms(adata, "CD14")
 
 

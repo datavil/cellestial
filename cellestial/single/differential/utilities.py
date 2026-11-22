@@ -166,8 +166,8 @@ def _build_volcano_frame(
         if ranking_key not in data.uns:
             hint = _close_match_hint(ranking_key, list(data.uns))
             msg = (
-                f"`{ranking_key}` not found in `data.uns`{hint} "
-                "Run `scanpy.tl.rank_genes_groups` first or pass `group_by`."
+                f"No stored ranking named {ranking_key!r}{hint} Pass `group_by` to compute "
+                "one, or pass the name of a stored ranking as `ranking_key`."
             )
             raise KeyNotFoundError(msg)
         results = data.uns[ranking_key]
@@ -196,7 +196,7 @@ def _build_volcano_frame(
         ]
         if missing_fields:
             msg = (
-                f"`data.uns[{ranking_key!r}]` has no {missing_fields} to draw a volcano from. "
+                f"The ranking `{ranking_key}` has no {missing_fields} to draw a volcano from. "
                 "Rank with a test that reports fold changes and p-values "
                 "(e.g. method='wilcoxon' or 't-test')."
             )
@@ -328,8 +328,8 @@ def _build_markers_frame(
     is drawn in its own panel.
     """
     if n_genes < 1:
-        msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
+        msg = f"`n_genes` must be >= 1, got {n_genes}. Pass a positive integer."
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, AnnData):
         if ranking_key not in data.uns:
@@ -339,8 +339,9 @@ def _build_markers_frame(
         record = data.uns[ranking_key]
         if "names" not in record or "scores" not in record or "params" not in record:
             msg = (
-                f"`adata.uns[{ranking_key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names', 'scores', or 'params')."
+                f"The stored entry `{ranking_key}` is not a differential expression ranking "
+                "(it has no gene names, scores, or parameters). Pass the name of a stored "
+                "ranking as `ranking_key`, or compute a ranking first."
             )
             raise KeyNotFoundError(msg)
 
@@ -361,18 +362,18 @@ def _build_markers_frame(
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{ranking_key!r}]`. Available: {available_groups!r}."
+                    f"Groups {unknown!r} not found in the ranking `{ranking_key}`. "
+                    f"Available: {available_groups!r}. Pass groups from that list."
                 )
                 raise KeyNotFoundError(msg)
 
         n_available = len(names)
         if n_genes > n_available:
             msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{ranking_key!r}]`."
+                f"`n_genes={n_genes}` exceeds the {n_available} genes in the ranking "
+                f"`{ranking_key}`. Pass `n_genes` <= {n_available}."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
         # Non-finite scores are dropped before taking the top `n_genes`, so every
         # panel keeps `n_genes` genes (when that many are finite) with gapless ranks.
@@ -402,8 +403,8 @@ def _build_markers_frame(
         stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
-                f"`adata.uns[{ranking_key!r}]['params']` is missing 'groupby'; "
-                "cannot infer `group_by`."
+                f"The ranking `{ranking_key}` does not record the column it grouped by, "
+                "so `group_by` cannot be inferred. Recompute the ranking for a grouping column."
             )
             raise KeyNotFoundError(msg)
 
