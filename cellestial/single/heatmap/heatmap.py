@@ -10,7 +10,6 @@ from ggrust import (
     aes,
     coord_cartesian,
     element_blank,
-    geom_path,
     geom_raster,
     geom_segment,
     geom_tile,
@@ -49,8 +48,6 @@ from cellestial.util import (
     _dendrogram_line_theme,
     _dendrogram_y_axis,
     _fill_gradient,
-    _get_dendrogram,
-    _get_dendrogram_path_frame,
     _get_dendrogram_tree,
     _warn,
 )
@@ -433,21 +430,15 @@ def heatmap(
     # HANDLE: Sorting pseudo-categorical integer labels numerically when possible.
     frame = _sort_integer_like_groups(frame, group_by=group_by)
     # DETERMINE: y order of groups
-    if dendrogram and aggregate:
+    if dendrogram:
         tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
         y_order_groups = list(tree.ordered_labels)
-        paths = None
-    elif dendrogram:
-        y_order_groups, paths = _get_dendrogram(
-            *_modality_source(data, modality, group_by), use_key=dendrogram_key
-        )
     elif aggregate:
         y_order_groups = (
             frame.select(group_by).unique(maintain_order=True)[group_by].cast(pl.String).to_list()
         )
-        paths = None
     else:
         # First appearance in key-major order, as in the unpivoted frame.
         y_order_groups = (
@@ -459,7 +450,6 @@ def heatmap(
             .cast(pl.String)
             .to_list()
         )
-        paths = None
     if dendrogram:
         # Unaggregated rows are cells, so every dendrogram group also needs cells.
         _check_dendrogram_groups(
@@ -542,6 +532,30 @@ def heatmap(
     if aggregate and dendrogram:
         # DENDROGRAM (right side, along y-axis): the tree orders and labels the groups
         htmp += _dendrogram_y_axis(tree, limits=[data_bottom, y_max_limit], fixed=geom == "raster")
+    elif dendrogram:
+        # DENDROGRAM (right side, along y-axis): each leaf spans its group's rows,
+        # which sit one level apart; group names label each group's middle row.
+        assert cell_frame is not None
+        row_levels = cell_frame.with_columns(
+            pl.col("position_y").cast(pl.Int64).cast(pl.String).alias("_level"),
+            pl.col(group_by).cast(pl.String),
+        )
+        runs = {
+            group: row_levels.filter(pl.col(group_by) == group)["_level"].to_list()
+            for group in y_order_groups
+        }
+        labelled = group_bars and group_bars_labels
+        htmp += _dendrogram_y_axis(
+            tree,
+            limits=[data_bottom, y_max_limit],
+            leaf_levels=runs,
+            breaks=[runs[group][len(runs[group]) // 2] for group in y_order_groups]
+            if labelled
+            else [],
+            labels=y_order_groups if labelled else [],
+        )
+        if labelled:
+            htmp += guides(color="none")
     elif aggregate:
         htmp += scale_y_continuous(
             breaks=list(range(n_y)),
@@ -588,22 +602,10 @@ def heatmap(
             **(group_lines_kwargs or {}),
         )
 
-    # DENDROGRAM (right side, along y-axis); per-cell rows draw the tree as a path
+    # DENDROGRAM (right side, along y-axis), drawn with the y tick line
     x_max_limit = n_x - 0.5
-    if dendrogram and aggregate:
+    if dendrogram:
         htmp += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
-    elif dendrogram:
-        assert paths is not None
-        dendro_frame = _get_dendrogram_path_frame(
-            paths, n_x=n_x, n_groups=len(y_order_groups), group_centers=group_centers
-        )
-        x_max_limit = dendro_frame["x"].max()
-        htmp += geom_path(
-            data=dendro_frame,
-            mapping=aes(x="x", y="y", group="group"),
-            color=dendrogram_color,
-            size=dendrogram_size,
-        )
 
     # FILL gradient
     htmp += _fill_gradient(
@@ -643,8 +645,9 @@ def heatmap(
             legend_width=legend_width,
             legend_height=legend_height,
         )
-    else:
+    elif not dendrogram:
         # `geom_raster` otherwise forces square pixels, squeezing many-cell heatmaps.
+        # (the dendrogram axis already sets a free `coord_cartesian`)
         htmp += coord_cartesian()
 
     if interactive:
