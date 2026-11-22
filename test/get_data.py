@@ -10,7 +10,7 @@ import scvelo as scv
 
 def get_pbmc3k() -> None:
     """Adopted From: https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html."""
-    if Path("data/pbmc3k_pped.h5ad").exists():
+    if Path("data/pbmc3k_pped_v2.h5ad").exists():
         return
 
     EXAMPLE_DATA = pooch.create(
@@ -117,12 +117,13 @@ def get_pbmc3k() -> None:
         {
             "0": "Lymphocytes",
             "1": "Monocytes",
-            "2": "Erythroid",
-            "3": "B Cells",
+            "2": "B Cells",
+            "3": "Erythroid",
+            "4": "Erythroid",
         }
     )
 
-    adata.write("data/pbmc3k_pped.h5ad")
+    adata.write("data/pbmc3k_pped_v2.h5ad")
 
     return
 

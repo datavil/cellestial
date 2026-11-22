@@ -35,7 +35,7 @@
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 - [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 - [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
-- [Project: pbmc3k labels swapped](project_pbmc3k_labels.md): Bundled pbmc3k is bone marrow; cell_type_lvl1 "B Cells"/"Erythroid" are swapped, null cluster is erythroblasts (plans/pbmc3k_labels.md)
+- [Project: pbmc3k labels fixed](project_pbmc3k_labels.md): Bundled pbmc3k is bone marrow; swapped/null cell_type_lvl1 labels fixed in pbmc3k_pped_v2.h5ad (scanpy tutorial mapping), old caches still wrong
 - [Project: build_frame categoricals are pl.Enum](project_build_frame_enum.md) — Source category order via pl.Enum; accept Enum in dtype checks, cast to String before string compares/joins
 - [Feedback: Quick plots keep default fill](feedback_quick_plots_keep_default_fill.md) — `highest_expressed_genes` keeps per-gene fill; no-promotion rule not applied to convenience plots
 - [Project: Layer 0 carries the mapping](project_layer_zero_mapping.md) — Deferred `+` layers read aesthetics from layer 0; underlays (e.g. `outline=True`) must carry the main mapping with constants overriding
@@ -1007,19 +1007,19 @@ Two ggrust 0.8 limits that shaped `cl.tracksplot` (issue #73, 2026-11-08):
 
 ---
 name: project-pbmc3k-labels
-description: "Bundled pbmc3k is bone marrow and its cell_type_lvl1 \"B Cells\"/\"Erythroid\" labels are swapped; null cluster is erythroblasts"
+description: "Bundled pbmc3k is bone marrow; its swapped/null cell_type_lvl1 labels were fixed 2026-11-22 in pbmc3k_pped_v2.h5ad (scanpy tutorial mapping)"
 metadata:
   node_type: memory
   type: project
   originSessionId: 82ca22c0-b113-4735-9658-f8f67b33f30d
-  modified: 2026-11-18T04:48:48.561Z
+  modified: 2026-11-22T20:30:00.000Z
 ---
 
-`cl.datasets.pbmc3k()` (17041 cells, samples s1d1/s1d3) is bone marrow, not PBMC. `cell_type_lvl1` is a 1:1 relabel of `leiden_res_0.02`: cluster 3 "B Cells" is red cells (HBB 8.2, 92% hemoglobin counts), cluster 2 "Erythroid" is B cells (MS4A1 81%, CD79A 87%), cluster 4 (null, 1767 cells) is erythroblasts (GYPA, TFRC, MKI67). Lymphocytes and Monocytes are right. Evidence and a proposed mapping: `plans/pbmc3k_labels.md` (2026-11-18). The dataset was not changed.
+`cl.datasets.pbmc3k()` (17041 cells, samples s1d1/s1d3) is the bone marrow sample of the scanpy "Preprocessing and clustering" tutorial, not PBMC. Its `cell_type_lvl1` used to be wrong: `test/get_data.py` mistyped the tutorial mapping of `leiden_res_0.02` (clusters 2 "B Cells" and 3 "Erythroid" swapped, cluster 4 left null). Fixed 2026-11-22: the loader now downloads `pbmc3k_pped_v2.h5ad` (built by `scripts/fix_pbmc3k_labels.py`) with scanpy's mapping {0: Lymphocytes, 1: Monocytes, 2: B Cells, 3: Erythroid, 4: Erythroid}, no null labels. Record: `plans/pbmc3k_labels.md`. The loader name `pbmc3k` is still an open decision (`plans/v1_api_review.md` F19/E2).
 
-**Why:** Marker plots on "B Cells" show hemoglobin genes, which looks like a plotting bug but is the labels.
+**Why:** Old caches (`pbmc3k_pped.h5ad`) still carry the wrong labels and 1767 null cells; the versioned file name is what moves users off them.
 
-**How to apply:** Do not read biology off `cell_type_lvl1` in renders or tests until the user decides on the relabel; HBB is ambient in every cell. Related: [[project-math-audit-open-findings]].
+**How to apply:** Tests that need null group rows must blank cells themselves (the bundled column has none). HBB is ambient in every cell, so do not use it as an erythroid-only marker; GYPA/CA1 are cleaner. Related: [[project-math-audit-open-findings]].
 ## Source: project_build_frame_enum.md
 
 ---

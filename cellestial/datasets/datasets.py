@@ -88,11 +88,18 @@ def pbmc3k(
     ------
     IncompleteDownloadError
         If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    Despite the name, the cells are the bone marrow multiome sample (`s1d1`,
+    `s1d3`) used in the scanpy "Preprocessing and clustering" tutorial. The
+    `cell_type_lvl1` labels follow that tutorial's coarse annotation of the
+    `leiden_res_0.02` clusters: Lymphocytes, Monocytes, B Cells and Erythroid.
     """
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped.h5ad",
+            "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped_v2.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,

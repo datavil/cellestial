@@ -1,5 +1,26 @@
 # pbmc3k cell type labels: check against canonical markers (2026-11-18)
 
+## Status: resolved (2026-11-22)
+
+Cause: the dataset was built by `test/get_data.py`, which follows the scanpy
+"Preprocessing and clustering" tutorial but mistyped its coarse annotation of
+`leiden_res_0.02` (clusters 2 and 3 swapped, cluster 4 missing). The user chose
+scanpy's exact mapping:
+{"0": "Lymphocytes", "1": "Monocytes", "2": "B Cells", "3": "Erythroid", "4": "Erythroid"}.
+
+- `scripts/fix_pbmc3k_labels.py` rebuilds the column from that mapping (same
+  category order: B Cells, Erythroid, Lymphocytes, Monocytes), asserts no nulls and
+  that nothing else in the file changed, checks markers, and writes
+  `pbmc3k_pped_v2.h5ad`. `test/get_data.py` now uses the same mapping.
+- `datasets.pbmc3k()` downloads `pbmc3k_pped_v2.h5ad`, so old caches are not reused.
+  The loader docstring notes the bone marrow origin. The name `pbmc3k` stays
+  (separate decision, `plans/v1_api_review.md` F19 / E2).
+- Tests: only `test_group_density_uses_only_that_groups_cells` relied on null
+  labels; it now blanks 50 cells itself. Docstring examples keep working (all four
+  label names still exist) and now show the right biology.
+
+The analysis below is kept as the record of the finding.
+
 Raised by the 2026-11-18 differential audit ("B Cells" has HBB/HBA as top markers).
 Scope: check every `cell_type_lvl1` label of `cl.datasets.pbmc3k()` (17041 cells,
 23427 features, samples `s1d1` 8713 and `s1d3` 8328) and propose a corrected
