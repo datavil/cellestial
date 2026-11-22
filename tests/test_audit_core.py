@@ -155,7 +155,7 @@ def test_stream_derives_velocity_for_unprefixed_embedding():
     data.obsm["wnn_umap"] = data.obsm["X_umap"]
     # constant rightward velocity, so every arrow must point right
     data.obsm["velocity_wnn_umap"] = np.tile([1.0, 0.0], (data.n_obs, 1))
-    plot = cl.dimensional(data, "cluster", use_key="wnn_umap") + cl.stream(n_neighbors=5)
+    plot = cl.dimensional(data, "cluster", embedding_key="wnn_umap") + cl.stream(n_neighbors=5)
     arrows = plot.as_dict()["layers"][-1]["data"]
     dx = np.asarray(arrows["xend"]) - np.asarray(arrows["x"])
     dy = np.asarray(arrows["yend"]) - np.asarray(arrows["y"])
@@ -168,7 +168,7 @@ def test_stream_unprefixed_embedding_without_velocity_raises():
     """Stream unprefixed embedding without velocity raises."""
     data = _embedding_data()
     data.obsm["wnn_umap"] = data.obsm["X_umap"]
-    plot = cl.dimensional(data, "cluster", use_key="wnn_umap")
+    plot = cl.dimensional(data, "cluster", embedding_key="wnn_umap")
     with pytest.raises(KeyNotFoundError, match="VELOCITY_WNN_UMAP1"):
         plot + cl.stream(n_neighbors=5)
 

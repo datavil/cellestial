@@ -127,6 +127,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_ranking_not_found_message` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_renamed_ranking_key` | Claude Opus 5.5 |  |  |  |  |
 | `UnknownParameterError` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_renamed_embedding_kwargs` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -345,3 +346,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `heatmap`, `matrixplot`, `dotplot`, `stacked_violin`, `tracksplot` (`markers: bool` plus `ranking_key`) | Claude Opus 5.5 |  |
 | `_extract_rank_genes_groups`, `_resolve_rank_genes_groups_args`, `_build_markers_frame`, `_build_volcano_frame`, `_marker_names_per_group` (`ranking_key`) | Claude Opus 5.5 |  |
 | `markers`, `marker_genes`, `marker_genes_dict` (`groups` keyword-only) | Claude Opus 5.5 |  |
+| `dimensional` (`use_key` renamed to `embedding_key`, rejects `use_key`/`basis`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `embedding_density`, `blend`) | Claude Opus 5.5 |  |
+| `_resolve_embedding_key` (`use_key` renamed to `embedding_key`) | Claude Opus 5.5 |  |

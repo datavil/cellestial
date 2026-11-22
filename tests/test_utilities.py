@@ -417,15 +417,15 @@ def test_determine_axis_invalid(adata):
 # ---- _resolve_embedding_key ----
 
 
-def test_resolve_embedding_use_key_uppercases(adata):
+def test_resolve_embedding_embedding_key_uppercases(adata):
     assert _resolve_embedding_key(adata, "umap", "X_umap2d", xy=(1, 2)) == "X_UMAP2D"
 
 
-def test_resolve_embedding_use_key_already_upper(adata):
+def test_resolve_embedding_embedding_key_already_upper(adata):
     assert _resolve_embedding_key(adata, "umap", "X_UMAP", xy=(1, 2)) == "X_UMAP"
 
 
-def test_resolve_embedding_use_key_no_warning(adata):
+def test_resolve_embedding_embedding_key_no_warning(adata):
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         _resolve_embedding_key(adata, "umap", "anything", xy=(1, 2))

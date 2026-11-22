@@ -34,6 +34,7 @@ from cellestial.util import (
     _color_gradient,
     _drop_nonfinite_rows,
     _filter_groups,
+    _reject_renamed_embedding_kwargs,
     _reject_sequence_key,
     _require_feature_key,
     _resolve_embedding_key,
@@ -150,7 +151,7 @@ def dimensional(
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -206,10 +207,9 @@ def dimensional(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
@@ -315,6 +315,8 @@ def dimensional(
         `color` / `fill` are passed as constants (use `geom_color` /
         `geom_fill`), or if a `geom_color` / `geom_fill` constant would hide
         the coloring by `key` or `mapping`.
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -376,6 +378,7 @@ def dimensional(
         function="dimensional",
         hint=_KEY_COLOR_HINT,
     )
+    _reject_renamed_embedding_kwargs(geom_kwargs)
     mapped_by = {
         aesthetic: f"`mapping` column {column!r}"
         for aesthetic, column in mapping.as_dict().items()
@@ -392,7 +395,9 @@ def dimensional(
             "Pass two 1-based components, e.g. `xy=(1, 2)`."
         )
         raise InvalidArgumentError(msg)
-    prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
+    prefix = _resolve_embedding_key(
+        data=data, dimensions=dimensions, embedding_key=embedding_key, xy=xy
+    )
     if min(xy) < 1:
         msg = (
             f"`xy={tuple(xy)}` selects a component below 1 of `{prefix}`.\n"
@@ -483,7 +488,7 @@ def dimensional(
             f"{n_components}, e.g. `xy=(1, 2)`."
             if n_components
             else f"Embedding `{prefix}` has no components in the plotted data.\n"
-            "Check `use_key` / `dimensions`, or that a passed `frame` holds the embedding."
+            "Check `embedding_key` / `dimensions`, or that a passed `frame` holds the embedding."
         )
         raise InvalidArgumentError(msg)
 

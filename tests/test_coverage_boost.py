@@ -18,7 +18,7 @@ from cellestial.util.errors import (
 )
 
 # ===========================================================================
-# dimensional.py, uncovered: TypeError, use_key, legend_ondata, color_mid,
+# dimensional.py, uncovered: TypeError, embedding_key, legend_ondata, color_mid,
 #                  interactive, FeatureSpec tooltips
 # ===========================================================================
 
@@ -29,10 +29,24 @@ def test_dimensional_invalid_data():
         cl.dimensional("not anndata", "leiden")
 
 
-def test_dimensional_use_key(adata):
-    """Dimensional use key."""
-    plot = cl.umap(adata, "leiden", use_key="X_umap")
+def test_dimensional_embedding_key(adata):
+    """Dimensional embedding key."""
+    plot = cl.umap(adata, "leiden", embedding_key="X_umap")
     assert isinstance(plot, PlotSpec)
+
+
+def test_dimensional_custom_embedding_key(adata):
+    """A stored embedding under a custom name is plotted by `embedding_key`."""
+    data = adata.copy()
+    data.obsm["X_umap_custom"] = data.obsm["X_umap"] * 2
+    plot = cl.umap(data, "leiden", embedding_key="X_umap_custom")
+    mapping = plot.as_dict()["layers"][0]["mapping"]
+    assert (mapping["x"], mapping["y"]) == ("X_UMAP_CUSTOM1", "X_UMAP_CUSTOM2")
+    assert plot.as_dict()["data"]["X_UMAP_CUSTOM1"].max() == pytest.approx(
+        float(data.obsm["X_umap"][:, 0].max() * 2)
+    )
+    plural = cl.umaps(data, ["leiden", "CD14"], embedding_key="X_umap_custom")
+    assert isinstance(plural, SupPlotsSpec)
 
 
 def test_dimensional_legend_ondata(adata, group_key):

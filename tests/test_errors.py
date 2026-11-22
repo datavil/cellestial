@@ -204,3 +204,38 @@ def test_unknown_ranking_key_suggests_a_close_match(ranked_pbmc, call):
     assert "ranking_key='rank_leidn'" in message
     assert "rank_leiden" in message
     assert "adata" not in message
+
+
+# ---- Renamed embedding selector: `use_key` and `basis` point to `embedding_key` ----
+
+_EMBEDDING_CALLS = [
+    (cl.umap, ("leiden",)),
+    (cl.pca, ("leiden",)),
+    (cl.tsne, ("leiden",)),
+    (cl.dimensional, ("leiden",)),
+    (cl.expression, ("CD14",)),
+    (cl.umaps, (["leiden"],)),
+    (cl.pcas, (["leiden"],)),
+    (cl.tsnes, (["leiden"],)),
+    (cl.dimensionals, (["leiden"],)),
+    (cl.expressions, (["CD14"],)),
+    (cl.embedding_density, ()),
+    (cl.blend, (["CD14", "MS4A1"],)),
+]
+
+
+@pytest.mark.parametrize(("fn", "args"), _EMBEDDING_CALLS)
+def test_use_key_points_to_embedding_key(adata, fn, args):
+    with pytest.raises(
+        UnknownParameterError, match="`use_key` was renamed to `embedding_key`"
+    ) as info:
+        fn(adata, *args, use_key="X_umap")
+    assert "embedding_key='X_umap'" in str(info.value)
+    assert isinstance(info.value, TypeError)
+
+
+@pytest.mark.parametrize(("fn", "args"), _EMBEDDING_CALLS)
+def test_basis_points_to_embedding_key(adata, fn, args):
+    with pytest.raises(UnknownParameterError, match="to choose a stored embedding") as info:
+        fn(adata, *args, basis="X_umap")
+    assert "embedding_key='X_umap'" in str(info.value)

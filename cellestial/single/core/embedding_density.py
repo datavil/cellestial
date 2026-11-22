@@ -23,7 +23,12 @@ from cellestial.frames import build_frame
 from cellestial.layers import _modify_axis
 from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _drop_nonfinite_rows, _filter_groups, _resolve_embedding_key
+from cellestial.util import (
+    _drop_nonfinite_rows,
+    _filter_groups,
+    _reject_renamed_embedding_kwargs,
+    _resolve_embedding_key,
+)
 from cellestial.util.errors import (
     EmptySelectionError,
     InvalidArgumentError,
@@ -44,7 +49,7 @@ def embedding_density(
     group_by: str | None = None,
     *,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -75,9 +80,9 @@ def embedding_density(
     dimensions : str, default='umap'
         The dimensionality reduction to plot, named without the `X_` prefix.
         e.g. 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
-    use_key : str | None, default=None
-        The specific key to use for the desired dimensions.
-        e.g. 'X_umap_2d'. Otherwise, the key is decided based on `dimensions`.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g. (1, 2) for UMAP1 and UMAP2.
@@ -134,6 +139,8 @@ def embedding_density(
     InvalidArgumentError
         If `xy` does not contain exactly two components, or if `color` / `fill`
         are passed (points are colored by density).
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Notes
     -----
@@ -169,6 +176,7 @@ def embedding_density(
         function="embedding_density",
         hint="`embedding_density` colors points by density; to change the gradient, pass `color_low=` / `color_high=`.",
     )
+    _reject_renamed_embedding_kwargs(geom_kwargs)
 
     # HANDLE: group_by
     if group_by is not None:
@@ -181,7 +189,9 @@ def embedding_density(
             "Pass two 1-based components, e.g. `xy=(1, 2)`."
         )
         raise InvalidArgumentError(msg)
-    prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
+    prefix = _resolve_embedding_key(
+        data=data, dimensions=dimensions, embedding_key=embedding_key, xy=xy
+    )
     x = f"{prefix}{xy[0]}"  # e.g. X_UMAP1
     y = f"{prefix}{xy[1]}"  # e.g. X_UMAP2
 
