@@ -150,6 +150,15 @@ change. Versions absent from the list were never released.
 - `CellestialError` base class: every cellestial error subclasses it as well as
   its builtin (`KeyNotFoundError` is still a `KeyError`), so
   `except cl.errors.CellestialError` catches anything cellestial raised.
+- `UnknownParameterError` (a `TypeError`), raised when a renamed or removed
+  keyword (`use_key`, `basis`, `key`, `greyscale`, `variable_keys`) is passed,
+  instead of letting it reach the geom keyword arguments.
+- `outline=True` in `dimensional`, `umap`, `tsne`, `pca`, `expression` and
+  their plurals draws a scanpy-style border around the point cloud: only the
+  rim of the cloud gets a border. `outline_width` (default `(0.3, 0.05)`,
+  fractions of the point size) and `outline_color` (default
+  `("black", "white")`) set the border and gap. Outlined points default to
+  alpha 0.7 unless `alpha` is passed or mapped.
 
 - `volcano` and `volcanos` take `min_fraction_expressed` (default `None`) to
   drop features detected in fewer than that fraction of the group's cells
