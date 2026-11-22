@@ -169,6 +169,13 @@ class MissingPlotDataError(ValueError, CellestialError):
         super().__init__(message)
 
 
+class UnsupportedGeometryError(NotImplementedError, CellestialError):
+    """Raised when a spatial shapes element holds geometry types other than points or polygons."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class CellestialWarning(UserWarning):
     """Base category for warnings raised by cellestial."""
 
@@ -179,6 +186,15 @@ def _unsupported_data_type(received: object, *expected: type | str) -> Unsupport
     expected_names = " or ".join(cls if isinstance(cls, str) else cls.__name__ for cls in expected)
     received_name = type(received).__name__
     return UnsupportedDataTypeError(f"Expected {expected_names}, but received `{received_name}`.")
+
+
+def _plural_type_message(value: object, parameter: str, singular: str) -> str:
+    """Build the error message for a plural function whose `parameter` is not a sequence."""
+    received = f"the string {value!r}" if isinstance(value, str) else f"`{type(value).__name__}`"
+    return (
+        f"`{parameter}` must be a sequence, got {received}. "
+        f"Pass a list of {parameter}, or use `{singular}` for one {parameter.removesuffix('s')}."
+    )
 
 
 def _did_you_mean(keys: object, candidates: Iterable[object]) -> str:

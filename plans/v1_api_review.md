@@ -82,6 +82,11 @@ Rank = cost of fixing after the freeze x how often users hit it.
 
 ### F4. ~20 public raises still use bare builtins; some messages name AnnData/scanpy or a stale parameter (non-breaking)
 
+- Status: done (D1, 2026-11-22). Bare raises replaced with `InvalidArgumentError`,
+  `InvalidArgumentTypeError` and the new `UnsupportedGeometryError`; messages reworded
+  without storage slots or scanpy names. The stale `rank_genes_groups` name was already
+  gone (`_check_markers_flag` names `markers`).
+
 - Evidence (all reachable from public calls):
   - `ValueError`: `complex/annotated_heatmap.py:547`, `single/differential/volcano.py:351`,
     `single/differential/utilities.py:322`, `:371`, `single/heatmap/heatmap.py:359`,
@@ -348,7 +353,8 @@ Recommended choice first. Approve batch by batch.
 - C5. `retrieve`: keep. / rename to `get_frame` (F21).
 
 **Batch D: non-breaking hardening (approve as one)**
-- D1. Replace the ~20 bare raises, fix stale `rank_genes_groups` and AnnData/scanpy wording (F4).
+- D1. Replace the ~20 bare raises, fix stale `rank_genes_groups` and AnnData/scanpy wording (F4). **Done.**
+- D2 to D5: declined (2026-11-22), not done.
 - D2. Deferred layers raise `InvalidPlotSpecError` on a grid or data-less plot (F11).
 - D3. `xyplot` sequence rejection, `None` mapping, `ridge(group_by=None)` errors (F12).
 - D4. Raise for `groups`/`drop` without `key`; always validate `midpoint`; reword heatmap `axis=1` error (F13).

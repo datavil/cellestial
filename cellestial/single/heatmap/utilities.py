@@ -16,6 +16,7 @@ from ggrust.errors import SpecError
 from cellestial.util import _warn
 from cellestial.util.errors import (
     DuplicateKeysError,
+    InvalidArgumentError,
     InvalidArgumentTypeError,
     KeyNotFoundError,
     _ranking_not_found_message,
@@ -404,8 +405,11 @@ def _resolve_key_groups(
     groups: dict[str, list[str]] = {}
     for label, values in grouped_keys.items():
         if isinstance(values, str):
-            msg = f"Keys for group {label!r} must be a sequence of strings, not a single string."
-            raise TypeError(msg)
+            msg = (
+                f"Keys for group {label!r} must be a list of keys, got the string {values!r}. "
+                f"Wrap it in a list: {{{label!r}: [{values!r}]}}."
+            )
+            raise InvalidArgumentTypeError(msg)
         groups[label] = list(values)
     flat: list[str] = []
     location: dict[str, str] = {}
@@ -776,8 +780,8 @@ def _extract_rank_genes_groups(
         The categorical key used when `rank_genes_groups` was computed.
     """
     if n_genes < 1:
-        msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
+        msg = f"`n_genes` must be >= 1, got {n_genes}. Pass a positive integer."
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, AnnData):
         if ranking_key not in data.uns:
@@ -787,8 +791,9 @@ def _extract_rank_genes_groups(
         record = data.uns[ranking_key]
         if "names" not in record or "params" not in record:
             msg = (
-                f"`adata.uns[{ranking_key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names' or 'params')."
+                f"The stored entry `{ranking_key}` is not a differential expression ranking "
+                "(it has no gene names or parameters). Pass the name of a stored ranking as "
+                "`ranking_key`, or compute a ranking first."
             )
             raise KeyNotFoundError(msg)
 
@@ -802,18 +807,18 @@ def _extract_rank_genes_groups(
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{ranking_key!r}]`. Available: {available_groups!r}."
+                    f"Groups {unknown!r} not found in the ranking `{ranking_key}`. "
+                    f"Available: {available_groups!r}. Pass groups from that list."
                 )
                 raise KeyNotFoundError(msg)
 
         n_available = len(names)
         if n_genes > n_available:
             msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{ranking_key!r}]`."
+                f"`n_genes={n_genes}` exceeds the {n_available} genes in the ranking "
+                f"`{ranking_key}`. Pass `n_genes` <= {n_available}."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
         keys: dict[str, list[str]] = {}
         seen: dict[str, str] = {}
@@ -847,8 +852,8 @@ def _extract_rank_genes_groups(
         stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
-                f"`adata.uns[{ranking_key!r}]['params']` is missing 'groupby'; "
-                "cannot infer `group_by`."
+                f"The ranking `{ranking_key}` does not record the column it grouped by, "
+                "so `group_by` cannot be inferred. Recompute the ranking for a grouping column."
             )
             raise KeyNotFoundError(msg)
 
@@ -877,9 +882,10 @@ def _resolve_rank_genes_groups_args(
     if keys is not None:
         msg = (
             "`keys` must be omitted when `markers=True`; "
-            "genes are derived from the stored ranking."
+            "genes are derived from the stored ranking. "
+            "Remove `keys`, or set `markers=False` to pass genes yourself."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     resolved_keys, stored_group_by = _extract_rank_genes_groups(
         data,
@@ -892,9 +898,9 @@ def _resolve_rank_genes_groups_args(
         msg = (
             f"`group_by={group_by!r}` does not match the value used when "
             f"the ranking `{ranking_key}` was computed ({stored_group_by!r}). "
-            "Omit `group_by` to inherit it, or recompute with the desired key."
+            "Omit `group_by` to inherit it, or recompute the ranking for the desired column."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     return resolved_keys, stored_group_by
 
@@ -1022,8 +1028,8 @@ def _compute_violin_polygons(
             global_max = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
             normalizers = dict.fromkeys(kde_results, global_max)
         else:
-            msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
-            raise ValueError(msg)
+            msg = f"`scale` must be one of 'area', 'count', 'width', got {scale!r}. Pick one of those."
+            raise InvalidArgumentError(msg)
 
         for group_key, (
             y_index,

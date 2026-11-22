@@ -18,6 +18,7 @@ from cellestial.util.errors import (
     InvalidArgumentError,
     KeyNotFoundError,
     UnknownParameterError,
+    UnsupportedGeometryError,
     _unsupported_data_type,
 )
 
@@ -378,9 +379,10 @@ def _spatialdata_components(
     else:
         msg = (
             f"Shapes element `{chosen_shapes_name}` contains "
-            f"{sorted(geom_types)}; only Point or Polygon are supported."
+            f"{sorted(geom_types)}; only Point or Polygon are supported. "
+            "Pick a shapes element of points or polygons with `shapes_name`."
         )
-        raise NotImplementedError(msg)
+        raise UnsupportedGeometryError(msg)
 
     if spot_coordinates is not None:
         # Shapes and table rows need not share order or length: place each table row

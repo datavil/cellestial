@@ -34,6 +34,7 @@ from cellestial.util import (
 from cellestial.util.errors import (
     InvalidArgumentError,
     InvalidArgumentTypeError,
+    _plural_type_message,
     _unsupported_data_type,
 )
 
@@ -504,8 +505,8 @@ def ridges(
         )
     """
     if isinstance(keys, str):
-        msg = "keys must be a Sequence of strings, not a single string"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "ridge")
+        raise InvalidArgumentTypeError(msg)
     _check_ridge_scale(scale)
     _merge_shortcuts(mapping, fill=fill, color=color, function="ridges")  # fail early on a clash
     # BUILD: one shared frame for all keys, instead of rebuilding per key.

@@ -34,6 +34,8 @@ from cellestial.util import _share_axis, _share_labels
 from cellestial.util.errors import (
     EmptySelectionError,
     InvalidArgumentError,
+    InvalidArgumentTypeError,
+    _plural_type_message,
     _unsupported_data_type,
 )
 from cellestial.util.utilities import _container
@@ -351,8 +353,12 @@ def volcano(
         tooltips = list(tooltips)
         if not set(tooltips).issubset(frame.columns):
             missing = set(tooltips) - set(frame.columns)
-            msg = f"Some tooltip columns are not in the data: {missing}"
-            raise ValueError(msg)
+            msg = (
+                f"`tooltips` names columns that are not in the volcano data: "
+                f"{sorted(missing, key=str)}. Available: {frame.columns}. "
+                "Pass column names from that list, or None for the default tooltips."
+            )
+            raise InvalidArgumentError(msg)
         tooltips_spec = layer_tooltips(tooltips)
     elif isinstance(tooltips, FeatureSpec):
         tooltips_spec = tooltips
@@ -682,8 +688,8 @@ def volcanos(
     """
     _reject_renamed_ranking_key(geom_kwargs, "volcanos")
     if not isinstance(groups, Sequence) or isinstance(groups, str):
-        msg = "groups must be a Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(groups, "groups", "volcano")
+        raise InvalidArgumentTypeError(msg)
     if len(groups) == 0:
         msg = "`groups` is empty, so there is nothing to plot. Pass at least one group."
         raise EmptySelectionError(msg)

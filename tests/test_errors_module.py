@@ -9,7 +9,7 @@ import cellestial.errors as errors
 import cellestial.util.errors as implementation
 from cellestial.errors import CellestialError, CellestialWarning, KeyNotFoundError
 
-BUILTIN_EXCEPTIONS = (KeyError, ValueError, TypeError, IndexError, OSError)
+BUILTIN_EXCEPTIONS = (KeyError, ValueError, TypeError, IndexError, OSError, NotImplementedError)
 ERROR_NAMES = [
     name for name in errors.__all__ if name not in {"CellestialError", "CellestialWarning"}
 ]

@@ -543,8 +543,11 @@ def annotated_heatmap(
     annotation_colors = annotation_colors or {}
 
     if dendrogram and group_by is None:
-        msg = "`group_by` is required when `dendrogram` is set."
-        raise ValueError(msg)
+        msg = (
+            "`group_by` is required when `dendrogram=True`. "
+            "Pass the grouping column as `group_by`, or set `dendrogram=False`."
+        )
+        raise InvalidArgumentError(msg)
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
     if dendrogram:

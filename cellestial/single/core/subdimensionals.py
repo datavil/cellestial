@@ -23,7 +23,11 @@ from cellestial.util import (
     _share_axis,
     _share_labels,
 )
-from cellestial.util.errors import KeyNotFoundError
+from cellestial.util.errors import (
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _plural_type_message,
+)
 
 if TYPE_CHECKING:
     from anndata import AnnData
@@ -298,8 +302,8 @@ def dimensionals(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "dimensional")
+        raise InvalidArgumentTypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="dimensionals", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
     _reject_removed_variable_keys(geom_kwargs, "dimensionals")
@@ -653,8 +657,8 @@ def umaps(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "umap")
+        raise InvalidArgumentTypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="umaps", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
     _reject_removed_variable_keys(geom_kwargs, "umaps")
@@ -1006,8 +1010,8 @@ def tsnes(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "tsne")
+        raise InvalidArgumentTypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="tsnes", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
     _reject_removed_variable_keys(geom_kwargs, "tsnes")
@@ -1358,8 +1362,8 @@ def pcas(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "pca")
+        raise InvalidArgumentTypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="pcas", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
     _reject_removed_variable_keys(geom_kwargs, "pcas")
@@ -1704,8 +1708,8 @@ def expressions(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "expression")
+        raise InvalidArgumentTypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="expressions", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
     _reject_removed_variable_keys(geom_kwargs, "expressions")

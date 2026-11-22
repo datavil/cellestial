@@ -50,8 +50,9 @@ def _marker_names_per_group(
         record = data.uns[ranking_key]
         if "names" not in record:
             msg = (
-                f"`adata.uns[{ranking_key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names')."
+                f"The stored entry `{ranking_key}` is not a differential expression ranking "
+                "(it has no gene names). Pass the name of a stored ranking as `ranking_key`, "
+                "or compute a ranking first."
             )
             raise KeyNotFoundError(msg)
 
@@ -71,16 +72,16 @@ def _marker_names_per_group(
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{ranking_key!r}]`. Available: {available_groups!r}."
+                    f"Groups {unknown!r} not found in the ranking `{ranking_key}`. "
+                    f"Available: {available_groups!r}. Pass groups from that list."
                 )
                 raise KeyNotFoundError(msg)
 
         n_available = len(names)
         if n_genes > n_available:
             msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{ranking_key!r}]`. Pass `n_genes` <= {n_available}."
+                f"`n_genes={n_genes}` exceeds the {n_available} genes in the ranking "
+                f"`{ranking_key}`. Pass `n_genes` <= {n_available}."
             )
             raise InvalidArgumentError(msg)
 

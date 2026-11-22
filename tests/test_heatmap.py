@@ -360,7 +360,7 @@ def test_resolve_key_groups_dict_rejects_single_string_value():
     """A mapping value that is a bare string raises."""
     from cellestial.single.heatmap.utilities import _resolve_key_groups
 
-    with pytest.raises(TypeError, match="not a single string"):
+    with pytest.raises(TypeError, match="got the string"):
         _resolve_key_groups({"G1": "A"})
 
 

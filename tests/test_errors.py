@@ -408,3 +408,222 @@ def test_variable_keys_points_to_add_keys_spatial(plural):
 def test_variable_keys_on_blend_names_blend(adata):
     with pytest.raises(UnknownParameterError, match=r"removed from `blend`"):
         cl.blend(adata, ["CD14", "MS4A1"], variable_keys=["CD3D"])
+
+
+# ---- Former bare builtins: cellestial classes that still subclass the builtin ----
+
+
+def _multipolygon_spatialdata():
+    import geopandas as gpd
+    import pandas as pd
+    from anndata import AnnData
+    from shapely.geometry import MultiPolygon, Point
+    from spatialdata import SpatialData
+    from spatialdata.models import ShapesModel, TableModel
+
+    table = AnnData(
+        X=np.ones((2, 1), dtype="float32"),
+        obs=pd.DataFrame(
+            {"instance_id": [0, 1], "region": ["mp", "mp"]}, index=["c0", "c1"]
+        ),
+        var=pd.DataFrame(index=["G1"]),
+    )
+    table = TableModel.parse(table, region="mp", region_key="region", instance_key="instance_id")
+    geometries = [
+        MultiPolygon([Point(i, i).buffer(1.0), Point(i + 5, i + 5).buffer(1.0)]) for i in range(2)
+    ]
+    shapes = ShapesModel.parse(gpd.GeoDataFrame(geometry=geometries, index=np.arange(2)))
+    return SpatialData(shapes={"mp": shapes}, tables={"table": table})
+
+
+FORMER_BUILTIN_CASES = [
+    pytest.param(
+        lambda data: cl.umaps(data, "leiden"),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["`keys` must be a sequence, got the string 'leiden'", "use `umap` for one key"],
+        id="umaps",
+    ),
+    pytest.param(
+        lambda data: cl.dimensionals(data, 3),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["got `int`", "use `dimensional` for one key"],
+        id="dimensionals",
+    ),
+    pytest.param(
+        lambda data: cl.violins(data, "CD14"),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["got the string 'CD14'", "use `violin` for one key"],
+        id="violins",
+    ),
+    pytest.param(
+        lambda data: cl.ridges(data, "CD14", GROUP_KEY),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["use `ridge` for one key"],
+        id="ridges",
+    ),
+    pytest.param(
+        lambda data: cl.spatials(data, "CD14"),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["use `spatial` for one key"],
+        id="spatials",
+    ),
+    pytest.param(
+        lambda data: cl.volcanos(data, "0", ranking_key="rank_leiden"),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["`groups` must be a sequence, got the string '0'", "use `volcano` for one group"],
+        id="volcanos-groups",
+    ),
+    pytest.param(
+        lambda data: cl.markers(data, groups="0", ranking_key="rank_leiden"),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["`groups`", "got the string '0'", "None for all groups"],
+        id="markers-groups",
+    ),
+    pytest.param(
+        lambda data: cl.heatmap(data, keys={"monocyte": "CD14"}, group_by=GROUP_KEY),
+        InvalidArgumentTypeError,
+        TypeError,
+        ["group 'monocyte'", "Wrap it in a list"],
+        id="heatmap-group-string",
+    ),
+    pytest.param(
+        lambda data: cl.heatmap(data),
+        InvalidArgumentError,
+        ValueError,
+        ["missing ['keys', 'group_by']", "markers=True"],
+        id="heatmap-no-keys",
+    ),
+    pytest.param(
+        lambda data: cl.dotplot(data, keys=["CD14"]),
+        InvalidArgumentError,
+        ValueError,
+        ["missing ['group_by']"],
+        id="dotplot-no-group-by",
+    ),
+    pytest.param(
+        lambda data: cl.stacked_violin(data, group_by=GROUP_KEY),
+        InvalidArgumentError,
+        ValueError,
+        ["missing ['keys']"],
+        id="stacked-violin-no-keys",
+    ),
+    pytest.param(
+        lambda data: cl.annotated_heatmap(data, ["CD14"], dendrogram=True),
+        InvalidArgumentError,
+        ValueError,
+        ["`group_by` is required when `dendrogram=True`", "dendrogram=False"],
+        id="annotated-heatmap-dendrogram",
+    ),
+    pytest.param(
+        lambda data: cl.dotplot(data, markers=True, ranking_key="rank_leiden", n_genes=0),
+        InvalidArgumentError,
+        ValueError,
+        ["`n_genes` must be >= 1, got 0"],
+        id="dotplot-n-genes-zero",
+    ),
+    pytest.param(
+        lambda data: cl.dotplot(data, markers=True, ranking_key="rank_leiden", n_genes=10**6),
+        InvalidArgumentError,
+        ValueError,
+        ["exceeds", "ranking `rank_leiden`", "Pass `n_genes` <="],
+        id="dotplot-n-genes-too-many",
+    ),
+    pytest.param(
+        lambda data: cl.markers(data, ranking_key="rank_leiden", n_genes=10**6),
+        InvalidArgumentError,
+        ValueError,
+        ["exceeds", "ranking `rank_leiden`", "Pass `n_genes` <="],
+        id="markers-n-genes-too-many",
+    ),
+    pytest.param(
+        lambda data: cl.marker_genes(data, ranking_key="rank_leiden", n_genes=10**6),
+        InvalidArgumentError,
+        ValueError,
+        ["exceeds", "ranking `rank_leiden`"],
+        id="marker-genes-n-genes-too-many",
+    ),
+    pytest.param(
+        lambda data: cl.heatmap(data, markers=True, ranking_key="rank_leiden", groups=["nope"]),
+        KeyNotFoundError,
+        KeyError,
+        ["Groups ['nope'] not found in the ranking `rank_leiden`", "Available:"],
+        id="heatmap-unknown-group",
+    ),
+    pytest.param(
+        lambda data: cl.markers(data, ranking_key="rank_leiden", groups=["nope"]),
+        KeyNotFoundError,
+        KeyError,
+        ["Groups ['nope'] not found in the ranking `rank_leiden`"],
+        id="markers-unknown-group",
+    ),
+    pytest.param(
+        lambda data: cl.dotplot(data, keys=["CD14"], markers=True, ranking_key="rank_leiden"),
+        InvalidArgumentError,
+        ValueError,
+        ["`keys` must be omitted when `markers=True`", "Remove `keys`"],
+        id="dotplot-keys-with-markers",
+    ),
+    pytest.param(
+        lambda data: cl.dotplot(
+            data, markers=True, ranking_key="rank_leiden", group_by="cell_type_lvl1"
+        ),
+        InvalidArgumentError,
+        ValueError,
+        ["does not match", "Omit `group_by`"],
+        id="dotplot-group-by-mismatch",
+    ),
+    pytest.param(
+        lambda data: cl.volcano(data, "0", ranking_key="rank_leiden", tooltips=["nope"]),
+        InvalidArgumentError,
+        ValueError,
+        ["`tooltips` names columns that are not in the volcano data: ['nope']", "Available:"],
+        id="volcano-tooltips",
+    ),
+    pytest.param(
+        lambda data: cl.volcano(data, "0", ranking_key="rank_leidn"),
+        KeyNotFoundError,
+        KeyError,
+        ["No stored ranking named 'rank_leidn'; did you mean 'rank_leiden'?", "`ranking_key`"],
+        id="volcano-missing-ranking",
+    ),
+]
+
+
+@pytest.mark.parametrize(("call", "error", "builtin", "parts"), FORMER_BUILTIN_CASES)
+def test_former_builtin_raises_use_cellestial_classes(ranked_pbmc, call, error, builtin, parts):
+    """Each raise is the cellestial class, still the old builtin, and says how to fix it."""
+    with pytest.raises(error) as info:
+        call(ranked_pbmc)
+    assert isinstance(info.value, builtin)
+    message = str(info.value).strip("'\"")
+    for part in parts:
+        assert part in message
+
+
+@pytest.mark.parametrize(("call", "error", "builtin", "parts"), FORMER_BUILTIN_CASES)
+def test_former_builtin_messages_avoid_backend_internals(ranked_pbmc, call, error, builtin, parts):
+    """No message names storage slots or scanpy functions."""
+    with pytest.raises(error) as info:
+        call(ranked_pbmc)
+    message = str(info.value)
+    for internal in ("adata.", ".uns[", "data.uns", "scanpy.tl", "key_added"):
+        assert internal not in message
+
+
+def test_unsupported_geometry_is_not_implemented_error():
+    """A shapes element of MultiPolygons raises `UnsupportedGeometryError`."""
+    from cellestial.errors import CellestialError, UnsupportedGeometryError
+
+    with pytest.raises(UnsupportedGeometryError) as info:
+        cl.spatial(_multipolygon_spatialdata(), polygon=True)
+    assert isinstance(info.value, NotImplementedError)
+    assert isinstance(info.value, CellestialError)
+    assert "MultiPolygon" in str(info.value)
+    assert "`shapes_name`" in str(info.value)
