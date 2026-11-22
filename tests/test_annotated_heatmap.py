@@ -5,7 +5,7 @@ from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.complex.annotated_heatmap import _bin_observations
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.errors import InvalidArgumentError, UnsupportedDataTypeError
 
 
 def test_annotated_heatmap_default(adata, markers, group_key):
@@ -377,7 +377,7 @@ def test_annotated_heatmap_variable_group_by_needs_group_lines(adata, markers):
 
 
 def test_annotated_heatmap_key_labels_unknown_key_raises(adata, markers, group_key):
-    with pytest.raises(ValueError, match="key_labels"):
+    with pytest.raises(InvalidArgumentError, match="key_labels"):
         cl.annotated_heatmap(adata, keys=markers[:3], group_by=group_key, key_labels=["nope"])
 
 
@@ -426,13 +426,13 @@ def test_annotated_heatmap_group_labels_bracket_each_labelled_block(adata, marke
 
 
 def test_annotated_heatmap_group_labels_requires_variable_group_by(adata, markers):
-    with pytest.raises(ValueError, match="variable_group_by"):
+    with pytest.raises(InvalidArgumentError, match="variable_group_by"):
         cl.annotated_heatmap(adata, keys=markers[:4], group_labels={"a": "text"})
 
 
 def test_annotated_heatmap_group_labels_unknown_block_raises(adata, markers):
     keys = markers[:4]
-    with pytest.raises(ValueError, match="group_labels"):
+    with pytest.raises(InvalidArgumentError, match="group_labels"):
         cl.annotated_heatmap(
             _module_data(adata, keys),
             keys=keys,

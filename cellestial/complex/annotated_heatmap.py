@@ -4,7 +4,7 @@ __lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from collections.abc import Mapping
 from itertools import pairwise
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import polars as pl
 from anndata import AnnData
@@ -50,7 +50,7 @@ from cellestial.single.heatmap.utilities import _resolve_key_groups, _scale_valu
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _check_dendrogram_groups, _fill_gradient, _warn
 from cellestial.util.dendrogram import _dendrogram_line_theme, _get_dendrogram_tree
-from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _did_you_mean, _unsupported_data_type
 from cellestial.util.utilities import _modality_source
 
 if TYPE_CHECKING:
@@ -252,7 +252,7 @@ def _annotation_scale(
     legend.
     """
     numeric = series.dtype.is_numeric()
-    guide = {} if legend else {"guide": "none"}
+    guide: dict[str, Any] = {} if legend else {"guide": "none"}
     if colors is None:
         if numeric:
             return scale_fill_gradient(low="#f0f0f0", high="#1a1a1a", name=series.name, **guide)
@@ -320,6 +320,7 @@ def _track_layers(
         # labels, and on top of a y band: turned names at the bottom would make the
         # bottom axis area as tall as the longest name. Hidden names keep the band
         # axis on the main axes' sides, where its line joins theirs.
+        names: dict[str, Any]
         if band == "x":
             names = {"position": "right"} if titles else {"breaks": []}
             layers.append(scale_xsidey_discrete(limits=limits, expand=[0, 0], **names))
@@ -598,9 +599,7 @@ def annotated_heatmap(
         have no cells.
     InvalidArgumentError
         If `annotation_colors` gives a category -> color mapping for a numeric
-        track.
-    ValueError
-        If `dendrogram` is set without `group_by`, `key_labels` holds a name
+        track, `dendrogram` is set without `group_by`, `key_labels` holds a name
         that is not in `keys`, or `group_labels` is set without
         `variable_group_by` or names a block it does not have.
 
@@ -653,7 +652,11 @@ def annotated_heatmap(
         key_labels = list(key_labels)
         unknown = [label for label in key_labels if label not in keys]
         if unknown:
-            msg = f"`key_labels` must be among `keys`, but received {unknown}."
+            msg = (
+                f"`key_labels` names keys that are not in `keys`: {unknown}. "
+                f"Pick labels from `keys`, or pass `[]` to label none. "
+                f"{_did_you_mean(unknown, keys)}"
+            ).strip()
             raise InvalidArgumentError(msg)
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
@@ -778,7 +781,7 @@ def annotated_heatmap(
     plot = _apply_layers(plot, _as_layers(layers_all))
 
     # GROUP separator lines between contiguous blocks, spanning the variable axis.
-    line_style = {
+    line_style: dict[str, Any] = {
         "inherit_aes": False,
         "color": group_lines_color,
         "size": group_lines_size,
@@ -812,8 +815,11 @@ def annotated_heatmap(
     # VARIABLE group separator lines between contiguous `variable_group_by` blocks,
     # spanning the observation axis.
     if group_labels is not None and variable_group_by is None:
-        msg = "`variable_group_by` is required when `group_labels` is set."
-        raise ValueError(msg)
+        msg = (
+            "`group_labels` needs `variable_group_by`: the labels name its blocks. "
+            "Pass the variable metadata column as `variable_group_by`, or drop `group_labels`."
+        )
+        raise InvalidArgumentError(msg)
     key_groups: list[str] | None = None
     if variable_group_by is not None:
         variable_groups = build_frame(
@@ -946,8 +952,12 @@ def annotated_heatmap(
         assert key_groups is not None  # guaranteed by the guard above
         unknown = [group for group in group_labels if group not in key_groups]
         if unknown:
-            msg = f"`group_labels` must name `variable_group_by` blocks, but received {unknown}."
-            raise ValueError(msg)
+            msg = (
+                f"`group_labels` names blocks that `variable_group_by={variable_group_by!r}` "
+                f"does not have: {unknown}. Use its values as keys. "
+                f"{_did_you_mean(unknown, key_groups)}"
+            ).strip()
+            raise InvalidArgumentError(msg)
         blocks = []
         for start, end in pairwise([0, *_run_boundaries(key_groups), n_keys]):
             if key_groups[start] in group_labels:
