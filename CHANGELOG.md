@@ -71,6 +71,13 @@ change. Versions absent from the list were never released.
   `ConflictingLengthError`; polygons are now matched to frame rows by position,
   as points already were. Migration: build `frame` from the same table without
   filtering rows, and use `groups`/`drop` to filter.
+- `save` is a thin wrapper over `ggsave`: `save(plot, filename, *, scale=2.0,
+  **ggsave_kwargs)`. It no longer sets `dpi=300` and `unit="in"`, so outputs
+  follow the `ggsave` defaults (a default `cl.umap` PNG is 1200x800 px at 96 dpi,
+  was 3750x2500 px at 300 dpi). An unknown keyword raises `TypeError`, and
+  `GGBunch` is dropped from the accepted types (ggrust never supported it).
+  Migration: pass `dpi=300, unit="in"` to keep the old output; combine plots
+  with `gggrid`.
 
 ### Added
 

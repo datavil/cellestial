@@ -335,3 +335,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `pcas` | Claude Opus 5.5 |  |
 | `expressions` | Claude Opus 5.5 |  |
 | `dimensional` (`outline`, `outline_width`, `outline_color`; threaded through `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`) | Claude Opus 5.5 |  |
+| `save` (thin `ggsave` wrapper) | Claude Opus 5.5 |  |
