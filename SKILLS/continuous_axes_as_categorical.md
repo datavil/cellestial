@@ -1,6 +1,6 @@
 # Continuous Axes Faking Categorical Labels
 
-The pattern that underpins the heatmap variants: positions are encoded as floats on a continuous axis, but tick labels are placed at integer breaks to read like categorical labels. This unlocks dendrograms, rectangles, group bars, and bracket labels, all of which need to live at fractional coordinates outside the data grid.
+The pattern that underpins the heatmap variants: positions are encoded as floats on a continuous axis, but tick labels are placed at integer breaks to read like categorical labels. This unlocks dendrograms, rectangles and group bars, all of which need to live at fractional coordinates outside the data grid.
 
 ## When to use it
 
@@ -9,7 +9,6 @@ Use this any time a "categorical-looking" plot needs side decorations at fractio
 - Dendrogram beyond the right edge (see [dendrogram.md](dendrogram.md))
 - Rectangle border around the data area (see [rectangle.md](rectangle.md))
 - Group color bars in negative-x space (see [group_bars_and_lines.md](group_bars_and_lines.md))
-- Key-group brackets above the data top
 
 If you don't need any of those, a normal discrete scale is simpler. Use this pattern only when at least one decoration requires it.
 
@@ -38,7 +37,7 @@ plot += scale_x_continuous(
 plot += scale_y_continuous(
     breaks=list(range(n_y)),         # or `group_centers` for per-cell heatmaps
     labels=y_order_groups,
-    limits=[-0.5, y_max_limit],
+    limits=[-0.5, data_top],
     expand=[0, 0],
 )
 ```
@@ -51,7 +50,6 @@ plot += scale_y_continuous(
 |---|---|---|
 | `data_top` | Top of data area | aggregated: `n_y - 0.5`; per-cell: `(n_x - 1) + half_step` |
 | `x_max_limit` | Right axis limit | `n_x - 0.5`, extended to `dendro_frame["x"].max()` if dendrogram present |
-| `y_max_limit` | Top axis limit | `data_top`, extended by `_resolve_padding(...)` if key-group brackets present |
 
 `limits[0]` is `-0.5` so that cells at integer position `0` sit half a step from the edge.
 
