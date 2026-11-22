@@ -501,7 +501,7 @@ def test_dotplot_custom_colors(adata, markers, group_key):
 
 def test_dotplot_threshold(adata, markers, group_key):
     """`dotplot` accepts an expression threshold."""
-    plot = cl.dotplot(adata, keys=markers, group_by=group_key, threshold=0.2)
+    plot = cl.dotplot(adata, keys=markers, group_by=group_key, expression_threshold=0.2)
     assert isinstance(plot, PlotSpec)
 
 

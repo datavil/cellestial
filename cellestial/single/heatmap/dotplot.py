@@ -74,7 +74,7 @@ def dotplot(
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
-    threshold: float = 0,
+    expression_threshold: float = 0,
     size_scale: float = 1.0,
     variable_column: str = "variable",
     color_low: str = "#e6e6e6",
@@ -134,8 +134,9 @@ def dotplot(
         `None` keeps all groups in their stored order.
     mapping : FeatureSpec | None, default=None
         Aesthetic mappings for the plot, the result of `aes()`.
-    threshold : float, default=0
-        The expression threshold to consider a gene as expressed.
+    expression_threshold : float, default=0
+        A cell counts as expressing a key when its value is above this
+        threshold; sets the percentage shown as dot size.
     size_scale : float, default=1.0
         Scaling factor for the point sizes in the plot. At 1 a dot for 100% of
         cells is 80% of a cell wide; keep it below 1.25 so dots stay in their cells.
@@ -328,9 +329,9 @@ def dotplot(
     if overall_min is not None and overall_min < 0:
         _warn(
             "Expression matrix contains negative values, which suggests scaled data. "
-            "Dot size (percentage of cells above `threshold`, default 0) assumes "
+            "Dot size (percentage of cells above `expression_threshold`, default 0) assumes "
             "non-negative expression and may be misleading here; pass raw or "
-            "log-normalized expression, or set `threshold` explicitly."
+            "log-normalized expression, or set `expression_threshold` explicitly."
         )
     # DROP: rows with null group_by to avoid null labels downstream
     frame = frame.filter(pl.col(group_by).is_not_null())
@@ -345,7 +346,7 @@ def dotplot(
     frame = frame.group_by(group_by, maintain_order=True).agg(
         [values.mean().alias(key) for values, key in zip(finite_values, keys, strict=True)]
         + [
-            (values > threshold).mean().mul(100).alias(name)
+            (values > expression_threshold).mean().mul(100).alias(name)
             for values, name in zip(finite_values, percentage_names, strict=True)
         ]
     )

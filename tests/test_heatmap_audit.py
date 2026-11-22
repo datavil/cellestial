@@ -120,7 +120,7 @@ def test_matrixplot_values_match_numpy_group_means(adata):
 def test_dotplot_percentages_match_numpy(adata):
     group_key = "leiden"
     threshold = 0.5
-    frame = cl.retrieve(cl.dotplot(adata, KEYS, group_key, threshold=threshold))
+    frame = cl.retrieve(cl.dotplot(adata, KEYS, group_key, expression_threshold=threshold))
     expression = _expression(adata, KEYS)
     labels = adata.obs[group_key].astype(str).to_numpy()
     for row in frame.iter_rows(named=True):
