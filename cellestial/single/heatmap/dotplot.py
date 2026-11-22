@@ -9,11 +9,12 @@ from anndata import AnnData
 from ggrust import (
     aes,
     element_line,
+    element_rect,
     geom_point,
-    geom_rect,
     ggplot,
     ggtb,
     guide_legend,
+    guides,
     scale_size,
     scale_size_area,
     scale_x_continuous,
@@ -25,15 +26,14 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
-    _BRACKET_REFERENCE_SPAN,
     _CELL_SIZE,
     _CHARACTER_WIDTH,
     _MARGIN,
     _check_markers_flag,
     _fixed_cell_layout,
-    _fixed_cell_padding,
-    _key_groups_bar_y,
-    _key_groups_layers,
+    _key_groups_guide,
+    _key_groups_theme,
+    _reject_removed_key_label_text,
     _resolve_key_groups,
     _resolve_rank_genes_groups_args,
     _sort_integer_like_groups,
@@ -50,6 +50,7 @@ from cellestial.util import (
     _validate_tooltips,
     _warn,
 )
+from cellestial.util.dendrogram import _GEOM_LINE_UNIT
 from cellestial.util.errors import (
     InvalidArgumentError,
     KeyNotFoundError,
@@ -119,9 +120,7 @@ def dotplot(
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
     key_labels: bool = True,
-    key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
-    key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -201,15 +200,11 @@ def dotplot(
     rectangle_color : str, default='#3f3f3f'
         Color of the rectangle border.
     rectangle_kwargs : dict | None, default=None
-        Additional parameters to pass to the rectangle geom_rect.
+        Additional parameters for the border's `element_rect` (e.g. `linetype`).
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
-    key_labels_text_size : float, default=1.0
-        Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
         Size (thickness) of the bracket lines.
-    key_labels_text_color : str, default='black'
-        Color of the bracket label text.
     key_labels_bracket_color : str, default='black'
         Color of the bracket lines.
     key_labels_width : float, default=0.6
@@ -346,6 +341,7 @@ def dotplot(
 
     mapping = mapping or aes()
 
+    _reject_removed_key_label_text(geom_kwargs, "dotplot")
     # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
@@ -513,18 +509,6 @@ def dotplot(
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
     data_top = n_y - 0.5
     y_max_limit = data_top
-    key_groups_total_span: float | None = None
-    if key_labels and key_groups is not None:
-        # Extend the y limit upward to fit the bracket bar plus rotated label.
-        # Cells have a fixed pixel size, so brackets are sized against a constant span.
-        key_groups_padding = _fixed_cell_padding(
-            key_groups,
-            reference_span=_BRACKET_REFERENCE_SPAN,
-            cell_height=_CELL_SIZE,
-            label_size_scale=key_labels_text_size,
-        )
-        key_groups_total_span = _BRACKET_REFERENCE_SPAN + key_groups_padding
-        y_max_limit = data_top + key_groups_padding
     dtplt += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -542,43 +526,27 @@ def dotplot(
             expand=[0, 0],
         )
 
-    # KEY-GROUP brackets above the data area when `keys` was a mapping.
+    # KEY-GROUP brackets across the panel from the key labels when `keys` was a mapping.
     if key_labels and key_groups is not None:
-        assert key_groups_total_span is not None
-        bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
-        for layer in _key_groups_layers(
-            key_groups,
-            y=bar_y,
-            total_span=key_groups_total_span,
-            text_color=key_labels_text_color,
-            bracket_color=key_labels_bracket_color,
-            bracket_size=key_labels_bracket_size,
-            width=key_labels_width,
-            label_size_scale=key_labels_text_size,
-        ):
-            dtplt += layer
+        dtplt += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
 
-    # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
-    if rectangle:
-        dtplt += geom_rect(
-            data={
-                "xmin": [-0.5],
-                "xmax": [n_x - 0.5],
-                "ymin": [-0.5],
-                "ymax": [data_top],
-            },
-            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
-            color=rectangle_color,
-            size=rectangle_size,
-            fill="rgba(0,0,0,0)",
-            inherit_aes=False,
-            **(rectangle_kwargs or {}),
-        )
-    else:
+    if not rectangle:
         dtplt += theme(axis_line=element_line(color="#1f1f1f"))
 
     # ADD: layers
     dtplt += _THEME_DOTPLOT
+    # after the theme preset, which replaces any earlier theme
+    if key_labels and key_groups is not None:
+        dtplt += _key_groups_theme(color=key_labels_bracket_color, size=key_labels_bracket_size)
+    # BORDER: the panel border boxes the data area only (brackets and tree sit outside it)
+    if rectangle:
+        dtplt += theme(
+            panel_border=element_rect(
+                color=rectangle_color,
+                size=rectangle_size * _GEOM_LINE_UNIT,
+                **(rectangle_kwargs or {}),
+            )
+        )
     if dendrogram:
         dtplt += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
