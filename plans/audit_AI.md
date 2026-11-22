@@ -335,3 +335,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `pcas` | Claude Opus 5.5 |  |
 | `expressions` | Claude Opus 5.5 |  |
 | `dimensional` (`outline`, `outline_width`, `outline_color`; threaded through `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`) | Claude Opus 5.5 |  |
+| `CellestialError` (added as a base of every error class in `cellestial/util/errors.py`) | Claude Opus 5.5 |  |
+| `cellestial.errors` (public re-export module) | Claude Opus 5.5 |  |

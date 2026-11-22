@@ -53,6 +53,9 @@ Rank = cost of fixing after the freeze x how often users hit it.
 
 ### F3. Error classes have no stable public path and no common base (mostly non-breaking)
 
+- Status: done (C1, C2). `cellestial.errors` is public, every error subclasses
+  `CellestialError`, `SpatialLibraryError` is removed.
+
 - Evidence: classes live in `cellestial/util/errors.py`; nothing re-exports them
   (`cellestial/__init__.py`, `cellestial/util/__init__.py`), so users write
   `from cellestial.util.errors import KeyNotFoundError`. No `CellestialError` base, so
@@ -301,8 +304,8 @@ Recommended choice first. Approve batch by batch.
 - B3. `save`: remove in favour of `ggsave` (F9). / thin `save(plot, filename, **ggsave_kwargs)` / keep.
 
 **Batch C: exports and errors**
-- C1. Public `cellestial.errors` module + `CellestialError` base (F3). / leave in `cellestial.util.errors`.
-- C2. Remove unused `SpatialLibraryError` (F3). / keep.
+- C1. Public `cellestial.errors` module + `CellestialError` base (F3). / leave in `cellestial.util.errors`. **Done.**
+- C2. Remove unused `SpatialLibraryError` (F3). / keep. **Done.**
 - C3. Make `anndata_*` frame builders and `DeferredLayer` private (F11, F16). / keep public.
 - C4. Colour constants: keep at top level. / move to `cellestial.colors` (F21).
 - C5. `retrieve`: keep. / rename to `get_frame` (F21).
