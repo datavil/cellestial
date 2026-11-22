@@ -11,6 +11,19 @@ change. Versions absent from the list were never released.
 
 ### Breaking
 
+- `dotplot` names its expression cutoff `expression_threshold` (was
+  `threshold`), since `threshold` drops cells in the distribution plots while
+  here it only decides which cells count as expressing a key (dot size).
+  Default and behavior are unchanged. Migration: `dotplot(..., threshold=0.5)`
+  -> `dotplot(..., expression_threshold=0.5)`; the old name raises `TypeError`.
+- `dotplot` names its computed columns `percent_expressed` (was `pct_exp`) and
+  `mean_expression` (was `avg_exp`), which also changes the default legend
+  titles. Migration: rename references in `sort_by`, `aes(...)` and code that
+  reads the frame from `retrieve`, or pass
+  `percentage_column="pct_exp", mean_column="avg_exp"` to keep the old names.
+  A `sort_by` column the dotplot does not compute (such as the old `avg_exp`)
+  now raises `KeyNotFoundError` naming the available columns, before the plot
+  is built (it used to raise a polars `ColumnNotFoundError`).
 - `groups` is keyword-only in `markers`, `marker_genes` and
   `marker_genes_dict`, matching the rest of the API (data and the plotted
   keys positional, everything else by name). Migration:
@@ -98,6 +111,10 @@ change. Versions absent from the list were never released.
 
 ### Changed
 
+- `ridge` and `ridges` validate `scale` (the ridge overlap, default 2.0) before
+  building the plot: a non-number such as `scale="width"` raises
+  `InvalidArgumentTypeError` and zero, negative or non-finite values raise
+  `InvalidArgumentError`. These used to be accepted silently.
 - Remaining built-in exceptions in frame building, layout and grid helpers,
   marker and dataset helpers are now `errors.py` classes that subclass the same
   built-in (`InvalidArgumentError`, the new `InvalidArgumentTypeError`,
