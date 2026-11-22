@@ -11,6 +11,12 @@ change. Versions absent from the list were never released.
 
 ### Breaking
 
+- `anndata_observations_frame`, `anndata_variables_frame` and
+  `anndata_variable_columns` are no longer exported from `cellestial.frames`
+  (now private helpers), and `DeferredLayer` is no longer exported from
+  `cellestial.layers`. Layer functions (`bracket`, `stream`, ...) behave as
+  before. Migration: build frames with `build_frame`; do not import or
+  construct `DeferredLayer`, add the layer returned by the layer function.
 - `SpatialLibraryError` is removed; it was never raised. Migration: drop it from
   imports and `except` clauses.
 

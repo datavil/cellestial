@@ -97,7 +97,7 @@ def _reject_duplicate_keys(
         raise DuplicateKeysError(msg)
 
 
-def anndata_variable_columns(
+def _anndata_variable_columns(
     data: AnnData | MuData, column_names: list[str], keys: str | Sequence[str]
 ) -> list[pl.Series]:
     """
@@ -121,7 +121,7 @@ def anndata_variable_columns(
     return _container(data).fetch_variable_columns(keys)
 
 
-def anndata_observations_frame(
+def _anndata_observations_frame(
     data: AnnData | MuData,
     /,
     variable_keys: str | Sequence[str] | None = None,
@@ -242,13 +242,13 @@ def anndata_observations_frame(
     if variable_keys:
         column_names = [column.name for column in columns]
         columns.extend(
-            anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
+            _anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
         )
 
     return pl.DataFrame(columns)
 
 
-def anndata_variables_frame(
+def _anndata_variables_frame(
     data: AnnData | MuData,
     *,
     variable_id_column: str | None = "Variable",
@@ -519,7 +519,7 @@ def build_frame(
             axis = 0
 
         if axis == 0:
-            frame = anndata_observations_frame(
+            frame = _anndata_observations_frame(
                 data,
                 variable_keys=variable_keys,
                 observation_id_column=observation_id_column,
@@ -528,7 +528,7 @@ def build_frame(
                 dimension_keys=dimension_keys,
             )
         elif axis == 1:
-            frame = anndata_variables_frame(
+            frame = _anndata_variables_frame(
                 data,
                 variable_id_column=variable_id_column,
                 include_dimensions=include_dimensions,

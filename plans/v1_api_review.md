@@ -210,6 +210,8 @@ Rank = cost of fixing after the freeze x how often users hit it.
 - Recommendation: in `__radd__`, raise `InvalidPlotSpecError` for a `SupPlotsSpec`
   ("add the layer through `layers=`") and `MissingPlotDataError` for a plot with no
   data. Drop `DeferredLayer` from `__all__` (**breaking** only for importers).
+- Status: export part done (C3, 2026-11-22): `DeferredLayer` dropped from
+  `cellestial.layers.__all__`. The `__radd__` receiver checks (D2) are still open.
 
 ### F12. Singular and plural input validation gaps (non-breaking)
 
@@ -262,6 +264,9 @@ Rank = cost of fixing after the freeze x how often users hit it.
   backend-agnostic rule and freeze internals of `build_frame`.
 - Recommendation: make them private (`_` prefix or drop from `__all__`); `build_frame`
   stays the public entry point. **Breaking** for importers.
+- Status: done (C3, 2026-11-22): renamed `_anndata_observations_frame`,
+  `_anndata_variables_frame`, `_anndata_variable_columns`; `cellestial.frames.__all__`
+  is `build_frame` only.
 
 ### F17. Styling parameters that duplicate layers (decision, breaking if changed)
 
@@ -334,7 +339,7 @@ Recommended choice first. Approve batch by batch.
 **Batch C: exports and errors**
 - C1. Public `cellestial.errors` module + `CellestialError` base (F3). / leave in `cellestial.util.errors`. **Done.**
 - C2. Remove unused `SpatialLibraryError` (F3). / keep. **Done.**
-- C3. Make `anndata_*` frame builders and `DeferredLayer` private (F11, F16). / keep public.
+- C3. Make `anndata_*` frame builders and `DeferredLayer` private (F11, F16). / keep public. **Done.**
 - C4. Colour constants: keep at top level. / move to `cellestial.colors` (F21).
 - C5. `retrieve`: keep. / rename to `get_frame` (F21).
 
