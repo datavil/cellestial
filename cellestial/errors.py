@@ -26,6 +26,7 @@ from cellestial.util.errors import (
     MissingAestheticError,
     MissingPlotDataError,
     NonCategoricalColumnError,
+    UnknownParameterError,
     UnsupportedDataTypeError,
     VariableNotFoundError,
 )
@@ -50,6 +51,7 @@ __all__ = [
     "MissingAestheticError",
     "MissingPlotDataError",
     "NonCategoricalColumnError",
+    "UnknownParameterError",
     "UnsupportedDataTypeError",
     "VariableNotFoundError",
 ]

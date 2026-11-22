@@ -141,6 +141,13 @@ class InvalidArgumentTypeError(TypeError, CellestialError):
         super().__init__(message)
 
 
+class UnknownParameterError(TypeError, CellestialError):
+    """Raised when a keyword the function does not accept is passed, such as a renamed parameter."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class GridIndexError(IndexError, CellestialError):
     """Raised when a figure index is out of range for a grid of plots."""
 
@@ -205,3 +212,14 @@ def _close_matches_sentence(key: str, names: list[str]) -> str:
     if len(matches) == 1:
         return f"Did you mean {matches[0]!r}?"
     return f"Did you mean one of {matches!r}?"
+
+
+def _ranking_not_found_message(ranking_key: str, stored_keys: list[str]) -> str:
+    """Build the error message for a `ranking_key` that names no stored ranking."""
+    hint = _close_matches_sentence(ranking_key, stored_keys)
+    return (
+        f"No precomputed ranking found under `ranking_key={ranking_key!r}`. "
+        + (f"{hint} " if hint else "")
+        + "Compute a differential expression ranking first, or pass the key it "
+        "is stored under as `ranking_key`."
+    )

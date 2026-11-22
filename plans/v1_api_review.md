@@ -36,6 +36,11 @@ Rank = cost of fixing after the freeze x how often users hit it.
 
 ### F2. `key` means two different things; stored-result keys have four names (breaking)
 
+- Status: `ranking_key` part done (A2, 2026-11-22): `markers`, `volcano(s)`,
+  `marker_genes(_dict)` take `ranking_key`, the heatmap family takes
+  `markers: bool` plus `ranking_key`, and old-style calls raise. `embedding_key`
+  (was `use_key`) is still open.
+
 - Evidence: in every plot `key` is the column/feature to plot (`umap`, `violin`,
   `spatial`, ...). In `markers`, `volcano(s)`, `marker_genes(_dict)` `key='rank_genes_groups'`
   is the stored ranking (`markers.py:37`, `volcano.py:48`). The heatmap family carries
@@ -97,6 +102,11 @@ Rank = cost of fixing after the freeze x how often users hit it.
   plurals say "pass a list, or use `umap` for one key". **Non-breaking.**
 
 ### F5. Keyword-only boundary is inconsistent in a few signatures (breaking)
+
+- Status: `groups` part done (B1, 2026-11-22): `markers`, `marker_genes` and
+  `marker_genes_dict` take `groups` keyword-only. The rest of B1 stays as it is
+  (`elbow(n_pcs)`, `highest_expressed_genes(n)`, `retrieve(index)`,
+  `cache_directory`, `borders`, `get_figures`, `cluster_outlines`, `highlight`).
 
 - Evidence (positional-or-keyword after `data`): `elbow(data, n_pcs)`,
   `highest_expressed_genes(data, n)`, `markers(data, groups)`, `marker_genes(data, groups)`,
@@ -291,7 +301,7 @@ Recommended choice first. Approve batch by batch.
 
 **Batch A: consistency renames (breaking, cheap now)**
 - A1. Drop `variable_keys` from plot functions, keep `add_keys` (F1). / keep both.
-- A2. Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
+- A2. (`ranking_key` done 2026-11-22; `embedding_key` open) Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
 - A3. `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
 - A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep.
 - A5. `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.
@@ -299,7 +309,7 @@ Recommended choice first. Approve batch by batch.
 - A7. `stream`: drop `arrows` (F15). / keep.
 
 **Batch B: signature shape (breaking)**
-- B1. Make `n_pcs`, `n`, `groups` (markers, marker_genes(_dict)), `retrieve(index)`, `borders` colours, `cache_directory` keyword-only (F5). / leave positional.
+- B1. (`groups` part done 2026-11-22; the rest kept positional) Make `n_pcs`, `n`, `groups` (markers, marker_genes(_dict)), `retrieve(index)`, `borders` colours, `cache_directory` keyword-only (F5). / leave positional.
 - B2. Drop the `arrow_*` and `ondata_*` styling copies, keep the toggles (F17). / keep all.
 - B3. `save`: remove in favour of `ggsave` (F9). / thin `save(plot, filename, **ggsave_kwargs)` / keep.
 

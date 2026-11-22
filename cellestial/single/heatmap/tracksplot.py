@@ -27,6 +27,7 @@ from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _assign_positions,
     _bin_within_groups,
+    _check_markers_flag,
     _get_group_bar_frame,
     _get_group_lines_frame,
     _label_size_absolute,
@@ -66,7 +67,8 @@ def tracksplot(
     group_by: str | None = None,
     *,
     modality: str | None = None,
-    markers: bool | str = False,
+    markers: bool = False,
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -113,10 +115,12 @@ def tracksplot(
         Which modality's stored analysis results to use when `markers` or
         `dendrogram` is enabled. Required for a multimodal object holding more
         than one modality, and not accepted otherwise.
-    markers : bool | str, default=False
-        Derive `keys` from a precomputed ranking. Pass `True` to use the
-        default ranking key, or a string to read a custom key (e.g.
-        `"rank_genes_groups_wilcoxon"`).
+    markers : bool, default=False
+        Whether to derive `keys` from a precomputed ranking, read from
+        `ranking_key`.
+    ranking_key : str, default='rank_genes_groups'
+        The key under which the precomputed ranking is stored on `data`.
+        Ignored when `markers` is False.
     n_genes : int, default=5
         Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
@@ -191,6 +195,8 @@ def tracksplot(
     ------
     UnsupportedDataTypeError
         If `data` is not an AnnData or MuData object.
+    InvalidArgumentTypeError
+        If `markers` is not a bool (pass a ranking name as `ranking_key`).
     InvalidArgumentError
         If `keys` or `group_by` is missing without `markers`, or `geom` is
         not one of the accepted values.
@@ -240,11 +246,12 @@ def tracksplot(
         msg = f"`geom` must be 'bar' or 'area', got {geom!r}."
         raise InvalidArgumentError(msg)
 
+    _check_markers_flag(markers)
     if markers:
         results, local_group_by = _modality_source(data, modality, group_by)
         keys, group_by = _resolve_rank_genes_groups_args(
             results,
-            rank_genes_groups=markers,
+            ranking_key=ranking_key,
             n_genes=n_genes,
             groups=groups,
             keys=keys,

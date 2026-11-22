@@ -9,11 +9,12 @@ import numpy as np
 import polars as pl
 from anndata import AnnData
 
-from cellestial.single.heatmap.utilities import _resolve_rank_genes_groups_key
 from cellestial.util.errors import (
     EmptySelectionError,
     InvalidArgumentError,
     KeyNotFoundError,
+    UnknownParameterError,
+    _ranking_not_found_message,
     _unsupported_data_type,
 )
 
@@ -21,6 +22,16 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from polars import DataFrame
+
+
+def _reject_renamed_ranking_key(geom_kwargs: dict[str, object], function_name: str) -> None:
+    """Raise if `key` was passed, which `**geom_kwargs` would otherwise swallow silently."""
+    if "key" in geom_kwargs:
+        msg = (
+            f"`key` is not a parameter of `{function_name}`; to choose a stored ranking "
+            f"use `ranking_key={geom_kwargs['key']!r}`."
+        )
+        raise UnknownParameterError(msg)
 
 
 def _close_match_hint(value: object, options: Sequence[object]) -> str:
@@ -42,7 +53,7 @@ def _build_volcano_frame(
     group: str,
     *,
     group_by: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
     logfoldchange_threshold: float = 1.0,
     pvalue_threshold: float = 0.05,
@@ -71,7 +82,7 @@ def _build_volcano_frame(
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
         grouping.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
         Whether to use adjusted p-values instead of raw p-values for the
@@ -132,14 +143,14 @@ def _build_volcano_frame(
     if isinstance(data, AnnData):
         # COMPUTE: rank_genes_groups if requested and missing/stale
         if group_by is not None:
-            existing_params = data.uns.get(key, {}).get("params", {})
+            existing_params = data.uns.get(ranking_key, {}).get("params", {})
             desired_params = {"groupby": group_by, **(rank_genes_kwargs or {})}
             stale = any(existing_params.get(k) != v for k, v in desired_params.items())
             # The stored parameters do not record `pts`, so check the result itself.
             lacks_detection_rates = (
-                min_fraction_expressed is not None and "pts" not in data.uns.get(key, {})
+                min_fraction_expressed is not None and "pts" not in data.uns.get(ranking_key, {})
             )
-            if key not in data.uns or stale or lacks_detection_rates:
+            if ranking_key not in data.uns or stale or lacks_detection_rates:
                 import scanpy as sc
 
                 ranking_kwargs = dict(rank_genes_kwargs or {})
@@ -148,18 +159,18 @@ def _build_volcano_frame(
                 sc.tl.rank_genes_groups(
                     data,
                     groupby=group_by,
-                    key_added=key,
+                    key_added=ranking_key,
                     **ranking_kwargs,
                 )
         # CHECK: differential expression results exist
-        if key not in data.uns:
-            hint = _close_match_hint(key, list(data.uns))
+        if ranking_key not in data.uns:
+            hint = _close_match_hint(ranking_key, list(data.uns))
             msg = (
-                f"`{key}` not found in `data.uns`{hint} "
+                f"`{ranking_key}` not found in `data.uns`{hint} "
                 "Run `scanpy.tl.rank_genes_groups` first or pass `group_by`."
             )
             raise KeyNotFoundError(msg)
-        results = data.uns[key]
+        results = data.uns[ranking_key]
         # CHECK: group exists in the results
         available_groups = list(results["names"].dtype.names)
         if group not in available_groups:
@@ -173,7 +184,7 @@ def _build_volcano_frame(
         if min_fraction_expressed is not None and "pts" not in results:
             msg = (
                 f"`min_fraction_expressed` needs detection rates, but the ranking under "
-                f"`{key}` was computed without them. Pass `group_by` to recompute it with "
+                f"`{ranking_key}` was computed without them. Pass `group_by` to recompute it with "
                 "them recorded, or rank with `pts=True`."
             )
             raise KeyNotFoundError(msg)
@@ -185,7 +196,7 @@ def _build_volcano_frame(
         ]
         if missing_fields:
             msg = (
-                f"`data.uns[{key!r}]` has no {missing_fields} to draw a volcano from. "
+                f"`data.uns[{ranking_key!r}]` has no {missing_fields} to draw a volcano from. "
                 "Rank with a test that reports fold changes and p-values "
                 "(e.g. method='wilcoxon' or 't-test')."
             )
@@ -257,7 +268,7 @@ def _build_volcano_frame(
 def _build_markers_frame(
     data: AnnData,
     *,
-    key: bool | str,
+    ranking_key: str,
     n_genes: int,
     groups: Sequence[str] | None,
     variable_column: str,
@@ -272,9 +283,8 @@ def _build_markers_frame(
     ----------
     data : AnnData
         Source object that already holds a precomputed ranking result.
-    key : bool | str
-        `True` reads the default ranking key; a string reads
-        the matching custom key (e.g. `"rank_genes_groups_wilcoxon"`).
+    ranking_key : str
+        The key under which the precomputed ranking is stored on `data`.
     n_genes : int
         Number of top genes to pull per group.
     groups : Sequence[str] | None
@@ -321,21 +331,15 @@ def _build_markers_frame(
         msg = f"`n_genes` must be >= 1, got {n_genes}."
         raise ValueError(msg)
 
-    uns_key = _resolve_rank_genes_groups_key(key)
-
     if isinstance(data, AnnData):
-        if uns_key not in data.uns:
-            msg = (
-                f"`adata.uns[{uns_key!r}]` not found. "
-                "Run `scanpy.tl.rank_genes_groups` first "
-                "(or pass the correct `key_added` value as `key`)."
-            )
+        if ranking_key not in data.uns:
+            msg = _ranking_not_found_message(ranking_key, list(data.uns))
             raise KeyNotFoundError(msg)
 
-        record = data.uns[uns_key]
+        record = data.uns[ranking_key]
         if "names" not in record or "scores" not in record or "params" not in record:
             msg = (
-                f"`adata.uns[{uns_key!r}]` does not look like a "
+                f"`adata.uns[{ranking_key!r}]` does not look like a "
                 "`rank_genes_groups` result (missing 'names', 'scores', or 'params')."
             )
             raise KeyNotFoundError(msg)
@@ -358,7 +362,7 @@ def _build_markers_frame(
             if unknown:
                 msg = (
                     f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{uns_key!r}]`. Available: {available_groups!r}."
+                    f"`adata.uns[{ranking_key!r}]`. Available: {available_groups!r}."
                 )
                 raise KeyNotFoundError(msg)
 
@@ -366,7 +370,7 @@ def _build_markers_frame(
         if n_genes > n_available:
             msg = (
                 f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{uns_key!r}]`."
+                f"stored in `adata.uns[{ranking_key!r}]`."
             )
             raise ValueError(msg)
 
@@ -398,7 +402,7 @@ def _build_markers_frame(
         stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
-                f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "
+                f"`adata.uns[{ranking_key!r}]['params']` is missing 'groupby'; "
                 "cannot infer `group_by`."
             )
             raise KeyNotFoundError(msg)

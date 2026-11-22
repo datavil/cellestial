@@ -26,6 +26,7 @@ from mudata import MuData
 
 from cellestial.single.differential.utilities import (
     _build_volcano_frame,
+    _reject_renamed_ranking_key,
     _resolve_pvalue_column,
 )
 from cellestial.themes import _THEME_SCATTER_BASE
@@ -51,7 +52,7 @@ def volcano(
     *,
     modality: str | None = None,
     group_by: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
     logfoldchange_threshold: float = 1.0,
     pvalue_threshold: float = 0.05,
@@ -105,7 +106,7 @@ def volcano(
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
         grouping.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
         Whether to use adjusted p-values instead of raw p-values for the
@@ -204,6 +205,8 @@ def volcano(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    UnknownParameterError
+        If `key` is passed (renamed to `ranking_key`).
     KeyNotFoundError
         If the requested differential-expression result or group is missing,
         the stored ranking lacks the fold changes or p-values a volcano needs,
@@ -226,9 +229,9 @@ def volcano(
     kept and drawn at `1.05 * max + 1`, where `max` is the largest finite
     `-log10(pvalue)`, so their height marks "above the axis range", not a value.
 
-    When `group_by` is provided and the ranking under `key` is missing or was
+    When `group_by` is provided and the ranking under `ranking_key` is missing or was
     computed with different parameters, plot construction calls
-    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.
+    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[ranking_key]`.
     This mutates the input `AnnData`. Precompute a matching ranking and omit
     `group_by` to avoid mutation during plotting.
 
@@ -254,6 +257,7 @@ def volcano(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_renamed_ranking_key(geom_kwargs, "volcano")
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
 
@@ -294,7 +298,7 @@ def volcano(
         data=data,
         group=group,
         group_by=group_by,
-        key=key,
+        ranking_key=ranking_key,
         use_adjusted_pvalue=use_adjusted_pvalue,
         logfoldchange_threshold=logfoldchange_threshold,
         pvalue_threshold=pvalue_threshold,
@@ -457,7 +461,7 @@ def volcanos(
     *,
     modality: str | None = None,
     group_by: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
     logfoldchange_threshold: float = 1.0,
     pvalue_threshold: float = 0.05,
@@ -526,7 +530,7 @@ def volcanos(
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
         grouping. Computed once on the first subplot and reused thereafter.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
         Whether to use adjusted p-values instead of raw p-values.
@@ -638,6 +642,8 @@ def volcanos(
 
     Raises
     ------
+    UnknownParameterError
+        If `key` is passed (renamed to `ranking_key`).
     EmptySelectionError
         If `groups` is empty.
     InvalidArgumentError
@@ -650,9 +656,9 @@ def volcanos(
     arranges them in a grid via `gggrid`. All single-plot styling and
     threshold options behave the same as in :func:`volcano`.
 
-    When `group_by` is provided and the ranking under `key` is missing or was
+    When `group_by` is provided and the ranking under `ranking_key` is missing or was
     computed with different parameters, plot construction calls
-    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.
+    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[ranking_key]`.
     This mutates the input `AnnData`. Precompute a matching ranking and omit
     `group_by` to avoid mutation during plotting.
 
@@ -674,6 +680,7 @@ def volcanos(
             ncol=2,
         )
     """
+    _reject_renamed_ranking_key(geom_kwargs, "volcanos")
     if not isinstance(groups, Sequence) or isinstance(groups, str):
         msg = "groups must be a Sequence of strings"
         raise TypeError(msg)
@@ -694,7 +701,7 @@ def volcanos(
             # parameters do not record (e.g. `pts`) would otherwise look stale on
             # every panel and recompute it each time.
             group_by=group_by if i == 0 else None,
-            key=key,
+            ranking_key=ranking_key,
             use_adjusted_pvalue=use_adjusted_pvalue,
             logfoldchange_threshold=logfoldchange_threshold,
             pvalue_threshold=pvalue_threshold,

@@ -14,7 +14,13 @@ from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize, kernel_densit
 from ggrust.errors import SpecError
 
 from cellestial.util import _warn
-from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupported_data_type
+from cellestial.util.errors import (
+    DuplicateKeysError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _ranking_not_found_message,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -723,26 +729,25 @@ def _fixed_cell_layout(
 # rank_genes_groups helpers (formerly _rank_genes_groups.py)
 # ---------------------------------------------------------------------------
 
-_DEFAULT_RANK_GENES_KEY = "rank_genes_groups"
 
-
-def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:  # noqa: FBT001
-    """Translate the user-facing flag into the `adata.uns` key to read."""
-    if rank_genes_groups is True:
-        return _DEFAULT_RANK_GENES_KEY
-    if isinstance(rank_genes_groups, str):
-        return rank_genes_groups
-    msg = (
-        "`rank_genes_groups` must be True or a string naming the "
-        "`adata.uns` key (e.g. 'rank_genes_groups_wilcoxon')."
-    )
-    raise TypeError(msg)
+def _check_markers_flag(markers: object) -> None:
+    """Raise unless `markers` is a bool, pointing string values at `ranking_key`."""
+    if isinstance(markers, (bool, np.bool_)):
+        return
+    if isinstance(markers, str):
+        msg = (
+            f"`markers` must be True or False, got the string {markers!r}. "
+            f"To read a stored ranking by name, pass `markers=True, ranking_key={markers!r}`."
+        )
+        raise InvalidArgumentTypeError(msg)
+    msg = f"`markers` must be True or False, got {type(markers).__name__}."
+    raise InvalidArgumentTypeError(msg)
 
 
 def _extract_rank_genes_groups(
     data: AnnData,
     *,
-    rank_genes_groups: bool | str,
+    ranking_key: str,
     n_genes: int,
     groups: Sequence[str] | None = None,
 ) -> tuple[dict[str, list[str]], str]:
@@ -753,9 +758,8 @@ def _extract_rank_genes_groups(
     ----------
     data : AnnData
         Source object that already contains a `rank_genes_groups` result.
-    rank_genes_groups : bool | str
-        `True` reads from the default `rank_genes_groups` key; a string
-        reads from the matching custom key (e.g. `rank_genes_groups_wilcoxon`).
+    ranking_key : str
+        The key under which the precomputed ranking is stored on `data`.
     n_genes : int
         Number of top genes to pull per group.
     groups : Sequence[str] | None, default=None
@@ -774,21 +778,15 @@ def _extract_rank_genes_groups(
         msg = f"`n_genes` must be >= 1, got {n_genes}."
         raise ValueError(msg)
 
-    uns_key = _resolve_rank_genes_groups_key(rank_genes_groups)
-
     if isinstance(data, AnnData):
-        if uns_key not in data.uns:
-            msg = (
-                f"`adata.uns[{uns_key!r}]` not found. "
-                "Run `scanpy.tl.rank_genes_groups` first "
-                "(or pass the correct `key_added` value as `rank_genes_groups`)."
-            )
+        if ranking_key not in data.uns:
+            msg = _ranking_not_found_message(ranking_key, list(data.uns))
             raise KeyNotFoundError(msg)
 
-        record = data.uns[uns_key]
+        record = data.uns[ranking_key]
         if "names" not in record or "params" not in record:
             msg = (
-                f"`adata.uns[{uns_key!r}]` does not look like a "
+                f"`adata.uns[{ranking_key!r}]` does not look like a "
                 "`rank_genes_groups` result (missing 'names' or 'params')."
             )
             raise KeyNotFoundError(msg)
@@ -804,7 +802,7 @@ def _extract_rank_genes_groups(
             if unknown:
                 msg = (
                     f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{uns_key!r}]`. Available: {available_groups!r}."
+                    f"`adata.uns[{ranking_key!r}]`. Available: {available_groups!r}."
                 )
                 raise KeyNotFoundError(msg)
 
@@ -812,7 +810,7 @@ def _extract_rank_genes_groups(
         if n_genes > n_available:
             msg = (
                 f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{uns_key!r}]`."
+                f"stored in `adata.uns[{ranking_key!r}]`."
             )
             raise ValueError(msg)
 
@@ -848,7 +846,7 @@ def _extract_rank_genes_groups(
         stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
-                f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "
+                f"`adata.uns[{ranking_key!r}]['params']` is missing 'groupby'; "
                 "cannot infer `group_by`."
             )
             raise KeyNotFoundError(msg)
@@ -861,7 +859,7 @@ def _extract_rank_genes_groups(
 def _resolve_rank_genes_groups_args(
     data: AnnData,
     *,
-    rank_genes_groups: bool | str,
+    ranking_key: str,
     n_genes: int,
     groups: Sequence[str] | None,
     keys: object,
@@ -877,14 +875,14 @@ def _resolve_rank_genes_groups_args(
     """
     if keys is not None:
         msg = (
-            "`keys` must be omitted when `rank_genes_groups` is set; "
+            "`keys` must be omitted when `markers=True`; "
             "genes are derived from the stored ranking."
         )
         raise ValueError(msg)
 
     resolved_keys, stored_group_by = _extract_rank_genes_groups(
         data,
-        rank_genes_groups=rank_genes_groups,
+        ranking_key=ranking_key,
         n_genes=n_genes,
         groups=groups,
     )
@@ -892,7 +890,7 @@ def _resolve_rank_genes_groups_args(
     if group_by is not None and group_by != stored_group_by:
         msg = (
             f"`group_by={group_by!r}` does not match the value used when "
-            f"`rank_genes_groups` was computed ({stored_group_by!r}). "
+            f"the ranking `{ranking_key}` was computed ({stored_group_by!r}). "
             "Omit `group_by` to inherit it, or recompute with the desired key."
         )
         raise ValueError(msg)

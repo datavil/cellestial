@@ -29,6 +29,7 @@ from cellestial.single.heatmap.utilities import (
     _CELL_SIZE,
     _assign_positions,
     _bin_within_groups,
+    _check_markers_flag,
     _fixed_cell_layout,
     _fixed_cell_padding,
     _get_group_bar_frame,
@@ -71,7 +72,8 @@ def heatmap(
     group_by: str | None = None,
     *,
     modality: str | None = None,
-    markers: bool | str = False,
+    markers: bool = False,
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -127,10 +129,12 @@ def heatmap(
     group_by : str | None, default=None
         The key to group the data by. Inferred from a precomputed ranking
         when `markers` is set.
-    markers : bool | str, default=False
-        Derive `keys` from a precomputed ranking. Pass `True` to use the
-        default ranking key, or a string to read a custom key (e.g.
-        `"rank_genes_groups_wilcoxon"`).
+    markers : bool, default=False
+        Whether to derive `keys` from a precomputed ranking, read from
+        `ranking_key`.
+    ranking_key : str, default='rank_genes_groups'
+        The key under which the precomputed ranking is stored on `data`.
+        Ignored when `markers` is False.
     n_genes : int, default=5
         Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
@@ -230,6 +234,8 @@ def heatmap(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentTypeError
+        If `markers` is not a bool (pass a ranking name as `ranking_key`).
     KeyNotFoundError
         If `markers` is enabled and the requested ranking result or
         group is missing.
@@ -343,11 +349,12 @@ def heatmap(
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
 
+    _check_markers_flag(markers)
     if markers:
         results, local_group_by = _modality_source(data, modality, group_by)
         keys, group_by = _resolve_rank_genes_groups_args(
             results,
-            rank_genes_groups=markers,
+            ranking_key=ranking_key,
             n_genes=n_genes,
             groups=groups,
             keys=keys,
@@ -646,7 +653,8 @@ def matrixplot(
     group_by: str | None = None,
     *,
     modality: str | None = None,
-    markers: bool | str = False,
+    markers: bool = False,
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -697,10 +705,12 @@ def matrixplot(
         Which modality's stored analysis results to use when `markers` or
         `dendrogram` is enabled. Required for a multimodal object holding more
         than one modality, and not accepted otherwise.
-    markers : bool | str, default=False
-        Derive `keys` from a precomputed ranking. Pass `True` to use the
-        default ranking key, or a string to read a custom key (e.g.
-        `"rank_genes_groups_wilcoxon"`).
+    markers : bool, default=False
+        Whether to derive `keys` from a precomputed ranking, read from
+        `ranking_key`.
+    ranking_key : str, default='rank_genes_groups'
+        The key under which the precomputed ranking is stored on `data`.
+        Ignored when `markers` is False.
     n_genes : int, default=5
         Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
@@ -833,6 +843,7 @@ def matrixplot(
         group_by=group_by,
         modality=modality,
         markers=markers,
+        ranking_key=ranking_key,
         n_genes=n_genes,
         groups=groups,
         mapping=mapping,
