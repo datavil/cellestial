@@ -332,25 +332,25 @@ Recommended choice first. Approve batch by batch.
 
 **Batch A: consistency renames (breaking, cheap now)**
 - A1. Drop `variable_keys` from plot functions, keep `add_keys` (F1). / keep both.
-  - Done.
+  - Done. `add_keys` now raises `KeyNotFoundError` for unknown names first, so the typo check `variable_keys` gave is not lost.
 - A2. (`ranking_key` and `embedding_key` done 2026-11-22) Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
 - A3. (done 2026-11-22: `dotplot(expression_threshold=)`; `ridge(s)` keeps `scale`, the `geom_area_ridges` name, now validated as a positive number) `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
-- A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep.
+- A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep. **Kept (2026-11-22).** `fontface`/`angle` are the `geom_text` names.
 - A5. (done 2026-11-22) `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.
 - A6. (done 2026-11-22: `grayscale` only, the four `geom_imshow` names kept deliberately) Spatial image: `grayscale`, `image_colormap`, `image_normalize`, `image_min`, `image_max` (F14). / keep lets-plot names.
-- A7. `stream`: drop `arrows` (F15). / keep.
+- A7. `stream`: drop `arrows` (F15). / keep. **Kept (2026-11-22).** `arrows` is the only way to set the arrowhead shape; `density`/`grid_density` unchanged.
 
 **Batch B: signature shape (breaking)**
 - B1. (`groups` part done 2026-11-22; the rest kept positional) Make `n_pcs`, `n`, `groups` (markers, marker_genes(_dict)), `retrieve(index)`, `borders` colours, `cache_directory` keyword-only (F5). / leave positional.
-- B2. Drop the `arrow_*` and `ondata_*` styling copies, keep the toggles (F17). / keep all.
+- B2. Drop the `arrow_*` and `ondata_*` styling copies, keep the toggles (F17). / keep all. **Kept (2026-11-22).** Very common tweaks; the layers stay the full option.
 - B3. `save`: remove in favour of `ggsave` (F9). / thin `save(plot, filename, **ggsave_kwargs)` / keep. **Done: thin wrapper.**
 
 **Batch C: exports and errors**
 - C1. Public `cellestial.errors` module + `CellestialError` base (F3). / leave in `cellestial.util.errors`. **Done.**
 - C2. Remove unused `SpatialLibraryError` (F3). / keep. **Done.**
 - C3. Make `anndata_*` frame builders and `DeferredLayer` private (F11, F16). / keep public. **Done.**
-- C4. Colour constants: keep at top level. / move to `cellestial.colors` (F21).
-- C5. `retrieve`: keep. / rename to `get_frame` (F21).
+- C4. Colour constants: keep at top level. / move to `cellestial.colors` (F21). **Kept (2026-11-22).**
+- C5. `retrieve`: keep. / rename to `get_frame` (F21). **Kept (2026-11-22).**
 
 **Batch D: non-breaking hardening (approve as one)**
 - D1. Replace the ~20 bare raises, fix stale `rank_genes_groups` and AnnData/scanpy wording (F4). **Done.**
@@ -360,12 +360,14 @@ Recommended choice first. Approve batch by batch.
 - D4. Raise for `groups`/`drop` without `key`; always validate `midpoint`; reword heatmap `axis=1` error (F13).
 - D5. Add missing `Raises` sections, a NumPy docstring for `borders`, swap lets-plot links for ggrust docs (F20).
 
+**Also kept (2026-11-22):** the other default column names in F6 (`Barcode`, `Variable`, `Principal Component`, `Variance Ratio`), closed in `plans/done/api_audit_v1.md` item 14.
+
 **Batch E: identity**
-- E1. `blend`: keep, documented as a composite exception (F10). / move to `cellestial.complex`.
+- E1. `blend`: keep, documented as a composite exception (F10). / move to `cellestial.complex`. **Kept (2026-11-22).** Stays at the top level.
 - E2. Fix the hosted pbmc3k labels before v1; keep the loader name (F19). / rename the loader too.
   Labels part done 2026-11-22 (`pbmc3k_pped_v2.h5ad`, scanpy tutorial mapping); loader name still open.
-- E3. `bring` -> `copy_from_global_cache` (F19). / keep.
-- E4. Grid params: keep the explicit `gggrid` list, add new options additively (F18). / add `grid_kwargs`.
+- E3. `bring` -> `copy_from_global_cache` (F19). / keep. **Kept (2026-11-22).**
+- E4. Grid params: keep the explicit `gggrid` list, add new options additively (F18). / add `grid_kwargs`. **Kept (2026-11-22).**
 
 ## 3. Checked and fine
 
