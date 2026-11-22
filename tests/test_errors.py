@@ -206,6 +206,19 @@ def test_unknown_ranking_key_suggests_a_close_match(ranked_pbmc, call):
     assert "adata" not in message
 
 
+# ---- Renamed spatial flag: `greyscale` points to `grayscale` ----
+
+
+@pytest.mark.parametrize(("fn", "key"), [(cl.spatial, "leiden"), (cl.spatials, ["leiden"])])
+def test_greyscale_points_to_grayscale(adata, fn, key):
+    with pytest.raises(
+        UnknownParameterError, match="`greyscale` was renamed to `grayscale`"
+    ) as info:
+        fn(adata, key, greyscale=True)
+    assert "pass `grayscale=True`" in str(info.value)
+    assert isinstance(info.value, TypeError)
+
+
 # ---- Renamed embedding selector: `use_key` and `basis` point to `embedding_key` ----
 
 _EMBEDDING_CALLS = [

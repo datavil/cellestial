@@ -14,6 +14,12 @@ change. Versions absent from the list were never released.
 - `SpatialLibraryError` is removed; it was never raised. Migration: drop it from
   imports and `except` clauses.
 
+- `spatial` and `spatials` take `grayscale` (was `greyscale`), matching the
+  American spelling used across the API (`color`). Same position, default and
+  behavior. `greyscale=` now raises `UnknownParameterError` (a `TypeError`)
+  instead of being swallowed by the geom keyword arguments. The image
+  passthrough names `cmap`, `norm`, `vmin` and `vmax` are unchanged.
+  Migration: `greyscale=True` -> `grayscale=True`.
 - `groups` is keyword-only in `markers`, `marker_genes` and
   `marker_genes_dict`, matching the rest of the API (data and the plotted
   keys positional, everything else by name). Migration:

@@ -235,6 +235,10 @@ Rank = cost of fixing after the freeze x how often users hit it.
   `image_min`, `image_max`; keep `crop` but document the order prominently.
   **Breaking.** (Acceptable alternative: keep them as deliberate lets-plot names, but
   decide it explicitly.)
+- Status: done (A6, 2026-11-22): `greyscale` renamed to `grayscale` in `spatial`
+  and `spatials`; `greyscale=` raises `UnknownParameterError`. `cmap`, `norm`,
+  `vmin` and `vmax` were kept deliberately as `geom_imshow` passthrough names, and
+  `crop` was kept as is.
 
 ### F15. `stream` has three ways to style arrows (breaking)
 
@@ -312,7 +316,7 @@ Recommended choice first. Approve batch by batch.
 - A3. `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
 - A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep.
 - A5. `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.
-- A6. Spatial image: `grayscale`, `image_colormap`, `image_normalize`, `image_min`, `image_max` (F14). / keep lets-plot names.
+- A6. (done 2026-11-22: `grayscale` only, the four `geom_imshow` names kept deliberately) Spatial image: `grayscale`, `image_colormap`, `image_normalize`, `image_min`, `image_max` (F14). / keep lets-plot names.
 - A7. `stream`: drop `arrows` (F15). / keep.
 
 **Batch B: signature shape (breaking)**

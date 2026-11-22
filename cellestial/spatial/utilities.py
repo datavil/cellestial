@@ -17,12 +17,23 @@ from cellestial.util.errors import (
     EmptySelectionError,
     InvalidArgumentError,
     KeyNotFoundError,
+    UnknownParameterError,
     _unsupported_data_type,
 )
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     from spatialdata import SpatialData
+
+
+def _reject_renamed_greyscale(geom_kwargs: dict[str, object]) -> None:
+    """Raise if `greyscale` was passed, which `**geom_kwargs` would otherwise swallow silently."""
+    if "greyscale" in geom_kwargs:
+        msg = (
+            "`greyscale` was renamed to `grayscale`; "
+            f"pass `grayscale={geom_kwargs['greyscale']!r}`."
+        )
+        raise UnknownParameterError(msg)
 
 
 def _not_found(kind: str, name: str, available: list[str], parameter: str) -> KeyNotFoundError:

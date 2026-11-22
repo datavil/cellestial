@@ -406,7 +406,7 @@ def test_spatial_anndata_visium_metadata_paths():
     plot = cl.spatial(
         data,
         key="score",
-        greyscale=True,
+        grayscale=True,
         image_alpha=0.5,
         groups=["a"],
         crop=[0, 10, 0, 10],
