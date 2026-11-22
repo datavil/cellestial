@@ -204,6 +204,11 @@ def test_add_keys_accepts_metadata_and_genes(adata):
     assert {"CD14", "n_genes_by_counts"} <= set(frame.columns)
 
 
+def test_add_keys_accepts_frame_columns(adata):
+    plot = cl.umap(adata, "leiden", add_keys=["X_UMAP1", "Barcode"])
+    assert {"X_UMAP1", "Barcode"} <= set(cl.retrieve(plot).columns)
+
+
 def test_add_keys_accepts_column_of_passed_frame(adata):
     frame = cl.build_frame(adata, variable_keys=["CD14"], include_dimensions=2).with_columns(
         extra=1.0
@@ -240,3 +245,32 @@ def test_add_keys_unknown_name_raises_spatial(plural):
         else:
             cl.spatial(data, "score", image=False, add_keys=["GENE_Z"])
     assert "Did you mean" in str(info.value)
+
+
+# ---- Removed `variable_keys`: points to `add_keys` instead of reaching the geom ----
+
+
+@pytest.mark.parametrize(("fn", "args"), _ADD_KEYS_CALLS)
+def test_variable_keys_points_to_add_keys(adata, fn, args):
+    with pytest.raises(
+        InvalidArgumentTypeError,
+        match=rf"`variable_keys` was removed from `{fn.__name__}`; pass the same names as `add_keys=`",
+    ) as info:
+        fn(adata, *args, variable_keys=["CD14"])
+    assert isinstance(info.value, TypeError)
+
+
+@pytest.mark.parametrize("plural", [False, True])
+def test_variable_keys_points_to_add_keys_spatial(plural):
+    data = _spatial_anndata()
+    name = "spatials" if plural else "spatial"
+    with pytest.raises(InvalidArgumentTypeError, match=rf"removed from `{name}`.*`add_keys=`"):
+        if plural:
+            cl.spatials(data, ["score"], image=False, variable_keys=["GENE_A"])
+        else:
+            cl.spatial(data, "score", image=False, variable_keys=["GENE_A"])
+
+
+def test_variable_keys_on_blend_names_blend(adata):
+    with pytest.raises(InvalidArgumentTypeError, match=r"removed from `blend`"):
+        cl.blend(adata, ["CD14", "MS4A1"], variable_keys=["CD3D"])

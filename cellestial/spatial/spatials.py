@@ -19,6 +19,7 @@ from cellestial.util import (
     _collect_aes_columns,
     _is_spatialdata,
     _is_variable_key,
+    _reject_removed_variable_keys,
     _require_add_keys,
     _resolve_tooltips,
     _share_labels,
@@ -57,7 +58,6 @@ def spatials(
     geom_fill: str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -156,8 +156,6 @@ def spatials(
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out rows where the key matches any of
         them. Categorical keys only.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -284,6 +282,7 @@ def spatials(
         msg = "keys must be a Sequence of strings"
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="spatials", hint=_KEY_COLOR_HINT)
+    _reject_removed_variable_keys(geom_kwargs, "spatials")
 
     if isinstance(data, MuData):
         msg = (
@@ -318,17 +317,11 @@ def spatials(
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # spatial is always observations-axis; only gene keys are pulled from X.
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     variable_keys.extend(key for key in keys if _is_variable_key(table, key))
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
         add_keys = [add_keys]
-    _require_add_keys(table, add_keys)
     metadata_columns: list[str] = []
     _collect_aes_columns(
         table,
@@ -357,6 +350,7 @@ def spatials(
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(table, add_keys, frame_columns=frame.columns)
 
     plots = []
     for i, key in enumerate(keys):
@@ -386,7 +380,6 @@ def spatials(
             alpha=alpha,
             groups=groups,
             drop=drop,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,

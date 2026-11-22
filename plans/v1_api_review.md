@@ -33,6 +33,11 @@ Rank = cost of fixing after the freeze x how often users hit it.
 - Recommendation: remove `variable_keys` from the plot functions, keep `add_keys`.
   Keep `variable_keys` on `build_frame`, `plot`, `scatter`, `bar` (no `add_keys`
   there; it is the frame builder's own vocabulary). **Breaking.**
+- Status: done. `variable_keys` removed from the 12 functions (`variable_keys=` raises
+  `InvalidArgumentTypeError` pointing to `add_keys`). Equivalence was checked first:
+  same columns and values for gene names on pbmc3k, `pbmc_cite` (`modality:name`) and
+  `human_lymph_node`; only typos differed, so unknown `add_keys` names now raise
+  `KeyNotFoundError` instead of being dropped.
 
 ### F2. `key` means two different things; stored-result keys have four names (breaking)
 
@@ -290,6 +295,7 @@ Recommended choice first. Approve batch by batch.
 
 **Batch A: consistency renames (breaking, cheap now)**
 - A1. Drop `variable_keys` from plot functions, keep `add_keys` (F1). / keep both.
+  - Done.
 - A2. Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
   - `embedding_key` part done.
 - A3. `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.

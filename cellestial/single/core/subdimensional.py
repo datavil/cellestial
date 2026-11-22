@@ -7,6 +7,7 @@ from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.single.core.dimensional import _KEY_COLOR_HINT, dimensional
 from cellestial.util import (
     _is_variable_key,
+    _reject_removed_variable_keys,
     _reject_renamed_embedding_kwargs,
     _reject_sequence_key,
 )
@@ -33,7 +34,6 @@ def umap(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -86,8 +86,6 @@ def umap(
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -220,6 +218,7 @@ def umap(
     _reject_sequence_key(key, singular="umap", plural="umaps")
     _reject_constant_color_fill(geom_kwargs, function="umap", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "umap")
     return dimensional(
         data=data,
         key=key,
@@ -229,7 +228,6 @@ def umap(
         embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         groups=groups,
         drop=drop,
@@ -274,7 +272,6 @@ def tsne(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -327,8 +324,6 @@ def tsne(
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -461,6 +456,7 @@ def tsne(
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
     _reject_constant_color_fill(geom_kwargs, function="tsne", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "tsne")
     return dimensional(
         data=data,
         key=key,
@@ -470,7 +466,6 @@ def tsne(
         embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         groups=groups,
         drop=drop,
@@ -515,7 +510,6 @@ def pca(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -568,8 +562,6 @@ def pca(
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -702,6 +694,7 @@ def pca(
     _reject_sequence_key(key, singular="pca", plural="pcas")
     _reject_constant_color_fill(geom_kwargs, function="pca", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "pca")
     return dimensional(
         data=data,
         key=key,
@@ -711,7 +704,6 @@ def pca(
         embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         groups=groups,
         drop=drop,
@@ -757,7 +749,6 @@ def expression(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -810,8 +801,6 @@ def expression(
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -917,6 +906,7 @@ def expression(
     _reject_sequence_key(key, singular="expression", plural="expressions")
     _reject_constant_color_fill(geom_kwargs, function="expression", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "expression")
     if not _is_variable_key(data, key):
         close_matches = get_close_matches(key, _container(data).variable_names().astype(str), n=3)
         hint = f" Did you mean {close_matches}?" if close_matches else ""
@@ -934,7 +924,6 @@ def expression(
         embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         tooltips=tooltips,
         interactive=interactive,

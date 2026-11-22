@@ -32,6 +32,7 @@ from cellestial.single.core.subdimensional import expression
 from cellestial.themes import _THEME_DIMENSION
 from cellestial.util import (
     _drop_nonfinite_rows,
+    _reject_removed_variable_keys,
     _reject_renamed_embedding_kwargs,
     _resolve_embedding_key,
     _resolve_tooltips,
@@ -186,6 +187,7 @@ def blend(
         hint="`blend` computes each point's color from the two keys and `colors`; to change them, pass `colors=(...)`.",
     )
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "blend")
 
     # HANDLE: keys and colors
     keys = [keys] if isinstance(keys, str) else list(keys)

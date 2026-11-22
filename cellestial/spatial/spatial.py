@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import polars as pl
@@ -37,6 +36,7 @@ from cellestial.util import (
     _fill_gradient,
     _filter_groups,
     _is_spatialdata,
+    _reject_removed_variable_keys,
     _reject_sequence_key,
     _require_add_keys,
     _resolve_tooltips,
@@ -50,6 +50,7 @@ from cellestial.util.errors import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing import Literal
 
     from ggrust.plot.core import PlotSpec
@@ -88,7 +89,6 @@ def spatial(
     geom_fill: str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -177,8 +177,6 @@ def spatial(
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out rows where `key` matches any of
         them. Categorical keys only.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -306,6 +304,7 @@ def spatial(
 
         cl.spatial(data_hne,key="cluster", groups=["Hippocampus", "Hypothalamus_1", "Striatum"], interactive=True)
     """
+    _reject_removed_variable_keys(geom_kwargs, "spatial")
     return _spatial(
         data,
         key,
@@ -332,7 +331,6 @@ def spatial(
         alpha=alpha,
         groups=groups,
         drop=drop,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         include_dimensions=include_dimensions,
         tooltips=tooltips,
@@ -375,7 +373,6 @@ def _spatial(
     alpha: float = 1.0,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -436,18 +433,11 @@ def _spatial(
     mapping = mapping or aes()
     _reject_mapping_conflicts(mapping, key=key, polygon=is_polygon)
 
-    # HANDLE: variable_keys
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    elif isinstance(variable_keys, Sequence):
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
 
     # Collect the frame columns from the color key, aes refs, and `add_keys`.
     if isinstance(add_keys, str):
         add_keys = [add_keys]
-    _require_add_keys(data, add_keys, frame_columns=frame.columns if frame is not None else ())
     metadata_columns: list[str] = []
     _collect_aes_columns(
         data,
@@ -477,6 +467,7 @@ def _spatial(
             include_dimensions=include_dimensions,
             metadata_columns=metadata_columns,
         )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
 
     if is_polygon:
         # Long-format vertices joined to the table rows they annotate.

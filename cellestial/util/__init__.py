@@ -20,6 +20,7 @@ from cellestial.util.utilities import (  # noqa: F401
     _is_spatialdata,
     _is_variable_key,
     _range_inclusive,
+    _reject_removed_variable_keys,
     _reject_renamed_embedding_kwargs,
     _reject_sequence_key,
     _require_add_keys,

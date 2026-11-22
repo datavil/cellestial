@@ -749,7 +749,7 @@ def _require_add_keys(
     add_keys : Sequence[str] | None
         The extra names to materialise into the frame.
     frame_columns : Sequence[str], default=()
-        Columns of a frame passed in by the caller; names found there are accepted.
+        Columns of the plot's frame, e.g. embeddings; names found there are accepted.
 
     Raises
     ------
@@ -945,6 +945,27 @@ def _reject_renamed_embedding_kwargs(geom_kwargs: dict[str, object]) -> None:
         raise InvalidArgumentTypeError(msg)
     if "basis" in geom_kwargs:
         msg = f"to choose a stored embedding pass `embedding_key={geom_kwargs['basis']!r}`."
+        raise InvalidArgumentTypeError(msg)
+
+
+def _reject_removed_variable_keys(geom_kwargs: dict[str, object], function: str) -> None:
+    """
+    Reject the removed `variable_keys` before it reaches the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a plot forwards to its geom.
+    function : str
+        The public function name shown in the message.
+
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If `geom_kwargs` holds `variable_keys`.
+    """
+    if "variable_keys" in geom_kwargs:
+        msg = f"`variable_keys` was removed from `{function}`; pass the same names as `add_keys=`."
         raise InvalidArgumentTypeError(msg)
 
 
