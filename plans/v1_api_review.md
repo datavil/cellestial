@@ -100,6 +100,11 @@ Rank = cost of fixing after the freeze x how often users hit it.
 
 ### F5. Keyword-only boundary is inconsistent in a few signatures (breaking)
 
+- Status: `groups` part done (B1, 2026-11-22): `markers`, `marker_genes` and
+  `marker_genes_dict` take `groups` keyword-only. The rest of B1 stays as it is
+  (`elbow(n_pcs)`, `highest_expressed_genes(n)`, `retrieve(index)`,
+  `cache_directory`, `borders`, `get_figures`, `cluster_outlines`, `highlight`).
+
 - Evidence (positional-or-keyword after `data`): `elbow(data, n_pcs)`,
   `highest_expressed_genes(data, n)`, `markers(data, groups)`, `marker_genes(data, groups)`,
   `marker_genes_dict(data, groups)`, `retrieve(plot, index)` (while
@@ -301,7 +306,7 @@ Recommended choice first. Approve batch by batch.
 - A7. `stream`: drop `arrows` (F15). / keep.
 
 **Batch B: signature shape (breaking)**
-- B1. Make `n_pcs`, `n`, `groups` (markers, marker_genes(_dict)), `retrieve(index)`, `borders` colours, `cache_directory` keyword-only (F5). / leave positional.
+- B1. (`groups` part done 2026-11-22; the rest kept positional) Make `n_pcs`, `n`, `groups` (markers, marker_genes(_dict)), `retrieve(index)`, `borders` colours, `cache_directory` keyword-only (F5). / leave positional.
 - B2. Drop the `arrow_*` and `ondata_*` styling copies, keep the toggles (F17). / keep all.
 - B3. `save`: remove in favour of `ggsave` (F9). / thin `save(plot, filename, **ggsave_kwargs)` / keep.
 

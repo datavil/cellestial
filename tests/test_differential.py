@@ -488,7 +488,7 @@ def test_ranking_key_reads_a_custom_ranking_on_real_data(adata):
     sc.tl.rank_genes_groups(data, groupby="leiden_res_0.02", key_added="rank_leiden")
     names = data.uns["rank_leiden"]["names"]
 
-    assert cl.marker_genes(data, ["0"], ranking_key="rank_leiden", n_genes=2) == [
+    assert cl.marker_genes(data, groups=["0"], ranking_key="rank_leiden", n_genes=2) == [
         str(gene) for gene in names["0"][:2]
     ]
     assert list(cl.marker_genes_dict(data, ranking_key="rank_leiden", n_genes=1)) == list(

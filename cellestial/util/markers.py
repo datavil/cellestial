@@ -93,8 +93,8 @@ def _marker_names_per_group(
 
 def marker_genes(
     data: AnnData | MuData,
-    groups: Sequence[str] | None = None,
     *,
+    groups: Sequence[str] | None = None,
     modality: str | None = None,
     ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
@@ -196,8 +196,8 @@ def marker_genes(
 
 def marker_genes_dict(
     data: AnnData | MuData,
-    groups: Sequence[str] | None = None,
     *,
+    groups: Sequence[str] | None = None,
     modality: str | None = None,
     ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,

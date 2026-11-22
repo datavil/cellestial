@@ -342,3 +342,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `markers`, `volcano`, `volcanos`, `marker_genes`, `marker_genes_dict` (`key` renamed to `ranking_key`; `key=` rejected) | Claude Opus 5.5 |  |
 | `heatmap`, `matrixplot`, `dotplot`, `stacked_violin`, `tracksplot` (`markers: bool` plus `ranking_key`) | Claude Opus 5.5 |  |
 | `_extract_rank_genes_groups`, `_resolve_rank_genes_groups_args`, `_build_markers_frame`, `_build_volcano_frame`, `_marker_names_per_group` (`ranking_key`) | Claude Opus 5.5 |  |
+| `markers`, `marker_genes`, `marker_genes_dict` (`groups` keyword-only) | Claude Opus 5.5 |  |

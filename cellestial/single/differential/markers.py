@@ -39,8 +39,8 @@ if TYPE_CHECKING:
 
 def markers(
     data: AnnData | MuData,
-    groups: Sequence[str] | None = None,
     *,
+    groups: Sequence[str] | None = None,
     modality: str | None = None,
     ranking_key: str = "rank_genes_groups",
     n_genes: int = 20,

@@ -11,6 +11,11 @@ change. Versions absent from the list were never released.
 
 ### Breaking
 
+- `groups` is keyword-only in `markers`, `marker_genes` and
+  `marker_genes_dict`, matching the rest of the API (data and the plotted
+  keys positional, everything else by name). Migration:
+  `markers(data, ["0"])` -> `markers(data, groups=["0"])`, and likewise for
+  `marker_genes` and `marker_genes_dict`.
 - The stored ranking is chosen with `ranking_key` (was `key`) in `markers`,
   `volcano`, `volcanos`, `marker_genes` and `marker_genes_dict`, so `key`
   always means the column or feature to plot. The heatmap family (`heatmap`,
