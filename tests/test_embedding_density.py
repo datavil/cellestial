@@ -51,6 +51,9 @@ def test_dense_cells_score_higher_than_sparse_cells(adata):
 
 def test_group_density_uses_only_that_groups_cells(adata, group_key):
     """Each panel's density matches the density of its group plotted alone."""
+    # The bundled labels have no nulls, so blank a few cells to test that they drop.
+    adata = adata[:3000].copy()
+    adata.obs.loc[adata.obs.index[:50], group_key] = np.nan
     plot = cl.embedding_density(adata, group_by=group_key)
     faceted = _layer_frame(plot, 1)
     sizes = adata.obs[group_key].value_counts()

@@ -123,6 +123,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
 | `_outline_layers` | Claude Opus 5.5 |  |  |  |  |
+| `scripts/fix_pbmc3k_labels.py` (`relabel`, `assert_matrix_equal`, `assert_only_labels_changed`, `assert_labels`, `marker_table`, `assert_markers`, `main`) | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 

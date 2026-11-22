@@ -83,6 +83,14 @@ change. Versions absent from the list were never released.
 
 ### Changed
 
+- `datasets.pbmc3k()` now downloads `pbmc3k_pped_v2.h5ad` with corrected
+  `cell_type_lvl1` labels, following the scanpy tutorial's coarse annotation of
+  `leiden_res_0.02`. The old file had "B Cells" and "Erythroid" swapped and left
+  cluster 4 (1767 erythroblasts) null; those cells are now "Erythroid" and the
+  column has no nulls. Nothing else in the file changed. A cached
+  `pbmc3k_pped.h5ad` is no longer used, the new file name triggers a fresh
+  download. Migration: code that filtered or counted null `cell_type_lvl1`
+  cells on this dataset now finds none.
 - Remaining built-in exceptions in frame building, layout and grid helpers,
   marker and dataset helpers are now `errors.py` classes that subclass the same
   built-in (`InvalidArgumentError`, the new `InvalidArgumentTypeError`,
