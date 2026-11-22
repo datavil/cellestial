@@ -359,3 +359,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `ridge`, `ridges`, `_check_ridge_scale` (`scale` validated) | Claude Opus 5.5 |  |
 | `_anndata_observations_frame`, `_anndata_variables_frame`, `_anndata_variable_columns` (renamed private, dropped from `cellestial.frames.__all__`) | Claude Opus 5.5 |  |
 | `cellestial.layers` (`DeferredLayer` dropped from `__all__`) | Claude Opus 5.5 |  |
+| `spatial`, `spatials` (`greyscale` renamed to `grayscale`, rejects `greyscale`), `_reject_renamed_greyscale` | Claude Opus 5.5 |  |

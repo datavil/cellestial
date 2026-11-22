@@ -33,6 +33,12 @@ change. Versions absent from the list were never released.
   A `sort_by` column the dotplot does not compute (such as the old `avg_exp`)
   now raises `KeyNotFoundError` naming the available columns, before the plot
   is built (it used to raise a polars `ColumnNotFoundError`).
+- `spatial` and `spatials` take `grayscale` (was `greyscale`), matching the
+  American spelling used across the API (`color`). Same position, default and
+  behavior. `greyscale=` now raises `UnknownParameterError` (a `TypeError`)
+  instead of being swallowed by the geom keyword arguments. The image
+  passthrough names `cmap`, `norm`, `vmin` and `vmax` are unchanged.
+  Migration: `greyscale=True` -> `grayscale=True`.
 - `groups` is keyword-only in `markers`, `marker_genes` and
   `marker_genes_dict`, matching the rest of the API (data and the plotted
   keys positional, everything else by name). Migration:

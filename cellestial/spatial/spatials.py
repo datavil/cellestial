@@ -14,7 +14,7 @@ from cellestial.frames import build_frame
 from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.single.core.dimensional import _KEY_COLOR_HINT
 from cellestial.spatial.spatial import _spatial
-from cellestial.spatial.utilities import _spatial_components
+from cellestial.spatial.utilities import _reject_renamed_greyscale, _spatial_components
 from cellestial.util import (
     _collect_aes_columns,
     _is_spatialdata,
@@ -38,7 +38,7 @@ def spatials(
     library_id: str | None = None,
     image: bool = True,
     image_key: Literal["hires", "lowres"] | str = "lowres",
-    greyscale: bool = False,
+    grayscale: bool = False,
     image_alpha: float | None = None,
     cmap: str | list | None = None,
     norm: bool | None = None,
@@ -105,20 +105,20 @@ def spatials(
         Which image variant to render. Visium ships with 'hires' and 'lowres'.
         Falls back to 'hires', then to any available variant, when the requested
         one is missing. Ignored for SpatialData inputs.
-    greyscale : bool, default=False
-        Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
+    grayscale : bool, default=False
+        Whether to convert an RGB(A) image to grayscale (Rec.709 luminance).
     image_alpha : float | None, default=None
         Alpha (transparency) of the tissue image.
         Distinct from `alpha`, which controls spot transparency.
     cmap : str | list | None, default=None
-        Colormap name or list of colors. Greyscale images only.
+        Colormap name or list of colors. Grayscale images only.
     norm : bool | None, default=None
-        Whether to linearly scale greyscale luminance values to [0, 255].
-        Greyscale images only.
+        Whether to linearly scale grayscale luminance values to [0, 255].
+        Grayscale images only.
     vmin : float | None, default=None
-        Lower bound for greyscale luminance normalization.
+        Lower bound for grayscale luminance normalization.
     vmax : float | None, default=None
-        Upper bound for greyscale luminance normalization.
+        Upper bound for grayscale luminance normalization.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs.
@@ -283,6 +283,7 @@ def spatials(
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="spatials", hint=_KEY_COLOR_HINT)
     _reject_removed_variable_keys(geom_kwargs, "spatials")
+    _reject_renamed_greyscale(geom_kwargs)
 
     if isinstance(data, MuData):
         msg = (
@@ -362,7 +363,7 @@ def spatials(
             library_id=library_id,
             image=image,
             image_key=image_key,
-            greyscale=greyscale,
+            grayscale=grayscale,
             image_alpha=image_alpha,
             cmap=cmap,
             norm=norm,
