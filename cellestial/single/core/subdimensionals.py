@@ -93,6 +93,9 @@ def dimensionals(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -201,6 +204,15 @@ def dimensionals(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -364,6 +376,9 @@ def dimensionals(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
             geom_color=geom_color,
             geom_fill=geom_fill,
             **geom_kwargs,
@@ -438,6 +453,9 @@ def umaps(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -543,6 +561,15 @@ def umaps(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -705,6 +732,9 @@ def umaps(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
             geom_color=geom_color,
             geom_fill=geom_fill,
             **geom_kwargs,
@@ -779,6 +809,9 @@ def tsnes(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -883,6 +916,15 @@ def tsnes(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1044,6 +1086,9 @@ def tsnes(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
             geom_color=geom_color,
             geom_fill=geom_fill,
             **geom_kwargs,
@@ -1118,6 +1163,9 @@ def pcas(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1222,6 +1270,15 @@ def pcas(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1384,6 +1441,9 @@ def pcas(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
             geom_color=geom_color,
             geom_fill=geom_fill,
             **geom_kwargs,
@@ -1457,6 +1517,9 @@ def expressions(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1555,6 +1618,15 @@ def expressions(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
         Whether to share the labels across all plots.
         If True, only X labels on bottom row and Y labels on left column are shown.
@@ -1714,6 +1786,9 @@ def expressions(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
             geom_color=geom_color,
             geom_fill=geom_fill,
             **geom_kwargs,

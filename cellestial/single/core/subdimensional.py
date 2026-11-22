@@ -54,6 +54,9 @@ def umap(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -144,6 +147,15 @@ def umap(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     geom_color : str | None, default=None
         Color for all points in the plot. To color by a column, use `key`.
     geom_fill : str | None, default=None
@@ -233,6 +245,9 @@ def umap(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
         geom_color=geom_color,
         geom_fill=geom_fill,
         **geom_kwargs,
@@ -275,6 +290,9 @@ def tsne(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -365,6 +383,15 @@ def tsne(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     geom_color : str | None, default=None
         Color for all points in the plot. To color by a column, use `key`.
     geom_fill : str | None, default=None
@@ -454,6 +481,9 @@ def tsne(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
         geom_color=geom_color,
         geom_fill=geom_fill,
         **geom_kwargs,
@@ -496,6 +526,9 @@ def pca(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -586,6 +619,15 @@ def pca(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     geom_color : str | None, default=None
         Color for all points in the plot. To color by a column, use `key`.
     geom_fill : str | None, default=None
@@ -675,6 +717,9 @@ def pca(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
         geom_color=geom_color,
         geom_fill=geom_fill,
         **geom_kwargs,
@@ -716,6 +761,9 @@ def expression(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -802,6 +850,15 @@ def expression(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     geom_color : str | None, default=None
         Color for all points in the plot. To color by a column, use `key` (a gene).
     geom_fill : str | None, default=None
@@ -879,6 +936,9 @@ def expression(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
         geom_color=geom_color,
         geom_fill=geom_fill,
         **geom_kwargs,

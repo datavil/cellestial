@@ -18,7 +18,7 @@ from ggrust import (
     labs,
     scale_color_brewer,
 )
-from ggrust.plot.core import FeatureSpec, PlotSpec
+from ggrust.plot.core import FeatureSpec, LayerSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
@@ -51,6 +51,96 @@ if TYPE_CHECKING:
 _KEY_COLOR_HINT = (
     "Use `geom_color=` / `geom_fill=` for a constant, or `key=` to color by a column."
 )
+
+
+def _outline_layers(
+    *,
+    layer_mapping: FeatureSpec,
+    size: float | None,
+    outline_width: tuple[float, float] | Sequence[float],
+    outline_color: tuple[str, str] | Sequence[str],
+    geom_kwargs: dict,
+) -> list[LayerSpec]:
+    """
+    Build the two point layers drawn under the points to outline the point cloud.
+
+    The outline (bottom) and gap (middle) layers are the same points drawn
+    larger, so only their rim shows around the cloud. Sizes follow scanpy:
+    widths are fractions of the point size, added on each side. Both layers
+    carry the points' mapping (constants override color, fill and size), so
+    layers added with `+` that read the first layer's mapping still find it.
+    """
+    if size is None:
+        msg = (
+            "`outline=True` needs a constant `size`, but `size` is None or mapped by "
+            "`mapping`.\nPass a number, e.g. `size=0.8`, and drop `size` from `mapping`."
+        )
+        raise InvalidArgumentError(msg)
+    if size <= 0:
+        msg = (
+            f"`outline=True` needs a positive `size`, but received {size!r}.\n"
+            "Pass a number above 0, e.g. `size=0.8`."
+        )
+        raise InvalidArgumentError(msg)
+    if (
+        not isinstance(outline_width, Sequence)
+        or isinstance(outline_width, str)
+        or len(outline_width) != 2
+    ):
+        msg = (
+            f"`outline_width` must hold 2 numbers (outline, gap), but received "
+            f"{outline_width!r}.\nPass e.g. `outline_width=(0.3, 0.05)`."
+        )
+        raise InvalidArgumentError(msg)
+    outline_fraction, gap_fraction = outline_width
+    if not all(
+        isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0
+        for value in (outline_fraction, gap_fraction)
+    ):
+        msg = (
+            f"`outline_width` values must be non-negative numbers, but received "
+            f"{tuple(outline_width)!r}.\nPass e.g. `outline_width=(0.3, 0.05)`."
+        )
+        raise InvalidArgumentError(msg)
+    if (
+        not isinstance(outline_color, Sequence)
+        or isinstance(outline_color, str)
+        or len(outline_color) != 2
+    ):
+        msg = (
+            f"`outline_color` must hold 2 colors (outline, gap), but received "
+            f"{outline_color!r}.\nPass e.g. `outline_color=('black', 'white')`."
+        )
+        raise InvalidArgumentError(msg)
+    if not all(isinstance(color, str) for color in outline_color):
+        msg = (
+            f"`outline_color` values must be color strings, but received "
+            f"{tuple(outline_color)!r}.\nPass e.g. `outline_color=('black', 'white')`."
+        )
+        raise InvalidArgumentError(msg)
+    outline_color_value, gap_color_value = outline_color
+
+    gap_size = size + 2 * size * gap_fraction
+    outline_size = gap_size + 2 * size * outline_fraction
+    # Match the point shape so the rim follows the points' silhouette.
+    shared = {k: v for k, v in geom_kwargs.items() if k in ("shape", "stroke")}
+    return [
+        geom_point(
+            mapping=layer_mapping,
+            size=layer_size,
+            color=layer_color,
+            fill=layer_color,
+            # Opaque even when the points map `alpha`, like scanpy's outline.
+            alpha=1,
+            tooltips="none",
+            show_legend=False,
+            **shared,
+        )
+        for layer_size, layer_color in (
+            (outline_size, outline_color_value),
+            (gap_size, gap_color_value),
+        )
+    ]
 
 
 def dimensional(
@@ -90,6 +180,9 @@ def dimensional(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -184,6 +277,15 @@ def dimensional(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     geom_color : str | None, default=None
         Color for all points in the plot. To color by a column, use `key`.
     geom_fill : str | None, default=None
@@ -300,6 +402,24 @@ def dimensional(
     x = f"{prefix}{xy[0]}"  # e.g. X_UMAP1
     y = f"{prefix}{xy[1]}"  # e.g. X_UMAP2
 
+    point_mapping = aes(
+        x=x, y=y, **({"color": key} if key is not None else {}), **mapping.as_dict()
+    )
+
+    # HANDLE: outline (fail early, before building the frame)
+    outline_layers: list[LayerSpec] = []
+    if outline:
+        outline_layers = _outline_layers(
+            layer_mapping=point_mapping,
+            size=None if "size" in mapping.as_dict() else size,
+            outline_width=outline_width,
+            outline_color=outline_color,
+            geom_kwargs=geom_kwargs,
+        )
+        # Like scanpy, outlined points are slightly transparent unless set.
+        if "alpha" not in mapping.as_dict():
+            geom_kwargs.setdefault("alpha", 0.7)
+
     # HANDLE: variable_keys
     if variable_keys is None:
         variable_keys = []
@@ -373,12 +493,13 @@ def dimensional(
     # BUILD: scatter plot
     if "size" in mapping.as_dict():
         size = None
+    scttr = ggplot(data=frame)
+    for layer in outline_layers:
+        scttr += layer
     scttr = (
-        ggplot(data=frame)
+        scttr
         + geom_point(
-            mapping=aes(
-                x=x, y=y, **({"color": key} if key is not None else {}), **mapping.as_dict()
-            ),
+            mapping=point_mapping,
             size=size,
             color=geom_color,
             fill=geom_fill,

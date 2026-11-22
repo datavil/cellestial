@@ -122,6 +122,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_merge_shortcuts` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
+| `_outline_layers` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -333,3 +334,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `tsnes` | Claude Opus 5.5 |  |
 | `pcas` | Claude Opus 5.5 |  |
 | `expressions` | Claude Opus 5.5 |  |
+| `dimensional` (`outline`, `outline_width`, `outline_color`; threaded through `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`) | Claude Opus 5.5 |  |

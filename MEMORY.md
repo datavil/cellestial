@@ -38,6 +38,7 @@
 - [Project: pbmc3k labels swapped](project_pbmc3k_labels.md): Bundled pbmc3k is bone marrow; cell_type_lvl1 "B Cells"/"Erythroid" are swapped, null cluster is erythroblasts (plans/pbmc3k_labels.md)
 - [Project: build_frame categoricals are pl.Enum](project_build_frame_enum.md) — Source category order via pl.Enum; accept Enum in dtype checks, cast to String before string compares/joins
 - [Feedback: Quick plots keep default fill](feedback_quick_plots_keep_default_fill.md) — `highest_expressed_genes` keeps per-gene fill; no-promotion rule not applied to convenience plots
+- [Project: Layer 0 carries the mapping](project_layer_zero_mapping.md) — Deferred `+` layers read aesthetics from layer 0; underlays (e.g. `outline=True`) must carry the main mapping with constants overriding
 
 
 ---
@@ -1053,3 +1054,21 @@ metadata:
 **Why:** the "no hidden aesthetic promotion" rule targets `group_by` in the general plots (ridge, violin, ...), where users wire aesthetics themselves. Quick one-call plots are meant to look finished with no extra arguments.
 
 **How to apply:** don't strip default colouring from quick/convenience plots (`cellestial/single/quick/`) for convention's sake; ask first. Renames to the `geom_color`/`geom_fill` convention still apply. Related: [[feedback-no-hidden-aesthetic-promotion]].
+
+## Source: project_layer_zero_mapping.md
+
+---
+name: project-layer-zero-mapping
+description: "Deferred `+` layers read the plot's aesthetics from layer 0; any underlay drawn before the main geom must carry the same mapping"
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: 5ae6cdee-a77d-4b67-b53d-a5d1787be919
+  modified: 2026-11-22T16:19:58.583Z
+---
+
+Deferred layers (`ondata_legend`, `highlight`, `stream`, `bracket`, `cluster_outlines`, ...) find `x`/`y`/`color` with `get_mapping(plot, index=0)`, i.e. from the first layer. Adding a layer under the main `geom_point` (the `outline=True` outline/gap layers in `dimensional`, added 2026-11-22) broke `ondata_legend` with "`group_by` is present neither as argument nor in the plot aesthetics".
+
+**Why:** the fix stayed local to `dimensional`: the underlay layers carry the points' full mapping, with constant `color`/`fill`/`size` overriding it, plus `show_legend=False` and `tooltips="none"`. ggrust lets a constant override a mapped aesthetic and adds no legend entry.
+
+**How to apply:** when drawing anything beneath a plot's main layer, give it the main layer's mapping (constants override), or `+` layers will read the wrong layer. Related: [[project-deferred-layers-read-frame]].
