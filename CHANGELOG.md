@@ -71,6 +71,14 @@ change. Versions absent from the list were never released.
   `ConflictingLengthError`; polygons are now matched to frame rows by position,
   as points already were. Migration: build `frame` from the same table without
   filtering rows, and use `groups`/`drop` to filter.
+- `use_key` is renamed to `embedding_key` in `umap`, `pca`, `tsne`, `expression`,
+  `dimensional`, their plurals `umaps`, `pcas`, `tsnes`, `expressions`,
+  `dimensionals`, and in `embedding_density` and `blend`, matching the other
+  stored-result keys (`pca_key`, `dendrogram_key`, ...). Passing `use_key=` or
+  scanpy's `basis=` now raises `InvalidArgumentTypeError` (a `TypeError`)
+  instead of being silently forwarded to the geom. Migration: replace
+  `use_key="X_umap_harmony"` (or `basis=...`) with
+  `embedding_key="X_umap_harmony"`.
 
 ### Added
 

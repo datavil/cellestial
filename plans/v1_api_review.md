@@ -50,6 +50,8 @@ Rank = cost of fixing after the freeze x how often users hit it.
   `ranking_key` (markers, volcano(s), marker_genes(_dict), and heatmap family with
   `markers: bool`), `embedding_key` (was `use_key`), keep `pca_key`, `dendrogram_key`,
   `spatial_key`, `image_key`, `velocity_key`. **Breaking.**
+- Status: `embedding_key` done (12 dimensional-family functions; `use_key=` and
+  `basis=` raise `InvalidArgumentTypeError` pointing to it).
 
 ### F3. Error classes have no stable public path and no common base (mostly non-breaking)
 
@@ -289,6 +291,7 @@ Recommended choice first. Approve batch by batch.
 **Batch A: consistency renames (breaking, cheap now)**
 - A1. Drop `variable_keys` from plot functions, keep `add_keys` (F1). / keep both.
 - A2. Stored-result keys as `<thing>_key`: `ranking_key`, `embedding_key`; heatmap `markers: bool` (F2). / keep `key`, `use_key`, `markers: bool | str`.
+  - `embedding_key` part done.
 - A3. `dotplot(expression_threshold=)`, `ridge(s)(overlap=)` (F7). / keep `threshold`, `scale`.
 - A4. `markers()`: `text_fontface`, `text_angle`, `rank_gradient`, `score_line` (F8). / keep.
 - A5. `pct_exp` -> `percent_expressed`, `avg_exp` -> `mean_expression` (F6). / keep.

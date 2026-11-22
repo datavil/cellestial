@@ -5,7 +5,11 @@ from typing import TYPE_CHECKING, Literal
 
 from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.single.core.dimensional import _KEY_COLOR_HINT, dimensional
-from cellestial.util import _is_variable_key, _reject_sequence_key
+from cellestial.util import (
+    _is_variable_key,
+    _reject_renamed_embedding_kwargs,
+    _reject_sequence_key,
+)
 from cellestial.util.errors import VariableNotFoundError
 from cellestial.util.utilities import _container
 
@@ -24,7 +28,7 @@ def umap(
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -74,10 +78,9 @@ def umap(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -170,6 +173,11 @@ def umap(
     PlotSpec
         Dimensionality reduction plot.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Dimensionality reduction plot with categorical data.
@@ -211,13 +219,14 @@ def umap(
     """
     _reject_sequence_key(key, singular="umap", plural="umaps")
     _reject_constant_color_fill(geom_kwargs, function="umap", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
     return dimensional(
         data=data,
         key=key,
         frame=frame,
         mapping=mapping,
         dimensions="umap",
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
         variable_keys=variable_keys,
@@ -260,7 +269,7 @@ def tsne(
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -310,10 +319,9 @@ def tsne(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -406,6 +414,11 @@ def tsne(
     PlotSpec
         Dimensionality reduction plot.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Dimensionality reduction plot with categorical data.
@@ -447,13 +460,14 @@ def tsne(
     """  # noqa: D403
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
     _reject_constant_color_fill(geom_kwargs, function="tsne", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
     return dimensional(
         data=data,
         key=key,
         frame=frame,
         mapping=mapping,
         dimensions="tsne",
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
         variable_keys=variable_keys,
@@ -496,7 +510,7 @@ def pca(
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -546,10 +560,9 @@ def pca(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -642,6 +655,11 @@ def pca(
     PlotSpec
         Dimensionality reduction plot.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Dimensionality reduction plot with categorical data.
@@ -683,13 +701,14 @@ def pca(
     """
     _reject_sequence_key(key, singular="pca", plural="pcas")
     _reject_constant_color_fill(geom_kwargs, function="pca", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
     return dimensional(
         data=data,
         key=key,
         frame=frame,
         mapping=mapping,
         dimensions="pca",
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
         variable_keys=variable_keys,
@@ -733,7 +752,7 @@ def expression(
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -783,10 +802,9 @@ def expression(
     dimensions : str, default='umap'
         The dimensionality reduction to plot, named without the `X_` prefix.
         e.g., 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -877,6 +895,8 @@ def expression(
     ------
     VariableNotFoundError
         If `key` is not present in variable names.
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -896,6 +916,7 @@ def expression(
     """
     _reject_sequence_key(key, singular="expression", plural="expressions")
     _reject_constant_color_fill(geom_kwargs, function="expression", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
     if not _is_variable_key(data, key):
         close_matches = get_close_matches(key, _container(data).variable_names().astype(str), n=3)
         hint = f" Did you mean {close_matches}?" if close_matches else ""
@@ -910,7 +931,7 @@ def expression(
         frame=frame,
         mapping=mapping,
         dimensions=dimensions,
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
         variable_keys=variable_keys,

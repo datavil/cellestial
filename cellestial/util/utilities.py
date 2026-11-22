@@ -878,10 +878,35 @@ def _are_variable_features(data: AnnData | MuData, keys: Sequence[str] | None) -
     return all(key in columns for key in keys)
 
 
+def _reject_renamed_embedding_kwargs(geom_kwargs: dict[str, object]) -> None:
+    """
+    Reject the removed `use_key` and `basis` before they reach the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a dimensional plot forwards to its geom.
+
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If `geom_kwargs` holds `use_key` or `basis`.
+    """
+    if "use_key" in geom_kwargs:
+        msg = (
+            "`use_key` was renamed to `embedding_key`; "
+            f"pass `embedding_key={geom_kwargs['use_key']!r}`."
+        )
+        raise InvalidArgumentTypeError(msg)
+    if "basis" in geom_kwargs:
+        msg = f"to choose a stored embedding pass `embedding_key={geom_kwargs['basis']!r}`."
+        raise InvalidArgumentTypeError(msg)
+
+
 def _resolve_embedding_key(
     data: AnnData | MuData,
     dimensions: str,
-    use_key: str | None,
+    embedding_key: str | None,
     xy: Sequence[int],
 ) -> str:
     """
@@ -893,7 +918,7 @@ def _resolve_embedding_key(
         Single-cell data object providing the embedding store.
     dimensions : str
         Embedding family, e.g. `"umap"`, `"pca"`, `"tsne"`.
-    use_key : str | None
+    embedding_key : str | None
         Explicit embedding key. When provided, no search is performed.
     xy : Sequence[int]
         Axis indices requested (1-based); used to filter shape-eligible
@@ -919,16 +944,16 @@ def _resolve_embedding_key(
 
     Resolution rules:
 
-    1. If `use_key` is given, return it uppercased.
+    1. If `embedding_key` is given, return it uppercased.
     2. Otherwise, against `f"X_{dimensions.upper()}"`:
        - exact (case-insensitive) match -> return it silently.
        - no exact, but prefix matches exist -> pick the candidate whose
          dimensionality is sufficient for `max(xy)` (shortest name on ties),
-         warn the user, and suggest `use_key` to silence.
+         warn the user, and suggest `embedding_key` to silence.
        - no candidate -> raise `KeyNotFoundError`.
     """
-    if use_key is not None:
-        return use_key.upper()
+    if embedding_key is not None:
+        return embedding_key.upper()
 
     embeddings = _container(data).observation_embeddings()
     candidates = list(embeddings.keys())
@@ -962,7 +987,7 @@ def _resolve_embedding_key(
         f"No embedding named `{target}` found; "
         f"using `{chosen}` with (shape={shapes[chosen]})\n"
         f"Alternatives: {alternatives}, Rest: {sorted(set(candidates) - set(alternatives))}.\n"
-        "Pass `use_key='...'` to use a specific key."
+        "Pass `embedding_key='...'` to use a specific key."
     )
     return chosen.upper()
 

@@ -123,6 +123,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
 | `_outline_layers` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_renamed_embedding_kwargs` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -335,3 +336,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `pcas` | Claude Opus 5.5 |  |
 | `expressions` | Claude Opus 5.5 |  |
 | `dimensional` (`outline`, `outline_width`, `outline_color`; threaded through `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`) | Claude Opus 5.5 |  |
+| `dimensional` (`use_key` renamed to `embedding_key`, rejects `use_key`/`basis`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `embedding_density`, `blend`) | Claude Opus 5.5 |  |
+| `_resolve_embedding_key` (`use_key` renamed to `embedding_key`) | Claude Opus 5.5 |  |

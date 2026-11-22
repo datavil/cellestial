@@ -6,6 +6,7 @@ import pytest
 import cellestial as cl
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentTypeError,
     InvalidPlotSpecError,
     KeyNotFoundError,
     MissingAestheticError,
@@ -135,3 +136,38 @@ def test_highlight_empty_groups_fails_early():
 def test_highlight_on_a_grid_points_to_singular(adata, cluster_key):
     with pytest.raises(InvalidPlotSpecError, match=r"adds to a single plot.*SupPlotsSpec"):
         cl.umaps(adata, [cluster_key]) + cl.highlight("0")
+
+
+# ---- Renamed embedding selector: `use_key` and `basis` point to `embedding_key` ----
+
+_EMBEDDING_CALLS = [
+    (cl.umap, ("leiden",)),
+    (cl.pca, ("leiden",)),
+    (cl.tsne, ("leiden",)),
+    (cl.dimensional, ("leiden",)),
+    (cl.expression, ("CD14",)),
+    (cl.umaps, (["leiden"],)),
+    (cl.pcas, (["leiden"],)),
+    (cl.tsnes, (["leiden"],)),
+    (cl.dimensionals, (["leiden"],)),
+    (cl.expressions, (["CD14"],)),
+    (cl.embedding_density, ()),
+    (cl.blend, (["CD14", "MS4A1"],)),
+]
+
+
+@pytest.mark.parametrize(("fn", "args"), _EMBEDDING_CALLS)
+def test_use_key_points_to_embedding_key(adata, fn, args):
+    with pytest.raises(
+        InvalidArgumentTypeError, match="`use_key` was renamed to `embedding_key`"
+    ) as info:
+        fn(adata, *args, use_key="X_umap")
+    assert "embedding_key='X_umap'" in str(info.value)
+    assert isinstance(info.value, TypeError)
+
+
+@pytest.mark.parametrize(("fn", "args"), _EMBEDDING_CALLS)
+def test_basis_points_to_embedding_key(adata, fn, args):
+    with pytest.raises(InvalidArgumentTypeError, match="to choose a stored embedding") as info:
+        fn(adata, *args, basis="X_umap")
+    assert "embedding_key='X_umap'" in str(info.value)

@@ -16,6 +16,7 @@ from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 from cellestial.util import (
     _collect_aes_columns,
     _is_variable_key,
+    _reject_renamed_embedding_kwargs,
     _resolve_tooltips,
     _share_axis,
     _share_labels,
@@ -63,7 +64,7 @@ def dimensionals(
     *,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -131,10 +132,9 @@ def dimensionals(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
@@ -272,6 +272,11 @@ def dimensionals(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Grid of dimensionality reduction plots via multiple keys.
@@ -297,6 +302,7 @@ def dimensionals(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="dimensionals", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -349,7 +355,7 @@ def dimensionals(
             frame=frame,
             mapping=mapping,
             dimensions=dimensions,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
             variable_keys=variable_keys,
@@ -423,7 +429,7 @@ def umaps(
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -488,10 +494,9 @@ def umaps(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
@@ -629,6 +634,11 @@ def umaps(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Grid of dimensionality reduction plots via multiple keys.
@@ -654,6 +664,7 @@ def umaps(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="umaps", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -705,7 +716,7 @@ def umaps(
             key=key,
             frame=frame,
             mapping=mapping,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
             variable_keys=variable_keys,
@@ -779,7 +790,7 @@ def tsnes(
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -844,10 +855,9 @@ def tsnes(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
@@ -984,6 +994,11 @@ def tsnes(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Grid of dimensionality reduction plots via multiple keys.
@@ -1009,6 +1024,7 @@ def tsnes(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="tsnes", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -1060,7 +1076,7 @@ def tsnes(
             key=key,
             frame=frame,
             mapping=mapping,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
             variable_keys=variable_keys,
@@ -1133,7 +1149,7 @@ def pcas(
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -1198,10 +1214,9 @@ def pcas(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
@@ -1338,6 +1353,11 @@ def pcas(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Grid of dimensionality reduction plots via multiple keys.
@@ -1363,6 +1383,7 @@ def pcas(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="pcas", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -1414,7 +1435,7 @@ def pcas(
             key=key,
             frame=frame,
             mapping=mapping,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
             variable_keys=variable_keys,
@@ -1489,7 +1510,7 @@ def expressions(
     *,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     geom_color: str | None = None,
@@ -1554,10 +1575,9 @@ def expressions(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
     variable_keys : str | Sequence[str] | None, default=None
@@ -1686,6 +1706,11 @@ def expressions(
     SupPlotsSpec
         Grid of dimensionality reduction plots.
 
+    Raises
+    ------
+    InvalidArgumentTypeError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
+
     Examples
     --------
     Grid of dimensionality reduction plots via multiple keys.
@@ -1711,6 +1736,7 @@ def expressions(
         msg = "keys must be an Sequence of strings"
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="expressions", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
     if variable_keys is None:
@@ -1761,7 +1787,7 @@ def expressions(
             frame=frame,
             mapping=mapping,
             dimensions=dimensions,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
             variable_keys=variable_keys,
