@@ -16,7 +16,9 @@ from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 from cellestial.util import (
     _collect_aes_columns,
     _is_variable_key,
+    _reject_removed_variable_keys,
     _reject_renamed_embedding_kwargs,
+    _require_add_keys,
     _resolve_tooltips,
     _share_axis,
     _share_labels,
@@ -69,7 +71,6 @@ def dimensionals(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -137,8 +138,6 @@ def dimensionals(
         If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -303,14 +302,10 @@ def dimensionals(
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="dimensionals", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "dimensionals")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -345,6 +340,7 @@ def dimensionals(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
     _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
@@ -358,7 +354,6 @@ def dimensionals(
             embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -434,7 +429,6 @@ def umaps(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -499,8 +493,6 @@ def umaps(
         If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -665,14 +657,10 @@ def umaps(
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="umaps", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "umaps")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -707,6 +695,7 @@ def umaps(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
     _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
@@ -719,7 +708,6 @@ def umaps(
             embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -795,7 +783,6 @@ def tsnes(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -860,8 +847,6 @@ def tsnes(
         If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -1025,14 +1010,10 @@ def tsnes(
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="tsnes", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "tsnes")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -1067,6 +1048,7 @@ def tsnes(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
     _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
@@ -1079,7 +1061,6 @@ def tsnes(
             embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -1154,7 +1135,6 @@ def pcas(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -1219,8 +1199,6 @@ def pcas(
         If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -1384,14 +1362,10 @@ def pcas(
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="pcas", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "pcas")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -1426,6 +1400,7 @@ def pcas(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
     _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
@@ -1438,7 +1413,6 @@ def pcas(
             embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -1515,7 +1489,6 @@ def expressions(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -1580,8 +1553,6 @@ def expressions(
         If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -1737,14 +1708,10 @@ def expressions(
         raise TypeError(msg)
     _reject_constant_color_fill(geom_kwargs, function="expressions", hint=_KEY_COLOR_HINT)
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "expressions")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     variable_keys.extend(keys)
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
@@ -1778,6 +1745,7 @@ def expressions(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
 
     plots = []
     for i, key in enumerate(keys):
@@ -1790,7 +1758,6 @@ def expressions(
             embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             tooltips=tooltips,
             observation_id_column=observation_id_column,

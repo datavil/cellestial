@@ -104,6 +104,19 @@ change. Versions absent from the list were never released.
   `GGBunch` is dropped from the accepted types (ggrust never supported it).
   Migration: pass `dpi=300, unit="in"` to keep the old output; combine plots
   with `gggrid`.
+- `variable_keys` is removed from `umap`, `pca`, `tsne`, `expression`,
+  `dimensional`, their plurals `umaps`, `pcas`, `tsnes`, `expressions`,
+  `dimensionals`, and from `spatial` and `spatials`; `add_keys` already takes
+  both gene names and metadata columns and builds the same frame. Passing
+  `variable_keys=` now raises `UnknownParameterError` (a `TypeError`)
+  instead of being silently forwarded to the geom (`blend`, which never took
+  it, rejects it too). `build_frame`, `plot`,
+  `scatter` and `bar` keep `variable_keys`. Migration: replace
+  `variable_keys=["CD14"]` with `add_keys=["CD14"]`.
+- In the same 12 functions, an `add_keys` name that is neither a metadata
+  column, a variable name nor a column of the passed `frame` raises
+  `KeyNotFoundError` (with a close match) instead of being silently dropped.
+  Migration: fix the misspelled name, or remove it.
 
 ### Added
 

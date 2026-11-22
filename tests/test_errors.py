@@ -239,3 +239,106 @@ def test_basis_points_to_embedding_key(adata, fn, args):
     with pytest.raises(UnknownParameterError, match="to choose a stored embedding") as info:
         fn(adata, *args, basis="X_umap")
     assert "embedding_key='X_umap'" in str(info.value)
+
+
+# ---- `add_keys`: unknown names raise instead of vanishing ----
+
+_ADD_KEYS_CALLS = [
+    (cl.umap, ("leiden",)),
+    (cl.pca, ("leiden",)),
+    (cl.tsne, ("leiden",)),
+    (cl.dimensional, ("leiden",)),
+    (cl.expression, ("CD14",)),
+    (cl.umaps, (["leiden"],)),
+    (cl.pcas, (["leiden"],)),
+    (cl.tsnes, (["leiden"],)),
+    (cl.dimensionals, (["leiden"],)),
+    (cl.expressions, (["CD14"],)),
+]
+
+
+@pytest.mark.parametrize(("fn", "args"), _ADD_KEYS_CALLS)
+def test_add_keys_unknown_name_raises(adata, fn, args):
+    with pytest.raises(KeyNotFoundError, match="`add_keys` names not found") as info:
+        fn(adata, *args, add_keys=["CD14", "LYZZ"])
+    message = str(info.value)
+    assert "LYZZ" in message
+    assert "'LYZ'" in message
+    assert "CD14" not in message.split("\n")[0]
+
+
+def test_add_keys_accepts_metadata_and_genes(adata):
+    frame = cl.retrieve(cl.umap(adata, "leiden", add_keys=["CD14", "n_genes_by_counts"]))
+    assert {"CD14", "n_genes_by_counts"} <= set(frame.columns)
+
+
+def test_add_keys_accepts_frame_columns(adata):
+    plot = cl.umap(adata, "leiden", add_keys=["X_UMAP1", "Barcode"])
+    assert {"X_UMAP1", "Barcode"} <= set(cl.retrieve(plot).columns)
+
+
+def test_add_keys_accepts_column_of_passed_frame(adata):
+    frame = cl.build_frame(adata, variable_keys=["CD14"], include_dimensions=2).with_columns(
+        extra=1.0
+    )
+    plot = cl.umap(adata, "CD14", frame=frame, add_keys=["extra"])
+    assert "extra" in cl.retrieve(plot).columns
+
+
+def test_add_keys_unknown_name_raises_mudata(mudata):
+    with pytest.raises(KeyNotFoundError, match="prot:CD3_TotalSeqBB"):
+        cl.umap(mudata, "leiden", add_keys=["prot:CD3_TotalSeqBB"])
+
+
+def _spatial_anndata():
+    import pandas as pd
+    from anndata import AnnData
+
+    rng = np.random.default_rng(0)
+    data = AnnData(
+        X=rng.random((3, 2)).astype("float32"),
+        obs=pd.DataFrame({"score": [1.0, 2.0, 3.0]}, index=["c0", "c1", "c2"]),
+        var=pd.DataFrame(index=["GENE_A", "GENE_B"]),
+    )
+    data.obsm["spatial"] = rng.random((3, 2)).astype("float32")
+    return data
+
+
+@pytest.mark.parametrize("plural", [False, True])
+def test_add_keys_unknown_name_raises_spatial(plural):
+    data = _spatial_anndata()
+    with pytest.raises(KeyNotFoundError, match="GENE_Z") as info:
+        if plural:
+            cl.spatials(data, ["score"], image=False, add_keys=["GENE_Z"])
+        else:
+            cl.spatial(data, "score", image=False, add_keys=["GENE_Z"])
+    assert "Did you mean" in str(info.value)
+
+
+# ---- Removed `variable_keys`: points to `add_keys` instead of reaching the geom ----
+
+
+@pytest.mark.parametrize(("fn", "args"), _ADD_KEYS_CALLS)
+def test_variable_keys_points_to_add_keys(adata, fn, args):
+    with pytest.raises(
+        UnknownParameterError,
+        match=rf"`variable_keys` was removed from `{fn.__name__}`; pass the same names as `add_keys=`",
+    ) as info:
+        fn(adata, *args, variable_keys=["CD14"])
+    assert isinstance(info.value, TypeError)
+
+
+@pytest.mark.parametrize("plural", [False, True])
+def test_variable_keys_points_to_add_keys_spatial(plural):
+    data = _spatial_anndata()
+    name = "spatials" if plural else "spatial"
+    with pytest.raises(UnknownParameterError, match=rf"removed from `{name}`.*`add_keys=`"):
+        if plural:
+            cl.spatials(data, ["score"], image=False, variable_keys=["GENE_A"])
+        else:
+            cl.spatial(data, "score", image=False, variable_keys=["GENE_A"])
+
+
+def test_variable_keys_on_blend_names_blend(adata):
+    with pytest.raises(UnknownParameterError, match=r"removed from `blend`"):
+        cl.blend(adata, ["CD14", "MS4A1"], variable_keys=["CD3D"])

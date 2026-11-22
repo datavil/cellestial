@@ -735,6 +735,51 @@ def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
     raise KeyNotFoundError(msg)
 
 
+def _require_add_keys(
+    data: AnnData | MuData,
+    add_keys: Sequence[str] | None,
+    frame_columns: Sequence[str] = (),
+) -> None:
+    """
+    Validate that every `add_keys` name resolves to a column or variable.
+
+    Parameters
+    ----------
+    data : AnnData | MuData
+        The single-cell data object.
+    add_keys : Sequence[str] | None
+        The extra names to materialise into the frame.
+    frame_columns : Sequence[str], default=()
+        Columns of the plot's frame, e.g. embeddings; names found there are accepted.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If a name is neither a metadata column, a variable name, nor a frame column.
+    """
+    if not add_keys:
+        return
+    container = _container(data)
+    observation_columns = container.observation_columns()
+    missing = [
+        key
+        for key in add_keys
+        if key not in observation_columns
+        and key not in frame_columns
+        and not container.owns_variable(key)
+    ]
+    if not missing:
+        return
+    msg = (
+        f"`add_keys` names not found: {missing}.\n"
+        "Looked in observation metadata and variable (gene) names."
+    )
+    hint = _did_you_mean(missing, [*observation_columns, *container.variable_names()])
+    if hint:
+        msg += f"\n{hint}"
+    raise KeyNotFoundError(msg)
+
+
 def _is_variable_key(data: AnnData | MuData, key: str | None) -> bool:
     if key is None:
         return False
@@ -901,6 +946,27 @@ def _reject_renamed_embedding_kwargs(geom_kwargs: dict[str, object]) -> None:
         raise UnknownParameterError(msg)
     if "basis" in geom_kwargs:
         msg = f"to choose a stored embedding pass `embedding_key={geom_kwargs['basis']!r}`."
+        raise UnknownParameterError(msg)
+
+
+def _reject_removed_variable_keys(geom_kwargs: dict[str, object], function: str) -> None:
+    """
+    Reject the removed `variable_keys` before it reaches the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a plot forwards to its geom.
+    function : str
+        The public function name shown in the message.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds `variable_keys`.
+    """
+    if "variable_keys" in geom_kwargs:
+        msg = f"`variable_keys` was removed from `{function}`; pass the same names as `add_keys=`."
         raise UnknownParameterError(msg)
 
 

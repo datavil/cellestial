@@ -34,8 +34,10 @@ from cellestial.util import (
     _color_gradient,
     _drop_nonfinite_rows,
     _filter_groups,
+    _reject_removed_variable_keys,
     _reject_renamed_embedding_kwargs,
     _reject_sequence_key,
+    _require_add_keys,
     _require_feature_key,
     _resolve_embedding_key,
     _resolve_tooltips,
@@ -156,7 +158,6 @@ def dimensional(
     size: float | None = 0.8,
     geom_color: str | None = None,
     geom_fill: str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -212,8 +213,6 @@ def dimensional(
         If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`. Useful
@@ -379,6 +378,7 @@ def dimensional(
         hint=_KEY_COLOR_HINT,
     )
     _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "dimensional")
     mapped_by = {
         aesthetic: f"`mapping` column {column!r}"
         for aesthetic, column in mapping.as_dict().items()
@@ -425,13 +425,7 @@ def dimensional(
         if "alpha" not in mapping.as_dict():
             geom_kwargs.setdefault("alpha", 0.7)
 
-    # HANDLE: variable_keys
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    elif isinstance(variable_keys, Sequence):
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
 
     # Collect the frame columns from the color key, aes refs, and `add_keys`.
     if isinstance(add_keys, str):
@@ -470,6 +464,7 @@ def dimensional(
             include_dimensions=max(xy),
             metadata_columns=metadata_columns,
         )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
 
     # HANDLE: groups / drop filters (categorical-only)
     if key is not None:

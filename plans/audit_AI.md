@@ -350,3 +350,6 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `dimensional` (`use_key` renamed to `embedding_key`, rejects `use_key`/`basis`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `embedding_density`, `blend`) | Claude Opus 5.5 |  |
 | `_resolve_embedding_key` (`use_key` renamed to `embedding_key`) | Claude Opus 5.5 |  |
 | `save` (thin `ggsave` wrapper) | Claude Opus 5.5 |  |
+| `dimensional` (`variable_keys` removed, rejected with a pointer to `add_keys`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `spatial`, `spatials`, and rejected in `blend`) | Claude Opus 5.5 |  |
+| `_reject_removed_variable_keys` | Claude Opus 5.5 |  |
+| `_require_add_keys` (unknown `add_keys` names raise; used by the 12 functions above) | Claude Opus 5.5 |  |
