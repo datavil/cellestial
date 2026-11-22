@@ -11,6 +11,9 @@ change. Versions absent from the list were never released.
 
 ### Breaking
 
+- `SpatialLibraryError` is removed; it was never raised. Migration: drop it from
+  imports and `except` clauses.
+
 - Unknown keys whose axis cannot be determined (e.g. `violin(data, "not_a_key")`),
   tooltip fields missing from the data and a missing stored PCA variance now
   raise `KeyNotFoundError` (a `KeyError`) instead of `ValueError`. Keys that
@@ -73,6 +76,12 @@ change. Versions absent from the list were never released.
   filtering rows, and use `groups`/`drop` to filter.
 
 ### Added
+
+- Public `cellestial.errors` module (also `cl.errors`) re-exporting every error
+  class and `CellestialWarning`. `cellestial.util.errors` keeps working.
+- `CellestialError` base class: every cellestial error subclasses it as well as
+  its builtin (`KeyNotFoundError` is still a `KeyError`), so
+  `except cl.errors.CellestialError` catches anything cellestial raised.
 
 - `volcano` and `volcanos` take `min_fraction_expressed` (default `None`) to
   drop features detected in fewer than that fraction of the group's cells

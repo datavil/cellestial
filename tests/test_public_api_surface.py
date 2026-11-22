@@ -118,6 +118,7 @@ def test_exported_names_are_pinned():
         "TEAL",
         "__version__",
         "datasets",
+        "errors",
     }
     assert set(datasets.__all__) == set(snapshot["cellestial.datasets"])
 

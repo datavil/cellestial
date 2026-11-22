@@ -1,4 +1,4 @@
-from cellestial import datasets
+from cellestial import datasets, errors
 from cellestial._version import __version__, versions
 from cellestial.complex import annotated_heatmap
 from cellestial.frames import build_frame
@@ -99,6 +99,7 @@ __all__ = [
     "dotplot",
     "elbow",
     "embedding_density",
+    "errors",
     "expression",
     "expressions",
     "get_figure",
