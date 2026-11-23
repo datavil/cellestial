@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["ggrust", "ggrust.plot.core", "ggrust.plot.subplots", "numpy"]
 
+import operator
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, cast
 
@@ -189,7 +190,7 @@ def layout(
     return gggrid(rows, ncol=1, heights=None if heights is None else list(heights), vspace=vspace)
 
 
-def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
+def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec | SupPlotsSpec:
     """
     Get a single figure from a grid (SupPlotsSpec) by index.
 
@@ -202,8 +203,8 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
 
     Returns
     -------
-    PlotSpec
-        The selected figure.
+    PlotSpec | SupPlotsSpec
+        The selected figure. A grid nested inside `grid` comes back as a SupPlotsSpec.
 
     Raises
     ------
@@ -212,7 +213,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
     InvalidArgumentTypeError
         If `index` is not an int.
     GridIndexError
-        If `index` is out of range for the grid.
+        If `index` is out of range for the grid or points at a blank cell.
 
     Examples
     --------
@@ -249,7 +250,19 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
     if not -len(figures) <= index < len(figures):
         msg = f"index {index} is out of range for a grid with {len(figures)} figures."
         raise GridIndexError(msg)
-    return figures[index]
+    figure = figures[index]
+    if figure is None:
+        filled = [position for position, cell in enumerate(figures) if cell is not None]
+        where = (
+            f"Figures sit at indices {filled}; pick one of those."
+            if filled
+            else "The grid holds no figures at all; build it from at least one plot."
+        )
+        msg = (
+            f"index {index} points at a blank cell of the grid; there is no figure there. {where}"
+        )
+        raise GridIndexError(msg)
+    return figure
 
 
 def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlotsSpec:
@@ -382,6 +395,8 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     ------
     InvalidPlotSpecError
         If the plot is not a PlotSpec or SupPlotsSpec object.
+    GridIndexError
+        If `plot` is a grid and `index` is out of range or points at a blank cell.
     MissingPlotDataError
         If no DataFrame can be retrieved from the plot.
 
@@ -403,7 +418,8 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     if isinstance(plot, PlotSpec):
         frame = plot.as_dict().get("data")
     elif isinstance(plot, SupPlotsSpec):
-        frame = plot.as_dict().get("figures")[index].get("data")
+        # numpy integers index a grid too, as they did before the blank-cell check
+        frame = get_figure(plot, int(operator.index(index))).as_dict().get("data")
     else:
         msg = f"Plot MUST be a `PlotSpec` or `SupPlotsSpec` object, type={type(plot)}"
         raise InvalidPlotSpecError(msg)

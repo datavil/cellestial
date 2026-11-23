@@ -149,7 +149,7 @@ class UnknownParameterError(TypeError, CellestialError):
 
 
 class GridIndexError(IndexError, CellestialError):
-    """Raised when a figure index is out of range for a grid of plots."""
+    """Raised when a figure index is out of range for a grid of plots or points at a blank cell."""
 
     def __init__(self, message: str):
         super().__init__(message)
