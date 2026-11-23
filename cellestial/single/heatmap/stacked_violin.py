@@ -480,9 +480,6 @@ def stacked_violin(
     if key_labels and key_groups is not None:
         plot += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
 
-    if not rectangle:
-        plot += theme(axis_line=element_line(color="#1f1f1f"))
-
     # ADD: theme
     plot += _THEME_DOTPLOT
     # after the theme preset, which replaces any earlier theme
@@ -497,6 +494,8 @@ def stacked_violin(
                 **(rectangle_kwargs or {}),
             )
         )
+    else:
+        plot += theme(axis_line=element_line(color="#1f1f1f"))
     if dendrogram:
         plot += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
@@ -515,6 +514,7 @@ def stacked_violin(
         y_span=y_max_limit + 0.5,
         y_limits=[-0.5, y_max_limit],
         x_labels=x_keys,
+        key_group_labels=list(key_groups) if key_labels and key_groups else [],
         y_labels=y_order_groups,
         legend_width=legend_width,
         legend_height=legend_height,

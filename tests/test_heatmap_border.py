@@ -62,3 +62,9 @@ def test_annotated_heatmap_panel_border_boxes_the_heatmap_only(adata):
     rect, _ = _border(svg, "#ab1234")
     widest = max((float(width) for _, _, width, _ in _RECT.findall(svg)), default=0)
     assert rect[2] == pytest.approx(widest, abs=0.5)
+
+
+@pytest.mark.parametrize("name", PLOTS)
+def test_rectangle_false_keeps_the_axis_lines(adata, group_key, name):
+    spec = PLOTS[name](adata, keys=GROUPS, group_by=group_key, rectangle=False).as_dict()
+    assert spec["theme"]["axis_line"].get("blank") is not True

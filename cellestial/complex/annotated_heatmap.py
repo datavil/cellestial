@@ -50,7 +50,12 @@ from cellestial.single.heatmap.utilities import _resolve_key_groups, _scale_valu
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _check_dendrogram_groups, _fill_gradient, _warn
 from cellestial.util.dendrogram import _dendrogram_line_theme, _get_dendrogram_tree
-from cellestial.util.errors import InvalidArgumentError, _did_you_mean, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    UnknownParameterError,
+    _did_you_mean,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _modality_source
 
 if TYPE_CHECKING:
@@ -397,6 +402,35 @@ def _bracket_layers(
     ]
 
 
+def _reject_removed_annotated_heatmap_keywords(geom_kwargs: dict[str, object]) -> None:
+    """
+    Reject the removed `track_titles` and `dendrogram_kwargs` before they reach the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments `annotated_heatmap` forwards to its geom.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds `track_titles` or `dendrogram_kwargs`.
+    """
+    if "track_titles" in geom_kwargs:
+        value = geom_kwargs["track_titles"]
+        msg = (
+            "`track_titles` was split into `row_track_titles` and `column_track_titles`; "
+            f"pass `row_track_titles={value!r}, column_track_titles={value!r}`."
+        )
+        raise UnknownParameterError(msg)
+    if "dendrogram_kwargs" in geom_kwargs:
+        msg = (
+            "`dendrogram_kwargs` was removed from `annotated_heatmap`: the tree is an axis "
+            "guide now. Style it with `dendrogram_color` and `dendrogram_size`."
+        )
+        raise UnknownParameterError(msg)
+
+
 def annotated_heatmap(
     data: AnnData | MuData,
     keys: Sequence[str],
@@ -593,6 +627,8 @@ def annotated_heatmap(
         If `data` is not a supported single-cell data object.
     DuplicateKeysError
         If a key appears more than once in `keys`.
+    UnknownParameterError
+        If the removed `track_titles` or `dendrogram_kwargs` is passed.
     DendrogramMismatchError
         If `dendrogram` is set and the dendrogram's groups differ from the groups
         in the data, or one must be computed for a grouping with categories that
@@ -637,6 +673,7 @@ def annotated_heatmap(
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
 
+    _reject_removed_annotated_heatmap_keywords(geom_kwargs)
     keys, _ = _resolve_key_groups(list(keys))
     column_annotations = _as_list(column_annotations)
     row_annotations = _as_list(row_annotations)
@@ -955,7 +992,7 @@ def annotated_heatmap(
             msg = (
                 f"`group_labels` names blocks that `variable_group_by={variable_group_by!r}` "
                 f"does not have: {unknown}. Use its values as keys. "
-                f"{_did_you_mean(unknown, key_groups)}"
+                f"{_did_you_mean(unknown, list(dict.fromkeys(key_groups)))}"
             ).strip()
             raise InvalidArgumentError(msg)
         blocks = []

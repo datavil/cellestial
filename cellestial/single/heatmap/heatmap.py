@@ -600,6 +600,7 @@ def heatmap(
             y_span=y_max_limit - data_bottom,
             y_limits=[data_bottom, y_max_limit],
             x_labels=x_keys,
+            key_group_labels=list(key_groups) if key_labels and key_groups else [],
             y_labels=y_order_groups,
             legend_width=legend_width,
             legend_height=legend_height,

@@ -530,9 +530,6 @@ def dotplot(
     if key_labels and key_groups is not None:
         dtplt += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
 
-    if not rectangle:
-        dtplt += theme(axis_line=element_line(color="#1f1f1f"))
-
     # ADD: layers
     dtplt += _THEME_DOTPLOT
     # after the theme preset, which replaces any earlier theme
@@ -547,6 +544,8 @@ def dotplot(
                 **(rectangle_kwargs or {}),
             )
         )
+    else:
+        dtplt += theme(axis_line=element_line(color="#1f1f1f"))
     if dendrogram:
         dtplt += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
@@ -557,6 +556,7 @@ def dotplot(
         y_span=y_max_limit + 0.5,
         y_limits=[-0.5, y_max_limit],
         x_labels=x_keys,
+        key_group_labels=list(key_groups) if key_labels and key_groups else [],
         y_labels=y_order_groups,
         legend_width=_LEGEND_WIDTH,
         legend_height=_LEGEND_HEIGHT,

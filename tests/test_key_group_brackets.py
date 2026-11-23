@@ -64,3 +64,16 @@ def test_removed_key_label_text_parameters_raise(adata, group_key, name, removed
 
     with pytest.raises(UnknownParameterError, match=rf"`{removed}` was removed.*axis_text_x"):
         PLOTS[name](adata, group_key, keys=GROUPS, **{removed: 1})
+
+
+@pytest.mark.parametrize("name", ["dotplot", "stacked_violin", "matrixplot"])
+def test_long_group_names_keep_full_size_cells(adata, group_key, name):
+    from cellestial.single.heatmap.utilities import _CELL_SIZE, _panel_size
+
+    groups = {"Myeloid cell markers and a much longer description": ["CST3", "LYZ"], "T": ["CD3D"]}
+    plot = PLOTS[name](adata, group_key, keys=groups)
+    _, height = _panel_size(plot)
+    # one fixed-size cell per group row (violins 1.5 times taller): the canvas
+    # leaves room above the panel for the names
+    ratio = 1.5 if name == "stacked_violin" else 1.0
+    assert height == pytest.approx(adata.obs[group_key].nunique() * _CELL_SIZE * ratio, abs=2)

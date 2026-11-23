@@ -535,6 +535,7 @@ def _fixed_cell_layout(
     legend_height: float,
     cell_height_ratio: float = 1.0,
     minimum_width: float = 0,
+    key_group_labels: Sequence[str] = (),
 ) -> PlotSpec:
     """
     Lock the cell aspect ratio and size the canvas so every cell is `_CELL_SIZE` wide.
@@ -549,6 +550,7 @@ def _fixed_cell_layout(
     per side, so a single key or group gets wider cells instead of a clipped legend.
     `y_limits` are passed to the fixed coordinates, which replace any coordinates
     added before. The canvas is never narrower than `minimum_width`.
+    `key_group_labels` are the rotated key-group names drawn above the panel.
     """
     panel_width = x_span * _CELL_SIZE
     panel_height = y_span * _CELL_SIZE * cell_height_ratio
@@ -556,6 +558,13 @@ def _fixed_cell_layout(
     x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
     other_width = y_label_width + legend_width + _MARGIN
     other_height = x_label_height + _MARGIN
+    if key_group_labels:
+        # Rotated names above the panel, plus the bracket under them. Overestimated
+        # (any theme font size) so the probe panel is never squeezed; the probes
+        # then measure the real room.
+        other_height += (
+            max(len(label) for label in key_group_labels) * 2 * _CHARACTER_WIDTH + _MARGIN
+        )
     plot += coord_fixed(ratio=cell_height_ratio, ylim=y_limits)
     # Probe panels get twice the minimum size so the backend never squeezes the legend.
     probe_width = min(other_width + max(panel_width, 2 * _PANEL_MIN_SIZE), _PROBE_SPAN)
@@ -567,10 +576,15 @@ def _fixed_cell_layout(
     if tall is not None and wide is not None:
         other_width = probe_width - tall[0]
         other_height = probe_height - wide[1]
-    return plot + ggsize(
-        max(other_width + max(panel_width, _PANEL_MIN_SIZE), minimum_width),
-        max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height),
-    )
+    width = max(other_width + max(panel_width, _PANEL_MIN_SIZE), minimum_width)
+    height = max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height)
+    if key_group_labels and tall is not None and wide is not None:
+        # Tall key-group names leave a short canvas, where a legend taller than the
+        # panel takes more room than the probes measured: grow by what is missing.
+        final = _panel_size(plot + ggsize(width, height))
+        if final is not None and final[1] < panel_height - 1:
+            height += panel_height - final[1]
+    return plot + ggsize(width, height)
 
 
 # ---------------------------------------------------------------------------

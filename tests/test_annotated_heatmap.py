@@ -485,3 +485,26 @@ def test_annotated_heatmap_empty_key_labels_label_no_key(adata, markers, group_k
         for layer in spec["layers"]
         if layer["geom"] == "segment" and "xend" in layer["mapping"] and "yend" in layer["mapping"]
     ]
+
+
+@pytest.mark.parametrize(
+    ("removed", "hint"),
+    [("track_titles", "row_track_titles"), ("dendrogram_kwargs", "dendrogram_color")],
+)
+def test_annotated_heatmap_rejects_removed_keywords(adata, removed, hint):
+    from cellestial.errors import UnknownParameterError
+
+    with pytest.raises(UnknownParameterError, match=hint):
+        cl.annotated_heatmap(adata, keys=["CD3D", "LYZ"], group_by="leiden", **{removed: True})
+
+
+def test_annotated_heatmap_group_labels_hint_lists_each_block_once(adata):
+    with pytest.raises(InvalidArgumentError) as error:
+        cl.annotated_heatmap(
+            adata,
+            keys=["CD3D", "LYZ", "MS4A1"],
+            group_by="leiden",
+            variable_group_by="highly_variable",
+            group_labels={"Fals": "x"},
+        )
+    assert str(error.value).count("'false'") <= 1

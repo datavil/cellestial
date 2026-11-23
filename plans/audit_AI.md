@@ -130,6 +130,7 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_key_groups_guide` | Claude Opus 5.5 |  |  |  |  |
 | `_key_groups_theme` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_removed_key_label_text` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_removed_annotated_heatmap_keywords` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -367,3 +368,5 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `heatmap` (per-cell dendrogram via `leaf_levels` axis tree) | Claude Opus 5.5 |  |
 | `_dendrogram_y_axis` (`leaf_levels`, `breaks`, `labels`), `_dendrogram_line_theme` (`axis`) | Claude Opus 5.5 |  |
 | `umaps`, `pcas`, `tsnes`, `dimensionals`, `expressions`, `violins`, `boxplots`, `histograms`, `spatials`, `volcanos`, `markers` (`share_*` through `gggrid(axes="collect", axis_titles="collect")`; `_share_axis`, `_share_labels`, `_share_ticks`, `_grid_places` removed) | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` (`key_group_labels`, verification pass for short canvases) | Claude Opus 5.5 |  |
+| `dotplot`, `stacked_violin` (`rectangle=False` axis lines after the theme preset) | Claude Opus 5.5 |  |

@@ -160,12 +160,14 @@ change. Versions absent from the list were never released.
 - `annotated_heatmap` draws the group dendrogram as its observation axis tree
   (each leaf spanning its group's rows) instead of a line layer, and
   `dendrogram_kwargs` is removed. The tree sits outside the annotation tracks
-  and no longer takes a fixed 0.15 share of the panel. Migration: drop
+  and no longer takes a fixed 0.15 share of the panel. Passing
+  `dendrogram_kwargs` raises `UnknownParameterError`. Migration: drop
   `dendrogram_kwargs`; style the tree with `dendrogram_color` and
   `dendrogram_size`.
 - `annotated_heatmap(track_titles=...)` is split into `row_track_titles` and
   `column_track_titles`, so the two bands' track names can be shown
-  separately. Migration: `track_titles=True` becomes
+  separately; `track_titles=` raises `UnknownParameterError`. Migration:
+  `track_titles=True` becomes
   `row_track_titles=True, column_track_titles=True`.
 - Plural plots share axes and titles through ggrust's collected grid axes
   instead of blanking them by grid position. `share_axis` (and `share_ticks`
@@ -256,6 +258,11 @@ change. Versions absent from the list were never released.
   `dimension_keys`.
 
 ### Fixed
+
+- `dotplot` and `stacked_violin` with `rectangle=False` draw their axis lines
+  again; the plot theme used to blank them.
+- `dotplot`, `stacked_violin` and `matrixplot` with long key-group names size
+  the canvas to fit them instead of shrinking the cells and cutting off labels.
 
 - An observation or variable metadata column named like the id column
   (`Barcode`, `Variable`) raises `InvalidArgumentError` naming
