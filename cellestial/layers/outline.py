@@ -3,7 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["ggrust", "numpy"]
 
 from difflib import get_close_matches
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import polars as pl
@@ -273,7 +273,7 @@ def cluster_outlines(
             msg = "`group_by` is present neither as argument nor in the plot aesthetics."
             raise MissingAestheticError(msg)
         # get data
-        frame = source.get_plot_shared_data()
+        frame = cast("DataFrame", source.get_plot_shared_data())
         # get boundaries
         frame = _get_density_boundaries(
             frame,

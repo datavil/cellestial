@@ -2,6 +2,8 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "numpy", "scipy.sparse"]
 
+from typing import Any
+
 import numpy as np
 import polars as pl
 from anndata import AnnData
@@ -26,7 +28,7 @@ def _highest_expressed_genes_frame(
         if n > data.n_vars:
             msg = f"Requested n={n} genes, but only {data.n_vars} genes available in data."
             raise InvalidArgumentError(msg)
-        X = data.X
+        X: Any = data.X  # in-memory ndarray or sparse after the check below
         # matmul and fancy indexing below require an in-memory ndarray/sparse;
         # fail fast on backed/dask/zappy rather than crashing deep in the math.
         if not (isinstance(X, np.ndarray) or issparse(X)):

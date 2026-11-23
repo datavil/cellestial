@@ -484,8 +484,8 @@ def _spatial(
         ).drop("table_row")
     else:
         frame = frame.with_columns(
-            pl.Series("spatial_x", spot_coordinates[:, 0]),
-            pl.Series("spatial_y", spot_coordinates[:, 1]),
+            pl.Series("spatial_x", spot_coordinates[:, 0]),  # ty: ignore[not-subscriptable]
+            pl.Series("spatial_y", spot_coordinates[:, 1]),  # ty: ignore[not-subscriptable]
         )
 
     # HANDLE: groups / drop filters (categorical-only)

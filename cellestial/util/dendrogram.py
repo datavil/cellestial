@@ -16,7 +16,7 @@ from ggrust import (
     scale_y_dendro,
     theme,
 )
-from ggrust.plot.core import FeatureSpec, FeatureSpecArray
+from ggrust.plot.core import FeatureSpec
 
 from cellestial.util.errors import (
     DendrogramMismatchError,
@@ -96,7 +96,7 @@ def _dendrogram_y_axis(
     leaf_levels: dict[str, list[str]] | None = None,
     breaks: list[str] | None = None,
     labels: list[str] | None = None,
-) -> FeatureSpecArray:
+) -> FeatureSpec:
     """
     Order the y-axis by `tree` and draw it right of the panel, as scanpy does.
 

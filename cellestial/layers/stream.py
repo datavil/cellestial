@@ -4,7 +4,7 @@ __lazy_modules__ = ["ggrust"]
 
 import re
 from difflib import get_close_matches
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import polars as pl
 from ggrust import (
@@ -26,7 +26,7 @@ from cellestial.util.errors import (
 )
 
 if TYPE_CHECKING:
-    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def stream(
@@ -193,7 +193,7 @@ def stream(
     )
     explicit_plot = plot
 
-    def _build(receiving_plot: PlotSpec) -> FeatureSpecArray:
+    def _build(receiving_plot: PlotSpec) -> FeatureSpec:
         source = explicit_plot if explicit_plot is not None else receiving_plot
         # extract data and mapping from plot
         frame = retrieve(source)
@@ -280,7 +280,7 @@ def stream(
         )
 
         # handle arrow kwargs
-        _arrow_kwargs = {
+        _arrow_kwargs: dict[str, Any] = {
             "color": arrow_color,
             "size": arrow_size,
             "alpha": arrow_alpha,

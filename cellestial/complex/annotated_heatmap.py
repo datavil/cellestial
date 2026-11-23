@@ -4,7 +4,7 @@ __lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from collections.abc import Mapping
 from itertools import pairwise
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import polars as pl
 from anndata import AnnData
@@ -245,7 +245,7 @@ def _run_boundaries(labels: Sequence) -> list[int]:
 
 def _annotation_scale(
     series: pl.Series, colors: AnnotationColors | None, palette: str, *, legend: bool
-) -> FeatureSpec | None:
+) -> FeatureSpec:
     """
     Resolve the fill scale for one annotation track.
 
@@ -1051,8 +1051,14 @@ def annotated_heatmap(
         # many-row heatmap); `coord_cartesian` frees the aspect.
         + coord_cartesian()
         + ggside(
-            x_pos=variable_side if variable_band == "x" else observation_side,
-            y_pos=variable_side if variable_band == "y" else observation_side,
+            x_pos=cast(
+                "Literal['top', 'bottom']",
+                variable_side if variable_band == "x" else observation_side,
+            ),
+            y_pos=cast(
+                "Literal['left', 'right']",
+                variable_side if variable_band == "y" else observation_side,
+            ),
         )
         + _THEME_HEATMAP
         + theme(

@@ -249,7 +249,7 @@ class _Container:
 
         # Index `X` directly: an AnnData view also slices `.raw`, copying all of it.
         positions = self._data.var_names.get_indexer_for(keys)
-        matrix = self._data.X[:, positions]
+        matrix = self._data.X[:, positions]  # ty: ignore[not-subscriptable]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         else:
@@ -470,7 +470,7 @@ class _MuDataContainer(_Container):
         part = self._data.mod[modality]
         self._require_unique_variables(part.var_names, [name], f"modality `{modality}`")
         self._require_matrix(part, [name], f"modality `{modality}`")
-        matrix = part.X[:, part.var_names.get_indexer_for([name])]
+        matrix = part.X[:, part.var_names.get_indexer_for([name])]  # ty: ignore[not-subscriptable]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         values = np.asarray(matrix).reshape(-1)

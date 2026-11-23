@@ -17,7 +17,7 @@ from difflib import get_close_matches
 from math import ceil, floor, isfinite, log10
 from numbers import Real
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, cast, overload
+from typing import TYPE_CHECKING, Literal, TypeGuard, cast, overload
 
 import polars as pl
 from anndata import AnnData
@@ -44,6 +44,8 @@ from cellestial.util.errors import (
 )
 
 if TYPE_CHECKING:
+    from spatialdata import SpatialData
+
     from cellestial.frames._container import _Container
 
 _PACKAGE_ROOT = str(Path(__file__).parents[1])
@@ -65,7 +67,7 @@ def _container(data: AnnData | MuData) -> _Container:
     return _build_container(data)
 
 
-def _is_spatialdata(data: object) -> bool:
+def _is_spatialdata(data: object) -> TypeGuard[SpatialData]:
     """
     Return whether `data` is a SpatialData object.
 

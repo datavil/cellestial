@@ -3,7 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata", "numpy"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 import polars as pl
@@ -317,9 +317,12 @@ def volcano(
     # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
     # Dropping them would silently hide the most significant features (and their labels).
     # Push them just above the densest finite cluster instead.
-    finite_max = frame.filter(pl.col(negative_log_pvalue_column).is_finite())[
-        negative_log_pvalue_column
-    ].max()
+    finite_max = cast(
+        "float | None",
+        frame.filter(pl.col(negative_log_pvalue_column).is_finite())[
+            negative_log_pvalue_column
+        ].max(),
+    )
     cap = (finite_max or 0.0) * 1.05 + 1.0
     frame = frame.with_columns(
         pl.when(pl.col(negative_log_pvalue_column).is_finite())
@@ -349,16 +352,16 @@ def volcano(
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
     elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        if not set(tooltips).issubset(frame.columns):
-            missing = set(tooltips) - set(frame.columns)
+        tooltip_columns = cast("list[str]", list(tooltips))
+        if not set(tooltip_columns).issubset(frame.columns):
+            missing = set(tooltip_columns) - set(frame.columns)
             msg = (
                 f"`tooltips` names columns that are not in the volcano data: "
                 f"{sorted(missing, key=str)}. Available: {frame.columns}. "
                 "Pass column names from that list, or None for the default tooltips."
             )
             raise InvalidArgumentError(msg)
-        tooltips_spec = layer_tooltips(tooltips)
+        tooltips_spec = layer_tooltips(tooltip_columns)
     elif isinstance(tooltips, FeatureSpec):
         tooltips_spec = tooltips
 
@@ -382,7 +385,7 @@ def volcano(
 
     # ADD: threshold lines
     if threshold_lines:
-        _threshold_kwargs = {
+        _threshold_kwargs: dict[str, Any] = {
             "color": threshold_color,
             "size": threshold_size,
             "linetype": threshold_linetype,
@@ -416,7 +419,7 @@ def volcano(
         )
         label_frame = pl.concat([top_up, top_down])
         if label_frame.height > 0:
-            _label_kwargs = {
+            _label_kwargs: dict[str, Any] = {
                 "color": label_color,
                 "size": label_size,
                 "segment_size": segment_size,
@@ -752,15 +755,15 @@ def volcanos(
 
     vlcns = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
         axes="collect" if share_axis else None,
         axis_titles="collect" if share_labels else None,
         guides=guides,

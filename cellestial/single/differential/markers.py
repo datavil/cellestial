@@ -3,7 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import polars as pl
 from anndata import AnnData
@@ -279,7 +279,7 @@ def markers(
 
         # ADD: optional dashed score-curve path (drawn under the text)
         if line:
-            _line_kwargs = {
+            _line_kwargs: dict[str, Any] = {
                 "color": line_color,
                 "size": line_size,
                 "alpha": line_alpha,
@@ -289,7 +289,7 @@ def markers(
 
         # A constant `color=` would override the rank color aesthetic, so only
         # set it when not coloring by rank.
-        _text_color = {} if rank_color else {"color": text_color}
+        _text_color: dict[str, Any] = {} if rank_color else {"color": text_color}
         plot += geom_text(
             aes(**_mapping),
             size=text_size,
@@ -323,15 +323,15 @@ def markers(
     grid = (
         gggrid(
             plots,
-            ncol=ncol,  # ty:ignore[invalid-argument-type]
-            sharex=sharex,  # ty:ignore[invalid-argument-type]
-            sharey=sharey,  # ty:ignore[invalid-argument-type]
-            widths=widths,  # ty:ignore[invalid-argument-type]
-            heights=heights,  # ty:ignore[invalid-argument-type]
-            hspace=hspace,  # ty:ignore[invalid-argument-type]
-            vspace=vspace,  # ty:ignore[invalid-argument-type]
-            fit=fit,  # ty:ignore[invalid-argument-type]
-            align=align,  # ty:ignore[invalid-argument-type]
+            ncol=ncol,
+            sharex=sharex,
+            sharey=sharey,
+            widths=widths,
+            heights=heights,
+            hspace=hspace,
+            vspace=vspace,
+            fit=fit,
+            align=align,
             axes="collect" if share_axis else None,
             axis_titles="collect" if share_labels else None,
             guides=guides,

@@ -186,7 +186,7 @@ def layout(
         gggrid(row, ncol=len(row), widths=row_widths[index], hspace=hspace)
         for index, row in enumerate(plot_rows)
     ]
-    return gggrid(rows, ncol=1, heights=heights, vspace=vspace)
+    return gggrid(rows, ncol=1, heights=None if heights is None else list(heights), vspace=vspace)
 
 
 def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
@@ -355,9 +355,10 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
 
         cl.get_mapping(umap)
     """
+    plot_dict = plot.as_dict()
     return {
-        **plot.as_dict().get("mapping"),  # from the global mapping,
-        **plot.as_dict().get("layers")[index].get("mapping"),  # from a layer.
+        **(plot_dict.get("mapping") or {}),  # from the global mapping,
+        **(plot_dict["layers"][index].get("mapping") or {}),  # from a layer.
     }
 
 

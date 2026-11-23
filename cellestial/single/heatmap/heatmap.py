@@ -438,7 +438,7 @@ def heatmap(
                 frame.lazy().filter(pl.col(key).is_not_null()).select(group_by) for key in keys
             )
             .unique(maintain_order=True)
-            .collect()[group_by]
+            .collect()[group_by]  # ty: ignore[not-subscriptable]
             .cast(pl.String)
             .to_list()
         )

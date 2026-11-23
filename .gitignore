@@ -74,3 +74,4 @@ figures/
 
 # pytest-cov data file
 tests/.coverage
+tests/coverage.xml

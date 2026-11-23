@@ -4,7 +4,7 @@ __lazy_modules__ = ["ggrust"]
 
 from difflib import get_close_matches
 from itertools import combinations
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 import polars as pl
 from ggrust import aes, ggsize, stat_compare_means
@@ -20,12 +20,21 @@ from cellestial.util.errors import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, LayerSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from polars import DataFrame
 
-_TEST_METHODS = {"mannwhitney": "wilcox.test", "ttest": "t.test"}
-_CORRECTION_METHODS = {"none": "none", "bonferroni": "bonferroni", "fdr_bh": "BH"}
-_LABELS = {"stars": "p.signif", "pvalue": "p.format"}
+_Option = TypeVar("_Option", bound=str)
+
+_TEST_METHODS: dict[str, Literal["wilcox.test", "t.test"]] = {
+    "mannwhitney": "wilcox.test",
+    "ttest": "t.test",
+}
+_CORRECTION_METHODS: dict[str, Literal["none", "bonferroni", "BH"]] = {
+    "none": "none",
+    "bonferroni": "bonferroni",
+    "fdr_bh": "BH",
+}
+_LABELS: dict[str, Literal["p.signif", "p.format"]] = {"stars": "p.signif", "pvalue": "p.format"}
 # canvas used by ggrust when the plot sets no `ggsize`
 _DEFAULT_PLOT_SIZE = (600, 400)
 # canvas height outside the panel (x axis, margins), in pixels
@@ -38,7 +47,7 @@ _BRACKET_STEP_PIXELS = 22
 _DEFAULT_LABEL_SIZE = 5
 
 
-def _option(name: str, value: str, options: dict[str, str]) -> str:
+def _option(name: str, value: str, options: dict[str, _Option]) -> _Option:
     """Translate a cellestial option into its `stat_compare_means` name."""
     if value not in options:
         msg = f"`{name}` must be one of {list(options)}. Received: {value!r}"
@@ -139,9 +148,9 @@ def _bracket_layout(
         raise InvalidComparisonError(msg)
 
     # stack the brackets above the data without overlapping
-    data_min = finite_frame[y].min()
-    data_max = finite_frame[y].max()
-    data_range = data_max - data_min  # ty:ignore[unsupported-operator]
+    data_min = cast("float", finite_frame[y].min())
+    data_max = cast("float", finite_frame[y].max())
+    data_range = data_max - data_min
     # constant data has no range to pad by; use 1, as the continuous scale does
     data_range = data_range or 1.0
     _y_position = data_max + data_range * y_padding if y_position is None else y_position
@@ -318,7 +327,7 @@ def bracket(
     explicit_x = x
     explicit_y = y
 
-    def _build(receiving_plot: PlotSpec) -> LayerSpec | FeatureSpecArray:
+    def _build(receiving_plot: PlotSpec) -> FeatureSpec:
         source = explicit_plot if explicit_plot is not None else receiving_plot
         # extract data and mapping from the plot
         frame = retrieve(source)
@@ -350,8 +359,8 @@ def bracket(
                 "values. Each comparison needs at least 2 finite observations per group."
             )
             raise InvalidComparisonError(msg)
-        data_max = values.max()
-        data_range = data_max - values.min()  # ty:ignore[unsupported-operator]
+        data_max = cast("float", values.max())
+        data_range = data_max - cast("float", values.min())
         panel_height = plot_height - _NON_PANEL_HEIGHT
         # constant data: size the step as if the range were 1 so brackets still stack
         units_per_pixel = (data_range or 1.0) * (1 + 2 * _Y_EXPAND) / panel_height
@@ -371,7 +380,7 @@ def bracket(
 
         # build the layer
         local_mapping = mapping or aes()
-        size_kwargs = {} if label_size is None else {"size": label_size}
+        size_kwargs: dict[str, Any] = {} if label_size is None else {"size": label_size}
         local_color = None if "color" in local_mapping.as_dict() else color
         layer = stat_compare_means(
             aes(x=x, y=y, **local_mapping.as_dict()),

@@ -67,7 +67,7 @@ def _element_in_coordinate_system(element, coordinate_system: str) -> bool:
     """True when `element` has a transformation registered for `coordinate_system`."""
     from spatialdata.transformations import get_transformation
 
-    return coordinate_system in get_transformation(element, get_all=True)
+    return coordinate_system in get_transformation(element, get_all=True)  # ty: ignore[unsupported-operator]
 
 
 def _resolve_shapes_name(data: SpatialData, shapes_name: str | None, table: AnnData) -> str:

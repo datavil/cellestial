@@ -849,7 +849,11 @@ def _compute_violin_polygons(
                     )
                 polygon_id += 1
                 continue
-            if rng is not None and len(group_values) > kde_max_samples:
+            if (
+                rng is not None
+                and kde_max_samples is not None
+                and len(group_values) > kde_max_samples
+            ):
                 kde_input = group_values[
                     rng.choice(len(group_values), size=kde_max_samples, replace=False)
                 ]
