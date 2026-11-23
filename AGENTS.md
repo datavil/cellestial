@@ -143,6 +143,9 @@ Adding a plot = one file in the right `single/` subpackage + export in `__init__
 5. Bug-hunting sub agent. Fix confirmed bugs.
 6. Update `CHANGELOG.md` / `plans/audit_AI.md` if applicable.
 7. Format, test, commit, push.
+8. Work done in a separate session or worktree: when it is finished, merge its branch
+   into `dev`, run the full test suite on `dev`, push `dev`, then delete the stale
+   worktree and its merged branch.
 
 ## Commands
 
