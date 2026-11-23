@@ -179,6 +179,9 @@ change. Versions absent from the list were never released.
 
 ### Added
 
+- `highlight` works on plots filled by a key (e.g. `violin` or `boxplot` with
+  `fill=`) and gains `unhighlighted_params` (style of the grey copies) and
+  `calculate_per_facet` (each facet panel greys only its own rows).
 - `annotated_heatmap(variable_group_by=...)` draws group lines between the
   contiguous blocks of a variable metadata key (gene modules, say), alongside
   the `group_by` lines between observation groups.

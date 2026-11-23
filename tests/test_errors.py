@@ -5,6 +5,7 @@ import pytest
 
 import cellestial as cl
 from cellestial.util.errors import (
+    AmbiguousColumnError,
     EmptySelectionError,
     InvalidArgumentError,
     InvalidArgumentTypeError,
@@ -74,7 +75,6 @@ def test_ridge_scale_rejects_non_positive_numbers(adata, call, scale, error, par
 def test_ridge_scale_accepts_positive_numbers(adata, group_key, scale):
     cl.ridge(adata, "CD14", group_key, scale=scale)
     cl.ridges(adata, ["CD14", "MS4A1"], group_key, scale=scale)
-
 
 
 @pytest.mark.parametrize(
@@ -171,8 +171,29 @@ def test_highlight_unknown_group_reports_available(adata, cluster_key):
 
 
 def test_highlight_without_color_key_says_how_to_fix(adata):
-    with pytest.raises(MissingAestheticError, match=r"no color mapping.*key='leiden'"):
+    with pytest.raises(MissingAestheticError, match=r"no color or fill mapping.*key='leiden'"):
         cl.umap(adata) + cl.highlight("0")
+
+
+def test_highlight_continuous_fill_names_the_fill(adata, cluster_key):
+    with pytest.raises(
+        NonCategoricalColumnError, match=r"plot filled by categories.*`total_counts`"
+    ):
+        cl.violin(adata, "CD14", group_by=cluster_key, fill="total_counts") + cl.highlight("0")
+
+
+def test_highlight_color_and_fill_by_different_keys_is_refused(adata, cluster_key, group_key):
+    with pytest.raises(
+        AmbiguousColumnError, match=rf"colored by `{cluster_key}` and filled by `{group_key}`"
+    ):
+        cl.violin(
+            adata, "CD14", group_by=cluster_key, fill=group_key, color=cluster_key
+        ) + cl.highlight("0")
+
+
+def test_highlight_unknown_group_in_fill_names_the_fill(adata, cluster_key):
+    with pytest.raises(KeyNotFoundError, match=r"`groups` \['leidn'\] not found in fill `leiden`"):
+        cl.violin(adata, "CD14", group_by=cluster_key, fill=cluster_key) + cl.highlight("leidn")
 
 
 def test_highlight_continuous_color_says_how_to_fix(adata):
@@ -423,9 +444,7 @@ def _multipolygon_spatialdata():
 
     table = AnnData(
         X=np.ones((2, 1), dtype="float32"),
-        obs=pd.DataFrame(
-            {"instance_id": [0, 1], "region": ["mp", "mp"]}, index=["c0", "c1"]
-        ),
+        obs=pd.DataFrame({"instance_id": [0, 1], "region": ["mp", "mp"]}, index=["c0", "c1"]),
         var=pd.DataFrame(index=["G1"]),
     )
     table = TableModel.parse(table, region="mp", region_key="region", instance_key="instance_id")

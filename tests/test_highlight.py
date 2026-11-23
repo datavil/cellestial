@@ -52,3 +52,43 @@ def test_highlight_greys_out_ondata_labels(adata, cluster_key):
     # Every group label is drawn in grey, the highlighted one again on top.
     assert texts.count("0") > 0
     assert texts.count("3") == 2 * texts.count("0")
+
+
+@pytest.mark.parametrize("function", [cl.violin, cl.boxplot])
+def test_highlight_fill_mapped_distribution(adata, cluster_key, function):
+    """Plots filled by a key highlight by their fill, and only those groups get a legend key."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # theme font face warning, unrelated to highlight
+        plot = function(adata, "CD14", group_by=cluster_key, fill=cluster_key) + cl.highlight("3")
+        svg = plot.to_svg()
+    texts = _svg_texts(svg)
+    assert "#bebebe" in svg.lower()
+    # Every group is still on the x axis, the legend title is drawn once.
+    assert set(adata.obs[cluster_key].cat.categories) <= texts
+
+
+def test_highlight_unhighlighted_params_restyle_the_grey(adata, cluster_key):
+    """`unhighlighted_params` replaces the grey of the other cells."""
+    plot = cl.umap(adata, cluster_key, tooltips="none") + cl.highlight(
+        "0", unhighlighted_params={"color": "#ff00ff"}
+    )
+    svg = plot.to_svg().lower()
+    assert "#ff00ff" in svg
+    assert "#bebebe" not in svg
+
+
+def test_highlight_calculate_per_facet_keeps_every_panel(adata, cluster_key, group_key):
+    """Per facet, panels without a highlighted group still show their own cells in grey."""
+    from ggrust import facet_wrap
+
+    base = cl.umap(adata, cluster_key, tooltips="none", add_keys=[group_key]) + facet_wrap(
+        group_key
+    )
+    panels = set(adata.obs[group_key].cat.categories)
+    highlighted = adata.obs[cluster_key] == "0"
+    with_highlight = set(adata.obs.loc[highlighted, group_key].unique())
+    assert with_highlight < panels  # the test needs a panel without the group
+    per_facet = _svg_texts((base + cl.highlight("0", calculate_per_facet=True)).to_svg())
+    across = _svg_texts((base + cl.highlight("0")).to_svg())
+    assert panels <= per_facet
+    assert not (panels - with_highlight) & across
