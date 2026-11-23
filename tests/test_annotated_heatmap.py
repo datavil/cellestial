@@ -5,7 +5,7 @@ from ggrust.plot.core import PlotSpec
 
 import cellestial as cl
 from cellestial.complex.annotated_heatmap import _bin_observations
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.errors import InvalidArgumentError, UnsupportedDataTypeError
 
 
 def test_annotated_heatmap_default(adata, markers, group_key):
@@ -176,7 +176,8 @@ def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster
         group_by=group_key,
         column_annotations=["highly_variable"],
         row_annotations=[cluster_key],
-        track_titles=True,
+        row_track_titles=True,
+        column_track_titles=True,
         max_rows=20,
     ).as_dict()
     side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
@@ -184,8 +185,35 @@ def test_annotated_heatmap_track_titles_shown(adata, markers, group_key, cluster
     assert "breaks" not in side_scales["x"]
     assert "breaks" not in side_scales["y"]
     assert side_scales["x"]["position"] == "right"
-    # turned names on top, so they don't inflate the bottom axis area
-    assert side_scales["y"]["position"] == "top"
+    # both shown: the y band's names move below, out of the x band's corner
+    assert side_scales["y"]["position"] == "bottom"
+
+
+@pytest.mark.parametrize(
+    ("row_track_titles", "column_track_titles"), [(True, False), (False, True)]
+)
+def test_annotated_heatmap_track_titles_per_band(
+    adata, markers, group_key, cluster_key, row_track_titles, column_track_titles
+):
+    # transposed: row tracks in the top (x) band, column tracks in the left (y) band
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable"],
+        row_annotations=[cluster_key],
+        row_track_titles=row_track_titles,
+        column_track_titles=column_track_titles,
+        transpose=True,
+        max_rows=20,
+    ).as_dict()
+    side_scales = {scale["ggside"]: scale for scale in spec["scales"] if "ggside" in scale}
+
+    assert ("breaks" not in side_scales["x"]) == row_track_titles
+    assert ("breaks" not in side_scales["y"]) == column_track_titles
+    if column_track_titles:
+        # turned names on top, so they don't inflate the bottom axis area
+        assert side_scales["y"]["position"] == "top"
 
 
 def test_annotated_heatmap_transpose_moves_tracks_and_group_lines(
@@ -239,12 +267,13 @@ def test_annotated_heatmap_transpose_moves_dendrogram_above_heatmap(adata, marke
     ).as_dict()
 
     assert spec["layers"][0]["geom"] == "raster"
-    (tree,) = _side_layers(spec, "x")
-    assert tree["geom"] == "line"
-    assert spec["ggside"]["x_pos"] == "top"
-    # root away from the heatmap: heights grow upward from the band's inner edge
-    assert min(tree["data"]["height"]) == pytest.approx(-0.5)
-    assert max(tree["data"]["height"]) > 0
+    (tree,) = [scale for scale in spec["scales"] if "dendrogram" in scale]
+    assert tree["aesthetic"] == "x"
+    assert tree["position"] == "top"
+    assert tree["guide"] == {"name": "axis_dendro"}
+    # every observation row is one level of the tree's leaves
+    rows = [level for levels in tree["leaf_levels"].values() for level in levels]
+    assert sorted(rows, key=int) == [str(index) for index in range(len(rows))]
 
 
 def test_annotated_heatmap_layers_and_layers_all_are_added(adata, markers, group_key, cluster_key):
@@ -276,3 +305,206 @@ def test_annotated_heatmap_raster_warns_and_removes_tooltips(adata, markers, gro
 
     heatmap_layer = next(layer for layer in plot.as_dict()["layers"] if layer["geom"] == "raster")
     assert "tooltips" not in heatmap_layer
+
+
+def test_annotated_heatmap_transpose_puts_first_group_left_and_first_key_top(
+    adata, markers, group_key
+):
+    # Regression: transposed, the first group landed on the right and the first
+    # key at the bottom, reversing the diagonal.
+    keys = markers[:3]
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=keys,
+        group_by=group_key,
+        row_annotations=[group_key],
+        transpose=True,
+        max_rows=40,
+    ).as_dict()
+
+    (track,) = _side_layers(spec, "x")
+    track_frame = pl.DataFrame(track["data"]).sort("position_y")
+    assert track_frame[group_key][0] == adata.obs[group_key].iloc[0]
+    key_scale = next(scale for scale in spec["scales"] if scale.get("labels") == keys)
+    assert key_scale["aesthetic"] == "y"
+    assert keys[key_scale["breaks"].index(max(key_scale["breaks"]))] == keys[0]
+
+
+def test_annotated_heatmap_upright_keeps_first_group_top_and_first_key_left(
+    adata, markers, group_key
+):
+    keys = markers[:3]
+    spec = cl.annotated_heatmap(
+        adata, keys=keys, group_by=group_key, row_annotations=[group_key], max_rows=40
+    ).as_dict()
+
+    (track,) = _side_layers(spec, "y")
+    track_frame = pl.DataFrame(track["data"]).sort("position_y", descending=True)
+    assert track_frame[group_key][0] == adata.obs[group_key].iloc[0]
+    key_scale = next(scale for scale in spec["scales"] if scale.get("labels") == keys)
+    assert key_scale["aesthetic"] == "x"
+    assert key_scale["breaks"] == [0, 1, 2]
+
+
+@pytest.mark.parametrize(
+    ("transpose", "position", "expected"),
+    [(False, "x", [1.5, 2.5]), (True, "y", [1.5, 0.5])],
+)
+def test_annotated_heatmap_variable_group_by_separates_key_blocks(
+    adata, markers, transpose, position, expected
+):
+    keys = markers[:4]
+    data = adata[:, keys].copy()
+    data.var["module"] = ["a", "a", "b", "c"]
+    spec = cl.annotated_heatmap(
+        data, keys=keys, variable_group_by="module", transpose=transpose, max_rows=20
+    ).as_dict()
+
+    (lines,) = [layer for layer in spec["layers"] if layer["geom"] == "segment"]
+    assert pl.DataFrame(lines["data"])[position].to_list() == expected
+    assert lines["color"] == "white"
+
+
+def test_annotated_heatmap_variable_group_by_needs_group_lines(adata, markers):
+    keys = markers[:4]
+    data = adata[:, keys].copy()
+    data.var["module"] = ["a", "a", "b", "c"]
+    spec = cl.annotated_heatmap(
+        data, keys=keys, variable_group_by="module", group_lines=False, max_rows=20
+    ).as_dict()
+
+    assert not [layer for layer in spec["layers"] if layer["geom"] == "segment"]
+
+
+def test_annotated_heatmap_key_labels_unknown_key_raises(adata, markers, group_key):
+    with pytest.raises(InvalidArgumentError, match="key_labels"):
+        cl.annotated_heatmap(adata, keys=markers[:3], group_by=group_key, key_labels=["nope"])
+
+
+def test_annotated_heatmap_without_key_labels_labels_every_key(adata, markers, group_key):
+    keys = markers[:3]
+    spec = cl.annotated_heatmap(adata, keys=keys, group_by=group_key, max_rows=20).as_dict()
+
+    key_scale = next(scale for scale in spec["scales"] if scale.get("aesthetic") == "x")
+    assert key_scale["labels"] == keys
+    assert "position" not in key_scale
+    assert not [layer for layer in spec["layers"] if layer["geom"] == "line"]
+
+
+def _module_data(adata, keys):
+    data = adata[:, keys].copy()
+    data.var["module"] = ["a", "a", "b", "c"]
+    return data
+
+
+def test_annotated_heatmap_group_labels_bracket_each_labelled_block(adata, markers):
+    keys = markers[:4]
+    spec = cl.annotated_heatmap(
+        _module_data(adata, keys),
+        keys=keys,
+        variable_group_by="module",
+        group_labels={"a": "Cell adhesion\nLipid metabolism", "c": "Cilium"},
+        group_labels_kwargs={"size": 4},
+        column_annotation_position="bottom",
+        transpose=True,
+        max_rows=20,
+    ).as_dict()
+
+    lines, texts, reach = (layer for layer in _side_layers(spec, "y"))
+    assert (lines["geom"], texts["geom"], reach["geom"]) == ("line", "text", "point")
+    text_frame = pl.DataFrame(texts["data"])
+    assert text_frame["text"].to_list() == ["Cell adhesion\nLipid metabolism", "Cilium"]
+    # transposed, block "a" (keys 0-1) sits at the top, "c" (key 3) at the bottom
+    assert text_frame["along"].to_list() == pytest.approx([2.5, 0.0])
+    assert texts["hjust"] == 0
+    assert texts["size"] == 4
+    # four segments (a pointed bracket) per labelled block, all outward of the band edge
+    line_frame = pl.DataFrame(lines["data"])
+    assert line_frame["segment"].n_unique() == 8
+    assert line_frame["cross"].min() == pytest.approx(-0.5)
+    assert spec["theme"]["ggside_panel_scale_y"] == pytest.approx(0.03 + 0.25)
+
+
+def test_annotated_heatmap_group_labels_requires_variable_group_by(adata, markers):
+    with pytest.raises(InvalidArgumentError, match="variable_group_by"):
+        cl.annotated_heatmap(adata, keys=markers[:4], group_labels={"a": "text"})
+
+
+def test_annotated_heatmap_group_labels_unknown_block_raises(adata, markers):
+    keys = markers[:4]
+    with pytest.raises(InvalidArgumentError, match="group_labels"):
+        cl.annotated_heatmap(
+            _module_data(adata, keys),
+            keys=keys,
+            variable_group_by="module",
+            group_labels={"nope": "text"},
+        )
+
+
+@pytest.mark.parametrize("annotation_legends", [True, False])
+def test_annotated_heatmap_annotation_legends_toggle_track_legends(
+    adata, markers, group_key, cluster_key, annotation_legends
+):
+    spec = cl.annotated_heatmap(
+        adata,
+        keys=markers[:2],
+        group_by=group_key,
+        column_annotations=["highly_variable", "means"],
+        row_annotations=[cluster_key, "pct_counts_mt"],
+        annotation_legends=annotation_legends,
+        max_rows=20,
+    ).as_dict()
+
+    fill_scales = [
+        scale
+        for scale in spec["scales"]
+        if scale.get("aesthetic") == "fill" and "ggside" not in scale
+    ]
+    tracks = {"highly_variable", "means", cluster_key, "pct_counts_mt"}
+    track_scales = [scale for scale in fill_scales if scale.get("name") in tracks]
+    assert len(track_scales) == 4
+    hidden = [scale.get("guide") == "none" for scale in track_scales]
+    assert hidden == [not annotation_legends] * 4
+    # the heatmap's color bar keeps its legend either way
+    assert all(scale.get("guide") != "none" for scale in fill_scales if scale not in track_scales)
+
+
+def test_annotated_heatmap_empty_key_labels_label_no_key(adata, markers, group_key):
+    spec = cl.annotated_heatmap(
+        adata, keys=markers[:3], group_by=group_key, key_labels=[], max_rows=20
+    ).as_dict()
+
+    key_scale = next(
+        scale
+        for scale in spec["scales"]
+        if scale.get("aesthetic") == "x" and "ggside" not in scale
+    )
+    assert key_scale["breaks"] == []
+    assert not [
+        layer
+        for layer in spec["layers"]
+        if layer["geom"] == "segment" and "xend" in layer["mapping"] and "yend" in layer["mapping"]
+    ]
+
+
+@pytest.mark.parametrize(
+    ("removed", "hint"),
+    [("track_titles", "row_track_titles"), ("dendrogram_kwargs", "dendrogram_color")],
+)
+def test_annotated_heatmap_rejects_removed_keywords(adata, removed, hint):
+    from cellestial.errors import UnknownParameterError
+
+    with pytest.raises(UnknownParameterError, match=hint):
+        cl.annotated_heatmap(adata, keys=["CD3D", "LYZ"], group_by="leiden", **{removed: True})
+
+
+def test_annotated_heatmap_group_labels_hint_lists_each_block_once(adata):
+    with pytest.raises(InvalidArgumentError) as error:
+        cl.annotated_heatmap(
+            adata,
+            keys=["CD3D", "LYZ", "MS4A1"],
+            group_by="leiden",
+            variable_group_by="highly_variable",
+            group_labels={"Fals": "x"},
+        )
+    assert str(error.value).count("'false'") <= 1

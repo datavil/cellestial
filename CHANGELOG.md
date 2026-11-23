@@ -142,8 +142,57 @@ change. Versions absent from the list were never released.
   column, a variable name nor a column of the passed `frame` raises
   `KeyNotFoundError` (with a close match) instead of being silently dropped.
   Migration: fix the misspelled name, or remove it.
+- `heatmap`, `matrixplot`, `dotplot` and `stacked_violin` draw key-group
+  brackets (`keys` as a mapping) with ggrust's nested axis guide
+  (`guide_axis_nested(side="opposite")`) instead of path and text layers. The
+  brackets sit outside the panel, so the y axis is no longer widened to make
+  room. `key_labels_text_size` and `key_labels_text_color` are removed: the
+  group names now take the x-axis text style, the same as the key names, and
+  passing either raises `UnknownParameterError` (a `TypeError`).
+  `key_labels_bracket_size`, `key_labels_bracket_color` and `key_labels_width`
+  are unchanged. Migration: drop the two parameters; style the names with
+  `+ theme(axis_text_x=element_text(...))` (this also styles the key names).
+- `dotplot` and `stacked_violin` draw their data-area border as the panel
+  border instead of a rectangle layer. `rectangle_kwargs` now goes to
+  `element_rect`, which takes options such as `linetype` and `fill` but not
+  layer options such as `alpha`. Migration: keep `linetype`; drop layer-only
+  keys from `rectangle_kwargs`.
+- `annotated_heatmap` draws the group dendrogram as its observation axis tree
+  (each leaf spanning its group's rows) instead of a line layer, and
+  `dendrogram_kwargs` is removed. The tree sits outside the annotation tracks
+  and no longer takes a fixed 0.15 share of the panel. Passing
+  `dendrogram_kwargs` raises `UnknownParameterError`. Migration: drop
+  `dendrogram_kwargs`; style the tree with `dendrogram_color` and
+  `dendrogram_size`.
+- `annotated_heatmap(track_titles=...)` is split into `row_track_titles` and
+  `column_track_titles`, so the two bands' track names can be shown
+  separately; `track_titles=` raises `UnknownParameterError`. Migration:
+  `track_titles=True` becomes
+  `row_track_titles=True, column_track_titles=True`.
+- Plural plots share axes and titles through ggrust's collected grid axes
+  instead of blanking them by grid position. `share_axis` (and `share_ticks`
+  in `violins`, `boxplots` and `histograms`) now keeps every axis whose range
+  differs from its neighbour's; only identical axes collapse. `share_ticks`
+  behaves as `share_axis`. `share_labels` draws one title per run of plots,
+  centred across the run. Migration: add `sharex=True` / `sharey=True` where
+  inner axes should still disappear across plots with different ranges.
 
 ### Added
+
+- `annotated_heatmap(variable_group_by=...)` draws group lines between the
+  contiguous blocks of a variable metadata key (gene modules, say), alongside
+  the `group_by` lines between observation groups.
+- `annotated_heatmap(key_labels=[...])` labels only those keys, spread evenly
+  along the key axis with a leader line from each key to its label (gene
+  callouts, as ComplexHeatmap's `anno_mark`), on the side opposite the column
+  annotation tracks. A theme styles them like axis labels. `key_labels=[]`
+  labels no key.
+- `annotated_heatmap(group_labels={block: text})` draws a pointed bracket and
+  (multi-line) text beside each `variable_group_by` block, such as GO terms per
+  gene module. `group_labels_width` sets the text area and
+  `group_labels_kwargs` styles the text.
+- `annotated_heatmap(annotation_legends=False)` hides the annotation tracks'
+  legends, keeping only the heatmap's color bar.
 
 - Public `cellestial.errors` module (also `cl.errors`) re-exporting every error
   class and `CellestialWarning`. `cellestial.util.errors` keeps working.
@@ -168,6 +217,14 @@ change. Versions absent from the list were never released.
   otherwise a missing record raises `KeyNotFoundError` naming the fix.
 
 ### Changed
+
+- The per-cell `heatmap(aggregate=False, dendrogram=True)` draws the group
+  dendrogram with ggrust's axis tree (each leaf spanning its group's rows) in a
+  band right of the panel, instead of a path layer inside it.
+- `annotated_heatmap(transpose=True)` puts the first group on the left and the
+  first key at the top; both were reversed.
+- `annotated_heatmap` blanks the side-panel border, so a `panel_border` added
+  to it frames the heatmap only, not the annotation track bands.
 
 - Public calls that raised bare `ValueError`, `TypeError` or `NotImplementedError`
   now raise the matching cellestial classes: `InvalidArgumentError` (a
@@ -210,6 +267,11 @@ change. Versions absent from the list were never released.
   `dimension_keys`.
 
 ### Fixed
+
+- `dotplot` and `stacked_violin` with `rectangle=False` draw their axis lines
+  again; the plot theme used to blank them.
+- `dotplot`, `stacked_violin` and `matrixplot` with long key-group names size
+  the canvas to fit them instead of shrinking the cells and cutting off labels.
 
 - An observation or variable metadata column named like the id column
   (`Barcode`, `Variable`) raises `InvalidArgumentError` naming

@@ -9,10 +9,11 @@ from anndata import AnnData
 from ggrust import (
     aes,
     element_line,
+    element_rect,
     geom_polygon,
-    geom_rect,
     ggplot,
     ggtb,
+    guides,
     scale_x_continuous,
     scale_y_continuous,
     theme,
@@ -22,15 +23,13 @@ from mudata import MuData
 
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
-    _BRACKET_REFERENCE_SPAN,
-    _CELL_SIZE,
     _CHARACTER_WIDTH,
     _check_markers_flag,
     _compute_violin_polygons,
     _fixed_cell_layout,
-    _fixed_cell_padding,
-    _key_groups_bar_y,
-    _key_groups_layers,
+    _key_groups_guide,
+    _key_groups_theme,
+    _reject_removed_key_label_text,
     _resolve_key_groups,
     _resolve_rank_genes_groups_args,
     _sort_integer_like_groups,
@@ -46,6 +45,7 @@ from cellestial.util import (
     _resolve_tooltips,
     _validate_tooltips,
 )
+from cellestial.util.dendrogram import _GEOM_LINE_UNIT
 from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container_column, _modality_source
 
@@ -92,9 +92,7 @@ def stacked_violin(
     rectangle_color: str = "#3f3f3f",
     rectangle_kwargs: dict | None = None,
     key_labels: bool = True,
-    key_labels_text_size: float = 1.0,
     key_labels_bracket_size: float = 0.6,
-    key_labels_text_color: str = "black",
     key_labels_bracket_color: str = "black",
     key_labels_width: float = 0.6,
     aggregate_column: str = "expression",
@@ -196,15 +194,11 @@ def stacked_violin(
     rectangle_color : str, default='#3f3f3f'
         Color of the rectangle border.
     rectangle_kwargs : dict | None, default=None
-        Additional parameters to pass to the rectangle geom_rect.
+        Additional parameters for the border's `element_rect` (e.g. `linetype`).
     key_labels : bool, default=True
         Whether to draw bracket labels above the plot when `keys` is a mapping.
-    key_labels_text_size : float, default=1.0
-        Scale multiplier on the auto-computed bracket label text size.
     key_labels_bracket_size : float, default=0.6
         Size (thickness) of the bracket lines.
-    key_labels_text_color : str, default='black'
-        Color of the bracket label text.
     key_labels_bracket_color : str, default='black'
         Color of the bracket lines.
     key_labels_width : float, default=0.6
@@ -353,6 +347,7 @@ def stacked_violin(
 
     mapping = mapping or aes()
 
+    _reject_removed_key_label_text(geom_kwargs, "stacked_violin")
     # RESOLVE: dict `keys` into a flat list while preserving mapping order
     keys_list, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
 
@@ -464,18 +459,6 @@ def stacked_violin(
     # AXES: discrete labels via continuous breaks; tight limits keep ticks against the rectangle
     data_top = n_y - 0.5
     y_max_limit = data_top
-    key_groups_total_span: float | None = None
-    if key_labels and key_groups is not None:
-        # Cells have a fixed pixel size, so brackets are sized against a constant span.
-        reference_span = _BRACKET_REFERENCE_SPAN / _CELL_HEIGHT_RATIO
-        key_groups_padding = _fixed_cell_padding(
-            key_groups,
-            reference_span=reference_span,
-            cell_height=_CELL_SIZE * _CELL_HEIGHT_RATIO,
-            label_size_scale=key_labels_text_size,
-        )
-        key_groups_total_span = reference_span + key_groups_padding
-        y_max_limit = data_top + key_groups_padding
     plot += scale_x_continuous(
         breaks=list(range(n_x)),
         labels=x_keys,
@@ -493,43 +476,26 @@ def stacked_violin(
             expand=[0, 0],
         )
 
-    # KEY-GROUP brackets above the data area when `keys` was a mapping.
+    # KEY-GROUP brackets across the panel from the key labels when `keys` was a mapping.
     if key_labels and key_groups is not None:
-        assert key_groups_total_span is not None
-        bar_y = _key_groups_bar_y(data_top, total_span=key_groups_total_span)
-        for layer in _key_groups_layers(
-            key_groups,
-            y=bar_y,
-            total_span=key_groups_total_span,
-            text_color=key_labels_text_color,
-            bracket_color=key_labels_bracket_color,
-            bracket_size=key_labels_bracket_size,
-            width=key_labels_width,
-            label_size_scale=key_labels_text_size,
-        ):
-            plot += layer
-
-    # BORDER: rectangle around data area only (keeps dendrogram outside the frame)
-    if rectangle:
-        plot += geom_rect(
-            data={
-                "xmin": [-0.5],
-                "xmax": [n_x - 0.5],
-                "ymin": [-0.5],
-                "ymax": [data_top],
-            },
-            mapping=aes(xmin="xmin", xmax="xmax", ymin="ymin", ymax="ymax"),
-            color=rectangle_color,
-            size=rectangle_size,
-            fill="rgba(0,0,0,0)",
-            inherit_aes=False,
-            **(rectangle_kwargs or {}),
-        )
-    else:
-        plot += theme(axis_line=element_line(color="#1f1f1f"))
+        plot += guides(x=_key_groups_guide(key_groups, width=key_labels_width))
 
     # ADD: theme
     plot += _THEME_DOTPLOT
+    # after the theme preset, which replaces any earlier theme
+    if key_labels and key_groups is not None:
+        plot += _key_groups_theme(color=key_labels_bracket_color, size=key_labels_bracket_size)
+    # BORDER: the panel border boxes the data area only (brackets and tree sit outside it)
+    if rectangle:
+        plot += theme(
+            panel_border=element_rect(
+                color=rectangle_color,
+                size=rectangle_size * _GEOM_LINE_UNIT,
+                **(rectangle_kwargs or {}),
+            )
+        )
+    else:
+        plot += theme(axis_line=element_line(color="#1f1f1f"))
     if dendrogram:
         plot += _dendrogram_line_theme(color=dendrogram_color, size=dendrogram_size)
 
@@ -548,6 +514,7 @@ def stacked_violin(
         y_span=y_max_limit + 0.5,
         y_limits=[-0.5, y_max_limit],
         x_labels=x_keys,
+        key_group_labels=list(key_groups) if key_labels and key_groups else [],
         y_labels=y_order_groups,
         legend_width=legend_width,
         legend_height=legend_height,

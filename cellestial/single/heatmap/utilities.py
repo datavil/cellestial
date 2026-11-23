@@ -10,15 +10,25 @@ from typing import TYPE_CHECKING, Literal, cast
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize, kernel_density
+from ggrust import (
+    coord_fixed,
+    element_line,
+    ggsize,
+    guide_axis_nested,
+    kernel_density,
+    key_range_manual,
+    theme,
+)
 from ggrust.errors import SpecError
 
 from cellestial.util import _warn
+from cellestial.util.dendrogram import _GEOM_LINE_UNIT
 from cellestial.util.errors import (
     DuplicateKeysError,
     InvalidArgumentError,
     InvalidArgumentTypeError,
     KeyNotFoundError,
+    UnknownParameterError,
     _ranking_not_found_message,
     _unsupported_data_type,
 )
@@ -342,35 +352,13 @@ def _get_group_lines_frame(
 # key_groups helpers (formerly _key_groups.py)
 # ---------------------------------------------------------------------------
 
-# Bracket geometry. Most callers express the bar offset, tip length, and label
-# gap as a fraction of the y-axis total span so they scale with the plot.
-_BAR_OFFSET_FRACTION = 0.030
-_TIP_LENGTH_FRACTION = 0.018
-_LABEL_GAP_FRACTION = 0.012
-
-# Label size is in the default text-size unit (~pt-like). Padding is a
-# fraction of the total y-axis span.
-_ABS_LABEL_PADDING_BASE_FRACTION = 0.060
-_ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION = 0.0051
-_ABS_LABEL_PADDING_MIN_DENSITY_SCALE = 0.45
-_ABS_LABEL_PADDING_FULL_DENSITY_KEYS = 30
-_ABS_LABEL_PADDING_MAX_TARGET_FRACTION = 0.650
+# Label size is in the default text-size unit (~pt-like); used by tracksplot's
+# hand-drawn brackets.
 _ABS_LABEL_TEXT_SIZE_MAX = 6.0
 _ABS_LABEL_TEXT_SIZE_MIN = 3.75
 _ABS_LABEL_TEXT_SIZE_PER_KEY = 0.06
 _ABS_LABEL_TEXT_SIZE_PER_EXTRA_CHAR = 0.08
 _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
-# Fixed-pixel cells: a text size unit renders as this many pixels of font size.
-_TEXT_SIZE_TO_PIXELS = 2.0
-# Sans-serif character widths as a fraction of the font size, rounded up per class.
-_NARROW_CHARACTERS = frozenset("fijlrtI .,;:'!|")
-_WIDE_CHARACTERS = frozenset("mwMW")
-_NARROW_CHARACTER_WIDTH = 0.34
-_REGULAR_CHARACTER_WIDTH = 0.57
-_UPPERCASE_CHARACTER_WIDTH = 0.78
-_WIDE_CHARACTER_WIDTH = 0.95
-# Pixels left free above the longest bracket label.
-_LABEL_TOP_MARGIN = 6
 
 
 def _resolve_key_groups(
@@ -447,198 +435,55 @@ def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) ->
     return max(_ABS_LABEL_TEXT_SIZE_MIN, size * scale)
 
 
-def _resolve_padding(
-    groups: dict[str, list[str]],
-    *,
-    padding: float | None,
-    data_range: float | None = None,
-    scale: float = 1.0,
-    label_size_scale: float = 1.0,
-) -> float:
+def _key_groups_guide(groups: dict[str, list[str]], *, width: float) -> FeatureSpec:
     """
-    Compute y-axis padding (in data units) for the bracket area.
+    Axis guide bracketing each key group, across the panel from the key labels.
 
     Notes
     -----
-    `padding` overrides the auto value when given. `scale` is a per-plot
-    multiplier applied to the auto padding (use `<1` for a more compact
-    bracket area).
+    Keys sit at continuous positions `0..n-1` in group order. A group spans its
+    first to last key, extended by `width / 2` on each side.
     """
-    if padding is not None:
-        return padding
-    data = data_range if data_range is not None and data_range > 0 else 5.0
-    max_chars = max((len(label) for label in groups), default=0)
-    n_keys = sum(len(values) for values in groups.values())
-    label_size = _label_size_absolute(groups, scale=label_size_scale)
-    density_scale = max(
-        _ABS_LABEL_PADDING_MIN_DENSITY_SCALE,
-        min(1.0, n_keys / _ABS_LABEL_PADDING_FULL_DENSITY_KEYS),
-    )
-    target_fraction = min(
-        _BAR_OFFSET_FRACTION
-        + _LABEL_GAP_FRACTION
-        + _ABS_LABEL_PADDING_BASE_FRACTION
-        + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
-        _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
-    )
-    resolved = target_fraction * data / (1.0 - target_fraction) * scale
-    if data_range is None or data_range <= 0:
-        return max(1.5, resolved)
-    return resolved
-
-
-def _label_width(label: str) -> float:
-    """Estimated rendered width of `label` in multiples of the font size (never under)."""
-    width = 0.0
-    for character in label:
-        if character in _WIDE_CHARACTERS:
-            width += _WIDE_CHARACTER_WIDTH
-        elif character in _NARROW_CHARACTERS:
-            width += _NARROW_CHARACTER_WIDTH
-        elif character.isupper():
-            width += _UPPERCASE_CHARACTER_WIDTH
-        else:
-            width += _REGULAR_CHARACTER_WIDTH
-    return width
-
-
-def _fixed_cell_padding(
-    groups: dict[str, list[str]],
-    *,
-    reference_span: float,
-    cell_height: float,
-    label_size_scale: float = 1.0,
-) -> float:
-    """
-    Compute y-axis padding (in data units) that fits the brackets and their labels.
-
-    Notes
-    -----
-    For plots whose cells have a fixed pixel height (`cell_height`), the rotated
-    label length is known in pixels, so the padding is solved exactly instead of
-    taken as a fraction of the span. `reference_span` is the span the bracket
-    geometry is scaled against (see `_key_groups_layers`).
-    """
-    label_width = max((_label_width(label) for label in groups), default=0.0)
-    font_size = _TEXT_SIZE_TO_PIXELS * _label_size_absolute(groups, scale=label_size_scale)
-    label_pixels = label_width * font_size + _LABEL_TOP_MARGIN
-    fraction = _BAR_OFFSET_FRACTION + _LABEL_GAP_FRACTION
-    # The bar offset and label gap scale with the total span (reference + padding).
-    return (fraction * reference_span + label_pixels / cell_height) / (1.0 - fraction)
-
-
-def _build_key_groups_frame(
-    groups: dict[str, list[str]],
-    *,
-    y: float,
-    width: float = 0.6,
-) -> pl.DataFrame:
-    """
-    Build the `geom_bracket` data frame spanning column groups on the variable axis.
-
-    Notes
-    -----
-    `width` is the bracket width for a singleton group in column units. For a
-    group of `N >= 2` keys at column indices `first..last`, the bracket
-    extends `width / 2` past the first and last key center on each side.
-    """
-    extension = width / 2
-    xmins: list[float] = []
-    xmaxs: list[float] = []
-    labels: list[str] = []
-    cursor = 0
-    for label, values in groups.items():
-        first = cursor
-        last = cursor + len(values) - 1
-        xmins.append(float(first) - extension)
-        xmaxs.append(float(last) + extension)
-        labels.append(label)
-        cursor += len(values)
-    return pl.DataFrame(
-        {
-            "xmin": xmins,
-            "xmax": xmaxs,
-            "y": [float(y)] * len(labels),
-            "label": labels,
-        }
+    starts: list[float] = []
+    ends: list[float] = []
+    position = 0
+    for values in groups.values():
+        starts.append(position - width / 2)
+        ends.append(position + len(values) - 1 + width / 2)
+        position += len(values)
+    return guide_axis_nested(
+        key_range_manual(starts, ends, list(groups)), bracket="square", side="opposite", angle=90
     )
 
 
-def _key_groups_bar_y(top_edge: float, *, total_span: float = 5.0) -> float:
-    """Y position of the bracket bar above the plot top edge."""
-    return top_edge + _BAR_OFFSET_FRACTION * total_span
+def _key_groups_theme(*, color: str, size: float) -> FeatureSpec:
+    """Style the key-group brackets; `size` stays in the geom line units of the former path layer."""
+    return theme(legendry_bracket=element_line(color=color, size=size * _GEOM_LINE_UNIT))
 
 
-def _key_groups_layers(
-    groups: dict[str, list[str]],
-    *,
-    y: float,
-    total_span: float,
-    text_color: str = "black",
-    bracket_color: str = "black",
-    bracket_size: float = 0.6,
-    width: float = 0.6,
-    label_size_scale: float = 1.0,
-    extra_kwargs: dict | None = None,
-) -> list[FeatureSpec]:
+def _reject_removed_key_label_text(geom_kwargs: dict[str, object], function: str) -> None:
     """
-    Build the layers that annotate column groups above the plot.
+    Reject the removed `key_labels_text_size` and `key_labels_text_color`.
 
-    Notes
-    -----
-    Each bracket is one connected `geom_path` (left tip down, top bar across,
-    right tip down) so the corners join cleanly with no sub-pixel gap. A
-    vertical label is centered on each bracket as a separate `geom_text`.
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a plot forwards to its geom.
+    function : str
+        The public function name shown in the message.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds either removed keyword.
     """
-    frame = _build_key_groups_frame(groups, y=y, width=width)
-    tip_length = _TIP_LENGTH_FRACTION * total_span
-    label_gap = _LABEL_GAP_FRACTION * total_span
-
-    path_records: list[dict] = []
-    label_records: list[dict] = []
-    for group_index, row in enumerate(frame.iter_rows(named=True)):
-        path_records.extend(
-            [
-                {"x": row["xmin"], "y": y - tip_length, "g": group_index},
-                {"x": row["xmin"], "y": y, "g": group_index},
-                {"x": row["xmax"], "y": y, "g": group_index},
-                {"x": row["xmax"], "y": y - tip_length, "g": group_index},
-            ]
-        )
-        label_records.append(
-            {
-                "x": (row["xmin"] + row["xmax"]) / 2,
-                "y": y + label_gap,
-                "label": row["label"],
-            }
-        )
-
-    path_frame = pl.DataFrame(path_records)
-    label_frame = pl.DataFrame(label_records)
-
-    text_kwargs: dict = {
-        "angle": 90,
-        "hjust": 0,
-        "vjust": 0.5,
-    }
-    text_kwargs.update(extra_kwargs or {})
-    label_size = _label_size_absolute(groups, scale=label_size_scale)
-
-    return [
-        geom_path(
-            data=path_frame,
-            mapping=aes(x="x", y="y", group="g"),
-            color=bracket_color,
-            size=bracket_size,
-        ),
-        geom_text(
-            data=label_frame,
-            mapping=aes(x="x", y="y", label="label"),
-            color=text_color,
-            size=label_size,
-            **text_kwargs,
-        ),
-    ]
+    for name in ("key_labels_text_size", "key_labels_text_color"):
+        if name in geom_kwargs:
+            msg = (
+                f"`{name}` was removed from `{function}`: key-group names now take the "
+                "key label style. Style both with `+ theme(axis_text_x=element_text(...))`."
+            )
+            raise UnknownParameterError(msg)
 
 
 # ---------------------------------------------------------------------------
@@ -650,8 +495,6 @@ def _key_groups_layers(
 _CELL_SIZE = 30
 _CHARACTER_WIDTH = 7
 _MARGIN = 20
-# Cells; brackets are sized against a constant span so they keep a fixed pixel size.
-_BRACKET_REFERENCE_SPAN = 20
 
 
 # Pixels. A probe canvas this long never limits the panel along that side.
@@ -692,6 +535,7 @@ def _fixed_cell_layout(
     legend_height: float,
     cell_height_ratio: float = 1.0,
     minimum_width: float = 0,
+    key_group_labels: Sequence[str] = (),
 ) -> PlotSpec:
     """
     Lock the cell aspect ratio and size the canvas so every cell is `_CELL_SIZE` wide.
@@ -706,6 +550,7 @@ def _fixed_cell_layout(
     per side, so a single key or group gets wider cells instead of a clipped legend.
     `y_limits` are passed to the fixed coordinates, which replace any coordinates
     added before. The canvas is never narrower than `minimum_width`.
+    `key_group_labels` are the rotated key-group names drawn above the panel.
     """
     panel_width = x_span * _CELL_SIZE
     panel_height = y_span * _CELL_SIZE * cell_height_ratio
@@ -713,6 +558,13 @@ def _fixed_cell_layout(
     x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
     other_width = y_label_width + legend_width + _MARGIN
     other_height = x_label_height + _MARGIN
+    if key_group_labels:
+        # Rotated names above the panel, plus the bracket under them. Overestimated
+        # (any theme font size) so the probe panel is never squeezed; the probes
+        # then measure the real room.
+        other_height += (
+            max(len(label) for label in key_group_labels) * 2 * _CHARACTER_WIDTH + _MARGIN
+        )
     plot += coord_fixed(ratio=cell_height_ratio, ylim=y_limits)
     # Probe panels get twice the minimum size so the backend never squeezes the legend.
     probe_width = min(other_width + max(panel_width, 2 * _PANEL_MIN_SIZE), _PROBE_SPAN)
@@ -724,10 +576,15 @@ def _fixed_cell_layout(
     if tall is not None and wide is not None:
         other_width = probe_width - tall[0]
         other_height = probe_height - wide[1]
-    return plot + ggsize(
-        max(other_width + max(panel_width, _PANEL_MIN_SIZE), minimum_width),
-        max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height),
-    )
+    width = max(other_width + max(panel_width, _PANEL_MIN_SIZE), minimum_width)
+    height = max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height)
+    if key_group_labels and tall is not None and wide is not None:
+        # Tall key-group names leave a short canvas, where a legend taller than the
+        # panel takes more room than the probes measured: grow by what is missing.
+        final = _panel_size(plot + ggsize(width, height))
+        if final is not None and final[1] < panel_height - 1:
+            height += panel_height - final[1]
+    return plot + ggsize(width, height)
 
 
 # ---------------------------------------------------------------------------

@@ -17,7 +17,11 @@ from cellestial.single.heatmap.utilities import (
     _compute_violin_polygons,
     _panel_size,
 )
-from cellestial.util.errors import KeyNotFoundError, UnsupportedDataTypeError, VariableNotFoundError
+from cellestial.util.errors import (
+    KeyNotFoundError,
+    UnsupportedDataTypeError,
+    VariableNotFoundError,
+)
 
 
 def test_heatmap_default_aggregate(adata, markers, group_key):
@@ -248,7 +252,7 @@ def test_stacked_violin_variable_fill_without_rectangle(adata, group_key):
         group_by=group_key,
         keys=(markers := ["CD79A", "MS4A1"]),
         fill_statistic="variable",
-        rectangle_kwargs={"alpha": 0.5},
+        rectangle_kwargs={"linetype": "dashed"},
         n_points=16,
     )
     assert isinstance(plot, PlotSpec)
@@ -364,44 +368,16 @@ def test_resolve_key_groups_dict_rejects_single_string_value():
         _resolve_key_groups({"G1": "A"})
 
 
-def test_key_groups_bar_y_above_top_edge():
-    """Key group brackets sit above the top edge."""
-    from cellestial.single.heatmap.utilities import _key_groups_bar_y
-
-    top_edge = 7.5
-    bar_y = _key_groups_bar_y(top_edge)
-    assert bar_y > top_edge, "bracket bar must sit above the plot top edge"
-    assert bar_y - top_edge < 1.0, "bracket bar should be close to the top edge"
-
-
-def test_resolve_padding_scales_with_label_length():
-    """Bracket padding grows with the label length."""
-    from cellestial.single.heatmap.utilities import _resolve_padding
-
-    short = _resolve_padding({"A": ["x"], "B": ["y"]}, padding=None)
-    long = _resolve_padding({"Lymphocytes": ["x"], "Monocytes": ["y"]}, padding=None)
-    assert short < long, "longer labels need more padding"
-    assert short >= 1.5, "padding has a sensible floor"
-
-
-def test_resolve_padding_explicit_overrides_auto():
-    """An explicit padding overrides the automatic one."""
-    from cellestial.single.heatmap.utilities import _resolve_padding
-
-    explicit = _resolve_padding({"Lymphocytes": ["x"]}, padding=0.5)
-    assert explicit == 0.5
-
-
-def test_dotplot_dict_keys_extend_y_limit_for_brackets(adata, group_key):
-    """Mapping keys extend the `dotplot` y limit to fit the brackets."""
+def test_dotplot_dict_keys_keep_tight_y_limit_with_brackets(adata, group_key):
+    """Mapping keys keep the `dotplot` y limit tight (brackets are an axis guide)."""
     groups = _marker_groups()
     plot = cl.dotplot(adata, group_by=group_key, keys=groups)
     n_y = adata.obs[group_key].nunique()
     spec = plot.as_dict()
     scales = [s for s in spec.get("scales", []) if s.get("aesthetic") == "y" and "limits" in s]
     assert scales, "dotplot should keep explicit y limits"
-    # Brackets are drawn above the data area, so y limit must extend past it.
-    assert scales[-1]["limits"][1] > n_y - 0.5
+    # Brackets are an axis guide outside the panel, so the y limit stays tight.
+    assert scales[-1]["limits"][1] == n_y - 0.5
 
 
 def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_key):
@@ -413,55 +389,6 @@ def test_dotplot_dict_keys_without_key_labels_keeps_tight_y_limit(adata, group_k
     scales = [s for s in spec.get("scales", []) if s.get("aesthetic") == "y" and "limits" in s]
     assert scales, "dotplot should keep explicit y limits"
     assert scales[-1]["limits"][1] == n_y - 0.5
-
-
-def test_dotplot_key_labels_use_absolute_text_size(adata, group_key):
-    """`dotplot` key labels use an absolute text size."""
-    plot = cl.dotplot(adata, group_by=group_key, keys=_marker_groups())
-    text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert "size_unit" not in text_layers[-1]
-    assert text_layers[-1]["size"] >= 3.75
-
-
-def test_fixed_cell_padding_grows_with_label_width():
-    """Fixed-cell padding grows with the label width."""
-    from cellestial.single.heatmap.utilities import _fixed_cell_padding
-
-    def padding(label: str) -> float:
-        return _fixed_cell_padding({label: ["a"], "b": ["c"]}, reference_span=20, cell_height=30)
-
-    assert padding("MMMMWWWW") > padding("AAAAEEEE") > padding("aaaaeeee") > padding("iiiillll")
-    assert padding("a much longer group label") > padding("short")
-
-
-def test_fixed_cell_padding_fits_rendered_labels(adata, group_key):
-    """The top label stays inside the panel with little room to spare."""
-    import re
-
-    from cellestial.single.heatmap.utilities import _label_width
-
-    groups = {"MMMMWWWW MEMORY": ["CD3E", "CD3D"], "a very long lowercase label": ["MS4A1"]}
-    svg = cl.dotplot(adata, group_by=group_key, keys=groups).to_svg()
-    panel_top = float(re.search(r'<clipPath[^>]*><rect x="[-\d.]+" y="([-\d.]+)"', svg).group(1))
-    rotated = re.findall(
-        r'font-size="([\d.]+)"[^>]*transform="rotate\(-90 [\d.]+ ([\d.]+)\)">([^<]+)<', svg
-    )
-    assert rotated, "bracket labels should be drawn rotated"
-    # Rotated labels are centered on their rotation point.
-    gaps = [
-        float(center) - _label_width(label) * float(font_size) / 2 - panel_top
-        for font_size, center, label in rotated
-    ]
-    assert min(gaps) >= 0, "no label may reach past the panel top"
-    assert min(gaps) <= 30, "the longest label sits close to the panel top"
-
-
-def test_stacked_violin_key_labels_use_absolute_text_size(adata, group_key):
-    """`stacked_violin` key labels use an absolute text size."""
-    plot = cl.stacked_violin(adata, group_by=group_key, keys=_marker_groups())
-    text_layers = [layer for layer in plot.as_dict()["layers"] if layer.get("geom") == "text"]
-    assert "size_unit" not in text_layers[-1]
-    assert text_layers[-1]["size"] >= 3.75
 
 
 # ---- dotplot ----

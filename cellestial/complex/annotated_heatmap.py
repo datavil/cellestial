@@ -1,35 +1,45 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "ggrust", "mudata", "numpy"]
+__lazy_modules__ = ["anndata", "ggrust", "mudata"]
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Literal
+from itertools import pairwise
+from typing import TYPE_CHECKING, Any, Literal
 
-import numpy as np
 import polars as pl
 from anndata import AnnData
 from ggrust import (
     aes,
     coord_cartesian,
+    element_blank,
     element_text,
     geom_raster,
     geom_segment,
     geom_tile,
     geom_xsideline,
+    geom_xsidepoint,
+    geom_xsidetext,
     geom_xsidetile,
     geom_ysideline,
+    geom_ysidepoint,
+    geom_ysidetext,
     geom_ysidetile,
     ggplot,
     ggside,
     ggtb,
+    guide_axis_dendro,
+    guide_axis_mark,
+    guides,
     new_scale_fill,
     scale_fill_brewer,
     scale_fill_gradient,
     scale_fill_gradientn,
     scale_fill_manual,
     scale_x_continuous,
+    scale_x_dendro,
     scale_xsidey_discrete,
     scale_y_continuous,
+    scale_y_dendro,
     scale_ysidex_discrete,
     theme,
 )
@@ -38,8 +48,14 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import _resolve_key_groups, _scale_values
 from cellestial.themes import _THEME_HEATMAP
-from cellestial.util import _check_dendrogram_groups, _fill_gradient, _get_dendrogram, _warn
-from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
+from cellestial.util import _check_dendrogram_groups, _fill_gradient, _warn
+from cellestial.util.dendrogram import _dendrogram_line_theme, _get_dendrogram_tree
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    UnknownParameterError,
+    _did_you_mean,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _modality_source
 
 if TYPE_CHECKING:
@@ -49,8 +65,8 @@ if TYPE_CHECKING:
 
     AnnotationColors = Mapping[str, str] | Sequence[str]
 
-# Width of the dendrogram, relative to the heatmap.
-_DENDROGRAM_WIDTH = 0.15
+# Depth of the `group_labels` brackets, relative to the heatmap.
+_BRACKET_WIDTH = 0.03
 
 
 # ColorBrewer palettes cycled across annotation tracks so each gets a distinct one.
@@ -207,18 +223,28 @@ def _bin_observations(
     )
 
 
-def _assign_position_y(frame: pl.DataFrame) -> pl.DataFrame:
-    """Attach `position_y`, placing the first row at the top of the heatmap."""
+def _assign_position_y(frame: pl.DataFrame, *, descending: bool) -> pl.DataFrame:
+    """
+    Attach `position_y`, the observation index of each row.
+
+    Notes
+    -----
+    `descending` places the first row at the highest position (the top of an
+    upright heatmap); otherwise the first row sits at position 0 (the left of a
+    transposed heatmap).
+    """
     n_rows = frame.height
-    return (
-        frame.with_row_index("_row")
-        .with_columns((n_rows - 1 - pl.col("_row")).alias("position_y"))
-        .drop("_row")
-    )
+    position = n_rows - 1 - pl.col("_row") if descending else pl.col("_row")
+    return frame.with_row_index("_row").with_columns(position.alias("position_y")).drop("_row")
+
+
+def _run_boundaries(labels: Sequence) -> list[int]:
+    """Indices where `labels` changes value: each starts a new contiguous run."""
+    return [index for index in range(1, len(labels)) if labels[index] != labels[index - 1]]
 
 
 def _annotation_scale(
-    series: pl.Series, colors: AnnotationColors | None, palette: str
+    series: pl.Series, colors: AnnotationColors | None, palette: str, *, legend: bool
 ) -> FeatureSpec | None:
     """
     Resolve the fill scale for one annotation track.
@@ -227,13 +253,15 @@ def _annotation_scale(
     -----
     `colors` may be a category -> color mapping, a list of colors, or `None`.
     Numeric tracks default to a gray gradient; categorical tracks default to the
-    track's assigned ColorBrewer `palette`.
+    track's assigned ColorBrewer `palette`. Without `legend` the scale draws no
+    legend.
     """
     numeric = series.dtype.is_numeric()
+    guide: dict[str, Any] = {} if legend else {"guide": "none"}
     if colors is None:
         if numeric:
-            return scale_fill_gradient(low="#f0f0f0", high="#1a1a1a", name=series.name)
-        return scale_fill_brewer(palette=palette, name=series.name)
+            return scale_fill_gradient(low="#f0f0f0", high="#1a1a1a", name=series.name, **guide)
+        return scale_fill_brewer(palette=palette, name=series.name, **guide)
     if isinstance(colors, Mapping):
         if numeric:
             msg = (
@@ -242,13 +270,13 @@ def _annotation_scale(
                 "for a gradient instead, e.g. ['#f0f0f0', '#1a1a1a']."
             )
             raise InvalidArgumentError(msg)
-        return scale_fill_manual(values=dict(colors), name=series.name)
+        return scale_fill_manual(values=dict(colors), name=series.name, **guide)
     colors = list(colors)
     if numeric:
         if len(colors) == 2:
-            return scale_fill_gradient(low=colors[0], high=colors[1], name=series.name)
-        return scale_fill_gradientn(colors=colors, name=series.name)
-    return scale_fill_manual(values=colors, name=series.name)
+            return scale_fill_gradient(low=colors[0], high=colors[1], name=series.name, **guide)
+        return scale_fill_gradientn(colors=colors, name=series.name, **guide)
+    return scale_fill_manual(values=colors, name=series.name, **guide)
 
 
 def _track_layers(
@@ -260,6 +288,8 @@ def _track_layers(
     colors: Mapping[str, AnnotationColors],
     palette_of: Mapping[str, str],
     titles: bool,
+    titles_below: bool,
+    legend: bool,
 ) -> list[FeatureSpec]:
     """
     Build one band's annotation tracks, each with its own fill scale.
@@ -271,7 +301,10 @@ def _track_layers(
     axis, named after its column. The first listed is the outermost, so on a
     `far` band (right or top, where the cross axis grows away from the heatmap)
     the level order is reversed. Without `titles` the band axis has no breaks,
-    so the track names take no room.
+    so the track names take no room. `titles_below` puts a y band's names
+    below it instead of above (an x band's sit on its right either way).
+    Without `legend` the tracks draw no
+    legends.
     """
     side_tile = geom_xsidetile if band == "x" else geom_ysidetile
     layers: list[FeatureSpec] = []
@@ -279,7 +312,12 @@ def _track_layers(
         layers.append(new_scale_fill())
         layers.append(side_tile(aes(fill=annotation), data=frame))
         layers.append(
-            _annotation_scale(frame[annotation], colors.get(annotation), palette_of[annotation])
+            _annotation_scale(
+                frame[annotation],
+                colors.get(annotation),
+                palette_of[annotation],
+                legend=legend,
+            )
         )
     if annotations:
         limits = list(reversed(annotations)) if far else list(annotations)
@@ -287,50 +325,110 @@ def _track_layers(
         # labels, and on top of a y band: turned names at the bottom would make the
         # bottom axis area as tall as the longest name. Hidden names keep the band
         # axis on the main axes' sides, where its line joins theirs.
+        names: dict[str, Any]
         if band == "x":
             names = {"position": "right"} if titles else {"breaks": []}
             layers.append(scale_xsidey_discrete(limits=limits, expand=[0, 0], **names))
         else:
-            names = {"position": "top"} if titles else {"breaks": []}
+            side = "bottom" if titles_below else "top"
+            names = {"position": side} if titles else {"breaks": []}
             layers.append(scale_ysidex_discrete(limits=limits, expand=[0, 0], **names))
     return layers
 
 
-def _dendrogram_layer(
-    paths: pl.DataFrame,
+def _bracket_layers(
+    blocks: Sequence[tuple[float, float, str]],
     *,
     band: Literal["x", "y"],
-    group_centers: list[float],
-    leaf_edge: float,
-    extent: float,
-    color: str,
-    size: float,
+    edge: float,
+    depth: float,
+    reach: float,
     kwargs: dict,
-) -> FeatureSpec:
+) -> list[FeatureSpec]:
     """
-    Draw the group dendrogram as line segments in a side band.
+    Draw a pointed bracket and a text label beside each block of a side band.
 
     Notes
     -----
-    Leaves sit at the group centers along the heatmap's observation axis, at
-    cross position `leaf_edge` next to the tracks; the root lies `extent` cross
-    units away (negative `extent` points toward the left or bottom). Each path
-    is split into two-point segments, since a side line orders its points along
-    the shared axis.
+    `blocks` holds each block's `(start, end, text)` along the shared axis. A
+    bracket's arms leave the block ends at cross position `edge`, meet in a
+    tip `depth` cross units out (negative toward the left or bottom), and the
+    text starts just past the tip. An invisible point `reach` cross units out
+    widens the band to hold the text, which the text alone would not.
     """
-    leaf_positions = np.arange(len(group_centers), dtype=float)
-    leaf = np.interp(paths["x"].to_numpy(), leaf_positions, group_centers)
-    height = leaf_edge + paths["y"].to_numpy() * extent
-    path_group = paths["group"].to_numpy()
-    starts = np.flatnonzero(path_group[:-1] == path_group[1:])
-    segment = np.repeat(np.arange(starts.size), 2)
-    index = np.column_stack([starts, starts + 1]).ravel()
-    frame = pl.DataFrame({"leaf": leaf[index], "height": height[index], "segment": segment})
+    along, cross, segment, tips = [], [], [], []
+    for index, (start, end, _) in enumerate(blocks):
+        center = (start + end) / 2
+        path = [(start, edge), (start, edge + depth / 2), (center, edge + depth)]
+        path += [(end, edge + depth / 2), (end, edge)]
+        for part, ((along_a, cross_a), (along_b, cross_b)) in enumerate(pairwise(path)):
+            along += [float(along_a), float(along_b)]
+            cross += [float(cross_a), float(cross_b)]
+            segment += [4 * index + part] * 2
+        tips.append(center)
+    lines = pl.DataFrame({"along": along, "cross": cross, "segment": segment})
+    labels = pl.DataFrame(
+        {
+            "along": [float(tip) for tip in tips],
+            "cross": [float(edge + depth * 1.3)] * len(blocks),
+            "text": [text for _, _, text in blocks],
+        }
+    )
+    reach_point = pl.DataFrame({"along": [float(tips[0])], "cross": [float(edge + reach)]})
+    outward = depth > 0
     if band == "x":
-        mapping, side_line = aes(x="leaf", y="height", group="segment"), geom_xsideline
+        side_line, side_text, side_point = geom_xsideline, geom_xsidetext, geom_xsidepoint
+        positions = {"x": "along", "y": "cross"}
+        justify = {"vjust": 0 if outward else 1}
     else:
-        mapping, side_line = aes(x="height", y="leaf", group="segment"), geom_ysideline
-    return side_line(mapping, data=frame, inherit_aes=False, color=color, size=size, **kwargs)
+        side_line, side_text, side_point = geom_ysideline, geom_ysidetext, geom_ysidepoint
+        positions = {"x": "cross", "y": "along"}
+        justify = {"hjust": 0 if outward else 1}
+    return [
+        side_line(
+            aes(**positions, group="segment"),
+            data=lines,
+            inherit_aes=False,
+            color="#1f1f1f",
+            size=0.3,
+        ),
+        side_text(
+            aes(**positions, label="text"),
+            data=labels,
+            inherit_aes=False,
+            **{**justify, **kwargs},
+        ),
+        side_point(aes(**positions), data=reach_point, inherit_aes=False, alpha=0),
+    ]
+
+
+def _reject_removed_annotated_heatmap_keywords(geom_kwargs: dict[str, object]) -> None:
+    """
+    Reject the removed `track_titles` and `dendrogram_kwargs` before they reach the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments `annotated_heatmap` forwards to its geom.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds `track_titles` or `dendrogram_kwargs`.
+    """
+    if "track_titles" in geom_kwargs:
+        value = geom_kwargs["track_titles"]
+        msg = (
+            "`track_titles` was split into `row_track_titles` and `column_track_titles`; "
+            f"pass `row_track_titles={value!r}, column_track_titles={value!r}`."
+        )
+        raise UnknownParameterError(msg)
+    if "dendrogram_kwargs" in geom_kwargs:
+        msg = (
+            "`dendrogram_kwargs` was removed from `annotated_heatmap`: the tree is an axis "
+            "guide now. Style it with `dendrogram_color` and `dendrogram_size`."
+        )
+        raise UnknownParameterError(msg)
 
 
 def annotated_heatmap(
@@ -338,6 +436,7 @@ def annotated_heatmap(
     keys: Sequence[str],
     group_by: str | None = None,
     *,
+    variable_group_by: str | None = None,
     modality: str | None = None,
     column_annotations: str | Sequence[str] | None = None,
     row_annotations: str | Sequence[str] | None = None,
@@ -356,12 +455,16 @@ def annotated_heatmap(
     dendrogram_color: str = "black",
     dendrogram_size: float = 0.5,
     dendrogram_key: str | None = None,
-    dendrogram_kwargs: dict | None = None,
     column_annotation_height: float = 0.025,
     row_annotation_width: float = 0.025,
     column_annotation_position: Literal["top", "bottom"] = "top",
     row_annotation_position: Literal["left", "right"] = "left",
-    track_titles: bool = False,
+    row_track_titles: bool = False,
+    column_track_titles: bool = False,
+    key_labels: Sequence[str] | None = None,
+    group_labels: Mapping[str, str] | None = None,
+    group_labels_width: float = 0.25,
+    group_labels_kwargs: dict | None = None,
     color_low: str = "#0000ff",
     color_mid: str = "#ffffff",
     color_high: str = "#ff0000",
@@ -372,6 +475,7 @@ def annotated_heatmap(
     variable_id_column: str = "Variable",
     interactive: bool = False,
     legend: bool = True,
+    annotation_legends: bool = True,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -383,6 +487,10 @@ def annotated_heatmap(
         The single-cell data object.
     keys : Sequence[str]
         Variable keys to include, placed on the x-axis.
+    variable_group_by : str | None, default=None
+        Variable metadata key whose contiguous blocks (over `keys` in order) are
+        separated by group lines, like `group_by` for observations. Drawn with
+        the `group_lines_*` styling; needs `group_lines`.
     modality : str | None, default=None
         Which modality's stored analysis results to use when `dendrogram` is
         enabled. Required for a multimodal object holding more
@@ -423,7 +531,8 @@ def annotated_heatmap(
         observation tracks, outermost in their side band.
         The clustering is computed if not already available. Requires `group_by`.
     group_lines : bool, default=True
-        Whether to draw horizontal separator lines between groups.
+        Whether to draw separator lines between `group_by` groups (and between
+        `variable_group_by` blocks).
     group_lines_color : str, default='white'
         Color of the group separator lines.
     group_lines_size : float, default=0.6
@@ -436,9 +545,6 @@ def annotated_heatmap(
         Size (thickness) of the dendrogram segments.
     dendrogram_key : str | None, default=None
         Specific key holding the precomputed dendrogram.
-    dendrogram_kwargs : dict | None, default=None
-        Additional parameters for the dendrogram side line (`geom_xsideline` or
-        `geom_ysideline`, depending on `orientation`).
     column_annotation_height : float, default=0.025
         Height of each column annotation track, relative to the heatmap.
     row_annotation_width : float, default=0.025
@@ -451,11 +557,36 @@ def annotated_heatmap(
         Which side of the heatmap the row (observation) tracks and the
         dendrogram sit on. Under `transpose` this reflects to the top/bottom
         side (left to top, right to bottom).
-    track_titles : bool, default=False
-        Whether to name each annotation track beside its band. Hidden by
-        default, since the legends already name the tracks; set to `True` to
-        show them (a top or bottom band's names on its right, a left or right
-        band's names above it).
+    row_track_titles : bool, default=False
+        Whether to name the `row_annotations` tracks beside their band (left
+        of the heatmap, or above it under `transpose`). Hidden by default,
+        since the legends already name the tracks. A top or bottom band's
+        names sit on its right, a left or right band's names above it.
+    column_track_titles : bool, default=False
+        Whether to name the `column_annotations` tracks beside their band
+        (above the heatmap, or left of it under `transpose`), placed as for
+        `row_track_titles`. With both set, a left or right band's names move
+        below it, so the two bands' names never share a corner.
+    key_labels : Sequence[str] | None, default=None
+        Label only these `keys`, spread evenly along the key axis, with a
+        leader line from each key's row (or column) to its label, as for gene
+        callouts. The labels sit on the side opposite the column annotation
+        tracks, and the lines in a margin of the heatmap panel on that side.
+        The labels are the key axis labels, so a theme styles them (e.g.
+        `theme(axis_text_y=element_text(face="italic"))` when transposed).
+        `None` labels every key; an empty sequence labels none (hiding the
+        key axis labels by theme would also hide the track titles on that
+        axis).
+    group_labels : Mapping[str, str] | None, default=None
+        Text per `variable_group_by` block (e.g. its GO terms; a newline breaks
+        lines), drawn beside the block outside the column annotation tracks,
+        with a bracket spanning the block. Blocks without an entry get none.
+        Requires `variable_group_by`.
+    group_labels_width : float, default=0.25
+        Width (or height) of the `group_labels` text area, relative to the
+        heatmap. Text longer than this runs past the plot's edge.
+    group_labels_kwargs : dict | None, default=None
+        Additional parameters for the `group_labels` text layer, such as `size`.
     color_low : str, default='#0000ff'
         Color for low values in the heatmap gradient.
     color_mid : str, default='#ffffff'
@@ -479,6 +610,9 @@ def annotated_heatmap(
         Whether to make the heatmap panel interactive (zoom and pan).
     legend : bool, default=True
         Whether to show the legends for the heatmap and the annotation tracks.
+    annotation_legends : bool, default=True
+        Whether to show the annotation tracks' legends. Set to `False` to keep
+        only the heatmap's color bar (with `legend`).
     **geom_kwargs
         Additional parameters for the heatmap geom layer.
 
@@ -493,15 +627,17 @@ def annotated_heatmap(
         If `data` is not a supported single-cell data object.
     DuplicateKeysError
         If a key appears more than once in `keys`.
+    UnknownParameterError
+        If the removed `track_titles` or `dendrogram_kwargs` is passed.
     DendrogramMismatchError
         If `dendrogram` is set and the dendrogram's groups differ from the groups
         in the data, or one must be computed for a grouping with categories that
         have no cells.
     InvalidArgumentError
         If `annotation_colors` gives a category -> color mapping for a numeric
-        track.
-    ValueError
-        If `dendrogram` is set without `group_by`.
+        track, `dendrogram` is set without `group_by`, `key_labels` holds a name
+        that is not in `keys`, or `group_labels` is set without
+        `variable_group_by` or names a block it does not have.
 
     Notes
     -----
@@ -537,6 +673,7 @@ def annotated_heatmap(
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
 
+    _reject_removed_annotated_heatmap_keywords(geom_kwargs)
     keys, _ = _resolve_key_groups(list(keys))
     column_annotations = _as_list(column_annotations)
     row_annotations = _as_list(row_annotations)
@@ -548,15 +685,26 @@ def annotated_heatmap(
             "Pass the grouping column as `group_by`, or set `dendrogram=False`."
         )
         raise InvalidArgumentError(msg)
+    if key_labels is not None:
+        key_labels = list(key_labels)
+        unknown = [label for label in key_labels if label not in keys]
+        if unknown:
+            msg = (
+                f"`key_labels` names keys that are not in `keys`: {unknown}. "
+                f"Pick labels from `keys`, or pass `[]` to label none. "
+                f"{_did_you_mean(unknown, keys)}"
+            ).strip()
+            raise InvalidArgumentError(msg)
 
     # CLUSTER: a dendrogram dictates the group order; otherwise first-appearance.
     if dendrogram:
         assert group_by is not None  # guaranteed by the guard above
-        dendrogram_order, dendrogram_paths = _get_dendrogram(
+        tree = _get_dendrogram_tree(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
+        dendrogram_order = list(tree.ordered_labels)
     else:
-        dendrogram_order, dendrogram_paths = None, None
+        tree, dendrogram_order = None, None
 
     # BUILD: observation frame with expression and row metadata, order, then bin.
     metadata = [group_by, *row_annotations] if group_by is not None else list(row_annotations)
@@ -582,10 +730,15 @@ def annotated_heatmap(
         observations, group_by=group_by, group_order=dendrogram_order
     )
     observations = _bin_observations(observations, group_by=group_by, max_rows=max_rows)
-    observations = _assign_position_y(observations)
+    # Transposed, the first observation sits at the left; upright, at the top.
+    observations = _assign_position_y(observations, descending=not transpose)
 
-    # BUILD: long-form heatmap frame on shared x / y positions.
-    position_x = {key: index for index, key in enumerate(keys)}
+    # BUILD: long-form heatmap frame on shared x / y positions. Transposed, the
+    # first key sits at the top; upright, at the left.
+    n_keys = len(keys)
+    position_x = {
+        key: (n_keys - 1 - index if transpose else index) for index, key in enumerate(keys)
+    }
     frame = (
         observations.unpivot(
             on=keys,
@@ -600,7 +753,6 @@ def annotated_heatmap(
         partition_key = variable_column if scale_axis == 0 else "position_y"
         frame = _scale_values(frame, value_column=value_column, partition_key=partition_key)
 
-    n_keys = len(keys)
     n_observations = observations.height
     key_limits = (-0.5, n_keys - 0.5)
     observation_limits = (-0.5, n_observations - 0.5)
@@ -620,7 +772,10 @@ def annotated_heatmap(
     if transpose:
         heatmap_x, heatmap_y = "position_y", "position_x"
         key_scale = scale_y_continuous(
-            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+            breaks=[position_x[key] for key in keys],
+            labels=keys,
+            limits=list(key_limits),
+            expand=[0, 0],
         )
         observation_scale = scale_x_continuous(
             breaks=[], limits=list(observation_limits), expand=[0, 0]
@@ -628,7 +783,10 @@ def annotated_heatmap(
     else:
         heatmap_x, heatmap_y = "position_x", "position_y"
         key_scale = scale_x_continuous(
-            breaks=list(range(n_keys)), labels=keys, limits=list(key_limits), expand=[0, 0]
+            breaks=[position_x[key] for key in keys],
+            labels=keys,
+            limits=list(key_limits),
+            expand=[0, 0],
         )
         observation_scale = scale_y_continuous(
             breaks=[], limits=list(observation_limits), expand=[0, 0]
@@ -660,13 +818,18 @@ def annotated_heatmap(
     plot = _apply_layers(plot, _as_layers(layers_all))
 
     # GROUP separator lines between contiguous blocks, spanning the variable axis.
+    line_style: dict[str, Any] = {
+        "inherit_aes": False,
+        "color": group_lines_color,
+        "size": group_lines_size,
+        **(group_lines_kwargs or {}),
+    }
     if group_lines and group_order is not None and len(group_order) > 1:
-        sizes = observations.group_by(group_by, maintain_order=True).len()["len"].to_list()
-        boundaries = []
-        running = 0
-        for size in sizes[:-1]:
-            running += size
-            boundaries.append(n_observations - running - 0.5)
+        assert group_by is not None
+        starts = _run_boundaries(observations[group_by].to_list())
+        boundaries = [
+            start - 0.5 if transpose else n_observations - start - 0.5 for start in starts
+        ]
         if transpose:
             lines = pl.DataFrame({"x": boundaries})
             plot += geom_segment(
@@ -674,10 +837,7 @@ def annotated_heatmap(
                 mapping=aes(x="x", xend="x"),
                 y=-0.5,
                 yend=n_keys - 0.5,
-                inherit_aes=False,
-                color=group_lines_color,
-                size=group_lines_size,
-                **(group_lines_kwargs or {}),
+                **line_style,
             )
         else:
             lines = pl.DataFrame({"y": boundaries})
@@ -686,10 +846,51 @@ def annotated_heatmap(
                 mapping=aes(y="y", yend="y"),
                 x=-0.5,
                 xend=n_keys - 0.5,
-                inherit_aes=False,
-                color=group_lines_color,
-                size=group_lines_size,
-                **(group_lines_kwargs or {}),
+                **line_style,
+            )
+
+    # VARIABLE group separator lines between contiguous `variable_group_by` blocks,
+    # spanning the observation axis.
+    if group_labels is not None and variable_group_by is None:
+        msg = (
+            "`group_labels` needs `variable_group_by`: the labels name its blocks. "
+            "Pass the variable metadata column as `variable_group_by`, or drop `group_labels`."
+        )
+        raise InvalidArgumentError(msg)
+    key_groups: list[str] | None = None
+    if variable_group_by is not None:
+        variable_groups = build_frame(
+            data=data,
+            axis=1,
+            variable_id_column=variable_id_column,
+            metadata_columns=[variable_group_by],
+        )
+        group_of = dict(
+            zip(
+                variable_groups[variable_id_column],
+                variable_groups[variable_group_by].cast(pl.String),
+                strict=True,
+            )
+        )
+        key_groups = [group_of[key] for key in keys]
+    if group_lines and key_groups is not None:
+        starts = _run_boundaries(key_groups)
+        boundaries = [n_keys - start - 0.5 if transpose else start - 0.5 for start in starts]
+        if starts and transpose:
+            plot += geom_segment(
+                data=pl.DataFrame({"y": boundaries}),
+                mapping=aes(y="y", yend="y"),
+                x=-0.5,
+                xend=n_observations - 0.5,
+                **line_style,
+            )
+        elif starts:
+            plot += geom_segment(
+                data=pl.DataFrame({"x": boundaries}),
+                mapping=aes(x="x", xend="x"),
+                y=-0.5,
+                yend=n_observations - 0.5,
+                **line_style,
             )
 
     # Resolve which side each annotation group sits on. `transpose` reflects the
@@ -733,7 +934,9 @@ def annotated_heatmap(
             far=variable_side in ("right", "top"),
             colors=annotation_colors,
             palette_of=palette_of,
-            titles=track_titles,
+            titles=column_track_titles,
+            titles_below=row_track_titles,
+            legend=annotation_legends,
         )
 
     # ROW annotation tracks (observation metadata), in the band along the observation axis.
@@ -746,40 +949,98 @@ def annotated_heatmap(
         far=observation_far,
         colors=annotation_colors,
         palette_of=palette_of,
-        titles=track_titles,
+        titles=row_track_titles,
+        titles_below=column_track_titles,
+        legend=annotation_legends,
     )
 
-    # DENDROGRAM (group clustering), outermost in the observation band. Groups span
-    # many rows, so an axis dendrogram (one leaf per discrete level) cannot be used.
+    # DENDROGRAM (group clustering), outermost on the observation side: an axis
+    # tree whose leaves each span their group's rows (one level per row).
     observation_thickness = row_annotation_width * len(row_annotations)
     if dendrogram:
         assert group_by is not None
-        assert dendrogram_paths is not None
-        assert group_order is not None
-        centers = observations.group_by(group_by, maintain_order=True).agg(
-            pl.col("position_y").mean().alias("_center")
+        assert tree is not None
+        rows = observations.select(
+            pl.col(group_by).cast(pl.String), pl.col("position_y").cast(pl.String)
         )
-        center_of = dict(zip(centers[group_by].cast(pl.String), centers["_center"], strict=True))
-        # The tree spans `_DENDROGRAM_WIDTH` of the heatmap; cross units are tracks.
-        extent = _DENDROGRAM_WIDTH / row_annotation_width
-        leaf_edge = len(row_annotations) - 0.5 if observation_far else -0.5
-        observation_layers.append(
-            _dendrogram_layer(
-                dendrogram_paths,
-                band=observation_band,
-                group_centers=[center_of[group] for group in group_order],
-                leaf_edge=leaf_edge,
-                extent=extent if observation_far else -extent,
-                color=dendrogram_color,
-                size=dendrogram_size,
-                kwargs=dendrogram_kwargs or {},
-            )
+        runs = {
+            group: rows.filter(pl.col(group_by) == group)["position_y"].to_list()
+            for group in tree.ordered_labels
+        }
+        dendro_axis = scale_x_dendro if transpose else scale_y_dendro
+        # Upright, the first group sits at the top: the tree runs top-down.
+        observation_scale = dendro_axis(
+            tree,
+            breaks=[],
+            expand=[0, 0],
+            reverse=not transpose,
+            position=observation_side,
+            leaf_levels=runs,
+            guide=guide_axis_dendro(),
         )
-        observation_thickness += _DENDROGRAM_WIDTH
+        plot += _dendrogram_line_theme(
+            color=dendrogram_color, size=dendrogram_size, axis="x" if transpose else "y"
+        )
+
+    # GROUP LABELS: a bracket and text beside each labelled `variable_group_by`
+    # block, outermost in the variable band.
+    variable_thickness = column_annotation_height * len(column_annotations)
+    if group_labels:
+        assert key_groups is not None  # guaranteed by the guard above
+        unknown = [group for group in group_labels if group not in key_groups]
+        if unknown:
+            msg = (
+                f"`group_labels` names blocks that `variable_group_by={variable_group_by!r}` "
+                f"does not have: {unknown}. Use its values as keys. "
+                f"{_did_you_mean(unknown, list(dict.fromkeys(key_groups)))}"
+            ).strip()
+            raise InvalidArgumentError(msg)
+        blocks = []
+        for start, end in pairwise([0, *_run_boundaries(key_groups), n_keys]):
+            if key_groups[start] in group_labels:
+                block = [position_x[key] for key in keys[start:end]]
+                blocks.append(
+                    (min(block) - 0.5, max(block) + 0.5, group_labels[key_groups[start]])
+                )
+        variable_far = variable_side in ("right", "top")
+        # Cross units are tracks, as for the dendrogram.
+        depth = _BRACKET_WIDTH / column_annotation_height
+        reach = (_BRACKET_WIDTH + group_labels_width) / column_annotation_height
+        variable_layers += _bracket_layers(
+            blocks,
+            band=variable_band,
+            edge=len(column_annotations) - 0.5 if variable_far else -0.5,
+            depth=depth if variable_far else -depth,
+            reach=reach if variable_far else -reach,
+            kwargs=group_labels_kwargs or {},
+        )
+        variable_thickness += _BRACKET_WIDTH + group_labels_width
+
+    # KEY LABELS: the chosen keys' axis labels, spread evenly with leader lines
+    # (`guide_axis_mark`), on the side opposite the variable tracks.
+    if key_labels == []:
+        key_axis = scale_y_continuous if transpose else scale_x_continuous
+        key_scale = key_axis(breaks=[], limits=list(key_limits), expand=[0, 0])
+    elif key_labels:
+        opposite: dict[str, Literal["left", "right", "top", "bottom"]] = {
+            "left": "right",
+            "right": "left",
+            "top": "bottom",
+            "bottom": "top",
+        }
+        key_axis = scale_y_continuous if transpose else scale_x_continuous
+        key_scale = key_axis(
+            breaks=[position_x[label] for label in key_labels],
+            labels=key_labels,
+            limits=list(key_limits),
+            expand=[0, 0],
+            position=opposite[variable_side],
+        )
+        plot += guides(**{"y" if transpose else "x": guide_axis_mark(spread="even")})
 
     # COMPOSE: both bands in one plot, each sized by its tracks (and the tree).
     thickness = {
-        variable_band: column_annotation_height * len(column_annotations),
+        variable_band: variable_thickness,
         observation_band: observation_thickness,
     }
     plot = _apply_layers(plot, variable_layers + observation_layers)
@@ -797,6 +1058,8 @@ def annotated_heatmap(
         + theme(
             ggside_panel_scale_x=thickness["x"] or None,
             ggside_panel_scale_y=thickness["y"] or None,
+            # A panel border boxes the heatmap only, not the track bands.
+            ggside_panel_border=element_blank(),
             legend_position="bottom" if legend else "none",
             legend_box="horizontal",
             legend_direction="horizontal",

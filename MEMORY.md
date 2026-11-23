@@ -21,7 +21,7 @@
 - [Feedback: `if isinstance(data, AnnData)` block stays](feedback_isinstance_anndata_block.md) — Never flatten to `if not isinstance: raise`; positive branch hosts AnnData-specific ops for future multi-backend support
 - [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
 - [Feedback: No hidden aesthetic promotion](feedback_no_hidden_aesthetic_promotion.md) — Don't auto-promote `group_by` to `fill`/`color`; user wires aesthetics explicitly, prefer warn+facet over hidden magic
-- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
+- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Key-group brackets avoid it since ggrust 0.7 (axis guide).
 - [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
@@ -320,10 +320,12 @@ scale_size routing. Calibrate the size value differently:
 - Without size_unit: size is in lets-plot text units (~pt-like, e.g. 4-6 typical).
 - With size_unit="y": size is in y-axis units (e.g. 0.2 means cap height = 0.2 y).
 
-This is exactly why `cellestial/single/heatmap/_key_groups.py` has dual-mode
-sizing: heatmap uses absolute units (no scale_size in plot), dotplot and
-stacked_violin pass `size_unit="y"` because dotplot adds
-`scale_size(range=[size_max*0.1, size_max])` for the dot sizing.
+Key-group brackets no longer draw `geom_text`: they are an axis guide
+(`guide_axis_nested(side="opposite")` via `_key_groups_guide` in
+`cellestial/single/heatmap/utilities.py`), so the padding and label-size
+calibration that this quirk forced is gone. The quirk still applies to any
+other `geom_text` added to a plot with `scale_size(range=...)` (tracksplot's
+hand-drawn brackets, for one).
 
 **To reproduce / verify:** Build a plot with `geom_point(aes(size="value"))` +
 `scale_size(range=[3, 30])` + `geom_text(size=8.6)`. The text renders at ~1px.
@@ -495,7 +497,7 @@ type: project
 - `_assign_position_y(frame)` — adds `position_y`, first row at top
 - `_annotation_scale(series, colors)` — resolves a track's fill scale
 - `_annotation_strip(frame, position, value, horizontal, legend, colors, position_limits)` — one-row/col track plot
-- `_dendrogram_panel(paths, group_centers, n_groups, position_limits, color, size, kwargs)` — group dendrogram as a left vertical panel (geom_path; leaves at group centers, root extends left)
+- group dendrogram: `scale_x_dendro`/`scale_y_dendro(leaf_levels=...)` on the observation axis, each leaf spanning its group's rows
 - `_blank_strip_theme(legend)` — void theme shared by tracks + dendrogram
 - `_as_list(keys)` — str|Sequence|None -> list
 
@@ -587,11 +589,11 @@ variable_id_column: str = "Variable"      # gene identifier column
 - `.drop_nulls()` — clean after unpivot
 - Categorical integer conversion in `build_frame()` — important for proper Polars typing
 
-## Grid helper functions
-- `_share_ticks()` — removes axis text on non-edge plots
-- `_share_axis()` — removes axis elements except at edges
-- `_share_labels()` — removes axis titles except at edges
-- All applied before `gggrid()` call in plural functions
+## Grid axes in plural functions
+- `share_axis` / `share_ticks` -> `gggrid(axes="collect")`, `share_labels` ->
+  `gggrid(axis_titles="collect")` (ggrust 0.7, patchwork rules: only identical
+  neighbouring axes collapse; titles one per run). The per-plot `_share_*`
+  helpers were removed.
 
 ## Color logic
 - **Categorical key** → `scale_color_brewer(palette="Set2")`
@@ -609,15 +611,15 @@ if interactive:
 
 ## Layer addition (deferred layer pattern)
 - Layers (`arrow_axis`, `bracket`, `cluster_outlines`, `stream`) return a `DeferredLayer`
-  (subclass of `PlotSpec` in `cellestial/layers/_deferred.py`) — they do **not** take
+  (plain class with `__radd__` in `cellestial/layers/_deferred.py`) — they do **not** take
   `plot` positionally. The receiving plot is delivered by `__radd__` at `+` time.
 - Primary usage: `umap + cl.arrow_axis()` (no `plot` arg needed).
 - Advanced/escape-hatch: `ggplot() + cl.stream(plot=umap)` — the `plot` keyword-only
   argument lets callers pin an explicit data source when the receiving plot is
   different (e.g. drawing stream on an empty canvas beside the source).
-- `DeferredLayer` subclasses `PlotSpec` so Python's reflected-operator priority
-  rule fires `__radd__` before lets-plot's `PlotSpec.__add__` (which otherwise
-  raises `TypeError` for unknown right operands — it does NOT return `NotImplemented`).
+- ggrust's `PlotSpec.__add__` returns `NotImplemented` for unknown operands, so
+  `__radd__` runs. `DeferredLayer` must not subclass `FeatureSpec`/`PlotSpec`
+  (the lets-plot era needed a `PlotSpec` subclass; dropped with ggrust 0.7).
 
 
 ---

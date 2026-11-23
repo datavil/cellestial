@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "numpy"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import polars as pl
@@ -89,25 +89,43 @@ def _get_dendrogram_tree(
 
 
 def _dendrogram_y_axis(
-    tree: ClusterTree, *, limits: list[float], fixed: bool = False
+    tree: ClusterTree,
+    *,
+    limits: list[float],
+    fixed: bool = False,
+    leaf_levels: dict[str, list[str]] | None = None,
+    breaks: list[str] | None = None,
+    labels: list[str] | None = None,
 ) -> FeatureSpecArray:
     """
     Order the y-axis by `tree` and draw it right of the panel, as scanpy does.
 
-    Layers keep numeric y positions: leaf `i` of the tree's order sits at `i`.
-    `limits` replace the continuous scale's limits (the tree fixes the levels);
-    `fixed` keeps the square cells `geom_raster` plots default to.
+    Layers keep numeric y positions: level `i` of the axis sits at `i`. Without
+    `leaf_levels` the levels are the tree's leaves; with it, each leaf covers
+    its run of levels (the rows of a group). `limits` replace the continuous
+    scale's limits (the tree fixes the levels); `fixed` keeps the square cells
+    `geom_raster` plots default to. `breaks` and `labels` pick and name levels.
     """
     coord = coord_fixed(ylim=limits) if fixed else coord_cartesian(ylim=limits)
-    return scale_y_dendro(tree, expand=[0, 0], guide=guide_axis_dendro(side="opposite")) + coord
-
-
-def _dendrogram_line_theme(*, color: str, size: float) -> FeatureSpec:
-    """Style the y-axis tree, drawn with the y tick line; zero-length ticks stay hidden."""
-    return theme(
-        axis_ticks_y=element_line(color=color, size=size * _GEOM_LINE_UNIT),
-        axis_ticks_length_y=0,
+    scale = scale_y_dendro(
+        tree,
+        breaks=breaks,
+        labels=labels,
+        expand=[0, 0],
+        guide=guide_axis_dendro(side="opposite"),
+        leaf_levels=leaf_levels,
     )
+    return scale + coord
+
+
+def _dendrogram_line_theme(
+    *, color: str, size: float, axis: Literal["x", "y"] = "y"
+) -> FeatureSpec:
+    """Style the `axis` tree, drawn with its tick line; zero-length ticks stay hidden."""
+    line = element_line(color=color, size=size * _GEOM_LINE_UNIT)
+    if axis == "x":
+        return theme(axis_ticks_x=line, axis_ticks_length_x=0)
+    return theme(axis_ticks_y=line, axis_ticks_length_y=0)
 
 
 def _get_dendrogram(

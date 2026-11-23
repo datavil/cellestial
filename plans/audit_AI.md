@@ -103,8 +103,6 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_key_groups_track_layers` | Claude Opus 5.5 |  |  |  |  |
 | `InvalidArgumentError` | Claude Opus 5.5 |  |  |  |  |
 | `DendrogramMismatchError` | Claude Opus 5.5 |  |  |  |  |
-| `_fixed_cell_padding` | Claude Opus 5.5 |  |  |  |  |
-| `_label_width` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_mapping_conflicts` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
 | `_table_shape_positions` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
 | `_not_found` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
@@ -129,6 +127,10 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `UnknownParameterError` | Claude Opus 5.5 |  |  |  |  |
 | `_reject_renamed_embedding_kwargs` | Claude Opus 5.5 |  |  |  |  |
 | `scripts/fix_pbmc3k_labels.py` (`relabel`, `assert_matrix_equal`, `assert_only_labels_changed`, `assert_labels`, `marker_table`, `assert_markers`, `main`) | Claude Opus 5.5 |  |  |  |  |
+| `_key_groups_guide` | Claude Opus 5.5 |  |  |  |  |
+| `_key_groups_theme` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_removed_key_label_text` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_removed_annotated_heatmap_keywords` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -361,3 +363,10 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `cellestial.layers` (`DeferredLayer` dropped from `__all__`) | Claude Opus 5.5 |  |
 | `spatial`, `spatials` (`greyscale` renamed to `grayscale`, rejects `greyscale`), `_reject_renamed_greyscale` | Claude Opus 5.5 |  |
 | `UnsupportedGeometryError`, `_plural_type_message`; raise class and message in `umaps`, `tsnes`, `pcas`, `dimensionals`, `expressions`, `violins`, `boxplots`, `histograms`, `ridges`, `spatials`, `volcanos`, `markers`, `volcano`, `heatmap`, `dotplot`, `stacked_violin`, `annotated_heatmap`, `_build_volcano_frame`, `_build_markers_frame`, `_marker_names_per_group`, `_extract_rank_genes_groups`, `_resolve_rank_genes_groups_args`, `_resolve_key_groups`, `_compute_violin_polygons`, `_spatialdata_components` (v1 review D1) | Claude Opus 5.5 |  |
+| `annotated_heatmap` (`variable_group_by`, `key_labels` via `guide_axis_mark`, `group_labels`, `annotation_legends`, `row_track_titles` / `column_track_titles`, dendrogram as `leaf_levels` axis tree, `dendrogram_kwargs` removed, transposed order fix, ggside border blanked, `InvalidArgumentError` messages) | Claude Opus 5.5 |  |
+| `heatmap`, `matrixplot`, `dotplot`, `stacked_violin` (key-group brackets via `guide_axis_nested`, `key_labels_text_size` / `key_labels_text_color` removed and rejected; dotplot / stacked_violin border as panel border) | Claude Opus 5.5 |  |
+| `heatmap` (per-cell dendrogram via `leaf_levels` axis tree) | Claude Opus 5.5 |  |
+| `_dendrogram_y_axis` (`leaf_levels`, `breaks`, `labels`), `_dendrogram_line_theme` (`axis`) | Claude Opus 5.5 |  |
+| `umaps`, `pcas`, `tsnes`, `dimensionals`, `expressions`, `violins`, `boxplots`, `histograms`, `spatials`, `volcanos`, `markers` (`share_*` through `gggrid(axes="collect", axis_titles="collect")`; `_share_axis`, `_share_labels`, `_share_ticks`, `_grid_places` removed) | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` (`key_group_labels`, verification pass for short canvases) | Claude Opus 5.5 |  |
+| `dotplot`, `stacked_violin` (`rectangle=False` axis lines after the theme preset) | Claude Opus 5.5 |  |
