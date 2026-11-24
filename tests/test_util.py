@@ -131,9 +131,10 @@ def test_layout_rejects_invalid_shapes(plots, kwargs, error):
         cl.layout(plots, **kwargs)
 
 
-def test_layout_rejects_non_plot_members_when_serialized():
-    with pytest.raises(AttributeError):
-        cl.layout([[ggplot(), 123]]).as_dict()
+def test_layout_rejects_non_plot_members():
+    # ggrust >= 1.1 rejects non-plot grid entries when the grid is built.
+    with pytest.raises(TypeError, match="must be a plot"):
+        cl.layout([[ggplot(), 123]])
 
 
 def test_get_figure_and_get_figures_validate_index_types(adata):

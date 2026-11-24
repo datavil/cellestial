@@ -221,6 +221,9 @@ change. Versions absent from the list were never released.
 
 ### Changed
 
+- Requires ggrust 1.1 (`ggrust>=1.1.0,<2.0`, was `>=0.8.1,<1.0`). Plots are
+  unchanged. `layout()` with a non-plot entry now fails when the grid is built,
+  with a `TypeError` from ggrust, instead of an `AttributeError` when drawn.
 - The per-cell `heatmap(aggregate=False, dendrogram=True)` draws the group
   dendrogram with ggrust's axis tree (each leaf spanning its group's rows) in a
   band right of the panel, instead of a path layer inside it.
