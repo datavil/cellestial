@@ -59,14 +59,18 @@ jobs:
       - name: Install project
         run: poetry install --with dev --without docs --no-interaction
 
-      - name: Cache preprocessed bone marrow fixture
+      - name: Cache dataset fixtures
         uses: actions/cache@v4
         with:
-          path: ~/.cache/cellestial/datasets/bone_marrow_pped.h5ad
-          key: bone_marrow-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
+          path: |
+            ~/.cache/cellestial/datasets/bone_marrow_pped.h5ad
+            ~/.cache/cellestial/datasets/minipbcite.h5mu
+          key: datasets-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
 
-      - name: Prepare test fixture
-        run: poetry run python -c "import cellestial as cl; cl.datasets.bone_marrow()"
+      # Download once before pytest; parallel workers would otherwise each fetch
+      # `minipbcite.h5mu` from GitHub, which has failed with HTTP 504.
+      - name: Prepare test fixtures
+        run: poetry run python -c "import cellestial as cl; cl.datasets.bone_marrow(); cl.datasets.pbmc_cite()"
 
       - name: Run tests with coverage
         run: poetry run pytest -m "not browser"
