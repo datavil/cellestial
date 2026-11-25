@@ -6,7 +6,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-ff0000)](https://opensource.org/licenses/Apache-2.0)
 [![Powered by Polars](https://img.shields.io/badge/Powered%20by-Polars-377eb8?logo=polars&logoColor=white)](https://www.pola.rs/)
 [![Graphics: Lets-Plot](https://img.shields.io/badge/Graphics-Lets--Plot-FF00CC?logo=jetbrains&logoColor=white)](https://lets-plot.org/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21710312.svg)](https://doi.org/10.5281/zenodo.21710312)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21710311.svg)](https://doi.org/10.5281/zenodo.21710311)
 
 <img align="left" src="https://raw.githubusercontent.com/datavil/cellestial/master/assets/cellestial.anim.svg" alt="Cellestial Logo" width="280">
 
@@ -236,9 +236,9 @@ See the [migration guide](https://cellestial.datavil.org/migrating_from_scanpy.h
 If you use Cellestial, please cite:
 
 ```bibtex
-@misc{https://doi.org/10.5281/zenodo.21710312,
-  doi = {10.5281/ZENODO.21710312},
-  url = {https://zenodo.org/doi/10.5281/zenodo.21710312},
+@misc{https://doi.org/10.5281/zenodo.21710311,
+  doi = {10.5281/ZENODO.21710311},
+  url = {https://zenodo.org/doi/10.5281/zenodo.21710311},
   author = {Kosar, Zafer},
   title = {Cellestial: A grammar of graphics for single-cell omics},
   publisher = {Zenodo},

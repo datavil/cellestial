@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: Kosar
     given-names: Zafer
-doi: "10.5281/zenodo.21710312"
+doi: "10.5281/zenodo.21710311"
 license: Apache-2.0
 repository-code: "https://github.com/datavil/cellestial"
 url: "https://cellestial.datavil.org"
