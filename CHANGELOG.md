@@ -264,8 +264,8 @@ change. Versions absent from the list were never released.
   scanpy functions; a plural given one key says "pass a list of keys, or use
   `umap` for one key".
 
-- `datasets.pbmc3k()` now downloads `pbmc3k_pped_v2.h5ad` with corrected
-  `cell_type_lvl1` labels, following the scanpy tutorial's coarse annotation of
+- The bone marrow dataset (now `datasets.bone_marrow()`, see Breaking) has
+  corrected `cell_type_lvl1` labels, following the scanpy tutorial's coarse annotation of
   `leiden_res_0.02`. The old file had "B Cells" and "Erythroid" swapped and left
   cluster 4 (1767 erythroblasts) null; those cells are now "Erythroid" and the
   column has no nulls. Nothing else in the file changed. A cached
