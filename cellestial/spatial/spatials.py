@@ -11,15 +11,24 @@ from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
-from cellestial.spatial.spatial import spatial
-from cellestial.spatial.utilities import _resolve_instance_key, _spatial_components
+from cellestial.layers.utilities import _reject_constant_color_fill
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT
+from cellestial.spatial.spatial import _spatial
+from cellestial.spatial.utilities import _reject_renamed_greyscale, _spatial_components
 from cellestial.util import (
     _collect_aes_columns,
+    _is_spatialdata,
     _is_variable_key,
+    _reject_removed_variable_keys,
+    _require_add_keys,
     _resolve_tooltips,
-    _share_labels,
 )
-from cellestial.util.errors import UnsupportedDataTypeError
+from cellestial.util.errors import (
+    InvalidArgumentTypeError,
+    UnsupportedDataTypeError,
+    _plural_type_message,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from ggrust.plot.subplots import SupPlotsSpec
@@ -33,7 +42,7 @@ def spatials(
     library_id: str | None = None,
     image: bool = True,
     image_key: Literal["hires", "lowres"] | str = "lowres",
-    greyscale: bool = False,
+    grayscale: bool = False,
     image_alpha: float | None = None,
     cmap: str | list | None = None,
     norm: bool | None = None,
@@ -49,9 +58,10 @@ def spatials(
     mapping: FeatureSpec | None = None,
     size: float | None = 1.5,
     alpha: float = 1.0,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
-    variable_keys: Sequence[str] | str | None = None,
     add_keys: Sequence[str] | str | None = None,
     include_dimensions: bool | int = False,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -99,20 +109,20 @@ def spatials(
         Which image variant to render. Visium ships with 'hires' and 'lowres'.
         Falls back to 'hires', then to any available variant, when the requested
         one is missing. Ignored for SpatialData inputs.
-    greyscale : bool, default=False
-        Whether to convert an RGB(A) image to greyscale (Rec.709 luminance).
+    grayscale : bool, default=False
+        Whether to convert an RGB(A) image to grayscale (Rec.709 luminance).
     image_alpha : float | None, default=None
         Alpha (transparency) of the tissue image.
         Distinct from `alpha`, which controls spot transparency.
     cmap : str | list | None, default=None
-        Colormap name or list of colors. Greyscale images only.
+        Colormap name or list of colors. Grayscale images only.
     norm : bool | None, default=None
-        Whether to linearly scale greyscale luminance values to [0, 255].
-        Greyscale images only.
+        Whether to linearly scale grayscale luminance values to [0, 255].
+        Grayscale images only.
     vmin : float | None, default=None
-        Lower bound for greyscale luminance normalization.
+        Lower bound for grayscale luminance normalization.
     vmax : float | None, default=None
-        Upper bound for greyscale luminance normalization.
+        Upper bound for grayscale luminance normalization.
     spatial_key : str, default='spatial'
         The embedding key containing spot coordinates in fullres pixel space.
         Ignored for SpatialData inputs.
@@ -150,8 +160,6 @@ def spatials(
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out rows where the key matches any of
         them. Categorical keys only.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -175,7 +183,8 @@ def spatials(
     midpoint : {'mean', 'median', 'mid'} | float, default='mid'
         Midpoint for the continuous color gradient.
     share_labels : bool, default=False
-        If True, only show axis labels at the grid edges.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to every plot in the grid.
     ncol : int, default=None
@@ -192,6 +201,10 @@ def spatials(
         Whether to align inner geom areas.
     guides : str, default='auto'
         How guides (legends, colorbars) are collected by `gggrid`.
+    geom_color : str | None, default=None
+        Color for all spots (border color for polygons). To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all polygons (or filled point shapes 21 to 25).
     **geom_kwargs
         Additional parameters forwarded to `geom_point`.
 
@@ -200,10 +213,42 @@ def spatials(
     SupPlotsSpec
         Grid of spatial plots, one per key.
 
+    Raises
+    ------
+    UnsupportedDataTypeError
+        If `data` is not a supported spatial data object.
+    TypeError
+        If `keys` is not a sequence of strings.
+    KeyNotFoundError
+        If a requested table, image, shapes element, coordinate system, library
+        or `spatial_key` is missing. The message suggests a close match.
+    EmptySelectionError
+        If the spatial data holds no table, shapes or image to choose from.
+    InvalidArgumentError
+        If spatial components are ambiguous, `crop` is not 4 values, `mapping`
+        sets an aesthetic the plot maps itself, `color` or `fill` is passed
+        as a constant (use `geom_color` / `geom_fill`), a `geom_color` /
+        `geom_fill` would hide the coloring by `key` or `mapping`, or `polygon=True` meets a table
+        without an instance key.
+    ConflictingLengthError
+        If the shapes cannot be matched to the table rows, or a given `frame`
+        has a different number of rows than the table in polygon mode.
+    DuplicateKeysError
+        If the shapes element repeats an instance id.
+    NotImplementedError
+        If polygon rendering encounters unsupported MultiPolygon geometry.
+
     Notes
     -----
     If no tissue image metadata is present, the plot falls back to a plain
     spatial scatter using the raw coordinates.
+
+    With several libraries, `library_id` picks the tissue image and its scale
+    factor, but every spot in `data` is drawn on that image. Subset `data` to
+    the spots of one library first.
+
+    `polygon=True` draws holes in polygon geometries unfilled. The outline also
+    draws a line from each polygon's exterior to its holes.
 
     `cmap`, `norm`, `vmin` and `vmax` are passed to `geom_imshow`.
 
@@ -239,8 +284,11 @@ def spatials(
         cl.spatials(data_hne,keys=["leiden","Mef2c"], ncol=1, interactive=True) + ggsize(500,1000)
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be a Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "spatial")
+        raise InvalidArgumentTypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="spatials", hint=_KEY_COLOR_HINT)
+    _reject_removed_variable_keys(geom_kwargs, "spatials")
+    _reject_renamed_greyscale(geom_kwargs)
 
     if isinstance(data, MuData):
         msg = (
@@ -254,32 +302,28 @@ def spatials(
         )
         raise UnsupportedDataTypeError(msg)
 
-    # Resolve the annotation table once (mirrors `spatial`); SpatialData needs extraction
-    # for the variable-key check below, while `build_frame` accepts either type.
-    if isinstance(data, AnnData):
-        table = data
-    else:
-        _, _, _, table = _spatial_components(
-            data,
-            library_id=library_id,
-            image_key=image_key,
-            image=image,
-            spatial_key=spatial_key,
-            table_name=table_name,
-            image_name=image_name,
-            shapes_name=shapes_name,
-            coordinate_system=coordinate_system,
-            polygon=polygon,
-        )
+    if not isinstance(data, AnnData) and not _is_spatialdata(data):
+        raise _unsupported_data_type(data, AnnData, "SpatialData")
+
+    # Resolve image, geometry and the annotation table once and share them with
+    # every subplot, instead of transforming and loading them once per key.
+    components = _spatial_components(
+        data,
+        library_id=library_id,
+        image_key=image_key,
+        image=image,
+        spatial_key=spatial_key,
+        table_name=table_name,
+        image_name=image_name,
+        shapes_name=shapes_name,
+        coordinate_system=coordinate_system,
+        polygon=polygon,
+    )
+    table = components[3]
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key.
     # spatial is always observations-axis; only gene keys are pulled from X.
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     variable_keys.extend(key for key in keys if _is_variable_key(table, key))
     variable_keys = list(dict.fromkeys(variable_keys))
     if isinstance(add_keys, str):
@@ -303,10 +347,6 @@ def spatials(
         metadata_columns=metadata_columns,
         axis=0,
     )
-    # Polygon mode joins on an instance key; include it up front.
-    instance_key = _resolve_instance_key(table)
-    if polygon and instance_key is not None and instance_key not in metadata_columns:
-        metadata_columns.append(instance_key)
     observation_column_name = None if tooltips == "none" else observation_id_column
     frame = build_frame(
         data=table,
@@ -316,17 +356,19 @@ def spatials(
         include_dimensions=include_dimensions,
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(table, add_keys, frame_columns=frame.columns)
 
     plots = []
-    for i, key in enumerate(keys):
-        plot = spatial(
-            data=data,
-            key=key,
+    for key in keys:
+        plot = _spatial(
+            data,
+            key,
+            components=components,
             frame=frame,
             library_id=library_id,
             image=image,
             image_key=image_key,
-            greyscale=greyscale,
+            grayscale=grayscale,
             image_alpha=image_alpha,
             cmap=cmap,
             norm=norm,
@@ -344,7 +386,6 @@ def spatials(
             alpha=alpha,
             groups=groups,
             drop=drop,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             include_dimensions=include_dimensions,
             tooltips=tooltips,
@@ -353,6 +394,8 @@ def spatials(
             color_mid=color_mid,
             color_high=color_high,
             midpoint=midpoint,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -361,22 +404,21 @@ def spatials(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
 
         plots.append(plot)
 
     sptls = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
     if interactive:

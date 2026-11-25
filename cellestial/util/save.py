@@ -2,9 +2,9 @@ from __future__ import annotations
 
 __lazy_modules__ = ["ggrust"]
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any
 
-from ggrust import GGBunch, ggsave
+from ggrust import ggsave
 
 if TYPE_CHECKING:
     from ggrust.plot.core import PlotSpec
@@ -12,74 +12,60 @@ if TYPE_CHECKING:
 
 
 def save(
-    plot: PlotSpec | SupPlotsSpec | GGBunch,
+    plot: PlotSpec | SupPlotsSpec,
     filename: str,
     *,
-    path: str = ".",
-    iframe: bool = True,
     scale: float = 2.0,
-    w: int | float | None = None,
-    h: int | float | None = None,
-    unit: Literal["in", "cm", "mm", "px"] = "in",
-    dpi: int = 300,
+    **ggsave_kwargs: Any,
 ) -> str:
     """
-    Convenience function for exporting plots.
+    Save a plot to a file, with a sharper default raster scale than `ggsave`.
 
     Parameters
     ----------
-    plot : `PlotSpec` | `SupPlotsSpec` | `GGBunch`
-        Plot to export.
+    plot : `PlotSpec` | `SupPlotsSpec`
+        Plot to save, from a single or a plural plot function.
     filename : str
-        Name of the file.
-        It must end with a file extension corresponding
-        to one of the supported formats: SVG, HTML (or HTM), PNG, PDF (requires the pillow library).
-    path : str, default='.'
-        Path to the folder to save image files in.
-        By default, it is current working directory.
-    iframe : bool, default=True
-        Whether to wrap the HTML page into an iFrame.
-        Only applicable when exporting to HTML.
-        Some browsers may not display some UTF-8 characters correctly when setting iframe=True
+        File name with an extension that picks the format: '.png', '.svg', '.pdf',
+        '.html', '.htm' or '.ggrs'.
     scale : float, default=2.0
-        Scaling factor for raster output.
-        Only applicable when exporting to PNG or PDF.
-    w : float, default=None
-        Width of the output image in units.
-        Only applicable when exporting to SVG, PNG, or PDF.
-    h : float, default=None
-        Height of the output image in units.
-        Only applicable when exporting to SVG, PNG, or PDF.
-    unit : {'in', 'cm', 'mm', 'px'}, default='in'
-        Unit of the output image. One of: 'in', 'cm', 'mm' or 'px'.
-        Only applicable when exporting to SVG, PNG, or PDF.
-    dpi : int, default=300
-        Resolution in dots per inch.
-        Only applicable when exporting to PNG or PDF.
-        The default value depends on the unit:
+        Pixel scale for PNG and PDF output. The default 2.0 doubles the pixel density
+        so text and points stay crisp on high resolution screens and in slides.
+    **ggsave_kwargs : Any
+        Passed unchanged to `ggsave` and follow its defaults. Common ones:
 
-        - for 'px' it is 96 (output image will have the same pixel size as `w`, and `h` values)
-        - for physical units ('in', 'cm', 'mm') it is 300.
+        - `path` : folder to save into; the current working directory when omitted.
+        - `w`, `h` : output width and height (SVG, PNG, PDF); give both.
+        - `unit` : unit of `w` and `h`, one of 'in', 'cm', 'mm', 'px'; inches when omitted.
+        - `dpi` : resolution for PNG and PDF.
+        - `iframe` : HTML only, wrap the page in an iframe (default True).
 
     Returns
     -------
     str
-        Absolute pathname of the created file.
+        Absolute path of the written file.
+
+    Raises
+    ------
+    TypeError
+        If `ggsave_kwargs` holds a name `ggsave` does not accept.
+    ValueError
+        Raised by `ggsave` (as ggrust's `ExportError`) when `plot` is not a plot, or
+        when `filename` has no name, no extension or an unsupported extension.
+
+    Examples
+    --------
+    >>> import tempfile
+    >>> import cellestial as cl
+    >>> adata = cl.datasets.bone_marrow(cache_directory="data")
+    >>> plot = cl.umap(adata, "leiden")
+    >>> folder = tempfile.mkdtemp()
+    >>> output = cl.save(plot, "umap.png", path=folder)
+    >>> output = cl.save(plot, "umap.pdf", path=folder, w=6, h=4, unit="in", dpi=300)
 
     Notes
     -----
-    Supported formats: PNG, SVG, PDF, HTML.
-    Wraps `ggsave`; docstrings adapted from the ggrust ggsave function.
-    See https://lets-plot.org/python/pages/api/lets_plot.ggsave.html.
+    Only `scale` differs from `ggsave`; every other setting, including `dpi` and
+    `unit`, uses the `ggsave` default unless you pass it.
     """
-    return ggsave(
-        plot=plot,
-        filename=filename,
-        path=path,
-        iframe=iframe,
-        scale=scale,
-        w=w,
-        h=h,
-        unit=unit,
-        dpi=dpi,
-    )
+    return ggsave(plot=plot, filename=filename, scale=scale, **ggsave_kwargs)

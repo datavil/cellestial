@@ -50,9 +50,10 @@ def test_dimensional_mapping_extra_aesthetic(adata, group_key):
     assert isinstance(plot, PlotSpec)
 
 
-def test_dimensional_with_variable_keys(adata):
-    plot = cl.umap(adata, "CD14", variable_keys=["MS4A1", "NKG7"])
+def test_dimensional_with_add_keys(adata):
+    plot = cl.umap(adata, "CD14", add_keys=["MS4A1", "NKG7"])
     assert isinstance(plot, PlotSpec)
+    assert {"MS4A1", "NKG7"} <= set(cl.retrieve(plot).columns)
 
 
 def test_dimensional_tooltips_none(adata, group_key):

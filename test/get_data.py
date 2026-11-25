@@ -8,9 +8,9 @@ import scanpy as sc
 import scvelo as scv
 
 
-def get_pbmc3k() -> None:
+def get_bone_marrow() -> None:
     """Adopted From: https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html."""
-    if Path("data/pbmc3k_pped.h5ad").exists():
+    if Path("data/bone_marrow_pped.h5ad").exists():
         return
 
     EXAMPLE_DATA = pooch.create(
@@ -117,12 +117,13 @@ def get_pbmc3k() -> None:
         {
             "0": "Lymphocytes",
             "1": "Monocytes",
-            "2": "Erythroid",
-            "3": "B Cells",
+            "2": "B Cells",
+            "3": "Erythroid",
+            "4": "Erythroid",
         }
     )
 
-    adata.write("data/pbmc3k_pped.h5ad")
+    adata.write("data/bone_marrow_pped.h5ad")
 
     return
 
@@ -183,8 +184,8 @@ def get_breast_cancer_atlas() -> None:
 
 
 def main() -> None:
-    print("1 - getting and pre-processing pbmc3k")
-    get_pbmc3k()
+    print("1 - getting and pre-processing bone marrow")
+    get_bone_marrow()
     print("2 - getting and pre-processing pancreas")
     get_pancreas()
     print("3 - getting breast cancer cell atlas")

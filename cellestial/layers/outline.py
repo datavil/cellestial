@@ -2,15 +2,17 @@ from __future__ import annotations
 
 __lazy_modules__ = ["ggrust", "numpy"]
 
-from typing import TYPE_CHECKING, Literal
+from difflib import get_close_matches
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import polars as pl
 from ggrust import aes, density_outline, geom_path
 
 from cellestial.layers._deferred import DeferredLayer
+from cellestial.layers.utilities import _reject_mapping_clash
 from cellestial.util import _drop_nonfinite_rows, get_mapping
-from cellestial.util.errors import MissingAestheticError
+from cellestial.util.errors import EmptySelectionError, KeyNotFoundError, MissingAestheticError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -56,11 +58,13 @@ def _get_density_boundaries(
     available = set(frame.get_column(group_by).drop_nulls().unique().to_list())
     missing = requested - available
     if missing:
+        close_matches = get_close_matches(sorted(missing)[0], [str(g) for g in available], n=3)
+        hint = f" Did you mean {close_matches}?" if close_matches else ""
         msg = (
-            f"Groups {sorted(missing)} not found in column '{group_by}'. "
+            f"Groups {sorted(missing)} not found in column '{group_by}'.{hint}\n"
             f"Available groups: {sorted(available)}."
         )
-        raise ValueError(msg)
+        raise KeyNotFoundError(msg)
 
     boundaries = []
     for group in groups:
@@ -91,7 +95,7 @@ def _get_density_boundaries(
             "No cluster outline could be computed. "
             "Requested groups exist but have fewer than 5 points each."
         )
-        raise ValueError(msg)
+        raise EmptySelectionError(msg)
 
     return pl.concat(boundaries)
 
@@ -174,8 +178,20 @@ def cluster_outlines(
     MissingAestheticError
         If `x`, `y`, or `group_by` cannot be provided explicitly or inferred
         from the receiving plot.
-    ValueError
+    KeyNotFoundError
+        If a requested group is not in the grouping column.
+    EmptySelectionError
         If no outline can be computed for the requested groups.
+    InvalidArgumentError
+        If `mapping` sets `x`, `y` or `group`, which the layer sets itself.
+
+    Notes
+    -----
+    A nested group (e.g. `groups=[['3', '5']]`) pools the points of its members
+    into one density estimate with one kernel width. When the members lie far
+    apart, that wide kernel bridges them and the outline becomes one blob around
+    both. To outline each member on its own, pass them as separate groups:
+    `groups=['3', '5']`.
 
     Examples
     --------
@@ -188,7 +204,7 @@ def cluster_outlines(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = (
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
@@ -205,7 +221,7 @@ def cluster_outlines(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = (
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
@@ -222,7 +238,7 @@ def cluster_outlines(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = (
             cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=0.5, legend_ondata=True)
@@ -230,6 +246,11 @@ def cluster_outlines(
         )
         umap + cl.cluster_outlines(groups=[["Lymphocytes","Monocytes"],"B Cells"])
     """
+    _reject_mapping_clash(
+        mapping,
+        function="cluster_outlines",
+        set_by={"x": "`x`", "y": "`y`", "group": "each outline path"},
+    )
     explicit_plot = plot
     explicit_x = x
     explicit_y = y
@@ -252,7 +273,7 @@ def cluster_outlines(
             msg = "`group_by` is present neither as argument nor in the plot aesthetics."
             raise MissingAestheticError(msg)
         # get data
-        frame = source.get_plot_shared_data()
+        frame = cast("DataFrame", source.get_plot_shared_data())
         # get boundaries
         frame = _get_density_boundaries(
             frame,

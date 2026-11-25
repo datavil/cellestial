@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Literal
 
 from ggrust import arrow, element_blank, element_line, element_text, geom_blank, theme
 
+from cellestial.util.errors import InvalidArgumentError
+
 if TYPE_CHECKING:
     from ggrust.plot.core import FeatureSpec
 
@@ -118,8 +120,11 @@ def _modify_axis(
             angle=arrow_angle,
         )
     else:
-        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
-        raise ValueError(msg)
+        msg = (
+            f"`axis_type` must be 'axis', 'arrow' or None, but received {axis_type!r}.\n"
+            "Use 'arrow' for arrow axes, 'axis' for regular axes, or None to hide them."
+        )
+        raise InvalidArgumentError(msg)
 
 
 def arrow_axis(
@@ -169,7 +174,7 @@ def arrow_axis(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = cl.umap(data,"HBA2")
         umap
@@ -183,7 +188,7 @@ def arrow_axis(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = cl.umap(data,"HBA2")
         umap + cl.arrow_axis()
@@ -197,7 +202,7 @@ def arrow_axis(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = cl.umap(data,"HBA2")
         umap + cl.arrow_axis(length=0.20,color="dark_violet")

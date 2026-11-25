@@ -8,16 +8,23 @@ import cellestial as cl
 from cellestial.layers.bracket import _bracket_layout, _expand_comparisons
 from cellestial.layers.ondata_legend import _compute_label_positions
 from cellestial.util import retrieve
-from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidComparisonError,
+    KeyNotFoundError,
+    MissingAestheticError,
+)
 
 
 def test_arrow_axis_adds_to_plot(adata):
+    """Arrow axis adds to plot."""
     umap = cl.umap(adata, "CD14")
     combined = umap + cl.arrow_axis()
     assert isinstance(combined, PlotSpec)
 
 
 def test_arrow_axis_customization(adata):
+    """Arrow axis customization."""
     umap = cl.umap(adata, "CD14")
     combined = umap + cl.arrow_axis(length=0.20, color="dark_violet")
     theme = combined.as_dict()["theme"]
@@ -27,6 +34,7 @@ def test_arrow_axis_customization(adata):
 
 
 def test_arrow_axis_forwards_linetype_and_arrow_kwargs(adata):
+    """Arrow axis forwards linetype and arrow kwargs."""
     umap = cl.umap(adata, "CD14")
     combined = umap + cl.arrow_axis(arrow_kwargs={"type": "closed"}, linetype="dashed")
     theme = combined.as_dict()["theme"]
@@ -36,6 +44,7 @@ def test_arrow_axis_forwards_linetype_and_arrow_kwargs(adata):
 
 
 def test_ondata_legend_uses_group_median_positions():
+    """Ondata legend uses group median positions."""
     frame = pl.DataFrame(
         {
             "x": [0.0, 0.0, 0.0, 100.0, 10.0, 20.0, 30.0],
@@ -51,6 +60,7 @@ def test_ondata_legend_uses_group_median_positions():
 
 
 def test_ondata_legend_layer_options_and_missing_aesthetics():
+    """Ondata legend layer options and missing aesthetics."""
     frame = pl.DataFrame(
         {
             "x": [0.0, 1.0, 2.0, 3.0],
@@ -106,17 +116,20 @@ def _build_ondata(**kwargs):
 
 
 def test_ondata_legend_halo_reaches_text_geom():
+    """Ondata legend halo reaches text geom."""
     spec = _build_ondata(halo_width=3.0, halo_color="black")
     assert _collect_keys(spec, "halo_width") == [3.0]
     assert _collect_keys(spec, "halo_color") == ["black"]
 
 
 def test_ondata_legend_default_halo_width():
+    """Ondata legend default halo width."""
     spec = _build_ondata()
     assert _collect_keys(spec, "halo_width") == [0.5]
 
 
 def test_ondata_legend_label_ignores_halo():
+    """Ondata legend label ignores halo."""
     # `geom_label` has no halo; halo params must not leak into the label geom.
     spec = _build_ondata(label=True, halo_width=3.0, halo_color="black")
     assert _collect_keys(spec, "halo_width") == []
@@ -124,6 +137,7 @@ def test_ondata_legend_label_ignores_halo():
 
 
 def test_cluster_outlines_single_group(adata, group_key):
+    """Cluster outlines single group."""
     umap = cl.umap(adata, key=group_key)
     outline = cl.cluster_outlines(groups="B Cells")
     combined = umap + outline
@@ -131,6 +145,7 @@ def test_cluster_outlines_single_group(adata, group_key):
 
 
 def test_cluster_outlines_multiple_groups(adata, group_key):
+    """Cluster outlines multiple groups."""
     umap = cl.umap(adata, key=group_key)
     outline = cl.cluster_outlines(groups=["B Cells", "Erythroid"])
     combined = umap + outline
@@ -138,6 +153,7 @@ def test_cluster_outlines_multiple_groups(adata, group_key):
 
 
 def test_cluster_outlines_nested_groups(adata, group_key):
+    """Cluster outlines nested groups."""
     umap = cl.umap(adata, key=group_key)
     outline = cl.cluster_outlines(groups=[["Lymphocytes", "Monocytes"], "B Cells"])
     combined = umap + outline
@@ -145,9 +161,10 @@ def test_cluster_outlines_nested_groups(adata, group_key):
 
 
 def test_cluster_outlines_invalid_group_raises(adata, group_key):
+    """Cluster outlines invalid group raises."""
     # DeferredLayer defers construction to `+` time, so the error fires there.
     umap = cl.umap(adata, key=group_key)
-    with pytest.raises(Exception):
+    with pytest.raises(KeyNotFoundError):
         _ = umap + cl.cluster_outlines(groups="NOT_A_GROUP_xyz")
 
 
@@ -184,6 +201,7 @@ def test_cluster_outlines_not_cut_at_any_embedding_scale(scale):
 
 
 def test_cluster_outlines_requires_coordinates_and_group_mapping():
+    """Cluster outlines requires coordinates and group mapping."""
     frame = pl.DataFrame(
         {
             "x": [0.0, 1.0, 0.0, 1.0],
@@ -392,13 +410,15 @@ def test_bracket_layer_requires_x_and_y_aesthetics():
 
 
 def test_stream_requires_velocity(adata):
-    # pbmc3k fixture has no velocity columns; stream should raise at `+` time.
+    """Stream requires velocity."""
+    # The bone marrow fixture has no velocity columns; stream should raise at `+` time.
     umap = cl.umap(adata)
-    with pytest.raises(KeyError, match="Velocity columns not found"):
+    with pytest.raises(KeyNotFoundError, match="Velocity columns not found"):
         _ = umap + cl.stream()
 
 
 def test_stream_requires_x_and_y_aesthetics():
+    """Stream requires x and y aesthetics."""
     frame = pl.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
 
     with pytest.raises(Exception, match="`x`"):
@@ -408,6 +428,7 @@ def test_stream_requires_x_and_y_aesthetics():
 
 
 def test_stream_velocity_key_requires_dimension_numbers():
+    """Stream velocity key requires dimension numbers."""
     frame = pl.DataFrame(
         {
             "umap_x": [0.0, 1.0],
@@ -418,11 +439,12 @@ def test_stream_velocity_key_requires_dimension_numbers():
     )
     plot = ggplot(frame) + geom_point(aes(x="umap_x", y="umap_y"))
 
-    with pytest.raises(ValueError, match="Could not parse dimension number"):
+    with pytest.raises(InvalidArgumentError, match="Could not parse a component number"):
         _ = plot + cl.stream(velocity_key="velocity_")
 
 
 def test_stream_builds_layers_from_a_velocity_field():
+    """Stream builds layers from a velocity field."""
     # 400 cells on a jittered square, rotating about the centre: enough cells for
     # the default `n_neighbors` (n / 50) of ggrust's velocity grid.
     rng = np.random.default_rng(0)
@@ -452,6 +474,7 @@ def _adata_with_velocity(adata):
 
 
 def test_umap_frame_includes_unplotted_velocity_embedding(adata):
+    """Umap frame includes unplotted velocity embedding."""
     # Regression: `cl.umap` plots `X_umap` but must still materialise every
     # embedding into the frame, because the deferred `cl.stream()` layer reads a
     # different embedding (`velocity_umap` -> VELOCITY_UMAP1/2) from it. Narrowing
@@ -462,6 +485,7 @@ def test_umap_frame_includes_unplotted_velocity_embedding(adata):
 
 
 def test_stream_builds_on_umap_with_velocity_embedding(adata):
+    """Stream builds on umap with velocity embedding."""
     # End-to-end mirror of the reported failure: `cl.umap(...) + cl.stream()`
     # must resolve velocity columns from the umap frame without raising.
     data = _adata_with_velocity(adata)

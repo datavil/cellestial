@@ -27,7 +27,7 @@ where,
 library: is one of cellestial or scanpy
 case: is heatmap, umap etc.
 replica_id: 1, 2, 3 etc
-dataset: "atlas200k" for data/atlas200k.h5ad and "pbmc3k_pped" for data/pbmc3k_pped.h5ad (like str.split("/")[-1].split(".")[0].split("_")[-1])
+dataset: "pbmc200k" for data/pbmc200k.h5ad and "pbmc3k_pped" for data/pbmc3k_pped.h5ad (like str.split("/")[-1].split(".")[0].split("_")[-1])
 n_obs: number of observations
 n_cols: number of columns actively used for the plot.
 n_items: number of items (n_obs*n_cols)
@@ -64,7 +64,7 @@ boxplot,
 Also, I need you to a write a CLI.sh to run these all modularly (or source it all).
 
 
-pbmc3k and atlas200k for heatmap, umap, boxplot,
+pbmc3k and pbmc200k for heatmap, umap, boxplot,
 
 data/V1_Human_Lymph_Node and data/V1_Mouse_Kidney for spatial.
 

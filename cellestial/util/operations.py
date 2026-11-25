@@ -1,29 +1,55 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["ggrust", "ggrust.plot.core", "ggrust.plot.subplots"]
+__lazy_modules__ = ["ggrust", "ggrust.plot.core", "ggrust.plot.subplots", "numpy"]
 
+import operator
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, cast
 
+import numpy as np
 from ggrust import gggrid
 from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 
+from cellestial.util.errors import (
+    ConflictingLengthError,
+    GridIndexError,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    InvalidPlotSpecError,
+    MissingPlotDataError,
+)
+
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
     from polars import DataFrame
 
 
 def _normalize_widths(
     plots: Sequence[Sequence[PlotSpec | SupPlotsSpec]],
-    widths: Sequence[float] | Sequence[Sequence[float]] | None,
+    widths: Sequence[float] | Sequence[Sequence[float] | NDArray] | NDArray | None,
 ) -> list[list[float] | None]:
     """Resolve `widths` into one width vector (or None) per row."""
     if widths is None:
         return [None] * len(plots)
 
+    if isinstance(widths, np.ndarray):
+        widths = cast("list[float] | list[list[float]]", widths.tolist())
     if not isinstance(widths, Sequence) or isinstance(widths, str):
-        msg = f"`widths` must be a flat or nested sequence, but received {type(widths)}"
-        raise TypeError(msg)
+        msg = (
+            "`widths` must be a flat or nested sequence (or array) of numbers, "
+            f"but received {type(widths)}."
+        )
+        raise InvalidArgumentTypeError(msg)
+    widths = cast(
+        "list[float] | list[Sequence[float]]",
+        [
+            row_widths.tolist()  # ty:ignore[no-matching-overload]
+            if isinstance(row_widths, np.ndarray)
+            else row_widths
+            for row_widths in cast("Sequence[object]", widths)
+        ],
+    )
 
     nested_flags = [
         isinstance(row_widths, Sequence) and not isinstance(row_widths, (str, bytes))
@@ -32,20 +58,20 @@ def _normalize_widths(
     if any(nested_flags):
         if not all(nested_flags):
             msg = "`widths` mixes numbers and sequences; use one sequence per row."
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
         nested_widths = cast("Sequence[Sequence[float]]", widths)
         if len(nested_widths) != len(plots):
             msg = (
                 f"nested `widths` has {len(nested_widths)} rows but `plots` has {len(plots)} rows."
             )
-            raise ValueError(msg)
+            raise ConflictingLengthError(msg)
         for index, (row, row_widths) in enumerate(zip(plots, nested_widths, strict=True)):
             if len(row_widths) != len(row):
                 msg = (
                     f"`widths[{index}]` has {len(row_widths)} values "
                     f"but row {index} has {len(row)} plots."
                 )
-                raise ValueError(msg)
+                raise ConflictingLengthError(msg)
         return [list(row_widths) for row_widths in nested_widths]
 
     # flat widths: broadcast to every row, valid only when all rows share that length.
@@ -56,14 +82,14 @@ def _normalize_widths(
             f"flat `widths` of length {len(flat_widths)} cannot broadcast to rows {uneven} "
             "with differing plot counts; pass a nested `widths` instead."
         )
-        raise ValueError(msg)
+        raise ConflictingLengthError(msg)
     return [list(flat_widths) for _ in plots]
 
 
 def layout(
     plots: Sequence[Sequence[PlotSpec | SupPlotsSpec] | PlotSpec | SupPlotsSpec],
     *,
-    widths: Sequence[float] | Sequence[Sequence[float]] | None = None,
+    widths: Sequence[float] | Sequence[Sequence[float] | NDArray] | NDArray | None = None,
     heights: Sequence[float] | None = None,
     hspace: float | None = None,
     vspace: float | None = None,
@@ -76,8 +102,9 @@ def layout(
     plots : Sequence[Sequence[PlotSpec | SupPlotsSpec] | PlotSpec | SupPlotsSpec]
         A sequence of rows. Each element is either a sequence of plots or a single
         plot, which is treated as a one-plot row.
-    widths : Sequence[float] | Sequence[Sequence[float]] | None, default=None
-        Relative cell widths within each row. A nested sequence assigns widths
+    widths : Sequence[float] | Sequence[Sequence[float] | NDArray] | NDArray | None, default=None
+        Relative cell widths within each row, as sequences or numpy arrays
+        (a 2D array is a nested sequence). A nested sequence assigns widths
         per row (each inner length must match that row's plot count). A flat
         sequence is broadcast to every row and is only valid when all rows have
         the same plot count. `None` distributes widths equally.
@@ -95,10 +122,12 @@ def layout(
 
     Raises
     ------
-    TypeError
+    InvalidArgumentTypeError
         If `plots` is not a nested sequence or `widths` is of an unexpected type.
-    ValueError
-        If any row is empty, or `widths`/`heights` lengths do not match the layout.
+    InvalidArgumentError
+        If `plots` or any row is empty, or `widths` mixes numbers and sequences.
+    ConflictingLengthError
+        If `widths`/`heights` lengths do not match the layout.
 
     Notes
     -----
@@ -116,7 +145,7 @@ def layout(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         first = cl.umap(data, key="CD14", axis_type="arrow")
         second = cl.tsne(data, key="MALAT1", axis_type="arrow")
@@ -132,10 +161,10 @@ def layout(
     """
     if not isinstance(plots, Sequence) or isinstance(plots, str):
         msg = f"`plots` must be a nested sequence of rows, but received {type(plots)}"
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
     if len(plots) == 0:
         msg = "`plots` must contain at least one row."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     plot_rows: list[list[PlotSpec | SupPlotsSpec]] = []
     for index, row in enumerate(plots):
         if isinstance(row, (PlotSpec, SupPlotsSpec)):  # a bare plot becomes its own row.
@@ -143,25 +172,25 @@ def layout(
             continue
         if not isinstance(row, Sequence) or isinstance(row, str):
             msg = f"row {index} must be a plot or a sequence of plots, but received {type(row)}"
-            raise TypeError(msg)
+            raise InvalidArgumentTypeError(msg)
         if len(row) == 0:
             msg = f"row {index} is empty; every row must contain at least one plot."
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
         plot_rows.append(list(row))
 
     if heights is not None and len(heights) != len(plot_rows):
         msg = f"`heights` has {len(heights)} values but `plots` has {len(plot_rows)} rows."
-        raise ValueError(msg)
+        raise ConflictingLengthError(msg)
 
     row_widths = _normalize_widths(plot_rows, widths)
     rows = [
         gggrid(row, ncol=len(row), widths=row_widths[index], hspace=hspace)
         for index, row in enumerate(plot_rows)
     ]
-    return gggrid(rows, ncol=1, heights=heights, vspace=vspace)
+    return gggrid(rows, ncol=1, heights=None if heights is None else list(heights), vspace=vspace)
 
 
-def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
+def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec | SupPlotsSpec:
     """
     Get a single figure from a grid (SupPlotsSpec) by index.
 
@@ -174,15 +203,17 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
 
     Returns
     -------
-    PlotSpec
-        The selected figure.
+    PlotSpec | SupPlotsSpec
+        The selected figure. A grid nested inside `grid` comes back as a SupPlotsSpec.
 
     Raises
     ------
-    TypeError
-        If `grid` is not a SupPlotsSpec or `index` is not an int.
-    IndexError
-        If `index` is out of range for the grid.
+    InvalidPlotSpecError
+        If `grid` is not a SupPlotsSpec.
+    InvalidArgumentTypeError
+        If `index` is not an int.
+    GridIndexError
+        If `index` is out of range for the grid or points at a blank cell.
 
     Examples
     --------
@@ -195,7 +226,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         grid = cl.expressions(
             data,
@@ -209,17 +240,29 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec:
 
     """
     if not isinstance(grid, SupPlotsSpec):
-        msg = f"Expected `SupPlotsSpec`, but received {type(grid)}"
-        raise TypeError(msg)
+        msg = f"Expected `SupPlotsSpec` for `grid`, but received {type(grid)}"
+        raise InvalidPlotSpecError(msg)
     if not isinstance(index, int) or isinstance(index, bool):
-        msg = f"Expected int for index, but received {type(index)}"
-        raise TypeError(msg)
+        msg = f"Expected int for `index`, but received {type(index)}"
+        raise InvalidArgumentTypeError(msg)
 
     figures = grid.figures
     if not -len(figures) <= index < len(figures):
         msg = f"index {index} is out of range for a grid with {len(figures)} figures."
-        raise IndexError(msg)
-    return figures[index]
+        raise GridIndexError(msg)
+    figure = figures[index]
+    if figure is None:
+        filled = [position for position, cell in enumerate(figures) if cell is not None]
+        where = (
+            f"Figures sit at indices {filled}; pick one of those."
+            if filled
+            else "The grid holds no figures at all; build it from at least one plot."
+        )
+        msg = (
+            f"index {index} points at a blank cell of the grid; there is no figure there. {where}"
+        )
+        raise GridIndexError(msg)
+    return figure
 
 
 def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlotsSpec:
@@ -243,9 +286,11 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
 
     Raises
     ------
-    TypeError
-        If `grid` is not a SupPlotsSpec or `indices` is not a Sequence of ints.
-    IndexError
+    InvalidPlotSpecError
+        If `grid` is not a SupPlotsSpec.
+    InvalidArgumentTypeError
+        If `indices` is not a Sequence of ints.
+    GridIndexError
         If any value in `indices` is out of range for the grid.
 
     Examples
@@ -259,7 +304,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         grid = cl.expressions(
             data,
@@ -273,17 +318,21 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
 
     """
     if not isinstance(grid, SupPlotsSpec):
-        msg = f"Expected `SupPlotsSpec`, but received {type(grid)}"
-        raise TypeError(msg)
-    if not isinstance(indices, Sequence) or isinstance(indices, str):
-        msg = f"Expected Sequence[int] for indices, but received {type(indices)}"
-        raise TypeError(msg)
+        msg = f"Expected `SupPlotsSpec` for `grid`, but received {type(grid)}"
+        raise InvalidPlotSpecError(msg)
+    if (
+        not isinstance(indices, Sequence)
+        or isinstance(indices, str)
+        or not all(isinstance(i, int) and not isinstance(i, bool) for i in indices)
+    ):
+        msg = f"Expected Sequence[int] for `indices`, but received {indices!r}"
+        raise InvalidArgumentTypeError(msg)
 
     figures = grid.figures
     out_of_range = [i for i in indices if not -len(figures) <= i < len(figures)]
     if out_of_range:
         msg = f"indices {out_of_range} are out of range for a grid with {len(figures)} figures"
-        raise IndexError(msg)
+        raise GridIndexError(msg)
     return gggrid([figures[i] for i in indices], **kwargs)
 
 
@@ -314,14 +363,15 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
         cl.get_mapping(umap)
     """
+    plot_dict = plot.as_dict()
     return {
-        **plot.as_dict().get("mapping"),  # from the global mapping,
-        **plot.as_dict().get("layers")[index].get("mapping"),  # from a layer.
+        **(plot_dict.get("mapping") or {}),  # from the global mapping,
+        **(plot_dict["layers"][index].get("mapping") or {}),  # from a layer.
     }
 
 
@@ -343,9 +393,11 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
 
     Raises
     ------
-    TypeError
+    InvalidPlotSpecError
         If the plot is not a PlotSpec or SupPlotsSpec object.
-    ValueError
+    GridIndexError
+        If `plot` is a grid and `index` is out of range or points at a blank cell.
+    MissingPlotDataError
         If no DataFrame can be retrieved from the plot.
 
     Examples
@@ -358,7 +410,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
         cl.retrieve(umap).head()
@@ -366,13 +418,14 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
     if isinstance(plot, PlotSpec):
         frame = plot.as_dict().get("data")
     elif isinstance(plot, SupPlotsSpec):
-        frame = plot.as_dict().get("figures")[index].get("data")
+        # numpy integers index a grid too, as they did before the blank-cell check
+        frame = get_figure(plot, int(operator.index(index))).as_dict().get("data")
     else:
         msg = f"Plot MUST be a `PlotSpec` or `SupPlotsSpec` object, type={type(plot)}"
-        raise TypeError(msg)
+        raise InvalidPlotSpecError(msg)
 
     if frame is None:
-        msg = "Could not retrieve the dataframe from the plot."
-        raise ValueError(msg)
+        msg = "Could not retrieve the dataframe from the plot; it carries no data."
+        raise MissingPlotDataError(msg)
 
     return frame

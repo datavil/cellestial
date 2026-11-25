@@ -7,8 +7,9 @@ from scipy import sparse
 from spatialdata import SpatialData
 
 import cellestial as cl
-from cellestial.frames.build import anndata_observations_frame, anndata_variables_frame
+from cellestial.frames.build import _anndata_observations_frame, _anndata_variables_frame
 from cellestial.frames.operations import _highest_expressed_genes_frame, _pca_variance_frame
+from cellestial.util.errors import KeyNotFoundError
 
 
 def test_build_frame_requires_axis(adata):
@@ -61,7 +62,7 @@ def test_anndata_observations_frame_dimension_validation():
     data.var_names = ["gene_a", "gene_b"]
     data.obsm["X_demo"] = np.ones((3, 2))
 
-    frame = anndata_observations_frame(
+    frame = _anndata_observations_frame(
         data,
         variable_keys="gene_a",
         include_dimensions=True,
@@ -70,11 +71,11 @@ def test_anndata_observations_frame_dimension_validation():
     assert "X_DEMO1" in frame.columns
     assert "gene_a" in frame.columns
     with pytest.raises(ValueError, match="negative"):
-        anndata_observations_frame(data, include_dimensions=-1)
+        _anndata_observations_frame(data, include_dimensions=-1)
     with pytest.raises(TypeError, match="bool"):
-        anndata_observations_frame(data, include_dimensions="yes")
+        _anndata_observations_frame(data, include_dimensions="yes")
     with pytest.raises(Exception, match="Expected"):
-        anndata_observations_frame("not adata")
+        _anndata_observations_frame("not adata")
 
 
 def test_anndata_variables_frame_dimension_validation():
@@ -87,15 +88,15 @@ def test_anndata_variables_frame_dimension_validation():
     )
     data.varm["PCs"] = np.ones((3, 2))
 
-    frame = anndata_variables_frame(data, include_dimensions=1)
+    frame = _anndata_variables_frame(data, include_dimensions=1)
 
     assert "PCS1" in frame.columns
     with pytest.raises(ValueError, match="negative"):
-        anndata_variables_frame(data, include_dimensions=-1)
+        _anndata_variables_frame(data, include_dimensions=-1)
     with pytest.raises(TypeError, match="bool"):
-        anndata_variables_frame(data, include_dimensions="yes")
+        _anndata_variables_frame(data, include_dimensions="yes")
     with pytest.raises(Exception, match="Expected"):
-        anndata_variables_frame("not adata")
+        _anndata_variables_frame("not adata")
 
 
 def test_frame_builders_select_metadata_dimensions_and_identifiers():
@@ -108,14 +109,14 @@ def test_frame_builders_select_metadata_dimensions_and_identifiers():
     data.obsm["X_other"] = np.ones((3, 2))
     data.varm["PCs"] = np.ones((2, 2))
 
-    observations = anndata_observations_frame(
+    observations = _anndata_observations_frame(
         data,
         observation_id_column=None,
         metadata_columns=["keep"],
         include_dimensions=1,
         dimension_keys=["x_DEMO"],
     )
-    variables = anndata_variables_frame(
+    variables = _anndata_variables_frame(
         data,
         variable_id_column=None,
         metadata_columns=["keep_var"],
@@ -132,13 +133,13 @@ def test_frame_builders_allow_empty_embedding_selection():
     data.obsm["X_demo"] = np.ones((2, 2))
     data.varm["PCs"] = np.ones((2, 2))
 
-    observations = anndata_observations_frame(
+    observations = _anndata_observations_frame(
         data,
         metadata_columns=[],
         include_dimensions=True,
         dimension_keys=[],
     )
-    variables = anndata_variables_frame(
+    variables = _anndata_variables_frame(
         data,
         metadata_columns=[],
         include_dimensions=True,
@@ -152,15 +153,15 @@ def test_frame_builders_allow_empty_embedding_selection():
 @pytest.mark.parametrize(
     ("builder", "kwargs", "message"),
     [
-        (anndata_observations_frame, {"metadata_columns": ["missing"]}, "observations"),
-        (anndata_variables_frame, {"metadata_columns": ["missing"]}, "variables"),
+        (_anndata_observations_frame, {"metadata_columns": ["missing"]}, "observations"),
+        (_anndata_variables_frame, {"metadata_columns": ["missing"]}, "variables"),
         (
-            anndata_observations_frame,
+            _anndata_observations_frame,
             {"include_dimensions": True, "dimension_keys": ["missing"]},
             "embeddings",
         ),
         (
-            anndata_variables_frame,
+            _anndata_variables_frame,
             {"include_dimensions": True, "dimension_keys": ["missing"]},
             "embeddings",
         ),
@@ -215,7 +216,7 @@ def test_pca_variance_frame_and_elbow_label():
 def test_pca_variance_frame_errors():
     data = AnnData(X=np.ones((2, 3)))
 
-    with pytest.raises(ValueError, match="PCA variance ratio"):
+    with pytest.raises(KeyNotFoundError, match="PCA variance ratio"):
         _pca_variance_frame(data)
 
     data.uns["pca"] = {"variance_ratio": np.array([0.5])}
@@ -234,7 +235,7 @@ def test_pca_variance_frame_custom_use_key():
 
 def test_pca_variance_frame_missing_custom_key_names_it():
     data = AnnData(X=np.ones((2, 3)))
-    with pytest.raises(ValueError, match="`pca_harmony`"):
+    with pytest.raises(KeyNotFoundError, match="`pca_harmony`"):
         _pca_variance_frame(data, use_key="pca_harmony")
 
 

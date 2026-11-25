@@ -3,7 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata", "numpy"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 import polars as pl
@@ -26,11 +26,17 @@ from mudata import MuData
 
 from cellestial.single.differential.utilities import (
     _build_volcano_frame,
+    _reject_renamed_ranking_key,
     _resolve_pvalue_column,
 )
 from cellestial.themes import _THEME_SCATTER_BASE
-from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import (
+    EmptySelectionError,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    _plural_type_message,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _container
 
 # Default volcano palette (matches the conventional EnhancedVolcano-style look):
@@ -47,7 +53,7 @@ def volcano(
     *,
     modality: str | None = None,
     group_by: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
     logfoldchange_threshold: float = 1.0,
     pvalue_threshold: float = 0.05,
@@ -77,6 +83,7 @@ def volcano(
     down_label: str = "down",
     nonsignificant_label: str = "ns",
     rank_genes_kwargs: dict | None = None,
+    min_fraction_expressed: float | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     **geom_kwargs,
@@ -100,7 +107,7 @@ def volcano(
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
         grouping.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
         Whether to use adjusted p-values instead of raw p-values for the
@@ -175,6 +182,12 @@ def volcano(
         Additional keyword arguments forwarded to the ranking call when
         `group_by` triggers a (re)compute (e.g. `method='t-test'`,
         `use_raw=False`, `layer=...`, `corr_method='bonferroni'`).
+    min_fraction_expressed : float | None, default=None
+        Drop features detected in fewer than this fraction of `group`'s cells,
+        e.g. 0.1. Features detected almost nowhere get huge, meaningless fold
+        changes, so filtering them makes the plot readable. Needs detection
+        rates stored with the ranking: pass `group_by` to have them recorded.
+        `None` keeps every feature.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -193,8 +206,17 @@ def volcano(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
-    KeyError
-        If the requested differential-expression result or group is missing.
+    UnknownParameterError
+        If `key` is passed (renamed to `ranking_key`).
+    KeyNotFoundError
+        If the requested differential-expression result or group is missing,
+        the stored ranking lacks the fold changes or p-values a volcano needs,
+        or `min_fraction_expressed` is set and no detection rates are stored.
+    InvalidArgumentError
+        If `pvalue_threshold` or `min_fraction_expressed` is outside its
+        accepted range, `logfoldchange_threshold`, `top_n` or
+        `nonsignificant_subsample` is negative, or `min_fraction_expressed` is
+        set while feature names are not unique.
     ValueError
         If requested tooltip columns are not present in the volcano frame.
 
@@ -208,9 +230,9 @@ def volcano(
     kept and drawn at `1.05 * max + 1`, where `max` is the largest finite
     `-log10(pvalue)`, so their height marks "above the axis range", not a value.
 
-    When `group_by` is provided and the ranking under `key` is missing or was
+    When `group_by` is provided and the ranking under `ranking_key` is missing or was
     computed with different parameters, plot construction calls
-    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.
+    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[ranking_key]`.
     This mutates the input `AnnData`. Precompute a matching ranking and omit
     `group_by` to avoid mutation during plotting.
 
@@ -224,7 +246,7 @@ def volcano(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         data.raw = None # prevent using raw counts
 
         cl.volcano(
@@ -236,8 +258,38 @@ def volcano(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_renamed_ranking_key(geom_kwargs, "volcano")
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+
+    # CHECK: thresholds and counts, before any ranking is computed
+    if not 0 < pvalue_threshold <= 1:
+        msg = (
+            f"`pvalue_threshold` must be in (0, 1], got {pvalue_threshold}. "
+            "Pass a significance level such as 0.05."
+        )
+        raise InvalidArgumentError(msg)
+    if not logfoldchange_threshold >= 0:
+        msg = (
+            f"`logfoldchange_threshold` must be >= 0, got {logfoldchange_threshold}. "
+            "It is an absolute value applied to both directions; pass e.g. 1.0."
+        )
+        raise InvalidArgumentError(msg)
+    if top_n is not None and top_n < 0:
+        msg = f"`top_n` must be >= 0 or None, got {top_n}. Use 0 or None to disable labels."
+        raise InvalidArgumentError(msg)
+    if nonsignificant_subsample is not None and nonsignificant_subsample < 0:
+        msg = (
+            f"`nonsignificant_subsample` must be >= 0 or None, got {nonsignificant_subsample}. "
+            "Use None to keep every non-significant point."
+        )
+        raise InvalidArgumentError(msg)
+    if min_fraction_expressed is not None and not 0 <= min_fraction_expressed <= 1:
+        msg = (
+            f"`min_fraction_expressed` must be in [0, 1] or None, got {min_fraction_expressed}. "
+            "Pass a fraction of the group's cells such as 0.1."
+        )
+        raise InvalidArgumentError(msg)
 
     # NAME: the p-value column after the values it holds
     pvalue_column = _resolve_pvalue_column(pvalue_column, use_adjusted_pvalue=use_adjusted_pvalue)
@@ -247,7 +299,7 @@ def volcano(
         data=data,
         group=group,
         group_by=group_by,
-        key=key,
+        ranking_key=ranking_key,
         use_adjusted_pvalue=use_adjusted_pvalue,
         logfoldchange_threshold=logfoldchange_threshold,
         pvalue_threshold=pvalue_threshold,
@@ -260,13 +312,17 @@ def volcano(
         down_label=down_label,
         nonsignificant_label=nonsignificant_label,
         rank_genes_kwargs=rank_genes_kwargs,
+        min_fraction_expressed=min_fraction_expressed,
     )
     # CAP: rows where -log10(pvalue) underflowed to +inf (pvalue == 0)
     # Dropping them would silently hide the most significant features (and their labels).
     # Push them just above the densest finite cluster instead.
-    finite_max = frame.filter(pl.col(negative_log_pvalue_column).is_finite())[
-        negative_log_pvalue_column
-    ].max()
+    finite_max = cast(
+        "float | None",
+        frame.filter(pl.col(negative_log_pvalue_column).is_finite())[
+            negative_log_pvalue_column
+        ].max(),
+    )
     cap = (finite_max or 0.0) * 1.05 + 1.0
     frame = frame.with_columns(
         pl.when(pl.col(negative_log_pvalue_column).is_finite())
@@ -296,12 +352,16 @@ def volcano(
     elif tooltips == "none" or isinstance(tooltips, str):
         tooltips_spec = tooltips
     elif isinstance(tooltips, Sequence):
-        tooltips = list(tooltips)
-        if not set(tooltips).issubset(frame.columns):
-            missing = set(tooltips) - set(frame.columns)
-            msg = f"Some tooltip columns are not in the data: {missing}"
-            raise ValueError(msg)
-        tooltips_spec = layer_tooltips(tooltips)
+        tooltip_columns = cast("list[str]", list(tooltips))
+        if not set(tooltip_columns).issubset(frame.columns):
+            missing = set(tooltip_columns) - set(frame.columns)
+            msg = (
+                f"`tooltips` names columns that are not in the volcano data: "
+                f"{sorted(missing, key=str)}. Available: {frame.columns}. "
+                "Pass column names from that list, or None for the default tooltips."
+            )
+            raise InvalidArgumentError(msg)
+        tooltips_spec = layer_tooltips(tooltip_columns)
     elif isinstance(tooltips, FeatureSpec):
         tooltips_spec = tooltips
 
@@ -325,7 +385,7 @@ def volcano(
 
     # ADD: threshold lines
     if threshold_lines:
-        _threshold_kwargs = {
+        _threshold_kwargs: dict[str, Any] = {
             "color": threshold_color,
             "size": threshold_size,
             "linetype": threshold_linetype,
@@ -338,22 +398,28 @@ def volcano(
     if top_n:
         # Every feature whose p-value underflowed to zero shares the capped
         # `-log10(pvalue)`, so absolute log fold change breaks those ties
-        # instead of leaving the pick to the sort's arbitrary tie order.
-        label_ranking = [pl.col(negative_log_pvalue_column), pl.col(logfoldchange_column).abs()]
+        # instead of leaving the pick to the sort's arbitrary tie order. The
+        # feature name settles whatever ties remain.
+        label_ranking = [
+            pl.col(negative_log_pvalue_column),
+            pl.col(logfoldchange_column).abs(),
+            pl.col(variable_column),
+        ]
+        label_descending = [True, True, False]
         significant = frame.filter(pl.col(significance_column) != nonsignificant_label)
         top_up = (
             significant.filter(pl.col(significance_column) == up_label)
-            .sort(label_ranking, descending=True)
+            .sort(label_ranking, descending=label_descending)
             .head(top_n)
         )
         top_down = (
             significant.filter(pl.col(significance_column) == down_label)
-            .sort(label_ranking, descending=True)
+            .sort(label_ranking, descending=label_descending)
             .head(top_n)
         )
         label_frame = pl.concat([top_up, top_down])
         if label_frame.height > 0:
-            _label_kwargs = {
+            _label_kwargs: dict[str, Any] = {
                 "color": label_color,
                 "size": label_size,
                 "segment_size": segment_size,
@@ -403,7 +469,7 @@ def volcanos(
     *,
     modality: str | None = None,
     group_by: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
     logfoldchange_threshold: float = 1.0,
     pvalue_threshold: float = 0.05,
@@ -433,6 +499,7 @@ def volcanos(
     down_label: str = "down",
     nonsignificant_label: str = "ns",
     rank_genes_kwargs: dict | None = None,
+    min_fraction_expressed: float | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
     # multi plot args
@@ -471,7 +538,7 @@ def volcanos(
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
         grouping. Computed once on the first subplot and reused thereafter.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
         Whether to use adjusted p-values instead of raw p-values.
@@ -540,16 +607,19 @@ def volcanos(
     rank_genes_kwargs : dict | None, default=None
         Additional keyword arguments forwarded to the ranking call when
         `group_by` triggers a (re)compute.
+    min_fraction_expressed : float | None, default=None
+        Drop features detected in fewer than this fraction of each panel's
+        group, e.g. 0.1. See :func:`volcano`. `None` keeps every feature.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
     interactive : bool, default=False
         Whether to make the plot interactive.
     share_labels : bool, default=False
-        Whether to share axis labels across the grid.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share axes across the grid.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -578,15 +648,25 @@ def volcanos(
     SupPlotsSpec
         Grid of volcano plots.
 
+    Raises
+    ------
+    UnknownParameterError
+        If `key` is passed (renamed to `ranking_key`).
+    EmptySelectionError
+        If `groups` is empty.
+    InvalidArgumentError
+        If `ncol` is below 1, or a threshold is outside its accepted range
+        (see :func:`volcano`).
+
     Notes
     -----
     Builds a volcano plot for each entry in `groups` (vs the rest) and
     arranges them in a grid via `gggrid`. All single-plot styling and
     threshold options behave the same as in :func:`volcano`.
 
-    When `group_by` is provided and the ranking under `key` is missing or was
+    When `group_by` is provided and the ranking under `ranking_key` is missing or was
     computed with different parameters, plot construction calls
-    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[key]`.
+    `scanpy.tl.rank_genes_groups` and writes the result to `data.uns[ranking_key]`.
     This mutates the input `AnnData`. Precompute a matching ranking and omit
     `group_by` to avoid mutation during plotting.
 
@@ -598,7 +678,7 @@ def volcanos(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         data.raw = None # prevent using raw counts
 
         cl.volcanos(
@@ -608,9 +688,16 @@ def volcanos(
             ncol=2,
         )
     """
+    _reject_renamed_ranking_key(geom_kwargs, "volcanos")
     if not isinstance(groups, Sequence) or isinstance(groups, str):
-        msg = "groups must be a Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(groups, "groups", "volcano")
+        raise InvalidArgumentTypeError(msg)
+    if len(groups) == 0:
+        msg = "`groups` is empty, so there is nothing to plot. Pass at least one group."
+        raise EmptySelectionError(msg)
+    if ncol is not None and ncol < 1:
+        msg = f"`ncol` must be >= 1 or None, got {ncol}. Pass None to put every panel in one row."
+        raise InvalidArgumentError(msg)
 
     plots = []
     for i, group in enumerate(groups):
@@ -618,8 +705,11 @@ def volcanos(
             data=data,
             group=group,
             modality=modality,
-            group_by=group_by,
-            key=key,
+            # Only the first panel may (re)compute the ranking: arguments the stored
+            # parameters do not record (e.g. `pts`) would otherwise look stale on
+            # every panel and recompute it each time.
+            group_by=group_by if i == 0 else None,
+            ranking_key=ranking_key,
             use_adjusted_pvalue=use_adjusted_pvalue,
             logfoldchange_threshold=logfoldchange_threshold,
             pvalue_threshold=pvalue_threshold,
@@ -649,6 +739,7 @@ def volcanos(
             down_label=down_label,
             nonsignificant_label=nonsignificant_label,
             rank_genes_kwargs=rank_genes_kwargs,
+            min_fraction_expressed=min_fraction_expressed,
             tooltips=tooltips,
             **geom_kwargs,
         )
@@ -659,24 +750,22 @@ def volcanos(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, groups, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, groups, ncol, "axis")
 
         plots.append(plot)
 
     vlcns = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 

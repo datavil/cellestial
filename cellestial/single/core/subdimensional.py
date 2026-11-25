@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
-from cellestial.single.core.dimensional import dimensional
-from cellestial.util import _is_variable_key, _reject_sequence_key
+from cellestial.layers.utilities import _reject_constant_color_fill
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT, dimensional
+from cellestial.util import (
+    _is_variable_key,
+    _reject_removed_variable_keys,
+    _reject_renamed_embedding_kwargs,
+    _reject_sequence_key,
+)
 from cellestial.util.errors import VariableNotFoundError
+from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -21,10 +29,11 @@ def umap(
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -49,6 +58,9 @@ def umap(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -66,17 +78,14 @@ def umap(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -139,6 +148,19 @@ def umap(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -148,6 +170,11 @@ def umap(
     -------
     PlotSpec
         Dimensionality reduction plot.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -160,7 +187,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -173,7 +200,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -183,22 +210,24 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data,key="leiden") + cl.highlight(["0","3"])
 
     """
     _reject_sequence_key(key, singular="umap", plural="umaps")
+    _reject_constant_color_fill(geom_kwargs, function="umap", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "umap")
     return dimensional(
         data=data,
         key=key,
         frame=frame,
         mapping=mapping,
         dimensions="umap",
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         groups=groups,
         drop=drop,
@@ -223,6 +252,11 @@ def umap(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -233,10 +267,11 @@ def tsne(
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -261,6 +296,9 @@ def tsne(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -278,17 +316,14 @@ def tsne(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -351,6 +386,19 @@ def tsne(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -360,6 +408,11 @@ def tsne(
     -------
     PlotSpec
         Dimensionality reduction plot.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -372,7 +425,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsne(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -385,7 +438,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -395,22 +448,24 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsne(data,key="leiden") + cl.highlight(["0","3"])
 
     """  # noqa: D403
     _reject_sequence_key(key, singular="tsne", plural="tsnes")
+    _reject_constant_color_fill(geom_kwargs, function="tsne", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "tsne")
     return dimensional(
         data=data,
         key=key,
         frame=frame,
         mapping=mapping,
         dimensions="tsne",
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         groups=groups,
         drop=drop,
@@ -435,6 +490,11 @@ def tsne(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -445,10 +505,11 @@ def pca(
     *,
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -473,6 +534,9 @@ def pca(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -490,17 +554,14 @@ def pca(
         building from `data` is skipped. Must contain the embedding and `key` columns.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -563,6 +624,19 @@ def pca(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -572,6 +646,11 @@ def pca(
     -------
     PlotSpec
         Dimensionality reduction plot.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -584,7 +663,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pca(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -597,7 +676,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -607,22 +686,24 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pca(data,key="leiden") + cl.highlight(["0","3"])
 
     """
     _reject_sequence_key(key, singular="pca", plural="pcas")
+    _reject_constant_color_fill(geom_kwargs, function="pca", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "pca")
     return dimensional(
         data=data,
         key=key,
         frame=frame,
         mapping=mapping,
         dimensions="pca",
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         groups=groups,
         drop=drop,
@@ -647,6 +728,11 @@ def pca(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )
 
@@ -658,10 +744,11 @@ def expression(
     frame: DataFrame | None = None,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -684,6 +771,9 @@ def expression(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -703,17 +793,14 @@ def expression(
     dimensions : str, default='umap'
         The dimensionality reduction to plot, named without the `X_` prefix.
         e.g., 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the frame,
         on top of those inferred from `key`, `mapping`, and `tooltips`.
@@ -770,6 +857,19 @@ def expression(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `key` (a gene).
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -784,6 +884,8 @@ def expression(
     ------
     VariableNotFoundError
         If `key` is not present in variable names.
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -796,14 +898,22 @@ def expression(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.expression(data,key="CD14",axis_type="arrow",color_high="red")
 
     """
     _reject_sequence_key(key, singular="expression", plural="expressions")
+    _reject_constant_color_fill(geom_kwargs, function="expression", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "expression")
     if not _is_variable_key(data, key):
-        msg = f"'{key}' is not present in `variable` names"
+        close_matches = get_close_matches(key, _container(data).variable_names().astype(str), n=3)
+        hint = f" Did you mean {close_matches}?" if close_matches else ""
+        msg = (
+            f"'{key}' is not present in `variable` names.{hint}\n"
+            "`expression` colors by a gene (variable); for observation metadata use `dimensional`."
+        )
         raise VariableNotFoundError(msg)
     return dimensional(
         data=data,
@@ -811,10 +921,9 @@ def expression(
         frame=frame,
         mapping=mapping,
         dimensions=dimensions,
-        use_key=use_key,
+        embedding_key=embedding_key,
         xy=xy,
         size=size,
-        variable_keys=variable_keys,
         add_keys=add_keys,
         tooltips=tooltips,
         interactive=interactive,
@@ -837,5 +946,10 @@ def expression(
         ondata_label=ondata_label,
         halo_width=halo_width,
         halo_color=halo_color,
+        outline=outline,
+        outline_width=outline_width,
+        outline_color=outline_color,
+        geom_color=geom_color,
+        geom_fill=geom_fill,
         **geom_kwargs,
     )

@@ -27,12 +27,20 @@ from mudata import MuData
 from cellestial.frames import build_frame
 from cellestial.frames._container import _container
 from cellestial.layers import _modify_axis
+from cellestial.layers.utilities import _reject_constant_color_fill
 from cellestial.single.core.subdimensional import expression
 from cellestial.themes import _THEME_DIMENSION
-from cellestial.util import _drop_nonfinite_rows, _resolve_embedding_key, _resolve_tooltips
+from cellestial.util import (
+    _drop_nonfinite_rows,
+    _reject_removed_variable_keys,
+    _reject_renamed_embedding_kwargs,
+    _resolve_embedding_key,
+    _resolve_tooltips,
+)
 from cellestial.util.errors import (
     ConflictingLengthError,
     DuplicateKeysError,
+    InvalidArgumentError,
     InvalidColorError,
     VariableNotFoundError,
     _unsupported_data_type,
@@ -55,7 +63,7 @@ def blend(
     keys: tuple[str, str] | Sequence[str],
     *,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
@@ -83,10 +91,9 @@ def blend(
     dimensions : str, default='umap'
         The dimensionality reduction to plot, named without the `X_` prefix.
         e.g., 'umap', 'pca', 'tsne', or a joint embedding such as 'wnn_umap'.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
@@ -129,12 +136,17 @@ def blend(
     ------
     ConflictingLengthError
         If `keys` or `colors` does not hold exactly two values.
+    InvalidArgumentError
+        If `xy` does not hold exactly two components, or if `color` / `fill`
+        are passed (points are colored by the blend of `colors`).
     DuplicateKeysError
         If both `keys` name the same feature.
     VariableNotFoundError
         If a key is not a variable (gene) name.
     InvalidColorError
         If `color_low` or a value of `colors` is not a hex color.
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Notes
     -----
@@ -156,7 +168,7 @@ def blend(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.blend(data, keys=("CD3E", "CD8A"))
 
@@ -169,6 +181,13 @@ def blend(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_constant_color_fill(
+        geom_kwargs,
+        function="blend",
+        hint="`blend` computes each point's color from the two keys and `colors`; to change them, pass `colors=(...)`.",
+    )
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "blend")
 
     # HANDLE: keys and colors
     keys = [keys] if isinstance(keys, str) else list(keys)
@@ -192,9 +211,14 @@ def blend(
 
     # HANDLE: XY
     if len(xy) != 2:
-        msg = f"xy MUST be of length 2, (len(xy)=={len(xy)})"
-        raise KeyError(msg)
-    prefix = _resolve_embedding_key(data=data, dimensions=dimensions, use_key=use_key, xy=xy)
+        msg = (
+            f"`xy` must hold exactly 2 components, but received {len(xy)}: {tuple(xy)}.\n"
+            "Pass two 1-based components, e.g. `xy=(1, 2)`."
+        )
+        raise InvalidArgumentError(msg)
+    prefix = _resolve_embedding_key(
+        data=data, dimensions=dimensions, embedding_key=embedding_key, xy=xy
+    )
     x = f"{prefix}{xy[0]}"
     y = f"{prefix}{xy[1]}"
 
@@ -238,7 +262,7 @@ def blend(
             key,
             frame=frame,
             dimensions=dimensions,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
             tooltips=tooltips,

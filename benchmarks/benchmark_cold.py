@@ -35,7 +35,7 @@ library, output_format = sys.argv[1], sys.argv[2]
 import cellestial as cl
 import scanpy as sc
 
-data = sc.read_h5ad("data/atlas200k.h5ad")
+data = sc.read_h5ad("data/pbmc200k.h5ad")
 
 start = time.perf_counter()
 if library == "cellestial":

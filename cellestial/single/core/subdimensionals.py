@@ -5,18 +5,26 @@ __lazy_modules__ = ["ggrust", "ggrust.plot.core"]
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
+import polars as pl
 from ggrust import gggrid, ggtb
 from ggrust.plot.core import FeatureSpec, LayerSpec
 
 from cellestial.frames import build_frame
-from cellestial.single.core.dimensional import dimensional
+from cellestial.layers.utilities import _reject_constant_color_fill
+from cellestial.single.core.dimensional import _KEY_COLOR_HINT, dimensional
 from cellestial.single.core.subdimensional import expression, pca, tsne, umap
 from cellestial.util import (
     _collect_aes_columns,
     _is_variable_key,
+    _reject_removed_variable_keys,
+    _reject_renamed_embedding_kwargs,
+    _require_add_keys,
     _resolve_tooltips,
-    _share_axis,
-    _share_labels,
+)
+from cellestial.util.errors import (
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _plural_type_message,
 )
 
 if TYPE_CHECKING:
@@ -25,16 +33,46 @@ if TYPE_CHECKING:
     from mudata import MuData
 
 
+def _require_groups_in_every_key(
+    frame: pl.DataFrame,
+    keys: Sequence[str],
+    *,
+    groups: Sequence[str] | str | None,
+    drop: Sequence[str] | str | None,
+) -> None:
+    """Raise `KeyNotFoundError` naming the categorical key that lacks a `groups` / `drop` value."""
+    for parameter, values in (("groups", groups), ("drop", drop)):
+        if values is None:
+            continue
+        values = [values] if isinstance(values, str) else list(values)
+        for key in keys:
+            if key not in frame.columns or not isinstance(
+                frame[key].dtype, (pl.Categorical, pl.Enum)
+            ):
+                continue  # numeric keys are not filtered (`dimensional` warns)
+            available = frame[key].unique().drop_nulls().to_list()
+            unknown = [value for value in values if value not in available]
+            if unknown:
+                msg = (
+                    f"`{parameter}` {unknown!r} not found in key `{key}`. "
+                    f"Available: {sorted(available)!r}.\n"
+                    f"`{parameter}` applies to every categorical key in `keys`; plot "
+                    f"`{key}` in its own call, or remove it from `keys`."
+                )
+                raise KeyNotFoundError(msg)
+
+
 def dimensionals(
     data: AnnData | MuData,
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -59,6 +97,9 @@ def dimensionals(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -94,23 +135,22 @@ def dimensionals(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -165,12 +205,22 @@ def dimensionals(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -210,6 +260,10 @@ def dimensionals(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -219,6 +273,11 @@ def dimensionals(
     -------
     SupPlotsSpec
         Grid of dimensionality reduction plots.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -231,7 +290,7 @@ def dimensionals(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.dimensionals(
             data,
@@ -242,16 +301,14 @@ def dimensionals(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "dimensional")
+        raise InvalidArgumentTypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="dimensionals", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "dimensionals")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -286,19 +343,20 @@ def dimensionals(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = dimensional(
             data=data,
             key=key,
             frame=frame,
             mapping=mapping,
             dimensions=dimensions,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -322,6 +380,11 @@ def dimensionals(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -331,25 +394,22 @@ def dimensionals(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
     scttrs = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -364,10 +424,11 @@ def umaps(
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -392,6 +453,9 @@ def umaps(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -424,23 +488,22 @@ def umaps(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -495,12 +558,22 @@ def umaps(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -540,6 +613,10 @@ def umaps(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -549,6 +626,11 @@ def umaps(
     -------
     SupPlotsSpec
         Grid of dimensionality reduction plots.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -561,7 +643,7 @@ def umaps(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umaps(
             data,
@@ -572,16 +654,14 @@ def umaps(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "umap")
+        raise InvalidArgumentTypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="umaps", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "umaps")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -616,18 +696,19 @@ def umaps(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = umap(
             data=data,
             key=key,
             frame=frame,
             mapping=mapping,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -651,6 +732,11 @@ def umaps(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -660,25 +746,22 @@ def umaps(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
     scttrs = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -693,10 +776,11 @@ def tsnes(
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -721,6 +805,9 @@ def tsnes(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -753,23 +840,22 @@ def tsnes(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -823,12 +909,22 @@ def tsnes(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -868,6 +964,10 @@ def tsnes(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -877,6 +977,11 @@ def tsnes(
     -------
     SupPlotsSpec
         Grid of dimensionality reduction plots.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -889,7 +994,7 @@ def tsnes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsnes(
             data,
@@ -900,16 +1005,14 @@ def tsnes(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "tsne")
+        raise InvalidArgumentTypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="tsnes", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "tsnes")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -944,18 +1047,19 @@ def tsnes(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = tsne(
             data=data,
             key=key,
             frame=frame,
             mapping=mapping,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -978,6 +1082,11 @@ def tsnes(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -987,25 +1096,22 @@ def tsnes(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
     scttrs = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -1020,10 +1126,11 @@ def pcas(
     keys: Sequence[str],
     *,
     mapping: FeatureSpec | None = None,
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     groups: Sequence[str] | str | None = None,
     drop: Sequence[str] | str | None = None,
@@ -1048,6 +1155,9 @@ def pcas(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1080,23 +1190,22 @@ def pcas(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
     groups : str | Sequence[str] | None, default=None
         Show only specific groups, keeping points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     drop : str | Sequence[str] | None, default=None
         Drop specific groups, filtering out points where the colored key
-        matches any of them. Categorical keys only.
+        matches any of them. Applied to every categorical key
+        in `keys`; numeric keys are not filtered.
     tooltips: {'none'} | Sequence[str] | FeatureSpec | None, default=None
         Tooltips to show when hovering over the geom.
         Accepts Sequence[str] or result of `layer_tooltips()` for more complex tooltips.
@@ -1150,12 +1259,22 @@ def pcas(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -1195,6 +1314,10 @@ def pcas(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -1204,6 +1327,11 @@ def pcas(
     -------
     SupPlotsSpec
         Grid of dimensionality reduction plots.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -1216,7 +1344,7 @@ def pcas(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pcas(
             data,
@@ -1227,16 +1355,14 @@ def pcas(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "pca")
+        raise InvalidArgumentTypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="pcas", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "pcas")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     # only gene (variable) keys are pulled from X; obs keys come from `.obs` automatically
     variable_keys.extend(key for key in keys if _is_variable_key(data, key))
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
@@ -1271,18 +1397,19 @@ def pcas(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
+    _require_groups_in_every_key(frame, keys, groups=groups, drop=drop)
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = pca(
             data=data,
             key=key,
             frame=frame,
             mapping=mapping,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             groups=groups,
             drop=drop,
@@ -1306,6 +1433,11 @@ def pcas(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -1315,25 +1447,22 @@ def pcas(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
     scttrs = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 
@@ -1349,10 +1478,11 @@ def expressions(
     *,
     mapping: FeatureSpec | None = None,
     dimensions: Literal["umap", "pca", "tsne"] | str = "umap",
-    use_key: str | None = None,
+    embedding_key: str | None = None,
     xy: tuple[int, int] | Sequence[int] = (1, 2),
     size: float | None = 0.8,
-    variable_keys: Sequence[str] | str | None = None,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     add_keys: Sequence[str] | str | None = None,
     tooltips: Literal["none"] | Sequence[str] | FeatureSpec | None = None,
     interactive: bool = False,
@@ -1375,6 +1505,9 @@ def expressions(
     ondata_label: bool = False,
     halo_width: float | None = 0.5,
     halo_color: str | None = None,
+    outline: bool = False,
+    outline_width: tuple[float, float] = (0.3, 0.05),
+    outline_color: tuple[str, str] = ("black", "white"),
     # multi plot args
     share_labels: bool = False,
     share_axis: bool = False,
@@ -1409,14 +1542,11 @@ def expressions(
     xy : tuple[int, int] | Sequence[int], default=(1, 2)
         The x and y axes to use for the plot.
         e.g., (1, 2) for UMAP1 and UMAP2.
-    use_key : str, default=None
-        The specific key to use for the desired dimensions.
-        e.g., 'X_umap_2d' or 'X_pca_2d'.
-        Otherwise, the function will decide on the key based on the dimensions.
+    embedding_key : str | None, default=None
+        Name of the stored embedding to plot, e.g. `X_umap_harmony`.
+        If None, the embedding matching the plot type is used.
     size : float | None, default=0.8
         The size of the points.
-    variable_keys : str | Sequence[str] | None, default=None
-        Variable keys to add to the DataFrame. If None, no additional keys are added.
     add_keys : str | Sequence[str] | None, default=None
         Extra metadata columns or variable names to materialise into the shared
         frame, on top of those inferred from `keys`, `mapping`, and `tooltips`.
@@ -1473,12 +1603,22 @@ def expressions(
     halo_color : str | None, default = None
         Color of the text halo (text outline).
         Only applicable when on-data legend is used without background (i.e ondata_label=False).
+    outline : bool, default=False
+        Whether to outline the point cloud: points are drawn on top of a gap
+        layer and an outline layer, so only the rim of the cloud shows a border.
+        Outlined points get `alpha=0.7` unless `alpha` is passed.
+    outline_width : tuple[float, float], default=(0.3, 0.05)
+        Widths of the outline and of the gap between outline and points, as
+        fractions of the point size.
+    outline_color : tuple[str, str], default=('black', 'white')
+        Colors of the outline and of the gap.
     share_labels : bool, default=False
-        Whether to share the labels across all plots.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`). Applies to
+        `axis_type='axis'`.
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=None
@@ -1518,6 +1658,10 @@ def expressions(
         For more information on gggrid parameters:
         https://lets-plot.org/python/pages/api/lets_plot.gggrid.html
 
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, use `keys` (genes).
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -1527,6 +1671,11 @@ def expressions(
     -------
     SupPlotsSpec
         Grid of dimensionality reduction plots.
+
+    Raises
+    ------
+    UnknownParameterError
+        If the removed `use_key` or `basis` is passed; use `embedding_key`.
 
     Examples
     --------
@@ -1539,7 +1688,7 @@ def expressions(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.expressions(
             data,
@@ -1550,16 +1699,14 @@ def expressions(
         )
     """
     if not isinstance(keys, Sequence) or isinstance(keys, str):
-        msg = "keys must be an Sequence of strings"
-        raise TypeError(msg)
+        msg = _plural_type_message(keys, "keys", "expression")
+        raise InvalidArgumentTypeError(msg)
+    _reject_constant_color_fill(geom_kwargs, function="expressions", hint=_KEY_COLOR_HINT)
+    _reject_renamed_embedding_kwargs(geom_kwargs)
+    _reject_removed_variable_keys(geom_kwargs, "expressions")
 
     # BUILD: one shared frame for all keys, instead of rebuilding per key
-    if variable_keys is None:
-        variable_keys = []
-    elif isinstance(variable_keys, str):
-        variable_keys = [variable_keys]
-    else:
-        variable_keys = list(variable_keys)
+    variable_keys: list[str] = []
     variable_keys.extend(keys)
     # drop duplicates (keeping order) so overlapping keys do not yield repeated columns
     variable_keys = list(dict.fromkeys(variable_keys))
@@ -1593,19 +1740,19 @@ def expressions(
         include_dimensions=max(xy),
         metadata_columns=metadata_columns,
     )
+    _require_add_keys(data, add_keys, frame_columns=frame.columns)
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = expression(
             data=data,
             key=key,
             frame=frame,
             mapping=mapping,
             dimensions=dimensions,
-            use_key=use_key,
+            embedding_key=embedding_key,
             xy=xy,
             size=size,
-            variable_keys=variable_keys,
             add_keys=add_keys,
             tooltips=tooltips,
             observation_id_column=observation_id_column,
@@ -1627,6 +1774,11 @@ def expressions(
             ondata_label=ondata_label,
             halo_width=halo_width,
             halo_color=halo_color,
+            outline=outline,
+            outline_width=outline_width,
+            outline_color=outline_color,
+            geom_color=geom_color,
+            geom_fill=geom_fill,
             **geom_kwargs,
         )
 
@@ -1636,25 +1788,22 @@ def expressions(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, keys, ncol)
-        if share_axis:
-            if axis_type is not None:
-                plot = _share_axis(plot, i, keys, ncol, axis_type)
 
         plots.append(plot)
 
     scttrs = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis and axis_type == "axis" else None,
+        axis_titles="collect" if share_labels else None,
         guides=guides,
     )
 

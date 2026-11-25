@@ -13,9 +13,8 @@ from cellestial.util import (
     _collect_aes_columns,
     _determine_axis,
     _resolve_tooltips,
-    _share_axis,
-    _share_ticks,
 )
+from cellestial.util.errors import InvalidArgumentTypeError, _plural_type_message
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -140,11 +139,10 @@ def violins(
         Additional layers to add to the plot.
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the ticks across all plots.
-        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+        Same as `share_axis`.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     ncol : int, default=None
@@ -209,7 +207,7 @@ def violins(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.violins(
             data,
@@ -220,6 +218,9 @@ def violins(
             ncol=2,
         )
     """
+    if isinstance(keys, str):
+        msg = _plural_type_message(keys, "keys", "violin")
+        raise InvalidArgumentTypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (
@@ -269,7 +270,7 @@ def violins(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = violin(
             data=data,
             key=key,
@@ -305,23 +306,20 @@ def violins(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_ticks:
-            plot = _share_ticks(plot, i, keys, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, keys, ncol, "axis")
         plots.append(plot)
 
     dsts = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis or share_ticks else None,
         guides=guides,
     )
 
@@ -445,11 +443,10 @@ def boxplots(
     value_column : str, default='value'
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the ticks across all plots.
-        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+        Same as `share_axis`.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     ncol : int, default=None
@@ -514,7 +511,7 @@ def boxplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.boxplots(
             data,
@@ -525,6 +522,9 @@ def boxplots(
             ncol=2,
         )
     """
+    if isinstance(keys, str):
+        msg = _plural_type_message(keys, "keys", "boxplot")
+        raise InvalidArgumentTypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (
@@ -574,7 +574,7 @@ def boxplots(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = boxplot(
             data=data,
             key=key,
@@ -610,24 +610,21 @@ def boxplots(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_ticks:
-            plot = _share_ticks(plot, i, keys, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, keys, ncol, "axis")
 
         plots.append(plot)
 
     dsts = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis or share_ticks else None,
         guides=guides,
     )
 
@@ -736,11 +733,10 @@ def histograms(
     value_column : str, default='value'
         The name of the value column in the dataframe.
     share_ticks : bool, default=False
-        Whether to share the ticks across all plots.
-        If True, only X tick texts on bottom row and Y tick text on left column are shown.
+        Same as `share_axis`.
     share_axis : bool, default=False
-        Whether to share the axis across all plots.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec | LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Additional layers to add to the plot.
     ncol : int, default=None
@@ -798,7 +794,7 @@ def histograms(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.histograms(
             data,
@@ -809,6 +805,9 @@ def histograms(
             guides="collect",
         )
     """
+    if isinstance(keys, str):
+        msg = _plural_type_message(keys, "keys", "histogram")
+        raise InvalidArgumentTypeError(msg)
     # BUILD: one shared (wide) frame for all keys, instead of rebuilding per key.
     # Axis is resolved once over all keys; mixed-axis key sets raise in `_determine_axis`.
     axis = (
@@ -850,7 +849,7 @@ def histograms(
     )
 
     plots = []
-    for i, key in enumerate(keys):
+    for key in keys:
         plot = histogram(
             data=data,
             key=key,
@@ -881,24 +880,21 @@ def histograms(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_ticks:
-            plot = _share_ticks(plot, i, keys, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, keys, ncol, "axis")
 
         plots.append(plot)
 
     dsts = gggrid(
         plots,
-        ncol=ncol,  # ty:ignore[invalid-argument-type]
-        sharex=sharex,  # ty:ignore[invalid-argument-type]
-        sharey=sharey,  # ty:ignore[invalid-argument-type]
-        widths=widths,  # ty:ignore[invalid-argument-type]
-        heights=heights,  # ty:ignore[invalid-argument-type]
-        hspace=hspace,  # ty:ignore[invalid-argument-type]
-        vspace=vspace,  # ty:ignore[invalid-argument-type]
-        fit=fit,  # ty:ignore[invalid-argument-type]
-        align=align,  # ty:ignore[invalid-argument-type]
+        ncol=ncol,
+        sharex=sharex,
+        sharey=sharey,
+        widths=widths,
+        heights=heights,
+        hspace=hspace,
+        vspace=vspace,
+        fit=fit,
+        align=align,
+        axes="collect" if share_axis or share_ticks else None,
         guides=guides,
     )
 

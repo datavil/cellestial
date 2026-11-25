@@ -27,6 +27,7 @@ from cellestial.frames import build_frame
 from cellestial.single.heatmap.utilities import (
     _assign_positions,
     _bin_within_groups,
+    _check_markers_flag,
     _get_group_bar_frame,
     _get_group_lines_frame,
     _label_size_absolute,
@@ -35,9 +36,8 @@ from cellestial.single.heatmap.utilities import (
 )
 from cellestial.themes import _THEME_HEATMAP
 from cellestial.util import _get_dendrogram, _get_dendrogram_path_frame
+from cellestial.util.dendrogram import _check_dendrogram_groups
 from cellestial.util.errors import (
-    DendrogramMismatchError,
-    DuplicateKeysError,
     InvalidArgumentError,
     _unsupported_data_type,
 )
@@ -67,7 +67,8 @@ def tracksplot(
     group_by: str | None = None,
     *,
     modality: str | None = None,
-    markers: bool | str = False,
+    markers: bool = False,
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
     groups: Sequence[str] | None = None,
     mapping: FeatureSpec | None = None,
@@ -114,10 +115,12 @@ def tracksplot(
         Which modality's stored analysis results to use when `markers` or
         `dendrogram` is enabled. Required for a multimodal object holding more
         than one modality, and not accepted otherwise.
-    markers : bool | str, default=False
-        Derive `keys` from a precomputed ranking. Pass `True` to use the
-        default ranking key, or a string to read a custom key (e.g.
-        `"rank_genes_groups_wilcoxon"`).
+    markers : bool, default=False
+        Whether to derive `keys` from a precomputed ranking, read from
+        `ranking_key`.
+    ranking_key : str, default='rank_genes_groups'
+        The key under which the precomputed ranking is stored on `data`.
+        Ignored when `markers` is False.
     n_genes : int, default=5
         Number of top genes to take per group when `markers` is set.
     groups : Sequence[str] | None, default=None
@@ -192,6 +195,8 @@ def tracksplot(
     ------
     UnsupportedDataTypeError
         If `data` is not an AnnData or MuData object.
+    InvalidArgumentTypeError
+        If `markers` is not a bool (pass a ranking name as `ranking_key`).
     InvalidArgumentError
         If `keys` or `group_by` is missing without `markers`, or `geom` is
         not one of the accepted values.
@@ -199,6 +204,11 @@ def tracksplot(
         If `group_by` is not found.
     VariableNotFoundError
         If a key is not found.
+    DuplicateKeysError
+        If a key appears more than once in `keys`.
+    DendrogramMismatchError
+        If `dendrogram` is set and the dendrogram's groups differ from the groups
+        in the data.
 
     Notes
     -----
@@ -212,7 +222,7 @@ def tracksplot(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         cl.tracksplot(data, keys=["CD3D", "MS4A1", "LYZ", "NKG7"], group_by="leiden")
 
     Color the tracks by group and draw them as areas.
@@ -236,11 +246,12 @@ def tracksplot(
         msg = f"`geom` must be 'bar' or 'area', got {geom!r}."
         raise InvalidArgumentError(msg)
 
+    _check_markers_flag(markers)
     if markers:
         results, local_group_by = _modality_source(data, modality, group_by)
         keys, group_by = _resolve_rank_genes_groups_args(
             results,
-            rank_genes_groups=markers,
+            ranking_key=ranking_key,
             n_genes=n_genes,
             groups=groups,
             keys=keys,
@@ -256,10 +267,6 @@ def tracksplot(
 
     mapping = mapping or aes()
     keys, key_groups = _resolve_key_groups(keys, key_labels=key_labels)
-    duplicates = sorted({key for key in keys if keys.count(key) > 1})
-    if duplicates:
-        msg = f"`keys` contains duplicates: {duplicates}. Pass each key once."
-        raise DuplicateKeysError(msg)
 
     # BUILD: wide frame, one row per cell and one column per key
     frame = build_frame(
@@ -278,15 +285,12 @@ def tracksplot(
         group_order, paths = _get_dendrogram(
             *_modality_source(data, modality, group_by), use_key=dendrogram_key
         )
-        present = set(frame[group_by].cast(pl.String).unique().to_list())
-        absent = [group for group in group_order if group not in present]
-        if absent:
-            msg = (
-                f"The dendrogram for `group_by={group_by!r}` includes groups with no cells "
-                f"in the data: {absent}. It was likely computed before the data was "
-                "subset; recompute it on this data, or set `dendrogram=False`."
-            )
-            raise DendrogramMismatchError(msg)
+        _check_dendrogram_groups(
+            group_order,
+            frame[group_by].cast(pl.String).unique().to_list(),
+            group_by=group_by,
+            require_all=True,
+        )
     else:
         group_order = _group_order(frame[group_by])
         paths = None

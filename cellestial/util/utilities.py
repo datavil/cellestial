@@ -12,17 +12,16 @@ import inspect
 import re
 import sys
 import warnings
-from collections.abc import Sequence
-from functools import lru_cache
+from collections.abc import Iterable, Sequence, Sized
+from difflib import get_close_matches
 from math import ceil, floor, isfinite, log10
 from numbers import Real
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, cast, overload
+from typing import TYPE_CHECKING, Literal, TypeGuard, cast, overload
 
 import polars as pl
 from anndata import AnnData
 from ggrust import (
-    element_blank,
     guide_legend,
     guides,
     layer_tooltips,
@@ -30,15 +29,23 @@ from ggrust import (
     scale_color_gradient2,
     scale_fill_continuous,
     scale_fill_gradient2,
-    theme,
 )
 from ggrust.plot.core import FeatureSpec
-from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
 
-from cellestial.util.errors import CellestialWarning, KeyNotFoundError
+from cellestial.util.errors import (
+    CellestialWarning,
+    EmptySelectionError,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    UnknownParameterError,
+    _did_you_mean,
+)
 
 if TYPE_CHECKING:
+    from spatialdata import SpatialData
+
     from cellestial.frames._container import _Container
 
 _PACKAGE_ROOT = str(Path(__file__).parents[1])
@@ -60,7 +67,7 @@ def _container(data: AnnData | MuData) -> _Container:
     return _build_container(data)
 
 
-def _is_spatialdata(data: object) -> bool:
+def _is_spatialdata(data: object) -> TypeGuard[SpatialData]:
     """
     Return whether `data` is a SpatialData object.
 
@@ -221,7 +228,7 @@ def _filter_groups(
     if groups is None and drop is None:
         return frame
 
-    if frame[column].dtype != pl.Categorical:
+    if not isinstance(frame[column].dtype, (pl.Categorical, pl.Enum)):
         if groups is not None:
             _warn(f"{column_parameter} `{column}` is not categorical, `groups` filter ignored")
         if drop is not None:
@@ -255,8 +262,15 @@ def _require_categories(
     """Raise `KeyNotFoundError` naming the `values` missing from `available`."""
     unknown = [value for value in values if value not in available]
     if unknown:
+        by_lowercase = {str(option).lower(): str(option) for option in available}
+        suggestions = []
+        for value in unknown:
+            matches = get_close_matches(str(value).lower(), list(by_lowercase), n=1)
+            if matches:
+                suggestions.append(repr(by_lowercase[matches[0]]))
+        hint = f"; did you mean {', '.join(suggestions)}?" if suggestions else "."
         msg = (
-            f"`{parameter}` {unknown!r} not found in {column_parameter} `{column}`. "
+            f"`{parameter}` {unknown!r} not found in {column_parameter} `{column}`{hint} "
             f"Available: {sorted(available)!r}."
         )
         raise KeyNotFoundError(msg)
@@ -317,7 +331,7 @@ def _validate_tooltips(
     tooltips: Sequence[str] | FeatureSpec | Literal["none"] | None,
     frame: pl.DataFrame,
 ) -> None:
-    """Raise ValueError if any tooltip field is not a column in `frame`."""
+    """Raise KeyNotFoundError if any tooltip field is not a column in `frame`."""
     if isinstance(tooltips, FeatureSpec):
         fields = _tooltip_fields(tooltips)
     elif isinstance(tooltips, Sequence) and not isinstance(tooltips, str):
@@ -326,8 +340,11 @@ def _validate_tooltips(
         return
     missing = [f for f in fields if f not in frame.columns]
     if missing:
-        msg = f"Tooltip fields not in data: {missing}"
-        raise ValueError(msg)
+        msg = f"Tooltip fields not in data: {missing}."
+        hint = _did_you_mean(missing, frame.columns)
+        if hint:
+            msg += f" {hint}"
+        raise KeyNotFoundError(msg)
 
 
 def _qualified_alternatives(data: AnnData | MuData | None, key: str) -> list[str]:
@@ -396,6 +413,12 @@ def _resolve_tooltips(
         fields = list(defaults)
         resolved: Sequence[str] | FeatureSpec | Literal["none"] = fields
     elif isinstance(tooltips, str):
+        if tooltips != "none":
+            msg = (
+                f"`tooltips={tooltips!r}` is not accepted: the only string is 'none'. "
+                f"For one column, pass a list: `tooltips=[{tooltips!r}]`."
+            )
+            raise InvalidArgumentError(msg)
         fields = []
         resolved = tooltips
     elif isinstance(tooltips, FeatureSpec):
@@ -405,8 +428,11 @@ def _resolve_tooltips(
         fields = list(tooltips)
         resolved = fields
     else:
-        msg = f"Invalid tooltips type: {type(tooltips)}"
-        raise TypeError(msg)
+        msg = (
+            "`tooltips` must be 'none', a sequence of column names or a `layer_tooltips()` "
+            f"spec, but received {type(tooltips)}."
+        )
+        raise InvalidArgumentTypeError(msg)
 
     if metadata_columns is None:
         # No narrowing requested; only pull gene tooltip fields into variable_keys.
@@ -429,7 +455,7 @@ def _range_inclusive(start: float, stop: float, step: int) -> list[float]:
     """Return a list of rounded numbers between start and stop, inclusive."""
     if step < 1:
         msg = f"`step` must be >= 1, but received {step}."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     span = abs(stop - start)
     if span == 0:
         return [start]
@@ -453,13 +479,13 @@ def _resolve_midpoint(
     finite_series = series.filter(series.is_not_null() & series.is_finite())
     if finite_series.is_empty():
         msg = "Cannot resolve `midpoint` without finite data values."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     data_min = cast("float", finite_series.min())
     data_max = cast("float", finite_series.max())
 
     if isinstance(midpoint, bool):
         msg = "`midpoint` must be a number or one of 'mean', 'median', or 'mid'."
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
     if isinstance(midpoint, Real):
         mid_value = float(midpoint)
     elif midpoint == "mean":
@@ -470,21 +496,21 @@ def _resolve_midpoint(
         mid_value = (data_min + data_max) / 2
     elif isinstance(midpoint, str):
         msg = "`midpoint` must be one of 'mean', 'median', or 'mid', or a number."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     else:
         msg = "`midpoint` must be a number or one of 'mean', 'median', or 'mid'."
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
 
     if not isfinite(mid_value):
         msg = "`midpoint` must be finite."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     if not data_min <= mid_value <= data_max:
         msg = (
             f"`midpoint` ({mid_value}) must be within the finite data range "
             f"[{data_min}, {data_max}]."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     return mid_value
 
@@ -583,71 +609,6 @@ def _fill_gradient(
         )
 
 
-# cache to avoid recomputing for every plot in a grid...
-@lru_cache(maxsize=32)
-def _grid_places(total: int, ncol: int | None) -> tuple[frozenset[int], frozenset[int]]:
-    if ncol is None:
-        ncol = total
-    nrow = ceil(total / ncol)
-    left_places = {index for index in range(total) if index % ncol == 0}
-    bottom_places = {index for index in range(total) if index >= ncol * (nrow - 1)}
-    # the last grid row may be incomplete; for the columns it does not cover,
-    # the bottom-most plot lives in the penultimate row.
-    last_row_count = total - ncol * (nrow - 1)
-    if nrow >= 2 and last_row_count < ncol:
-        bottom_places.update(ncol * (nrow - 2) + column for column in range(last_row_count, ncol))
-    return frozenset(left_places), frozenset(bottom_places)
-
-
-def _share_labels(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
-    left_places, bottom_places = _grid_places(len(keys), ncol)
-    if i not in bottom_places:  # remove x axis title except for bottom row
-        plot = plot + theme(axis_title_x=element_blank())
-    if i not in left_places:  # remove y axis title except for left column
-        plot = plot + theme(axis_title_y=element_blank())
-
-    return plot
-
-
-def _share_axis(
-    plot, i: int, keys: Sequence[str], ncol: int | None, axis_type: Literal["axis", "arrow"]
-) -> SupPlotsSpec:
-    left_places, bottom_places = _grid_places(len(keys), ncol)
-
-    if axis_type == "axis":
-        if i not in bottom_places:  # remove x axis title except for bottom row
-            plot = plot + theme(
-                # remove x axis elements
-                axis_text_x=element_blank(),
-                axis_ticks_x=element_blank(),
-                axis_line_x=element_blank(),
-            )
-        if i not in left_places:  # remove y axis title except for left column
-            plot = plot + theme(
-                # remove y axis elements
-                axis_text_y=element_blank(),
-                axis_ticks_y=element_blank(),
-                axis_line_y=element_blank(),
-            )
-    elif axis_type == "arrow":
-        pass
-    else:
-        msg = f"expected 'axis' or 'arrow' for 'axis_type' argument, but received {axis_type}"
-        raise ValueError(msg)
-
-    return plot
-
-
-def _share_ticks(plot, i: int, keys: Sequence[str], ncol: int | None) -> SupPlotsSpec:
-    left_places, bottom_places = _grid_places(len(keys), ncol)
-    if i not in bottom_places:  # remove x axis title except for bottom row
-        plot = plot + theme(axis_text_x=element_blank())
-    if i not in left_places:  # remove y axis title except for left column
-        plot = plot + theme(axis_text_y=element_blank())
-
-    return plot
-
-
 '''
 def _key_style(data: AnnData, key: str) -> str:
     """Find the layers with the given key."""
@@ -679,15 +640,18 @@ def _wrap_legend(frame: pl.DataFrame, fill: str | None, color: str | None) -> Fe
 
 
 def _reject_sequence_key(key: object, *, singular: str, plural: str) -> None:
-    """Reject a non-string sequence where a single key is expected, pointing to the plural API."""
-    if key is None or isinstance(key, str):
+    """Reject a collection (sequence, set, array) where one key is expected, naming the plural."""
+    if key is None or isinstance(key, (str, bytes)):
         return
-    if isinstance(key, Sequence):
+    if isinstance(key, Iterable):
+        count = "several keys"
+        if isinstance(key, Sized):
+            count = f"{len(key)} key" if len(key) == 1 else f"{len(key)} keys"
         msg = (
-            f"`{singular}` plots a single key but received {len(key)} keys. "
+            f"`{singular}` plots a single key but received {count}. "
             f"Use `{plural}` for multiple keys."
         )
-        raise TypeError(msg)
+        raise InvalidArgumentTypeError(msg)
 
 
 def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
@@ -698,6 +662,54 @@ def _require_feature_key(data: AnnData | MuData, key: str | None) -> None:
     if key in container.observation_columns() or container.owns_variable(key):
         return
     msg = f"Key `{key}` not found.\nLooked in observation metadata and variable (gene) names."
+    hint = _did_you_mean(key, [*container.observation_columns(), *container.variable_names()])
+    if hint:
+        msg += f"\n{hint}"
+    raise KeyNotFoundError(msg)
+
+
+def _require_add_keys(
+    data: AnnData | MuData,
+    add_keys: Sequence[str] | None,
+    frame_columns: Sequence[str] = (),
+) -> None:
+    """
+    Validate that every `add_keys` name resolves to a column or variable.
+
+    Parameters
+    ----------
+    data : AnnData | MuData
+        The single-cell data object.
+    add_keys : Sequence[str] | None
+        The extra names to materialise into the frame.
+    frame_columns : Sequence[str], default=()
+        Columns of the plot's frame, e.g. embeddings; names found there are accepted.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If a name is neither a metadata column, a variable name, nor a frame column.
+    """
+    if not add_keys:
+        return
+    container = _container(data)
+    observation_columns = container.observation_columns()
+    missing = [
+        key
+        for key in add_keys
+        if key not in observation_columns
+        and key not in frame_columns
+        and not container.owns_variable(key)
+    ]
+    if not missing:
+        return
+    msg = (
+        f"`add_keys` names not found: {missing}.\n"
+        "Looked in observation metadata and variable (gene) names."
+    )
+    hint = _did_you_mean(missing, [*observation_columns, *container.variable_names()])
+    if hint:
+        msg += f"\n{hint}"
     raise KeyNotFoundError(msg)
 
 
@@ -735,12 +747,19 @@ def _select_variable_keys(
     data: AnnData | MuData,
     keys: Sequence[str] | None,
 ) -> list[str]:
-    """From given keys, select only those that are variable keys."""
+    """
+    From given keys, select only those that are variable keys, each once.
+
+    Notes
+    -----
+    Keys often come from several aesthetics, and one gene mapped to two of
+    them (`x` and `color`) is still one frame column.
+    """
     if keys is None:
         return []
 
     container = _container(data)
-    return [key for key in keys if container.owns_variable(key)]
+    return [key for key in dict.fromkeys(keys) if container.owns_variable(key)]
 
 
 def _collect_aes_columns(
@@ -838,10 +857,56 @@ def _are_variable_features(data: AnnData | MuData, keys: Sequence[str] | None) -
     return all(key in columns for key in keys)
 
 
+def _reject_renamed_embedding_kwargs(geom_kwargs: dict[str, object]) -> None:
+    """
+    Reject the removed `use_key` and `basis` before they reach the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a dimensional plot forwards to its geom.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds `use_key` or `basis`.
+    """
+    if "use_key" in geom_kwargs:
+        msg = (
+            "`use_key` was renamed to `embedding_key`; "
+            f"pass `embedding_key={geom_kwargs['use_key']!r}`."
+        )
+        raise UnknownParameterError(msg)
+    if "basis" in geom_kwargs:
+        msg = f"to choose a stored embedding pass `embedding_key={geom_kwargs['basis']!r}`."
+        raise UnknownParameterError(msg)
+
+
+def _reject_removed_variable_keys(geom_kwargs: dict[str, object], function: str) -> None:
+    """
+    Reject the removed `variable_keys` before it reaches the geom.
+
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a plot forwards to its geom.
+    function : str
+        The public function name shown in the message.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds `variable_keys`.
+    """
+    if "variable_keys" in geom_kwargs:
+        msg = f"`variable_keys` was removed from `{function}`; pass the same names as `add_keys=`."
+        raise UnknownParameterError(msg)
+
+
 def _resolve_embedding_key(
     data: AnnData | MuData,
     dimensions: str,
-    use_key: str | None,
+    embedding_key: str | None,
     xy: Sequence[int],
 ) -> str:
     """
@@ -853,7 +918,7 @@ def _resolve_embedding_key(
         Single-cell data object providing the embedding store.
     dimensions : str
         Embedding family, e.g. `"umap"`, `"pca"`, `"tsne"`.
-    use_key : str | None
+    embedding_key : str | None
         Explicit embedding key. When provided, no search is performed.
     xy : Sequence[int]
         Axis indices requested (1-based); used to filter shape-eligible
@@ -879,16 +944,16 @@ def _resolve_embedding_key(
 
     Resolution rules:
 
-    1. If `use_key` is given, return it uppercased.
+    1. If `embedding_key` is given, return it uppercased.
     2. Otherwise, against `f"X_{dimensions.upper()}"`:
        - exact (case-insensitive) match -> return it silently.
        - no exact, but prefix matches exist -> pick the candidate whose
          dimensionality is sufficient for `max(xy)` (shortest name on ties),
-         warn the user, and suggest `use_key` to silence.
+         warn the user, and suggest `embedding_key` to silence.
        - no candidate -> raise `KeyNotFoundError`.
     """
-    if use_key is not None:
-        return use_key.upper()
+    if embedding_key is not None:
+        return embedding_key.upper()
 
     embeddings = _container(data).observation_embeddings()
     candidates = list(embeddings.keys())
@@ -921,8 +986,8 @@ def _resolve_embedding_key(
     _warn(
         f"No embedding named `{target}` found; "
         f"using `{chosen}` with (shape={shapes[chosen]})\n"
-        f"Alternatives: {alternatives}, Rest: {list(set(candidates) - set(alternatives))}.\n"
-        "Pass `use_key='...'` to use a specific key."
+        f"Alternatives: {alternatives}, Rest: {sorted(set(candidates) - set(alternatives))}.\n"
+        "Pass `embedding_key='...'` to use a specific key."
     )
     return chosen.upper()
 
@@ -945,6 +1010,15 @@ def _determine_axis(
         Other column references from the same call, such as the grouping and
         aesthetic keys. Used only to break a tie. `None` entries are ignored.
 
+    Raises
+    ------
+    EmptySelectionError
+        If `keys` is empty.
+    KeyNotFoundError
+        If a key names no observation or variable column, nor a variable.
+    InvalidArgumentError
+        If the keys mix observation-only and variable-only columns.
+
     Notes
     -----
     A name can sit on both axes: quality-control metrics like `total_counts`
@@ -956,6 +1030,9 @@ def _determine_axis(
     if isinstance(keys, str):
         keys = [keys]
     _container(data)  # reject unsupported data objects up front
+    if len(keys) == 0:
+        msg = "Cannot determine the axis without keys; `keys` is empty. Pass at least one key."
+        raise EmptySelectionError(msg)
     on_variables = _are_variable_features(data, keys)
     on_observations = _are_observation_features(data, keys)
 
@@ -975,5 +1052,30 @@ def _determine_axis(
     if on_observations:
         return 0
 
-    msg = f"Could not determine the axis with given keys ({keys})."
-    raise ValueError(msg)
+    unknown = [
+        key
+        for key in keys
+        if not (_is_observation_feature(data, key) or _is_variable_feature(data, key))
+    ]
+    if not unknown:
+        msg = (
+            f"Could not determine the axis with given keys ({keys}): they mix observation "
+            "and variable columns. Pass keys from one axis only."
+        )
+        raise InvalidArgumentError(msg)
+    container = _container(data)
+    msg = (
+        f"Keys {unknown} not found; looked in observation metadata, variable metadata "
+        "and variable names."
+    )
+    hint = _did_you_mean(
+        unknown,
+        [
+            *container.observation_columns(),
+            *container.variable_columns(),
+            *container.variable_names(),
+        ],
+    )
+    if hint:
+        msg += f" {hint}"
+    raise KeyNotFoundError(msg)

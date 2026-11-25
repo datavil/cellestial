@@ -7,7 +7,14 @@ from collections.abc import Sequence
 from anndata import AnnData
 from mudata import MuData
 
-from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
+from cellestial.util.errors import (
+    EmptySelectionError,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _ranking_not_found_message,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _container
 
 
@@ -15,7 +22,7 @@ def _marker_names_per_group(
     data: AnnData,
     groups: Sequence[str] | None,
     *,
-    key: str,
+    ranking_key: str,
     n_genes: int,
 ) -> dict[str, list[str]]:
     """
@@ -28,27 +35,24 @@ def _marker_names_per_group(
     no cross-group de-duplication.
     """
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
-        msg = "`groups` must be a Sequence of strings or None"
-        raise TypeError(msg)
+        msg = f"`groups` must be a Sequence of strings or None, but received {type(groups)}."
+        raise InvalidArgumentTypeError(msg)
 
     if n_genes < 1:
         msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, AnnData):
-        if key not in data.uns:
-            msg = (
-                f"`adata.uns[{key!r}]` not found. "
-                "Run `scanpy.tl.rank_genes_groups` first "
-                "(or pass the correct `key_added` value as `key`)."
-            )
+        if ranking_key not in data.uns:
+            msg = _ranking_not_found_message(ranking_key, list(data.uns))
             raise KeyNotFoundError(msg)
 
-        record = data.uns[key]
+        record = data.uns[ranking_key]
         if "names" not in record:
             msg = (
-                f"`adata.uns[{key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names')."
+                f"The stored entry `{ranking_key}` is not a differential expression ranking "
+                "(it has no gene names). Pass the name of a stored ranking as `ranking_key`, "
+                "or compute a ranking first."
             )
             raise KeyNotFoundError(msg)
 
@@ -59,21 +63,27 @@ def _marker_names_per_group(
             selected = available_groups
         else:
             selected = list(groups)
+            if not selected:
+                msg = (
+                    "`groups` is empty, so no marker genes would be selected. "
+                    f"Pass None for all groups or pick from {available_groups!r}."
+                )
+                raise EmptySelectionError(msg)
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{key!r}]`. Available: {available_groups!r}."
+                    f"Groups {unknown!r} not found in the ranking `{ranking_key}`. "
+                    f"Available: {available_groups!r}. Pass groups from that list."
                 )
                 raise KeyNotFoundError(msg)
 
         n_available = len(names)
         if n_genes > n_available:
             msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{key!r}]`."
+                f"`n_genes={n_genes}` exceeds the {n_available} genes in the ranking "
+                f"`{ranking_key}`. Pass `n_genes` <= {n_available}."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
         markers = {group: [str(gene) for gene in names[group][:n_genes]] for group in selected}
     else:
@@ -84,10 +94,10 @@ def _marker_names_per_group(
 
 def marker_genes(
     data: AnnData | MuData,
-    groups: Sequence[str] | None = None,
     *,
+    groups: Sequence[str] | None = None,
     modality: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
 ) -> list[str]:
     """
@@ -105,7 +115,7 @@ def marker_genes(
         Which modality's stored analysis results to use. Required for a
         multimodal object holding more than one modality, and not accepted
         otherwise.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=5
         Number of top genes to pull per group.
@@ -123,9 +133,11 @@ def marker_genes(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
-    ValueError
+    EmptySelectionError
+        If `groups` is an empty sequence.
+    InvalidArgumentError
         If `n_genes` is out of range.
-    TypeError
+    InvalidArgumentTypeError
         If `groups` is neither a Sequence of strings nor None.
 
     Notes
@@ -163,7 +175,10 @@ def marker_genes(
         cl.heatmap(data, keys=cl.marker_genes(data, n_genes=3), group_by="louvain")
     """
     per_group = _marker_names_per_group(
-        _container(data).select_modality(modality), groups, key=key, n_genes=n_genes
+        _container(data).select_modality(modality),
+        groups,
+        ranking_key=ranking_key,
+        n_genes=n_genes,
     )
 
     # Flatten group by group, dropping any gene already seen so the list can
@@ -182,10 +197,10 @@ def marker_genes(
 
 def marker_genes_dict(
     data: AnnData | MuData,
-    groups: Sequence[str] | None = None,
     *,
+    groups: Sequence[str] | None = None,
     modality: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 5,
 ) -> dict[str, list[str]]:
     """
@@ -203,7 +218,7 @@ def marker_genes_dict(
         Which modality's stored analysis results to use. Required for a
         multimodal object holding more than one modality, and not accepted
         otherwise.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=5
         Number of top genes to pull per group.
@@ -221,9 +236,11 @@ def marker_genes_dict(
         If `data` is not a supported single-cell data object.
     KeyNotFoundError
         If the ranking result or a requested group is missing.
-    ValueError
+    EmptySelectionError
+        If `groups` is an empty sequence.
+    InvalidArgumentError
         If `n_genes` is out of range.
-    TypeError
+    InvalidArgumentTypeError
         If `groups` is neither a Sequence of strings nor None.
 
     Notes
@@ -249,5 +266,8 @@ def marker_genes_dict(
         cl.marker_genes_dict(data, n_genes=3)
     """
     return _marker_names_per_group(
-        _container(data).select_modality(modality), groups, key=key, n_genes=n_genes
+        _container(data).select_modality(modality),
+        groups,
+        ranking_key=ranking_key,
+        n_genes=n_genes,
     )

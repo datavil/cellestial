@@ -10,6 +10,7 @@ from ggrust.plot.core import PlotSpec
 import cellestial as cl
 from cellestial.util.errors import (
     EmptySelectionError,
+    InvalidArgumentError,
     KeyNotFoundError,
     NonCategoricalColumnError,
     UnsupportedDataTypeError,
@@ -50,6 +51,9 @@ def test_dense_cells_score_higher_than_sparse_cells(adata):
 
 def test_group_density_uses_only_that_groups_cells(adata, group_key):
     """Each panel's density matches the density of its group plotted alone."""
+    # The bundled labels have no nulls, so blank a few cells to test that they drop.
+    adata = adata[:3000].copy()
+    adata.obs.loc[adata.obs.index[:50], group_key] = np.nan
     plot = cl.embedding_density(adata, group_by=group_key)
     faceted = _layer_frame(plot, 1)
     sizes = adata.obs[group_key].value_counts()
@@ -139,7 +143,7 @@ def test_wrong_data_type_is_rejected():
 
 def test_xy_must_hold_two_dimensions(adata):
     """`xy` needs exactly two dimensions."""
-    with pytest.raises(KeyError, match="exactly two dimensions"):
+    with pytest.raises(InvalidArgumentError, match="exactly 2 components"):
         cl.embedding_density(adata, xy=(1, 2, 3))
 
 

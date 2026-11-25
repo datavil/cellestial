@@ -1,4 +1,5 @@
 from cellestial.datasets.datasets import (
+    bone_marrow,
     breast_cancer_atlas,
     from_cellxgene,
     from_url,
@@ -9,6 +10,7 @@ from cellestial.datasets.datasets import (
 )
 
 __all__ = [
+    "bone_marrow",
     "breast_cancer_atlas",
     "from_cellxgene",
     "from_url",

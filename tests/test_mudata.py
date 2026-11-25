@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from anndata import AnnData
+from ggrust import aes
 from ggrust.plot.core import PlotSpec
 from ggrust.plot.subplots import SupPlotsSpec
 from mudata import MuData
@@ -97,11 +98,13 @@ def many_modalities():
 
 
 def test_container_dispatches_on_type(mudata, adata):
+    """Container dispatches on type."""
     assert type(_container(mudata)) is _MuDataContainer
     assert type(_container(adata)) is _Container
 
 
 def test_container_rejects_unknown_type():
+    """Container rejects unknown type."""
     with pytest.raises(UnsupportedDataTypeError):
         _container(object())
 
@@ -127,15 +130,18 @@ def test_owns_variable_rejects_metadata_column(mudata):
 
 
 def test_bare_name_resolves_to_its_modality(mudata):
+    """Bare name resolves to its modality."""
     assert _container(mudata).resolve_variable(GENE) == ("rna", GENE)
     assert _container(mudata).resolve_variable(PROTEIN) == ("prot", PROTEIN)
 
 
 def test_qualified_name_resolves(mudata):
+    """Qualified name resolves."""
     assert _container(mudata).resolve_variable(f"rna:{GENE}") == ("rna", GENE)
 
 
 def test_ambiguous_bare_name_raises_with_candidates(collided):
+    """Ambiguous bare name raises with candidates."""
     with pytest.raises(AmbiguousVariableError, match="more than one modality") as excinfo:
         _container(collided).resolve_variable("CD14")
     assert "rna:CD14" in str(excinfo.value)
@@ -143,17 +149,20 @@ def test_ambiguous_bare_name_raises_with_candidates(collided):
 
 
 def test_qualified_name_disambiguates_a_collision(collided):
+    """Qualified name disambiguates a collision."""
     container = _container(collided)
     assert container.fetch_variable_columns(["rna:CD14"])[0].to_list() == [0.0, 3.0, 6.0, 9.0]
     assert container.fetch_variable_columns(["prot:CD14"])[0].to_list() == [0.0, 20.0, 40.0, 60.0]
 
 
 def test_unknown_variable_raises(mudata):
+    """Unknown variable raises."""
     with pytest.raises(VariableNotFoundError):
         _container(mudata).resolve_variable("NOT_A_GENE")
 
 
 def test_unknown_modality_in_qualified_name_raises(mudata):
+    """Unknown modality in qualified name raises."""
     with pytest.raises(VariableNotFoundError):
         _container(mudata).resolve_variable("rna:NOT_A_GENE")
 
@@ -168,6 +177,7 @@ def test_peak_names_containing_colons_resolve(peaks):
 
 
 def test_peak_column_matches_its_source(peaks):
+    """Peak column matches its source."""
     column = _container(peaks).fetch_variable_columns(["chr1:1000-2000"])[0]
     direct = np.asarray(peaks.mod["atac"][:, "chr1:1000-2000"].X).reshape(-1)
     assert column.to_list() == list(direct)
@@ -187,6 +197,7 @@ def test_source_prefixed_names_resolve(prefixed):
 
 
 def test_source_prefixed_names_build_a_frame(prefixed):
+    """Source prefixed names build a frame."""
     frame = cl.build_frame(prefixed, variable_keys=["rna:SAMD11", "prot:PCNA"])
     assert {"rna:SAMD11", "prot:PCNA"} <= set(frame.columns)
 
@@ -198,12 +209,14 @@ def test_unknown_name_under_a_real_modality_still_reports_precisely(prefixed):
 
 
 def test_collision_across_many_modalities(many_modalities):
+    """Collision across many modalities."""
     with pytest.raises(AmbiguousVariableError) as excinfo:
         _container(many_modalities).resolve_variable("SASH3")
     assert "CRISPR scores:SASH3" in str(excinfo.value)
 
 
 def test_modality_names_may_contain_spaces(many_modalities):
+    """Modality names may contain spaces."""
     container = _container(many_modalities)
     assert container.resolve_variable("Drug response:SASH3") == ("Drug response", "SASH3")
     assert container.resolve_variable("CRISPR scores:SASH3") == ("CRISPR scores", "SASH3")
@@ -258,6 +271,7 @@ def test_variable_columns_keep_source_dtype(mudata):
 
 
 def test_variable_column_matches_direct_read(mudata):
+    """Variable column matches direct read."""
     column = _container(mudata).fetch_variable_columns([GENE])[0]
     direct = np.asarray(mudata.mod["rna"][:, GENE].X).reshape(-1)
     assert np.allclose(column.to_numpy(), direct)
@@ -275,12 +289,14 @@ def test_integer_counts_widen_for_nan(partial):
 
 
 def test_frame_uses_container_metadata(mudata):
+    """Frame uses container metadata."""
     frame = cl.build_frame(mudata, axis=0)
     assert JOINT_GROUP in frame.columns  # container-level column
     assert "rna:leiden" in frame.columns  # pulled up from the modality
 
 
 def test_frame_carries_joint_embeddings(mudata):
+    """Frame carries joint embeddings."""
     frame = cl.build_frame(mudata, axis=0, include_dimensions=2)
     assert {"X_WNN_UMAP1", "X_WNN_UMAP2", "X_MOFA_UMAP1", "X_MOFA_UMAP2"} <= set(frame.columns)
 
@@ -292,24 +308,28 @@ def test_frame_omits_modality_masks(mudata):
 
 
 def test_frame_pulls_across_modalities(mudata):
+    """Frame pulls across modalities."""
     frame = cl.build_frame(mudata, variable_keys=[GENE, PROTEIN])
     assert {GENE, PROTEIN} <= set(frame.columns)
     assert frame.height == mudata.n_obs
 
 
 def test_qualified_and_bare_keys_agree(mudata):
+    """Qualified and bare keys agree."""
     bare = cl.build_frame(mudata, variable_keys=[GENE])[GENE].to_list()
     qualified = cl.build_frame(mudata, variable_keys=[f"rna:{GENE}"])[f"rna:{GENE}"].to_list()
     assert bare == qualified
 
 
 def test_variables_frame_from_container(mudata):
+    """Variables frame from container."""
     frame = cl.build_frame(mudata, axis=1)
     assert frame.height == mudata.n_vars
     assert "highly_variable" in frame.columns
 
 
 def test_non_joint_axis_is_rejected():
+    """Non joint axis is rejected."""
     rna = AnnData(np.ones((3, 2), dtype="float32"))
     rna.obs_names = list("abc")
     prot = AnnData(np.ones((3, 2), dtype="float32"))
@@ -341,7 +361,7 @@ def test_anndata_frame_is_unchanged(mudata):
             lambda data: cl.dimensional(data, dimensions="wnn_umap", key="celltype"),
         ),
         ("dimensional_mofa", lambda data: cl.dimensional(data, dimensions="mofa", key="celltype")),
-        ("xyplot", lambda data: cl.xyplot(data, x=GENE, y=PROTEIN, color="celltype")),
+        ("xyplot", lambda data: cl.xyplot(data, x=GENE, y=PROTEIN, mapping=aes(color="celltype"))),
         ("violin", lambda data: cl.violin(data, key=GENE, group_by=JOINT_GROUP)),
         ("boxplot", lambda data: cl.boxplot(data, key=PROTEIN, group_by="celltype")),
         ("histogram", lambda data: cl.histogram(data, key=GENE)),
@@ -364,6 +384,7 @@ def test_anndata_frame_is_unchanged(mudata):
     ],
 )
 def test_single_plots_accept_a_container(mudata, name, call):
+    """Single plots accept a container."""
     assert isinstance(call(mudata), PlotSpec), name
 
 
@@ -387,6 +408,7 @@ def test_single_plots_accept_a_container(mudata, name, call):
     ],
 )
 def test_grid_plots_accept_a_container(mudata, name, call):
+    """Grid plots accept a container."""
     assert isinstance(call(mudata), SupPlotsSpec), name
 
 
@@ -399,6 +421,7 @@ def test_mixed_modality_keys_share_one_axis(mudata):
 
 
 def test_ambiguous_key_raises_from_a_plot(collided):
+    """Ambiguous key raises from a plot."""
     with pytest.raises(AmbiguousVariableError):
         cl.build_frame(collided, variable_keys=["CD14"])
 
@@ -419,6 +442,7 @@ def test_ambiguous_key_raises_from_a_plot(collided):
     ],
 )
 def test_modality_selects_stored_results(mudata, name, call):
+    """Modality selects stored results."""
     assert call(mudata, modality="rna") is not None, name
 
 
@@ -450,6 +474,7 @@ def test_ambiguous_key_axis_is_unchanged_without_a_hint(mudata, adata):
 
 
 def test_variable_axis_companion_still_selects_variables(mudata):
+    """Variable axis companion still selects variables."""
     assert _determine_axis(mudata, ["rna:total_counts"], companions=["highly_variable"]) == 1
 
 
@@ -472,6 +497,7 @@ def test_bare_metadata_name_suggests_the_qualified_form(mudata):
 
 
 def test_unknown_metadata_name_does_not_invent_a_suggestion(mudata):
+    """Unknown metadata name does not invent a suggestion."""
     with pytest.raises(KeyNotFoundError) as excinfo:
         cl.violin(mudata, key=GENE, group_by="not_a_column")
     assert "Did you mean" not in str(excinfo.value)
@@ -484,17 +510,20 @@ def test_group_by_validation_reaches_anndata_too(mudata):
 
 
 def test_modality_is_required_when_ambiguous(mudata):
+    """Modality is required when ambiguous."""
     with pytest.raises(KeyNotFoundError, match="modality"):
         cl.volcano(mudata, group="0")
 
 
 def test_unknown_modality_raises_with_candidates(mudata):
+    """Unknown modality raises with candidates."""
     with pytest.raises(KeyNotFoundError, match="Unknown modality") as excinfo:
         cl.volcano(mudata, group="0", modality="nope")
     assert "rna" in str(excinfo.value)
 
 
 def test_modality_is_rejected_for_anndata(mudata):
+    """Modality is rejected for anndata."""
     with pytest.raises(KeyNotFoundError, match="no modalities"):
         cl.volcano(mudata.mod["rna"], group="0", modality="rna")
 
@@ -542,8 +571,9 @@ def test_markers_accept_the_container_group_column(ranked):
 
 
 def test_markers_still_reject_a_mismatched_group_column(ranked):
+    """Markers still reject a mismatched group column."""
     with pytest.raises(ValueError, match="does not match"):
-        cl.heatmap(ranked, markers=True, n_genes=2, modality="rna", group_by="celltype")
+        cl.heatmap(ranked, markers=True, n_genes=2, modality="rna", group_by="rna:celltype")
 
 
 def test_markers_and_dendrogram_round_trip(ranked):
@@ -582,6 +612,7 @@ def sparse():
 
 
 def test_sparse_matrices_are_densified(sparse):
+    """Sparse matrices are densified."""
     assert _container(sparse).fetch_variable_columns(["A"])[0].to_list() == [0.0, 3.0, 6.0, 9.0]
 
 
@@ -624,6 +655,7 @@ def test_duplicate_variable_name_raises_for_anndata_too(adata):
 
 
 def test_unique_names_alongside_a_duplicate_still_resolve(collided):
+    """Unique names alongside a duplicate still resolve."""
     duplicated = AnnData(np.arange(12, dtype="float32").reshape(4, 3))
     duplicated.var_names = ["A", "A", "B"]
     duplicated.obs_names = list("wxyz")
@@ -632,6 +664,7 @@ def test_unique_names_alongside_a_duplicate_still_resolve(collided):
 
 
 def test_modality_with_no_observations_yields_all_nan(sparse):
+    """Modality with no observations yields all nan."""
     ghost = AnnData(np.zeros((0, 1), dtype="float32"))
     ghost.var_names = ["G"]
     ghost.obs_names = []
@@ -661,6 +694,7 @@ def test_variable_axis_dataframe_embeddings(mudata):
 
 @pytest.mark.parametrize("key", ["", "rna:", ":NKG7", "rna::NKG7"])
 def test_malformed_keys_are_rejected_without_crashing(mudata, key):
+    """Malformed keys are rejected without crashing."""
     container = _container(mudata)
     assert container.owns_variable(key) is False
     with pytest.raises(VariableNotFoundError):
@@ -711,6 +745,7 @@ def test_metadata_and_variable_sharing_a_name_prefers_metadata(mudata):
     ],
 )
 def test_spatial_rejects_a_container(mudata, call):
+    """Spatial rejects a container."""
     with pytest.raises(UnsupportedDataTypeError, match="single modality"):
         call(mudata)
 

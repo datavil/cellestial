@@ -24,7 +24,8 @@ echo "==> wheel install/import smoke test"
 wheel="$(ls -t dist/*.whl | head -n 1)"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
-python -m venv "$tmpdir/venv"
+# Build the smoke venv with the project interpreter, not whatever `python` is on PATH.
+"$(poetry env info --executable)" -m venv "$tmpdir/venv"
 "$tmpdir/venv/bin/pip" install --quiet "$wheel"
 "$tmpdir/venv/bin/python" -c "import cellestial; print('cellestial', cellestial.__version__)"
 

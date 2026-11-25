@@ -16,7 +16,7 @@ from mudata import MuData
 from cellestial.frames import _highest_expressed_genes_frame
 from cellestial.themes import _THEME_HIGHEST
 from cellestial.util import _drop_nonfinite_rows
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
@@ -30,10 +30,9 @@ def highest_expressed_genes(
     modality: str | None = None,
     mapping: FeatureSpec | None = None,
     threshold: float | None = None,
-    observation_id_column: str = "Barcode",
     value_column: str = "value",
     variable_column: str = "variable",
-    color: str = "#1f1f1f",
+    geom_color: str = "#1f1f1f",
     size: float = 0.5,
     outlier_size: float = 0.2,
     outlier_alpha: float = 0.5,
@@ -55,16 +54,15 @@ def highest_expressed_genes(
         otherwise.
     mapping : FeatureSpec | None, default=None
         Additional aesthetic mappings for the plot, the result of `aes()`.
+        Boxes are filled per gene by default; override with e.g. `aes(fill=...)`.
     threshold : float | None, default=None
         If provided, filters out rows where the value column is below the threshold.
-    observation_id_column : str, default='Barcode'
-        The name to give to barcode (or index) column in the dataframe.
     value_column : str, default='value'
         The name to give to the value column after unpivoting.
     variable_column : str, default='variable'
         The name to give to the variable column after unpivoting.
-    color : str, default='#1f1f1f'
-        Border color of the boxplots.
+    geom_color : str, default='#1f1f1f'
+        Border color for all boxes in the boxplot.
     size : float, default=0.5
         Line size of the boxplots.
     outlier_size : float, default=0.2
@@ -87,6 +85,8 @@ def highest_expressed_genes(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    InvalidArgumentError
+        If `n` is smaller than 1, or if `color` is passed (use `geom_color`).
 
     Examples
     --------
@@ -99,7 +99,7 @@ def highest_expressed_genes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.highest_expressed_genes(data,n=20)
 
@@ -112,7 +112,7 @@ def highest_expressed_genes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.highest_expressed_genes(
             data,
@@ -128,6 +128,16 @@ def highest_expressed_genes(
         raise _unsupported_data_type(data, AnnData, MuData)
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
+    if "color" in geom_kwargs:
+        msg = (
+            f"`color={geom_kwargs['color']!r}` is not a parameter of `highest_expressed_genes`; the constant "
+            "box border color is `geom_color`.\nPass `geom_color=...` instead "
+            "(`color` / `fill` name columns, `geom_color` / `geom_fill` are constants)."
+        )
+        raise InvalidArgumentError(msg)
+    if n < 1:
+        msg = f"`n` must be at least 1 (the number of genes to show), got n={n}."
+        raise InvalidArgumentError(msg)
 
     # HANDLE: mapping
     defaults = aes(x=variable_column, y=value_column, fill=variable_column).as_dict()
@@ -156,7 +166,7 @@ def highest_expressed_genes(
     bxplt = ggplot(frame)
     bxplt += geom_boxplot(
         mapping=mapping,
-        color=color,
+        color=geom_color,
         size=size,
         outlier_size=outlier_size,
         outlier_alpha=outlier_alpha,

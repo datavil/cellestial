@@ -43,7 +43,7 @@ Cellestial accepts a standard `AnnData` directly. The same function plots a cate
 from ggrust import *
 import cellestial as cl
 
-data = cl.datasets.pbmc3k(cache_directory="data")
+data = cl.datasets.bone_marrow(cache_directory="data")
 
 cl.umap(
     data,

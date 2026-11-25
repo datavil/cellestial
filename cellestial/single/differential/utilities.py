@@ -2,19 +2,43 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "numpy"]
 
+from difflib import get_close_matches
 from typing import TYPE_CHECKING
 
 import numpy as np
 import polars as pl
 from anndata import AnnData
 
-from cellestial.single.heatmap.utilities import _resolve_rank_genes_groups_key
-from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
+from cellestial.util.errors import (
+    EmptySelectionError,
+    InvalidArgumentError,
+    KeyNotFoundError,
+    UnknownParameterError,
+    _ranking_not_found_message,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from polars import DataFrame
+
+
+def _reject_renamed_ranking_key(geom_kwargs: dict[str, object], function_name: str) -> None:
+    """Raise if `key` was passed, which `**geom_kwargs` would otherwise swallow silently."""
+    if "key" in geom_kwargs:
+        msg = (
+            f"`key` is not a parameter of `{function_name}`; to choose a stored ranking "
+            f"use `ranking_key={geom_kwargs['key']!r}`."
+        )
+        raise UnknownParameterError(msg)
+
+
+def _close_match_hint(value: object, options: Sequence[object]) -> str:
+    """Return `"; did you mean 'x'?"` for the closest option (ignoring case), else `"."`."""
+    by_lowercase = {str(option).lower(): str(option) for option in options}
+    matches = get_close_matches(str(value).lower(), list(by_lowercase), n=1)
+    return f"; did you mean {by_lowercase[matches[0]]!r}?" if matches else "."
 
 
 def _resolve_pvalue_column(pvalue_column: str | None, *, use_adjusted_pvalue: bool) -> str:
@@ -29,7 +53,7 @@ def _build_volcano_frame(
     group: str,
     *,
     group_by: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     use_adjusted_pvalue: bool = True,
     logfoldchange_threshold: float = 1.0,
     pvalue_threshold: float = 0.05,
@@ -42,6 +66,7 @@ def _build_volcano_frame(
     down_label: str = "down",
     nonsignificant_label: str = "ns",
     rank_genes_kwargs: dict | None = None,
+    min_fraction_expressed: float | None = None,
 ) -> DataFrame:
     """
     Build a volcano-plot-ready frame.
@@ -57,7 +82,7 @@ def _build_volcano_frame(
         Observation column to group by. When provided, the ranking is
         (re)computed if it is missing or was computed with a different
         grouping.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     use_adjusted_pvalue : bool, default=True
         Whether to use adjusted p-values instead of raw p-values for the
@@ -87,12 +112,24 @@ def _build_volcano_frame(
         Additional keyword arguments forwarded to the ranking call when
         `group_by` triggers a (re)compute (e.g. `method='t-test'`,
         `use_raw=False`, `layer=...`, `corr_method='bonferroni'`).
+    min_fraction_expressed : float | None, default=None
+        Drop features detected in fewer than this fraction of `group`'s cells.
+        Reads the detection rates stored with the ranking; when `group_by`
+        triggers a (re)compute, they are recorded. `None` keeps every feature.
 
     Returns
     -------
     DataFrame
         A polars DataFrame with one row per feature and the columns named
         according to the `*_column` parameters above.
+
+    Raises
+    ------
+    KeyNotFoundError
+        If the ranking, `group`, the fields a volcano needs, or the detection
+        rates `min_fraction_expressed` needs are missing.
+    InvalidArgumentError
+        If `min_fraction_expressed` is set and feature names are not unique.
 
     Notes
     -----
@@ -106,33 +143,64 @@ def _build_volcano_frame(
     if isinstance(data, AnnData):
         # COMPUTE: rank_genes_groups if requested and missing/stale
         if group_by is not None:
-            existing_params = data.uns.get(key, {}).get("params", {})
+            existing_params = data.uns.get(ranking_key, {}).get("params", {})
             desired_params = {"groupby": group_by, **(rank_genes_kwargs or {})}
             stale = any(existing_params.get(k) != v for k, v in desired_params.items())
-            if key not in data.uns or stale:
+            # The stored parameters do not record `pts`, so check the result itself.
+            lacks_detection_rates = (
+                min_fraction_expressed is not None and "pts" not in data.uns.get(ranking_key, {})
+            )
+            if ranking_key not in data.uns or stale or lacks_detection_rates:
                 import scanpy as sc
 
+                ranking_kwargs = dict(rank_genes_kwargs or {})
+                if min_fraction_expressed is not None:
+                    ranking_kwargs["pts"] = True
                 sc.tl.rank_genes_groups(
                     data,
                     groupby=group_by,
-                    key_added=key,
-                    **(rank_genes_kwargs or {}),
+                    key_added=ranking_key,
+                    **ranking_kwargs,
                 )
         # CHECK: differential expression results exist
-        if key not in data.uns:
+        if ranking_key not in data.uns:
+            hint = _close_match_hint(ranking_key, list(data.uns))
             msg = (
-                f"`{key}` not found in `data.uns`. "
-                "Run `scanpy.tl.rank_genes_groups` first or pass `group_by`."
+                f"No stored ranking named {ranking_key!r}{hint} Pass `group_by` to compute "
+                "one, or pass the name of a stored ranking as `ranking_key`."
             )
-            raise KeyError(msg)
-        results = data.uns[key]
+            raise KeyNotFoundError(msg)
+        results = data.uns[ranking_key]
         # CHECK: group exists in the results
         available_groups = list(results["names"].dtype.names)
         if group not in available_groups:
-            msg = f"Group `{group}` not found. Available groups: {available_groups}"
-            raise KeyError(msg)
+            hint = _close_match_hint(group, available_groups)
+            msg = (
+                f"Group `{group}` not found{hint} Available groups: {available_groups}. "
+                "Pass one of them as `group`."
+            )
+            raise KeyNotFoundError(msg)
+        # CHECK: detection rates exist when the filter needs them
+        if min_fraction_expressed is not None and "pts" not in results:
+            msg = (
+                f"`min_fraction_expressed` needs detection rates, but the ranking under "
+                f"`{ranking_key}` was computed without them. Pass `group_by` to recompute it with "
+                "them recorded, or rank with `pts=True`."
+            )
+            raise KeyNotFoundError(msg)
         # SELECT: which p-value field to pull
         pvalue_field = "pvals_adj" if use_adjusted_pvalue else "pvals"
+        # CHECK: the ranking carries what a volcano needs (logistic regression does not)
+        missing_fields = [
+            field for field in ("logfoldchanges", pvalue_field) if field not in results
+        ]
+        if missing_fields:
+            msg = (
+                f"The ranking `{ranking_key}` has no {missing_fields} to draw a volcano from. "
+                "Rank with a test that reports fold changes and p-values "
+                "(e.g. method='wilcoxon' or 't-test')."
+            )
+            raise KeyNotFoundError(msg)
         # EXTRACT: per-group columns from the recarrays
         frame = pl.DataFrame(
             {
@@ -143,6 +211,19 @@ def _build_volcano_frame(
                 pvalue_column: np.asarray(results[pvalue_field][group], dtype=np.float64),
             }
         )
+        # FILTER: features detected in too few of the group's cells
+        if min_fraction_expressed is not None:
+            detection_rates = results["pts"][group]
+            if not detection_rates.index.is_unique:
+                duplicated = sorted(set(detection_rates.index[detection_rates.index.duplicated()]))
+                msg = (
+                    "`min_fraction_expressed` matches detection rates to features by name, "
+                    f"but feature names are not unique: {duplicated[:5]}. Make the feature "
+                    "names unique (then rerank), or pass `min_fraction_expressed=None`."
+                )
+                raise InvalidArgumentError(msg)
+            detection_rates = detection_rates.reindex(frame[variable_column].to_list())
+            frame = frame.filter(pl.Series(detection_rates.to_numpy() >= min_fraction_expressed))
     else:
         raise _unsupported_data_type(data, AnnData)
 
@@ -187,7 +268,7 @@ def _build_volcano_frame(
 def _build_markers_frame(
     data: AnnData,
     *,
-    key: bool | str,
+    ranking_key: str,
     n_genes: int,
     groups: Sequence[str] | None,
     variable_column: str,
@@ -202,9 +283,8 @@ def _build_markers_frame(
     ----------
     data : AnnData
         Source object that already holds a precomputed ranking result.
-    key : bool | str
-        `True` reads the default ranking key; a string reads
-        the matching custom key (e.g. `"rank_genes_groups_wilcoxon"`).
+    ranking_key : str
+        The key under which the precomputed ranking is stored on `data`.
     n_genes : int
         Number of top genes to pull per group.
     groups : Sequence[str] | None
@@ -235,6 +315,8 @@ def _build_markers_frame(
     KeyNotFoundError
         If the ranking result, a requested group, or the stored grouping
         is missing.
+    EmptySelectionError
+        If `groups` is an empty sequence.
     ValueError
         If `n_genes` is out of range.
 
@@ -246,25 +328,20 @@ def _build_markers_frame(
     is drawn in its own panel.
     """
     if n_genes < 1:
-        msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
-
-    uns_key = _resolve_rank_genes_groups_key(key)
+        msg = f"`n_genes` must be >= 1, got {n_genes}. Pass a positive integer."
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, AnnData):
-        if uns_key not in data.uns:
-            msg = (
-                f"`adata.uns[{uns_key!r}]` not found. "
-                "Run `scanpy.tl.rank_genes_groups` first "
-                "(or pass the correct `key_added` value as `key`)."
-            )
+        if ranking_key not in data.uns:
+            msg = _ranking_not_found_message(ranking_key, list(data.uns))
             raise KeyNotFoundError(msg)
 
-        record = data.uns[uns_key]
+        record = data.uns[ranking_key]
         if "names" not in record or "scores" not in record or "params" not in record:
             msg = (
-                f"`adata.uns[{uns_key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names', 'scores', or 'params')."
+                f"The stored entry `{ranking_key}` is not a differential expression ranking "
+                "(it has no gene names, scores, or parameters). Pass the name of a stored "
+                "ranking as `ranking_key`, or compute a ranking first."
             )
             raise KeyNotFoundError(msg)
 
@@ -276,49 +353,64 @@ def _build_markers_frame(
             selected = available_groups
         else:
             selected = list(groups)
+            if not selected:
+                msg = (
+                    "`groups` is empty, so there is nothing to plot. "
+                    f"Pass None for all groups or pick from {available_groups!r}."
+                )
+                raise EmptySelectionError(msg)
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{uns_key!r}]`. Available: {available_groups!r}."
+                    f"Groups {unknown!r} not found in the ranking `{ranking_key}`. "
+                    f"Available: {available_groups!r}. Pass groups from that list."
                 )
                 raise KeyNotFoundError(msg)
 
         n_available = len(names)
         if n_genes > n_available:
             msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{uns_key!r}]`."
+                f"`n_genes={n_genes}` exceeds the {n_available} genes in the ranking "
+                f"`{ranking_key}`. Pass `n_genes` <= {n_available}."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
-        ranks = np.arange(n_genes)
-        group_frames = [
-            pl.DataFrame(
-                {
-                    group_column: group,
-                    rank_column: ranks,
-                    variable_column: [str(name) for name in names[group][:n_genes]],
-                    score_column: np.asarray(scores[group][:n_genes], dtype=np.float64),
-                }
+        # Non-finite scores are dropped before taking the top `n_genes`, so every
+        # panel keeps `n_genes` genes (when that many are finite) with gapless ranks.
+        group_frames = []
+        for group in selected:
+            group_frame = (
+                pl.DataFrame(
+                    {
+                        variable_column: [str(name) for name in names[group]],
+                        score_column: np.asarray(scores[group], dtype=np.float64),
+                    }
+                )
+                .filter(pl.col(score_column).is_finite())
+                .head(n_genes)
             )
-            for group in selected
-        ]
+            group_frames.append(
+                group_frame.select(
+                    pl.lit(group).alias(group_column),
+                    pl.int_range(pl.len(), dtype=pl.Int64).alias(rank_column),
+                    variable_column,
+                    score_column,
+                )
+            )
         frame = pl.concat(group_frames)
 
         params = record["params"]
         stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
-                f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "
-                "cannot infer `group_by`."
+                f"The ranking `{ranking_key}` does not record the column it grouped by, "
+                "so `group_by` cannot be inferred. Recompute the ranking for a grouping column."
             )
             raise KeyNotFoundError(msg)
 
         # Round scores to keep the embedded JSON compact when the frame is
         # serialized into the plot output.
         frame = frame.with_columns(pl.col(score_column).round(4))
-        frame = frame.filter(pl.col(score_column).is_not_null() & pl.col(score_column).is_finite())
 
         return frame, list(selected), str(stored_group_by)
 

@@ -2,13 +2,20 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "numpy", "scipy.sparse"]
 
+from typing import Any
+
 import numpy as np
 import polars as pl
 from anndata import AnnData
 from polars import DataFrame
 from scipy.sparse import issparse
 
-from cellestial.util.errors import UnsupportedDataTypeError, _unsupported_data_type
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    KeyNotFoundError,
+    UnsupportedDataTypeError,
+    _unsupported_data_type,
+)
 
 
 def _highest_expressed_genes_frame(
@@ -20,8 +27,8 @@ def _highest_expressed_genes_frame(
         # VALIDATE: inputs
         if n > data.n_vars:
             msg = f"Requested n={n} genes, but only {data.n_vars} genes available in data."
-            raise ValueError(msg)
-        X = data.X
+            raise InvalidArgumentError(msg)
+        X: Any = data.X  # in-memory ndarray or sparse after the check below
         # matmul and fancy indexing below require an in-memory ndarray/sparse;
         # fail fast on backed/dask/zappy rather than crashing deep in the math.
         if not (isinstance(X, np.ndarray) or issparse(X)):
@@ -73,7 +80,7 @@ def _pca_variance_frame(
         pca_uns = data.uns.get(use_key)
         if pca_uns is None or "variance_ratio" not in pca_uns:
             msg = f"PCA variance ratio not found under `{use_key}`. Run PCA first."
-            raise ValueError(msg)
+            raise KeyNotFoundError(msg)
         variance_ratio = np.asarray(pca_uns["variance_ratio"]).ravel()
         n_available = variance_ratio.size
         if n_pcs is not None:
@@ -82,7 +89,7 @@ def _pca_variance_frame(
                     f"Requested n_pcs={n_pcs} components, "
                     f"but only {n_available} components available."
                 )
-                raise ValueError(msg)
+                raise InvalidArgumentError(msg)
             variance_ratio = variance_ratio[:n_pcs]
         frame = pl.DataFrame(
             {

@@ -7,7 +7,477 @@ Entries for 0.58.2 and earlier were reconstructed from the commit history after
 the fact, so they summarize each release in a line or two rather than list every
 change. Versions absent from the list were never released.
 
-## [Unreleased]
+## [1.0.0] - 2026-11-25
+
+### Breaking
+
+- `datasets.pbmc3k` is renamed to `datasets.bone_marrow`. The data was never
+  the 10x pbmc3k: it is about 17,000 bone marrow mononuclear cells (samples
+  `s1d1`, `s1d3`) from the scanpy "Preprocessing and clustering" tutorial.
+  Same cells and labels; the file is now `bone_marrow_pped.h5ad`, so it is
+  downloaded once more. Migration: `cl.datasets.pbmc3k(...)` ->
+  `cl.datasets.bone_marrow(...)`.
+- `datasets.pbmc3k` now loads the real 10x Genomics PBMC 3k: 2,638 cells
+  processed as in the scanpy PBMC 3k tutorial, with its annotation in
+  `cell_type` (CD4 T cells, CD14+ Monocytes, B cells, CD8 T cells, NK cells,
+  FCGR3A+ Monocytes, Dendritic cells, Megakaryocytes). Code written for the old
+  `pbmc3k` fails on the bone marrow columns (`cell_type_lvl1`,
+  `leiden_res_0.02`) with `KeyNotFoundError`. Migration: switch to
+  `bone_marrow` to keep the old data.
+- `anndata_observations_frame`, `anndata_variables_frame` and
+  `anndata_variable_columns` are no longer exported from `cellestial.frames`
+  (now private helpers), and `DeferredLayer` is no longer exported from
+  `cellestial.layers`. Layer functions (`bracket`, `stream`, ...) behave as
+  before. Migration: build frames with `build_frame`; do not import or
+  construct `DeferredLayer`, add the layer returned by the layer function.
+- `SpatialLibraryError` is removed; it was never raised. Migration: drop it from
+  imports and `except` clauses.
+
+- `dotplot` names its expression cutoff `expression_threshold` (was
+  `threshold`), since `threshold` drops cells in the distribution plots while
+  here it only decides which cells count as expressing a key (dot size).
+  Default and behavior are unchanged. Migration: `dotplot(..., threshold=0.5)`
+  -> `dotplot(..., expression_threshold=0.5)`; the old name raises `TypeError`.
+- `dotplot` names its computed columns `percent_expressed` (was `pct_exp`) and
+  `mean_expression` (was `avg_exp`), which also changes the default legend
+  titles. Migration: rename references in `sort_by`, `aes(...)` and code that
+  reads the frame from `retrieve`, or pass
+  `percentage_column="pct_exp", mean_column="avg_exp"` to keep the old names.
+  A `sort_by` column the dotplot does not compute (such as the old `avg_exp`)
+  now raises `KeyNotFoundError` naming the available columns, before the plot
+  is built (it used to raise a polars `ColumnNotFoundError`).
+- `spatial` and `spatials` take `grayscale` (was `greyscale`), matching the
+  American spelling used across the API (`color`). Same position, default and
+  behavior. `greyscale=` now raises `UnknownParameterError` (a `TypeError`)
+  instead of being swallowed by the geom keyword arguments. The image
+  passthrough names `cmap`, `norm`, `vmin` and `vmax` are unchanged.
+  Migration: `greyscale=True` -> `grayscale=True`.
+- `groups` is keyword-only in `markers`, `marker_genes` and
+  `marker_genes_dict`, matching the rest of the API (data and the plotted
+  keys positional, everything else by name). Migration:
+  `markers(data, ["0"])` -> `markers(data, groups=["0"])`, and likewise for
+  `marker_genes` and `marker_genes_dict`.
+- The stored ranking is chosen with `ranking_key` (was `key`) in `markers`,
+  `volcano`, `volcanos`, `marker_genes` and `marker_genes_dict`, so `key`
+  always means the column or feature to plot. The heatmap family (`heatmap`,
+  `matrixplot`, `dotplot`, `stacked_violin`, `tracksplot`) takes
+  `markers: bool` plus `ranking_key` (was `markers: bool | str`).
+  `ranking_key` is ignored when `markers` is False. Old-style calls raise:
+  `key=` in `markers`/`volcano(s)` raises `UnknownParameterError` (a
+  `TypeError`) instead of reaching the geom, and a string `markers` raises
+  `InvalidArgumentTypeError`. Migration: `key="x"` -> `ranking_key="x"`;
+  `markers="x"` -> `markers=True, ranking_key="x"`.
+- Unknown keys whose axis cannot be determined (e.g. `violin(data, "not_a_key")`),
+  tooltip fields missing from the data and a missing stored PCA variance now
+  raise `KeyNotFoundError` (a `KeyError`) instead of `ValueError`. Keys that
+  mix observation-only and variable-only columns raise `InvalidArgumentError`.
+  Migration: catch `KeyError` (or `KeyNotFoundError`) instead of `ValueError`
+  for these cases.
+- `build_frame` returns categorical metadata as `pl.Enum` in the source
+  category order (was `pl.Categorical`, ordered by first appearance), so
+  legends and group axes list categories as the data defines them (e.g.
+  clusters `0, 1, 2, ...` instead of `0, 2, 3, ...`). Migration: code that
+  checks `dtype == pl.Categorical` on a built frame should also accept
+  `pl.Enum`; compare or join the column with strings after
+  `.cast(pl.String)`.
+- On a multimodal object, a bare `group_by` that names both a container column
+  and a column of `modality` (e.g. `leiden` on `pbmc_cite`) raises
+  `AmbiguousColumnError` in plots that use stored results (`markers`,
+  `dendrogram`). `dotplot`, `matrixplot` and `stacked_violin` used to plot the
+  container's column while clustering the modality's, and the per-cell plots
+  failed with `DendrogramMismatchError`. Migration: pass the qualified name,
+  `group_by="rna:leiden"`.
+- A string other than `"none"` for `tooltips` raises `InvalidArgumentError`
+  (it used to reach the renderer unchecked). Migration: pass a list for one
+  column, `tooltips=["CD14"]`.
+
+- `volcano` and `volcanos` now reject a negative `logfoldchange_threshold`,
+  `top_n` or `nonsignificant_subsample` with `InvalidArgumentError`. A negative
+  fold change threshold used to call features with negative fold changes `up`,
+  and `top_n=-1` labelled every significant feature but one. Migration: pass
+  the absolute threshold (`1.0`, not `-1.0`) and `0` or `None` to disable labels.
+
+- `volcano` raises `KeyNotFoundError` (with a close match) instead of a bare
+  `KeyError` for a missing ranking key or group. Migration: catch
+  `KeyNotFoundError`; once it subclasses `KeyError`, `except KeyError` works
+  again.
+- `marker_genes(groups=[])` and `marker_genes_dict(groups=[])` raise
+  `EmptySelectionError` instead of returning an empty result that failed later.
+- `bracket` raises `InvalidArgumentError` for an unknown `test`, `correction`
+  or `label`, and `InvalidComparisonError` when there are too few finite
+  observations. Both subclass `ValueError`, so `except ValueError` still works.
+
+- `dimensionals`, `umaps`, `tsnes` and `pcas` raise `KeyNotFoundError` for an
+  unknown key instead of a `ValueError` about tooltip fields. Migration: catch
+  `KeyNotFoundError` (or `Exception`) instead of `ValueError`.
+
+- `spatial` and `spatials` raise `KeyNotFoundError` (with a close match) for an
+  unknown `table_name`, `image_name`, `shapes_name`, `coordinate_system`,
+  `library_id` or `spatial_key`, instead of `KeyError`. Ambiguous or missing
+  components raise `InvalidArgumentError` or `EmptySelectionError` (both
+  `ValueError` subclasses) instead of `ValueError`, and a non-SpatialData object
+  passed where one is needed raises `UnsupportedDataTypeError` (a `TypeError`).
+  Migration: catch `KeyNotFoundError` instead of `KeyError`.
+- `spatial` and `spatials` raise `InvalidArgumentError` when `mapping` sets an
+  aesthetic they map themselves (`x`, `y`, `group` for polygons, and `color`, or
+  `fill` for polygons, when `key` is given), instead of a raw `TypeError`.
+  Migration: drop the aesthetic from `mapping`, or pass `key=None` and map
+  `color`/`fill` in `mapping` (which now works).
+- `spatial(polygon=True)` with a `frame` whose rows differ from the table raises
+  `ConflictingLengthError`; polygons are now matched to frame rows by position,
+  as points already were. Migration: build `frame` from the same table without
+  filtering rows, and use `groups`/`drop` to filter.
+- `use_key` is renamed to `embedding_key` in `umap`, `pca`, `tsne`, `expression`,
+  `dimensional`, their plurals `umaps`, `pcas`, `tsnes`, `expressions`,
+  `dimensionals`, and in `embedding_density` and `blend`, matching the other
+  stored-result keys (`pca_key`, `dendrogram_key`, ...). Passing `use_key=` or
+  scanpy's `basis=` now raises `UnknownParameterError` (a `TypeError`)
+  instead of being silently forwarded to the geom. Migration: replace
+  `use_key="X_umap_harmony"` (or `basis=...`) with
+  `embedding_key="X_umap_harmony"`.
+- `save` is a thin wrapper over `ggsave`: `save(plot, filename, *, scale=2.0,
+  **ggsave_kwargs)`. It no longer sets `dpi=300` and `unit="in"`, so outputs
+  follow the `ggsave` defaults (a default `cl.umap` PNG is 1200x800 px at 96 dpi,
+  was 3750x2500 px at 300 dpi). An unknown keyword raises `TypeError`, and
+  `GGBunch` is dropped from the accepted types (ggrust never supported it).
+  Migration: pass `dpi=300, unit="in"` to keep the old output; combine plots
+  with `gggrid`.
+- `variable_keys` is removed from `umap`, `pca`, `tsne`, `expression`,
+  `dimensional`, their plurals `umaps`, `pcas`, `tsnes`, `expressions`,
+  `dimensionals`, and from `spatial` and `spatials`; `add_keys` already takes
+  both gene names and metadata columns and builds the same frame. Passing
+  `variable_keys=` now raises `UnknownParameterError` (a `TypeError`)
+  instead of being silently forwarded to the geom (`blend`, which never took
+  it, rejects it too). `build_frame`, `plot`,
+  `scatter` and `bar` keep `variable_keys`. Migration: replace
+  `variable_keys=["CD14"]` with `add_keys=["CD14"]`.
+- In the same 12 functions, an `add_keys` name that is neither a metadata
+  column, a variable name nor a column of the passed `frame` raises
+  `KeyNotFoundError` (with a close match) instead of being silently dropped.
+  Migration: fix the misspelled name, or remove it.
+- `heatmap`, `matrixplot`, `dotplot` and `stacked_violin` draw key-group
+  brackets (`keys` as a mapping) with ggrust's nested axis guide
+  (`guide_axis_nested(side="opposite")`) instead of path and text layers. The
+  brackets sit outside the panel, so the y axis is no longer widened to make
+  room. `key_labels_text_size` and `key_labels_text_color` are removed: the
+  group names now take the x-axis text style, the same as the key names, and
+  passing either raises `UnknownParameterError` (a `TypeError`).
+  `key_labels_bracket_size`, `key_labels_bracket_color` and `key_labels_width`
+  are unchanged. Migration: drop the two parameters; style the names with
+  `+ theme(axis_text_x=element_text(...))` (this also styles the key names).
+- `dotplot` and `stacked_violin` draw their data-area border as the panel
+  border instead of a rectangle layer. `rectangle_kwargs` now goes to
+  `element_rect`, which takes options such as `linetype` and `fill` but not
+  layer options such as `alpha`. Migration: keep `linetype`; drop layer-only
+  keys from `rectangle_kwargs`.
+- `annotated_heatmap` draws the group dendrogram as its observation axis tree
+  (each leaf spanning its group's rows) instead of a line layer, and
+  `dendrogram_kwargs` is removed. The tree sits outside the annotation tracks
+  and no longer takes a fixed 0.15 share of the panel. Passing
+  `dendrogram_kwargs` raises `UnknownParameterError`. Migration: drop
+  `dendrogram_kwargs`; style the tree with `dendrogram_color` and
+  `dendrogram_size`.
+- `annotated_heatmap(track_titles=...)` is split into `row_track_titles` and
+  `column_track_titles`, so the two bands' track names can be shown
+  separately; `track_titles=` raises `UnknownParameterError`. Migration:
+  `track_titles=True` becomes
+  `row_track_titles=True, column_track_titles=True`.
+- Plural plots share axes and titles through ggrust's collected grid axes
+  instead of blanking them by grid position. `share_axis` (and `share_ticks`
+  in `violins`, `boxplots` and `histograms`) now keeps every axis whose range
+  differs from its neighbour's; only identical axes collapse. `share_ticks`
+  behaves as `share_axis`. `share_labels` draws one title per run of plots,
+  centred across the run. Migration: add `sharex=True` / `sharey=True` where
+  inner axes should still disappear across plots with different ranges.
+
+### Added
+
+- `highlight` works on plots filled by a key (e.g. `violin` or `boxplot` with
+  `fill=`) and gains `unhighlighted_params` (style of the grey copies) and
+  `calculate_per_facet` (each facet panel greys only its own rows).
+- `annotated_heatmap(variable_group_by=...)` draws group lines between the
+  contiguous blocks of a variable metadata key (gene modules, say), alongside
+  the `group_by` lines between observation groups.
+- `annotated_heatmap(key_labels=[...])` labels only those keys, spread evenly
+  along the key axis with a leader line from each key to its label (gene
+  callouts, as ComplexHeatmap's `anno_mark`), on the side opposite the column
+  annotation tracks. A theme styles them like axis labels. `key_labels=[]`
+  labels no key.
+- `annotated_heatmap(group_labels={block: text})` draws a pointed bracket and
+  (multi-line) text beside each `variable_group_by` block, such as GO terms per
+  gene module. `group_labels_width` sets the text area and
+  `group_labels_kwargs` styles the text.
+- `annotated_heatmap(annotation_legends=False)` hides the annotation tracks'
+  legends, keeping only the heatmap's color bar.
+
+- Public `cellestial.errors` module (also `cl.errors`) re-exporting every error
+  class and `CellestialWarning`. `cellestial.util.errors` keeps working.
+- `CellestialError` base class: every cellestial error subclasses it as well as
+  its builtin (`KeyNotFoundError` is still a `KeyError`), so
+  `except cl.errors.CellestialError` catches anything cellestial raised.
+- `UnknownParameterError` (a `TypeError`), raised when a renamed or removed
+  keyword (`use_key`, `basis`, `key`, `greyscale`, `variable_keys`) is passed,
+  instead of letting it reach the geom keyword arguments.
+- `outline=True` in `dimensional`, `umap`, `tsne`, `pca`, `expression` and
+  their plurals draws a scanpy-style border around the point cloud: only the
+  rim of the cloud gets a border. `outline_width` (default `(0.3, 0.05)`,
+  fractions of the point size) and `outline_color` (default
+  `("black", "white")`) set the border and gap. Outlined points default to
+  alpha 0.7 unless `alpha` is passed or mapped.
+
+- `volcano` and `volcanos` take `min_fraction_expressed` (default `None`) to
+  drop features detected in fewer than that fraction of the group's cells
+  (e.g. `0.1`). Such features get huge fold changes from the pseudocount and
+  used to dominate the plot. It reads the detection rates stored with the
+  ranking; with `group_by` they are recorded when the ranking is (re)computed,
+  otherwise a missing record raises `KeyNotFoundError` naming the fix.
+
+### Changed
+
+- The bundled datasets (`bone_marrow`, `pancreas`, `human_lymph_node`) download
+  from one Hugging Face repo, `datavil/cellestial-datasets`. File names of
+  `pancreas` and `human_lymph_node` are unchanged, so existing caches are reused.
+- pandas 3 is supported on Python 3.12 and later (`pandas>=2.2.3,<4`, was
+  `<3`), together with anndata 0.13. Python 3.11 keeps `pandas<3`, since
+  anndata 0.13 needs Python 3.12.
+- The `spatial` extra needs `spatialdata>=0.8` on Python 3.12 and later (was
+  `>=0.7`): spatialdata 0.7 fails to validate tables on pandas 3. Python 3.11
+  keeps `spatialdata>=0.7,<0.8`, since spatialdata 0.8 needs Python 3.12.
+- The per-cell `heatmap(aggregate=False, dendrogram=True)` draws the group
+  dendrogram with ggrust's axis tree (each leaf spanning its group's rows) in a
+  band right of the panel, instead of a path layer inside it.
+- `annotated_heatmap(transpose=True)` puts the first group on the left and the
+  first key at the top; both were reversed.
+- `annotated_heatmap` blanks the side-panel border, so a `panel_border` added
+  to it frames the heatmap only, not the annotation track bands.
+
+- Public calls that raised bare `ValueError`, `TypeError` or `NotImplementedError`
+  now raise the matching cellestial classes: `InvalidArgumentError` (a
+  `ValueError`), `InvalidArgumentTypeError` (a `TypeError`) and the new
+  `UnsupportedGeometryError` (a `NotImplementedError`, exported from
+  `cellestial.errors`, raised for shapes that are neither points nor polygons).
+  Each subclasses the builtin it replaces, so existing `except` clauses keep
+  working. Affected: the plurals (`umaps`, `tsnes`, `pcas`, `dimensionals`,
+  `expressions`, `violins`, `boxplots`, `histograms`, `ridges`, `spatials`,
+  `volcanos`), `markers`, `volcano`, `heatmap`, `dotplot`, `stacked_violin`,
+  `annotated_heatmap` and `spatial`. Messages no longer name storage slots or
+  scanpy functions; a plural given one key says "pass a list of keys, or use
+  `umap` for one key".
+
+- The bone marrow dataset (now `datasets.bone_marrow()`, see Breaking) has
+  corrected `cell_type_lvl1` labels, following the scanpy tutorial's coarse annotation of
+  `leiden_res_0.02`. The old file had "B Cells" and "Erythroid" swapped and left
+  cluster 4 (1767 erythroblasts) null; those cells are now "Erythroid" and the
+  column has no nulls. Nothing else in the file changed. A cached
+  `pbmc3k_pped.h5ad` is no longer used, the new file name triggers a fresh
+  download. Migration: code that filtered or counted null `cell_type_lvl1`
+  cells on this dataset now finds none.
+- `ridge` and `ridges` validate `scale` (the ridge overlap, default 2.0) before
+  building the plot: a non-number such as `scale="width"` raises
+  `InvalidArgumentTypeError` and zero, negative or non-finite values raise
+  `InvalidArgumentError`. These used to be accepted silently.
+- Remaining built-in exceptions in frame building, layout and grid helpers,
+  marker and dataset helpers are now `errors.py` classes that subclass the same
+  built-in (`InvalidArgumentError`, the new `InvalidArgumentTypeError`,
+  `ConflictingLengthError`, `GridIndexError`, `MissingPlotDataError`,
+  `IncompleteDownloadError`), so existing `except` clauses keep working.
+- `layout(widths=...)` accepts numpy arrays (1D, 2D, or one array per row).
+- `build_frame` accepts a single string for `metadata_columns` and
+  `dimension_keys` as one key (it used to be split into characters).
+- `KeyNotFoundError` and `VariableNotFoundError` now subclass `KeyError`, so
+  `except KeyError` catches them. Their message prints without quotes.
+- Unknown keys, metadata columns, embeddings, variables and modalities name the
+  closest matches ("Did you mean 'leiden'?"). `build_frame` raises
+  `KeyNotFoundError` (a `KeyError`) for unknown `metadata_columns` and
+  `dimension_keys`.
+
+### Fixed
+
+- `dotplot` and `stacked_violin` with `rectangle=False` draw their axis lines
+  again; the plot theme used to blank them.
+- `dotplot`, `stacked_violin` and `matrixplot` with long key-group names size
+  the canvas to fit them instead of shrinking the cells and cutting off labels.
+
+- An observation or variable metadata column named like the id column
+  (`Barcode`, `Variable`) raises `InvalidArgumentError` naming
+  `observation_id_column` / `variable_id_column` instead of a polars
+  duplicate-column error.
+- Reading variables from an object without a main expression matrix raises
+  `KeyNotFoundError` explaining it, instead of a `TypeError`.
+- `build_frame` rejects `axis=True` / `axis=False` with `InvalidArgumentError`
+  instead of reading them as 1 / 0.
+- The embedding fallback warning lists the other embeddings in sorted order, so
+  it reads the same on every run.
+- Singular plots reject sets and arrays passed as `key` (pointing to the plural
+  function) like they reject lists, instead of failing later.
+- `ridge` no longer fills the ridges by `group_by` on its own (no hidden
+  aesthetic promotion). Migration: pass `mapping=aes(fill="<group_by column>")`
+  to keep the colored ridges; the same applies to `ridges`.
+- `ridge` and `ridges` no longer fill the ridges by `group_by` on their own (no
+  hidden aesthetic promotion); they default to grey. Migration: pass
+  `fill=group_by` (e.g. `fill="leiden"`) to keep the colored ridges.
+- `ridge` and `ridges` take `fill` / `color` (column shortcuts for
+  `aes(fill=...)` / `aes(color=...)`) and `geom_fill` / `geom_color`
+  (constants), like `violin`. A constant `color="#..."` used to pass through
+  to the geom; it now names a column and raises `KeyNotFoundError` pointing to
+  `geom_color`. Migration: use `geom_color="#..."`. Setting `fill` / `color`
+  both as a shortcut and in `mapping` raises `InvalidArgumentError`.
+- `histogram` takes one key; a list raises `TypeError` pointing to
+  `histograms`, like the other singular plots. Migration: use `histograms`
+  for several keys.
+- `color=` / `fill=` no longer pass through to the geom as constants in
+  `dimensional`, `umap`, `tsne`, `pca`, `expression`, their plurals,
+  `scatter`, `bar`, `xyplot`, `xyplots`, `spatial` and `spatials`; they raise
+  `InvalidArgumentError`. These functions take `geom_color` / `geom_fill`
+  for constants instead. `blend` and `embedding_density` compute their
+  colors, so they reject `color=` / `fill=` and take no constant. A
+  `geom_color` / `geom_fill` that would hide the coloring by `key` or a
+  `mapping` column raises `InvalidArgumentError`. Migration:
+  `umap(color="red")` -> `umap(geom_color="red")`,
+  `scatter(..., color="grey")` -> `scatter(..., geom_color="grey")`.
+- `elbow` and `highest_expressed_genes` rename the constant `color` to
+  `geom_color` (same default), following the convention that `color` / `fill`
+  name columns. Passing `color=` raises `InvalidArgumentError` pointing to
+  `geom_color`. Migration: `color=` -> `geom_color=`.
+- `highest_expressed_genes` no longer accepts `observation_id_column`, which
+  had no effect. Migration: drop the argument.
+- `pca` and `pcas` label the axes `PC1` / `PC2` instead of `PCA1` / `PCA2`.
+  Migration: update any `labs` or text matching the old titles.
+- A `mapping` that sets an aesthetic the function sets itself raises
+  `InvalidArgumentError` naming both, instead of a raw `TypeError`:
+  `dimensional`, `umap`, `tsne`, `pca`, `expression` and their plurals
+  (`x`, `y`, and `color` when `key` is given), `violin` / `boxplot` (`x`, `y`,
+  also in `point_mapping`), `histogram` (`x`), `ridge` (`x`, `y`),
+  `cluster_outlines` and `stream` (`x`, `y`, `group`). Migration: remove the
+  aesthetic from `mapping` (pass the column as `key` / `group_by` instead).
+- Error classes changed from builtins to `cellestial` errors:
+  `xy` of the wrong length in `dimensional` (and wrappers), `blend` and
+  `embedding_density` raises `InvalidArgumentError` (was `KeyError`); an unknown
+  `point_geom` or `axis_type` raises `InvalidArgumentError` (was `ValueError`);
+  `stream` raises `KeyNotFoundError` for missing velocity columns (was
+  `KeyError`) and `InvalidArgumentError` when `velocity_key` cannot name them
+  (was `ValueError`); `cluster_outlines` raises `KeyNotFoundError` for an
+  unknown group and `EmptySelectionError` when no outline can be computed (both
+  were `ValueError`). Migration: catch the new classes.
+
+- `violin`, `boxplot` and `histogram` raise `InvalidArgumentError` when `key`
+  is also the `group_by` / `color` / `fill` column or is not numeric (booleans
+  still plot as 0 / 1), instead of a polars `DuplicateError` or a late failure.
+- `histograms` with a string `keys` raises a `TypeError` instead of splitting
+  it into characters.
+- `dimensional` (and wrappers) without `key` accepts `mapping=aes(color=...)`.
+- `dimensionals`, `umaps`, `tsnes` and `pcas` name the categorical key that
+  lacks a `groups` / `drop` value and explain that the filter applies to every
+  categorical key. Numeric keys are still left unfiltered.
+- `expression`, `cluster_outlines` and `stream` suggest close matches for an
+  unknown gene, group or velocity column.
+- `build_frame` keeps missing values of a numeric categorical column as null
+  instead of turning them into a `"nan"` category.
+- `build_frame` raises `DuplicateKeysError` naming the repeat for repeated
+  `variable_keys`, `metadata_columns` and `dimension_keys` (case variants of one
+  embedding count as a repeat) instead of failing on a duplicate column, reads
+  sparse embeddings, and raises `InvalidArgumentError` for an `axis` other than
+  0 or 1.
+- Stored-result plots on a multimodal object with a single modality now find
+  the group column when `modality` is omitted.
+- `datasets.from_url` reads a URL whose filename has no `.h5ad` / `.h5mu`
+  suffix in the format given by `extension`, and caches it with that suffix.
+- `heatmap` (per cell) and `annotated_heatmap` with `dendrogram=True` no longer
+  crash when the grouping column holds non-string categories (e.g. integers).
+- `heatmap`, `matrixplot`, `dotplot`, `stacked_violin` and `annotated_heatmap`
+  raise `DendrogramMismatchError` when a stored dendrogram lacks groups present
+  in the data, or (per-cell `heatmap`, `annotated_heatmap`) includes groups with
+  no cells, instead of an internal error. `stacked_violin` used to drop those
+  groups silently.
+- Computing a dendrogram for a grouping with unused categories raises
+  `DendrogramMismatchError` naming them, instead of an internal `KeyError`.
+- Duplicate `keys` raise `DuplicateKeysError` in `heatmap`, `matrixplot`,
+  `dotplot`, `stacked_violin` and `annotated_heatmap`, instead of an internal
+  error.
+- `annotated_heatmap` leaves out cells with no `group_by` value whether or not
+  rows are binned. They used to show as an unlabelled block only when the data
+  fit in `max_rows`.
+- `histogram` shows the plotted value as the x-axis title.
+- Per-cell `heatmap` keeps cells apart when two groups share a barcode (e.g.
+  concatenated samples without unique names). Such cells used to be duplicated,
+  and binned rows averaged cells of both groups.
+
+- `volcano` and `volcanos` reject a `pvalue_threshold` outside (0, 1] before
+  building the plot, instead of failing in the renderer.
+- `volcano` names the missing fields when the stored ranking has no fold
+  changes or p-values (e.g. logistic regression), instead of a bare `KeyError`.
+- `volcanos(group_by=...)` computes the ranking once, as documented, even when
+  `rank_genes_kwargs` holds arguments the stored parameters do not record
+  (e.g. `pts=True`). It used to recompute it for every panel.
+- `markers(groups=[])` raises `EmptySelectionError` instead of a polars error.
+- `bracket(y_position=...)` below the top of the data no longer gives the plot
+  a negative height, and a `y` column without finite values raises a clear
+  `ValueError` instead of a `TypeError`.
+
+- `volcano` labels: features tied on p-value and fold change are picked by
+  name, so the labelled set no longer depends on sort order.
+- `volcanos(groups=[])` raises `EmptySelectionError`; `volcanos` and `markers`
+  reject `ncol` below 1 with `InvalidArgumentError` (it used to fail in the
+  grid or with `ZeroDivisionError`).
+- `markers` drops non-finite scores before taking the top `n_genes`, so a
+  panel keeps `n_genes` genes with gapless ranks.
+- Unknown `groups` errors from the group filters suggest a close match.
+- `bracket` on a constant `y` column stacks the brackets above the data
+  (the range is taken as 1) instead of drawing them all on the data line, and
+  an `x` or `y` naming a column the plot lacks raises `MissingAestheticError`
+  with a close match instead of a polars error.
+- `matrixplot` declares `modality` in its signature (it used to reach `heatmap`
+  only through `**geom_kwargs`).
+- Binned per-cell `heatmap` and `tracksplot` keep bins in barcode order within
+  a group (bin names are zero-padded; they used to sort as 0, 1, 10, 11, ..., 2).
+- `stacked_violin` draws a flat line for a key whose values are all equal in a
+  group (e.g. all zeros) instead of leaving the cell empty, and rejects an
+  unknown `fill_statistic` or `scale` with `InvalidArgumentError` (an unknown
+  `fill_statistic` used to drop the fill silently).
+- `annotated_heatmap` settles ties for the most frequent label of a binned
+  categorical track the same way on every run, and raises
+  `InvalidArgumentError` for a category -> color mapping on a numeric track
+  instead of drawing it with the wrong scale.
+- `tracksplot` raises `DendrogramMismatchError` when the dendrogram lacks a
+  group present in the data; that group's cells used to be dropped silently.
+- The `DendrogramMismatchError` hint also names a same-named column with
+  different groups (e.g. a modality's own column) as a possible cause.
+
+- `cl.spatial` and `cl.spatials` on SpatialData point (or polygon-centroid)
+  shapes now place each table row at its own shape, matched on the table's
+  instance key. Spots used to be matched by position, so a table ordered
+  differently from its shapes colored the wrong spots, and a table covering only
+  some shapes failed with a shape error.
+- `cl.stream()` on an embedding stored without the `X_` prefix (e.g.
+  `wnn_umap`) reads `velocity_wnn_umap`; it used to reuse the positions as
+  velocities and draw meaningless streams.
+- `dimensional` and its wrappers reject `xy` components that do not exist
+  (0-based values or beyond the embedding) with an `InvalidArgumentError`
+  instead of returning a plot that fails to render.
+- `xyplot` raises `KeyNotFoundError` with close matches when `x` or `y` is not
+  in the data, instead of a `ValueError` about tooltip fields.
+- `highest_expressed_genes(n=...)` and `elbow(n_pcs=...)` reject values below 1;
+  negative values used to show all but the last genes or components.
+- `violins`, `boxplots` and `ridges` reject a single string for `keys`, which
+  used to be split into characters.
+- `violin`, `boxplot` and `histogram` warn when `groups` or `drop` is passed
+  without `group_by`, where the filter is ignored.
+
+- `spatial(polygon=True)` draws holes in polygons as holes; a hole wound the
+  same way as its exterior used to be filled. The outline still draws a line
+  from the exterior to each hole until ggrust splits polygon rings.
+- `spatial(polygon=True)` keeps the instance key column, so `add_keys` and
+  `tooltips` can use it; it used to fail with a column-not-found error.
+- `spatial(polygon=True)` joins only table rows annotating the chosen shapes
+  element. A table annotating several shapes elements with overlapping instance
+  ids used to draw rows of the other elements on these shapes.
+- `spatial` and `spatials` raise `DuplicateKeysError` naming the repeated ids
+  when a SpatialData shapes element repeats an instance id, instead of an
+  internal pandas error.
+- `spatials` resolves the image and geometry once for all keys instead of once
+  per key.
+- `spatial` and `spatials` document that with several Visium libraries every
+  spot is drawn on the chosen library's image.
 
 ## [0.62.1] - 2026-11-09
 

@@ -3,7 +3,8 @@ from __future__ import annotations
 __lazy_modules__ = ["ggrust"]
 
 import re
-from typing import TYPE_CHECKING, Literal
+from difflib import get_close_matches
+from typing import TYPE_CHECKING, Any, Literal
 
 import polars as pl
 from ggrust import (
@@ -16,11 +17,16 @@ from ggrust import (
 )
 
 from cellestial.layers._deferred import DeferredLayer
+from cellestial.layers.utilities import _reject_mapping_clash
 from cellestial.util import _drop_nonfinite_rows, get_mapping, retrieve
-from cellestial.util.errors import MissingAestheticError
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    KeyNotFoundError,
+    MissingAestheticError,
+)
 
 if TYPE_CHECKING:
-    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
 
 
 def stream(
@@ -119,9 +125,10 @@ def stream(
     ------
     MissingAestheticError
         If `x` or `y` cannot be inferred from the receiving plot.
-    ValueError
-        If dimension numbers cannot be parsed when `velocity_key` is provided.
-    KeyError
+    InvalidArgumentError
+        If dimension numbers cannot be parsed when `velocity_key` is provided,
+        or if `mapping` sets `x`, `y` or `group`, which the layer sets itself.
+    KeyNotFoundError
         If the required velocity columns are not present in the plot data.
 
     Notes
@@ -179,9 +186,14 @@ def stream(
         gggrid([plot, ggplot() + cl.stream(plot=plot)])
 
     """
+    _reject_mapping_clash(
+        mapping,
+        function="stream",
+        set_by={"x": "the plot's `x`", "y": "the plot's `y`", "group": "each stream line"},
+    )
     explicit_plot = plot
 
-    def _build(receiving_plot: PlotSpec) -> FeatureSpecArray:
+    def _build(receiving_plot: PlotSpec) -> FeatureSpec:
         source = explicit_plot if explicit_plot is not None else receiving_plot
         # extract data and mapping from plot
         frame = retrieve(source)
@@ -200,27 +212,36 @@ def stream(
             x_match = re.match(r"(.+?)(\d+)$", x)
             y_match = re.match(r"(.+?)(\d+)$", y)
             if x_match is None or y_match is None:
-                msg = f"Could not parse dimension number from mapping keys: x={x!r}, y={y!r}"
-                raise ValueError(msg)
+                msg = (
+                    f"Could not parse a component number from the plot's x={x!r} and "
+                    f"y={y!r}, needed to name the `velocity_key` columns.\n"
+                    "`velocity_key` works with embedding axes ending in a component "
+                    "number (e.g. `X_UMAP1`); otherwise pass `velocity_prefix=`."
+                )
+                raise InvalidArgumentError(msg)
             *_, x_number = x_match.groups()
             *_, y_number = y_match.groups()
             x_velocity = f"{velocity_key}{x_number}"
             y_velocity = f"{velocity_key}{y_number}"
         elif velocity_key is None:  # default to velocity_prefix + embedding name
             prefix = velocity_prefix.upper()  # cellestial converts embedding names to uppercase
-            x_velocity = x.replace("X_", prefix)
-            y_velocity = y.replace("X_", prefix)
+            # an embedding stored without the `X_` prefix (e.g. `wnn_umap`) has its
+            # velocity under `velocity_wnn_umap`; never fall back to the positions
+            x_velocity = x.replace("X_", prefix) if "X_" in x else f"{prefix}{x}"
+            y_velocity = y.replace("X_", prefix) if "X_" in y else f"{prefix}{y}"
 
         missing_velocity_columns = [
             column for column in (x_velocity, y_velocity) if column not in frame.columns
         ]
         if missing_velocity_columns:
+            close_matches = get_close_matches(missing_velocity_columns[0], frame.columns, n=3)
+            hint = f" Did you mean {close_matches}?" if close_matches else ""
             msg = (
-                f"Velocity columns not found: {missing_velocity_columns}. "
+                f"Velocity columns not found: {missing_velocity_columns}.{hint}\n"
                 "Pass `velocity_prefix=` or `velocity_key=` if your velocity columns "
                 "use different names."
             )
-            raise KeyError(msg)
+            raise KeyNotFoundError(msg)
 
         frame = _drop_nonfinite_rows(frame, [x, y, x_velocity, y_velocity])
 
@@ -259,7 +280,7 @@ def stream(
         )
 
         # handle arrow kwargs
-        _arrow_kwargs = {
+        _arrow_kwargs: dict[str, Any] = {
             "color": arrow_color,
             "size": arrow_size,
             "alpha": arrow_alpha,

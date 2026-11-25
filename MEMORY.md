@@ -8,7 +8,7 @@
 - [Project: Cellestial function inventory](project_cellestial_functions.md) — What every function does: frames, single plots, layers, util, themes
 - [Project: Cellestial tooling](project_cellestial_tooling.md) — Uses Poetry (not uv/pip) for deps and running commands
 - [Project: Cellestial code patterns](project_cellestial_patterns.md) — Naming conventions, parameter patterns, singular/plural pairs, type annotations, data transformation patterns
-- [Feedback: Test code changes](feedback_test_code.md) — Run actual test code against data/pbmc3k_pped.h5ad before reporting success
+- [Feedback: Test code changes](feedback_test_code.md) — Run actual test code (load data via cl.datasets.bone_marrow(cache_directory="data")) before reporting success
 
 - [Feedback: Sync repo MEMORY.md](feedback_sync_repo_memory.md) — Mirror every auto-memory change in repo's `MEMORY.md` (index line + inlined source block)
 - [Feedback: Avoid shortened variable names](feedback_naming.md) — No abbreviations like `grp_idx`/`obs`/`cfg`; use full words (only `n`-style counts OK)
@@ -21,7 +21,7 @@
 - [Feedback: `if isinstance(data, AnnData)` block stays](feedback_isinstance_anndata_block.md) — Never flatten to `if not isinstance: raise`; positive branch hosts AnnData-specific ops for future multi-backend support
 - [Feedback: No AnnData language in plot bodies](feedback_no_adata_language_in_plots.md) — Plot functions and their error messages stay backend-agnostic; adata.uns/obs/etc. live in helpers under `if isinstance(data, AnnData):`
 - [Feedback: No hidden aesthetic promotion](feedback_no_hidden_aesthetic_promotion.md) — Don't auto-promote `group_by` to `fill`/`color`; user wires aesthetics explicitly, prefer warn+facet over hidden magic
-- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Used in `_key_groups.py` dual-mode design.
+- [Project: Lets-plot scale_size shrinks geom_text](project_letsplot_scale_size_text_quirk.md) — `scale_size(range=...)` silently shrinks `geom_text(size=N)` constants ~5x; bypass with `size_unit="x"`/`"y"`. Key-group brackets avoid it since ggrust 0.7 (axis guide).
 - [Feedback: Explicit list+extend over splat](feedback_explicit_list_extend.md) — Prefer `x = list(x); x.extend(...)` over `[*a, *b]` when merging a sequence param with computed items
 - [Feedback: Record AI-written functions in audit_AI.md](feedback_audit_ai_tracking.md) — Any function an agent generates or significantly modifies gets a row in `plans/audit_AI.md`; leave verification columns blank for the user to fill
 - [Project: Polars drop/exclude null gotcha](project_polars_drop_null_gotcha.md) — Exclude filters need `~col.is_in(values).fill_null(False)` or they silently drop null-category rows too
@@ -35,6 +35,10 @@
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 - [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 - [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
+- [Project: bone_marrow dataset (was pbmc3k)](project_pbmc3k_labels.md): Bundled dataset is bone marrow; loader renamed pbmc3k -> bone_marrow (no alias), labels fixed with the scanpy tutorial mapping
+- [Project: build_frame categoricals are pl.Enum](project_build_frame_enum.md) — Source category order via pl.Enum; accept Enum in dtype checks, cast to String before string compares/joins
+- [Feedback: Quick plots keep default fill](feedback_quick_plots_keep_default_fill.md) — `highest_expressed_genes` keeps per-gene fill; no-promotion rule not applied to convenience plots
+- [Project: Layer 0 carries the mapping](project_layer_zero_mapping.md) — Deferred `+` layers read aesthetics from layer 0; underlays (e.g. `outline=True`) must carry the main mapping with constants overriding
 
 
 ---
@@ -263,7 +267,7 @@ type: feedback
 
 Test code changes by running them against the actual dataset before reporting success.
 
-**Why:** User called out that I should have tested the code myself instead of just checking syntax. The project has test data at `data/pbmc3k_pped.h5ad`.
+**Why:** User called out that I should have tested the code myself instead of just checking syntax. Load the test data with `cl.datasets.bone_marrow(cache_directory="data")`.
 
 **How to apply:** After implementing changes to plot functions, run the user's example code (or a minimal equivalent) via Bash to confirm it executes without error. Don't rely on syntax checks or linting alone.
 
@@ -316,10 +320,12 @@ scale_size routing. Calibrate the size value differently:
 - Without size_unit: size is in lets-plot text units (~pt-like, e.g. 4-6 typical).
 - With size_unit="y": size is in y-axis units (e.g. 0.2 means cap height = 0.2 y).
 
-This is exactly why `cellestial/single/heatmap/_key_groups.py` has dual-mode
-sizing: heatmap uses absolute units (no scale_size in plot), dotplot and
-stacked_violin pass `size_unit="y"` because dotplot adds
-`scale_size(range=[size_max*0.1, size_max])` for the dot sizing.
+Key-group brackets no longer draw `geom_text`: they are an axis guide
+(`guide_axis_nested(side="opposite")` via `_key_groups_guide` in
+`cellestial/single/heatmap/utilities.py`), so the padding and label-size
+calibration that this quirk forced is gone. The quirk still applies to any
+other `geom_text` added to a plot with `scale_size(range=...)` (tracksplot's
+hand-drawn brackets, for one).
 
 **To reproduce / verify:** Build a plot with `geom_point(aes(size="value"))` +
 `scale_size(range=[3, 30])` + `geom_text(size=8.6)`. The text renders at ~1px.
@@ -491,7 +497,7 @@ type: project
 - `_assign_position_y(frame)` — adds `position_y`, first row at top
 - `_annotation_scale(series, colors)` — resolves a track's fill scale
 - `_annotation_strip(frame, position, value, horizontal, legend, colors, position_limits)` — one-row/col track plot
-- `_dendrogram_panel(paths, group_centers, n_groups, position_limits, color, size, kwargs)` — group dendrogram as a left vertical panel (geom_path; leaves at group centers, root extends left)
+- group dendrogram: `scale_x_dendro`/`scale_y_dendro(leaf_levels=...)` on the observation axis, each leaf spanning its group's rows
 - `_blank_strip_theme(legend)` — void theme shared by tracks + dendrogram
 - `_as_list(keys)` — str|Sequence|None -> list
 
@@ -583,11 +589,11 @@ variable_id_column: str = "Variable"      # gene identifier column
 - `.drop_nulls()` — clean after unpivot
 - Categorical integer conversion in `build_frame()` — important for proper Polars typing
 
-## Grid helper functions
-- `_share_ticks()` — removes axis text on non-edge plots
-- `_share_axis()` — removes axis elements except at edges
-- `_share_labels()` — removes axis titles except at edges
-- All applied before `gggrid()` call in plural functions
+## Grid axes in plural functions
+- `share_axis` / `share_ticks` -> `gggrid(axes="collect")`, `share_labels` ->
+  `gggrid(axis_titles="collect")` (ggrust 0.7, patchwork rules: only identical
+  neighbouring axes collapse; titles one per run). The per-plot `_share_*`
+  helpers were removed.
 
 ## Color logic
 - **Categorical key** → `scale_color_brewer(palette="Set2")`
@@ -605,15 +611,15 @@ if interactive:
 
 ## Layer addition (deferred layer pattern)
 - Layers (`arrow_axis`, `bracket`, `cluster_outlines`, `stream`) return a `DeferredLayer`
-  (subclass of `PlotSpec` in `cellestial/layers/_deferred.py`) — they do **not** take
+  (plain class with `__radd__` in `cellestial/layers/_deferred.py`) — they do **not** take
   `plot` positionally. The receiving plot is delivered by `__radd__` at `+` time.
 - Primary usage: `umap + cl.arrow_axis()` (no `plot` arg needed).
 - Advanced/escape-hatch: `ggplot() + cl.stream(plot=umap)` — the `plot` keyword-only
   argument lets callers pin an explicit data source when the receiving plot is
   different (e.g. drawing stream on an empty canvas beside the source).
-- `DeferredLayer` subclasses `PlotSpec` so Python's reflected-operator priority
-  rule fires `__radd__` before lets-plot's `PlotSpec.__add__` (which otherwise
-  raises `TypeError` for unknown right operands — it does NOT return `NotImplemented`).
+- ggrust's `PlotSpec.__add__` returns `NotImplemented` for unknown operands, so
+  `__radd__` runs. `DeferredLayer` must not subclass `FeatureSpec`/`PlotSpec`
+  (the lets-plot era needed a `PlotSpec` subclass; dropped with ggrust 0.7).
 
 
 ---
@@ -996,3 +1002,75 @@ Two ggrust 0.8 limits that shaped `cl.tracksplot` (issue #73, 2026-11-08):
 **Why:** Both cost a render-and-look cycle to diagnose.
 
 **How to apply:** Avoid facets when a plot needs side annotations. Zero the outline on dense rect/ribbon layers. Related: [[project-ggrust-tile-width-relative]].
+
+---
+
+## Source: project_pbmc3k_labels.md
+
+---
+name: project-pbmc3k-labels
+description: "Bundled dataset is bone marrow (loader renamed pbmc3k -> bone_marrow 2026-11-25); its swapped/null cell_type_lvl1 labels were fixed 2026-11-22 (scanpy tutorial mapping)"
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: 82ca22c0-b113-4735-9658-f8f67b33f30d
+  modified: 2026-11-22T20:30:00.000Z
+---
+
+`cl.datasets.bone_marrow()` (renamed from `pbmc3k` on 2026-11-25; `pbmc3k` now loads the real 10x PBMC 3k (`pbmc3k_10x_pped.h5ad`, labels in `cell_type`, built by `scripts/build_pbmc3k.py`); file `bone_marrow_pped.h5ad`, hosted in the datavil/cellestial-datasets Hugging Face repo with the other bundled datasets) (17041 cells, samples s1d1/s1d3) is the bone marrow sample of the scanpy "Preprocessing and clustering" tutorial, not PBMC. Its `cell_type_lvl1` used to be wrong: `test/get_data.py` mistyped the tutorial mapping of `leiden_res_0.02` (clusters 2 "B Cells" and 3 "Erythroid" swapped, cluster 4 left null). Fixed 2026-11-22: the loader now downloads `pbmc3k_pped_v2.h5ad` (built by `scripts/fix_pbmc3k_labels.py`) with scanpy's mapping {0: Lymphocytes, 1: Monocytes, 2: B Cells, 3: Erythroid, 4: Erythroid}, no null labels. Record: `plans/pbmc3k_labels.md`.
+
+**Why:** Old caches (`pbmc3k_pped.h5ad`) still carry the wrong labels and 1767 null cells; the versioned file name is what moves users off them.
+
+**How to apply:** Tests that need null group rows must blank cells themselves (the bundled column has none). HBB is ambient in every cell, so do not use it as an erythroid-only marker; GYPA/CA1 are cleaner. Related: [[project-math-audit-open-findings]].
+## Source: project_build_frame_enum.md
+
+---
+name: project-build-frame-enum
+description: build_frame returns categorical metadata as pl.Enum (source category order); check isinstance(dtype, (pl.Categorical, pl.Enum)) and cast to String before comparing/joining with strings
+metadata:
+  type: project
+---
+
+Since 2026-11-18 (branch `claude/fix-frames-2b9508`), `build_frame` turns categorical metadata into a `pl.Enum` in the source category order, because ggrust only carries factor order (`factor_levels`) for `pl.Enum`; a `pl.Categorical` is ordered by first appearance (Visium clusters legend read 0, 2, 3, ...).
+
+**Why:** `dtype == pl.Categorical` is False for an Enum, and polars raises on `is_in` / `==` with a value that is not a category, on Enum vs String joins, and on concat of different Enums.
+
+**How to apply:** Test categorical columns with `isinstance(dtype, (pl.Categorical, pl.Enum))`. Validate user group values against the column first (as `_filter_groups` does) or `.cast(pl.String)` before comparing or joining. Related: [[project-polars-drop-null-gotcha]].
+
+---
+
+## Source: feedback_quick_plots_keep_default_fill.md
+
+---
+name: feedback-quick-plots-keep-default-fill
+description: Convenience/quick plots like highest_expressed_genes keep their default per-category fill; the no-hidden-promotion rule is not applied there
+metadata:
+  node_type: memory
+  type: feedback
+  originSessionId: 8e6ad63f-f0a8-463a-bd57-6e93b380b314
+  modified: 2026-11-18T11:29:19.373Z
+---
+
+`highest_expressed_genes` fills each box by gene by default, and that stays. The user reverted its removal on 2026-11-18: it is a convenience function, so strict convention work is not worth it there.
+
+**Why:** the "no hidden aesthetic promotion" rule targets `group_by` in the general plots (ridge, violin, ...), where users wire aesthetics themselves. Quick one-call plots are meant to look finished with no extra arguments.
+
+**How to apply:** don't strip default colouring from quick/convenience plots (`cellestial/single/quick/`) for convention's sake; ask first. Renames to the `geom_color`/`geom_fill` convention still apply. Related: [[feedback-no-hidden-aesthetic-promotion]].
+
+## Source: project_layer_zero_mapping.md
+
+---
+name: project-layer-zero-mapping
+description: "Deferred `+` layers read the plot's aesthetics from layer 0; any underlay drawn before the main geom must carry the same mapping"
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: 5ae6cdee-a77d-4b67-b53d-a5d1787be919
+  modified: 2026-11-22T16:19:58.583Z
+---
+
+Deferred layers (`ondata_legend`, `highlight`, `stream`, `bracket`, `cluster_outlines`, ...) find `x`/`y`/`color` with `get_mapping(plot, index=0)`, i.e. from the first layer. Adding a layer under the main `geom_point` (the `outline=True` outline/gap layers in `dimensional`, added 2026-11-22) broke `ondata_legend` with "`group_by` is present neither as argument nor in the plot aesthetics".
+
+**Why:** the fix stayed local to `dimensional`: the underlay layers carry the points' full mapping, with constant `color`/`fill`/`size` overriding it, plus `show_legend=False` and `tooltips="none"`. ggrust lets a constant override a mapped aesthetic and adds no legend entry.
+
+**How to apply:** when drawing anything beneath a plot's main layer, give it the main layer's mapping (constants override), or `+` layers will read the wrong layer. Related: [[project-deferred-layers-read-frame]].

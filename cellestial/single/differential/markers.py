@@ -3,7 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import polars as pl
 from anndata import AnnData
@@ -25,9 +25,15 @@ from ggrust import (
 from ggrust.plot.core import FeatureSpec, LayerSpec
 from mudata import MuData
 
-from cellestial.single.differential.utilities import _build_markers_frame
-from cellestial.util import _share_axis, _share_labels
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.single.differential.utilities import (
+    _build_markers_frame,
+    _reject_renamed_ranking_key,
+)
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _container
 
 if TYPE_CHECKING:
@@ -36,10 +42,10 @@ if TYPE_CHECKING:
 
 def markers(
     data: AnnData | MuData,
-    groups: Sequence[str] | None = None,
     *,
+    groups: Sequence[str] | None = None,
     modality: str | None = None,
-    key: str = "rank_genes_groups",
+    ranking_key: str = "rank_genes_groups",
     n_genes: int = 20,
     mapping: FeatureSpec | None = None,
     text_color: str = "#1f1f1f",
@@ -89,7 +95,7 @@ def markers(
         Which modality's stored analysis results to use. Required for a
         multimodal object holding more than one modality, and not accepted
         otherwise.
-    key : str, default='rank_genes_groups'
+    ranking_key : str, default='rank_genes_groups'
         The key under which the precomputed ranking is stored on `data`.
     n_genes : int, default=20
         Number of top genes to show per panel.
@@ -129,11 +135,11 @@ def markers(
     interactive : bool, default=False
         Whether to make the plot interactive.
     share_labels : bool, default=True
-        Whether to share axis labels across the grid.
-        If True, only X labels on bottom row and Y labels on left column are shown.
+        Whether to collect identical axis titles into one per run of plots along a
+        row or column.
     share_axis : bool, default=False
-        Whether to share axes across the grid.
-        If True, only X axis on bottom row and Y axis on left column is shown.
+        Whether to keep one axis per run of neighbouring plots whose axes are
+        identical (same range, or shared through `sharex` / `sharey`).
     layers : Sequence[FeatureSpec|LayerSpec] | FeatureSpec | LayerSpec | None, default=None
         Layers to add to all the plots in the grid.
     ncol : int, default=3
@@ -167,8 +173,14 @@ def markers(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    UnknownParameterError
+        If `key` is passed (renamed to `ranking_key`).
     KeyNotFoundError
         If the ranking result or a requested group is missing.
+    EmptySelectionError
+        If `groups` is an empty sequence.
+    InvalidArgumentError
+        If `ncol` is below 1.
     ValueError
         If `n_genes` is out of range.
     TypeError
@@ -215,17 +227,28 @@ def markers(
     # HANDLE: Data types
     if not isinstance(data, (AnnData, MuData)):
         raise _unsupported_data_type(data, AnnData, MuData)
+    _reject_renamed_ranking_key(geom_kwargs, "markers")
     # Stored analysis results live inside a single modality.
     data = _container(data).select_modality(modality)
 
     if groups is not None and (not isinstance(groups, Sequence) or isinstance(groups, str)):
-        msg = "`groups` must be a Sequence of strings or None"
-        raise TypeError(msg)
+        received = (
+            f"the string {groups!r}" if isinstance(groups, str) else f"`{type(groups).__name__}`"
+        )
+        msg = (
+            f"`groups` must be a sequence of group names or None, got {received}. "
+            "Pass a list of groups, or None for all groups."
+        )
+        raise InvalidArgumentTypeError(msg)
+
+    if ncol is not None and ncol < 1:
+        msg = f"`ncol` must be >= 1 or None, got {ncol}. Pass None to put every panel in one row."
+        raise InvalidArgumentError(msg)
 
     # BUILD: long-form frame via the helper
     frame, selected_groups, _ = _build_markers_frame(
         data=data,
-        key=key,
+        ranking_key=ranking_key,
         n_genes=n_genes,
         groups=groups,
         variable_column=variable_column,
@@ -250,13 +273,13 @@ def markers(
 
     # BUILD: one panel per group
     plots = []
-    for i, group in enumerate(selected_groups):
+    for group in selected_groups:
         group_frame = frame.filter(pl.col(group_column) == group)
         plot = ggplot(group_frame)
 
         # ADD: optional dashed score-curve path (drawn under the text)
         if line:
-            _line_kwargs = {
+            _line_kwargs: dict[str, Any] = {
                 "color": line_color,
                 "size": line_size,
                 "alpha": line_alpha,
@@ -266,7 +289,7 @@ def markers(
 
         # A constant `color=` would override the rank color aesthetic, so only
         # set it when not coloring by rank.
-        _text_color = {} if rank_color else {"color": text_color}
+        _text_color: dict[str, Any] = {} if rank_color else {"color": text_color}
         plot += geom_text(
             aes(**_mapping),
             size=text_size,
@@ -294,25 +317,23 @@ def markers(
                 layers = [layers]
             for layer in layers:
                 plot += layer
-        if share_labels:
-            plot = _share_labels(plot, i, selected_groups, ncol)
-        if share_axis:
-            plot = _share_axis(plot, i, selected_groups, ncol, "axis")
 
         plots.append(plot)
 
     grid = (
         gggrid(
             plots,
-            ncol=ncol,  # ty:ignore[invalid-argument-type]
-            sharex=sharex,  # ty:ignore[invalid-argument-type]
-            sharey=sharey,  # ty:ignore[invalid-argument-type]
-            widths=widths,  # ty:ignore[invalid-argument-type]
-            heights=heights,  # ty:ignore[invalid-argument-type]
-            hspace=hspace,  # ty:ignore[invalid-argument-type]
-            vspace=vspace,  # ty:ignore[invalid-argument-type]
-            fit=fit,  # ty:ignore[invalid-argument-type]
-            align=align,  # ty:ignore[invalid-argument-type]
+            ncol=ncol,
+            sharex=sharex,
+            sharey=sharey,
+            widths=widths,
+            heights=heights,
+            hspace=hspace,
+            vspace=vspace,
+            fit=fit,
+            align=align,
+            axes="collect" if share_axis else None,
+            axis_titles="collect" if share_labels else None,
             guides=guides,
         )
         + theme_bw()

@@ -21,7 +21,7 @@ import cellestial.frames as frames
 import cellestial.layers as layers
 import cellestial.themes as themes
 import cellestial.util as util
-from cellestial.frames.build import anndata_observations_frame, anndata_variables_frame
+from cellestial.frames.build import _anndata_observations_frame, _anndata_variables_frame
 
 
 def _param(fn, name):
@@ -133,8 +133,8 @@ def test_grid_size_params_annotated_list_float(fn, param):
 def test_frame_builder_default_param_values():
     assert _param(cl.build_frame, "observation_id_column").default == "Barcode"
     assert _param(cl.build_frame, "variable_id_column").default == "Variable"
-    assert _param(anndata_observations_frame, "observation_id_column").default == "Barcode"
-    assert _param(anndata_variables_frame, "variable_id_column").default == "Variable"
+    assert _param(_anndata_observations_frame, "observation_id_column").default == "Barcode"
+    assert _param(_anndata_variables_frame, "variable_id_column").default == "Variable"
 
 
 def test_build_frame_obs_axis_column_is_capitalized(adata):

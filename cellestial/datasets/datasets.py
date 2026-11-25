@@ -9,6 +9,8 @@ from typing import cast
 from anndata import AnnData, read_h5ad
 from mudata import MuData
 
+from cellestial.util.errors import IncompleteDownloadError, InvalidArgumentError
+
 _GLOBAL_CACHE = Path.home() / ".cache" / "cellestial" / "datasets"
 
 _UUID_PATTERN = re.compile(
@@ -56,14 +58,14 @@ def _resolve_cache_file(
     return cache_file
 
 
-def pbmc3k(
+def bone_marrow(
     cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
     *,
     use_cache: bool = True,
     bring: bool = True,
 ) -> AnnData:
     """
-    Download and load the preprocessed pbmc3k dataset.
+    Download and load the preprocessed human bone marrow dataset.
 
     Parameters
     ----------
@@ -80,17 +82,89 @@ def pbmc3k(
     Returns
     -------
     AnnData
-        The preprocessed pbmc3k dataset.
+        The preprocessed bone marrow dataset.
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    About 17,000 bone marrow mononuclear cells from two samples (`s1d1`, `s1d3`)
+    of healthy donors, measured with 10x Multiome (gene expression only). They
+    come from the NeurIPS 2021 benchmarking dataset (Luecken et al., 2021) and
+    are the cells of the scanpy "Preprocessing and clustering" tutorial. The
+    `cell_type_lvl1` labels follow that tutorial's coarse annotation of the
+    `leiden_res_0.02` clusters: Lymphocytes, Monocytes, B Cells and Erythroid.
     """
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped.h5ad",
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/bone_marrow_pped.h5ad",
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+        ),
+    )
+
+
+def pbmc3k(
+    cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
+    *,
+    use_cache: bool = True,
+    bring: bool = True,
+) -> AnnData:
+    """
+    Download and load the preprocessed 10x Genomics PBMC 3k dataset.
+
+    Parameters
+    ----------
+    cache_directory : str | Path | PathLike
+        Directory where the `.h5ad` file is cached.
+    use_cache : bool, default=True
+        If True, load from the cached file when present. If False, remove any
+        existing cached file and re-download.
+    bring : bool, default=True
+        If True and `cache_directory` is not the default global cache, copy the
+        file from the global cache when it already exists there. Set to False
+        to disable this behavior.
+
+    Returns
+    -------
+    AnnData
+        The preprocessed PBMC 3k dataset.
+
+    Raises
+    ------
+    IncompleteDownloadError
+        If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    2,638 peripheral blood mononuclear cells from a healthy donor (10x Genomics),
+    processed as in the scanpy "Preprocessing and clustering 3k PBMCs" tutorial.
+    Every gene that passes QC is log-normalized, so any gene can be plotted. The
+    `cell_type` labels are that tutorial's annotation: CD4 T cells, CD14+
+    Monocytes, B cells, CD8 T cells, NK cells, FCGR3A+ Monocytes, Dendritic cells
+    and Megakaryocytes.
+
+    Versions of cellestial before 1.0 loaded the bone marrow dataset under this
+    name; it is now `bone_marrow`.
+
+    Examples
+    --------
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+        cl.umap(data, "cell_type")
+    """
+    return cast(
+        "AnnData",
+        from_url(
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/pbmc3k_10x_pped.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,
@@ -126,13 +200,13 @@ def pancreas(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/pancreas/resolve/main/endocrinogenesis_day15_pped.h5ad",
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/endocrinogenesis_day15_pped.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,
@@ -169,7 +243,7 @@ def pbmc_cite(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
@@ -247,9 +321,9 @@ def from_url(
 
     Raises
     ------
-    ValueError
+    InvalidArgumentError
         If `name` is not given and no filename can be derived from `url`.
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
 
     Notes
@@ -266,7 +340,10 @@ def from_url(
         filename = Path(urlparse(url).path).name
         if not filename:
             message = "Could not derive a filename from the URL; pass `name=...` explicitly."
-            raise ValueError(message)
+            raise InvalidArgumentError(message)
+        if Path(filename).suffix not in {".h5ad", ".h5mu"}:
+            # The URL names no format, so cache and read it as `extension` says.
+            filename = f"{filename}{extension}"
 
     cache_file = _resolve_cache_file(cache_directory, filename, use_cache=use_cache, bring=bring)
 
@@ -296,7 +373,7 @@ def from_url(
                 message = (
                     f"Download incomplete: expected {total_size} bytes, got {downloaded_size}."
                 )
-                raise OSError(message)  # noqa: TRY301
+                raise IncompleteDownloadError(message)  # noqa: TRY301
 
             partial_file.replace(cache_file)
         except BaseException:
@@ -348,9 +425,9 @@ def from_cellxgene(
 
     Raises
     ------
-    ValueError
+    InvalidArgumentError
         If `source` is neither a CELLxGENE dataset UUID nor a URL containing one.
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
 
     Notes
@@ -363,7 +440,7 @@ def from_cellxgene(
         message = (
             f"source must be a CELLxGENE dataset UUID or a URL containing one, got {source!r}"
         )
-        raise ValueError(message)
+        raise InvalidArgumentError(message)
 
     uuid = match.group(0)
     url = (
@@ -412,7 +489,7 @@ def breast_cancer_atlas(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
 
     Notes
@@ -456,13 +533,13 @@ def human_lymph_node(
 
     Raises
     ------
-    OSError
+    IncompleteDownloadError
         If the downloaded file size does not match the expected size.
     """
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/human_lymph_node/resolve/main/V1_Human_Lymph_Node_pped.h5ad",
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/V1_Human_Lymph_Node_pped.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,

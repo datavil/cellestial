@@ -1,3 +1,4 @@
+import numpy as np
 import polars as pl
 import pytest
 from ggrust import ggplot
@@ -43,6 +44,25 @@ def test_get_figure_out_of_range(adata):
     grid = cl.expressions(adata, keys=["CD14", "MS4A1"])
     with pytest.raises(IndexError):
         cl.get_figure(grid, index=99)
+
+
+def test_get_figure_and_retrieve_reject_blank_cell(adata):
+    from ggrust import gggrid
+
+    from cellestial.errors import GridIndexError
+
+    umap = cl.umap(adata, key="leiden")
+    grid = gggrid([umap, None, umap], ncol=3)
+    assert isinstance(cl.get_figure(grid, index=-1), PlotSpec)
+    assert cl.retrieve(grid, index=2).height == adata.n_obs
+    for function in (cl.get_figure, cl.retrieve):
+        with pytest.raises(GridIndexError, match=r"index 1 points at a blank cell.*\[0, 2\]"):
+            function(grid, index=1)
+    with pytest.raises(GridIndexError, match="out of range"):
+        cl.retrieve(grid, index=5)
+    assert cl.retrieve(grid, index=np.int64(2)).height == adata.n_obs
+    with pytest.raises(GridIndexError, match="holds no figures"):
+        cl.get_figure(gggrid([None, None], ncol=2), index=0)
 
 
 def test_get_figures_out_of_range(adata):

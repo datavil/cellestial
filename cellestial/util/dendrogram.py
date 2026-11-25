@@ -2,6 +2,8 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "numpy"]
 
+from typing import TYPE_CHECKING, Literal
+
 import numpy as np
 import polars as pl
 from anndata import AnnData
@@ -14,9 +16,16 @@ from ggrust import (
     scale_y_dendro,
     theme,
 )
-from ggrust.plot.core import FeatureSpec, FeatureSpecArray
+from ggrust.plot.core import FeatureSpec
 
-from cellestial.util.errors import KeyNotFoundError
+from cellestial.util.errors import (
+    DendrogramMismatchError,
+    KeyNotFoundError,
+    _unsupported_data_type,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 # geom line widths are drawn at `size * 2.2` px, theme lines at `size` px;
 # scaling keeps `dendrogram_size` in the geom units of the former path layer.
@@ -31,8 +40,7 @@ def _dendrogram_info(
 ) -> dict:
     """Get or compute the scanpy dendrogram of `group_by` stored in `data.uns`."""
     if not isinstance(data, AnnData):
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
     key = use_key if use_key is not None else f"dendrogram_{group_by}"
     if key not in data.uns:
         if group_by not in data.obs.columns:
@@ -44,6 +52,14 @@ def _dendrogram_info(
                 "Precompute the dendrogram, or group by a column that data carries."
             )
             raise KeyNotFoundError(msg)
+        counts = data.obs[group_by].value_counts()
+        unused = [str(category) for category, count in counts.items() if count == 0]
+        if unused:
+            msg = (
+                f"Cannot compute a dendrogram for `{group_by}`: categories with no cells: "
+                f"{unused}.\nRemove the unused categories, or precompute the dendrogram."
+            )
+            raise DendrogramMismatchError(msg)
         import scanpy as sc
 
         sc.tl.dendrogram(data, groupby=group_by, key_added=key)
@@ -73,25 +89,43 @@ def _get_dendrogram_tree(
 
 
 def _dendrogram_y_axis(
-    tree: ClusterTree, *, limits: list[float], fixed: bool = False
-) -> FeatureSpecArray:
+    tree: ClusterTree,
+    *,
+    limits: list[float],
+    fixed: bool = False,
+    leaf_levels: dict[str, list[str]] | None = None,
+    breaks: list[str] | None = None,
+    labels: list[str] | None = None,
+) -> FeatureSpec:
     """
     Order the y-axis by `tree` and draw it right of the panel, as scanpy does.
 
-    Layers keep numeric y positions: leaf `i` of the tree's order sits at `i`.
-    `limits` replace the continuous scale's limits (the tree fixes the levels);
-    `fixed` keeps the square cells `geom_raster` plots default to.
+    Layers keep numeric y positions: level `i` of the axis sits at `i`. Without
+    `leaf_levels` the levels are the tree's leaves; with it, each leaf covers
+    its run of levels (the rows of a group). `limits` replace the continuous
+    scale's limits (the tree fixes the levels); `fixed` keeps the square cells
+    `geom_raster` plots default to. `breaks` and `labels` pick and name levels.
     """
     coord = coord_fixed(ylim=limits) if fixed else coord_cartesian(ylim=limits)
-    return scale_y_dendro(tree, expand=[0, 0], guide=guide_axis_dendro(side="opposite")) + coord
-
-
-def _dendrogram_line_theme(*, color: str, size: float) -> FeatureSpec:
-    """Style the y-axis tree, drawn with the y tick line; zero-length ticks stay hidden."""
-    return theme(
-        axis_ticks_y=element_line(color=color, size=size * _GEOM_LINE_UNIT),
-        axis_ticks_length_y=0,
+    scale = scale_y_dendro(
+        tree,
+        breaks=breaks,
+        labels=labels,
+        expand=[0, 0],
+        guide=guide_axis_dendro(side="opposite"),
+        leaf_levels=leaf_levels,
     )
+    return scale + coord
+
+
+def _dendrogram_line_theme(
+    *, color: str, size: float, axis: Literal["x", "y"] = "y"
+) -> FeatureSpec:
+    """Style the `axis` tree, drawn with its tick line; zero-length ticks stay hidden."""
+    line = element_line(color=color, size=size * _GEOM_LINE_UNIT)
+    if axis == "x":
+        return theme(axis_ticks_x=line, axis_ticks_length_x=0)
+    return theme(axis_ticks_y=line, axis_ticks_length_y=0)
 
 
 def _get_dendrogram(
@@ -103,7 +137,7 @@ def _get_dendrogram(
     """Get or compute the dendrogram for `group_by` and extract paths."""
     if isinstance(data, AnnData):
         dendro = _dendrogram_info(data, group_by, use_key=use_key)
-        categories_ordered = list(dendro["categories_ordered"])
+        categories_ordered = [str(category) for category in dendro["categories_ordered"]]
         dendro_info = dendro["dendrogram_info"]
 
         icoord = np.array(dendro_info["icoord"])
@@ -124,8 +158,7 @@ def _get_dendrogram(
                 path_group.append(i)
         paths = pl.DataFrame({"x": path_x, "y": path_y, "group": path_group})
     else:
-        msg = f"Unsupported data type: `{type(data)}`"
-        raise TypeError(msg)
+        raise _unsupported_data_type(data, AnnData)
 
     return categories_ordered, paths
 
@@ -149,3 +182,41 @@ def _get_dendrogram_path_frame(
             "group": paths["group"],
         }
     )
+
+
+def _check_dendrogram_groups(
+    dendrogram_groups: Sequence[str],
+    data_groups: Iterable[str],
+    *,
+    group_by: str,
+    require_all: bool,
+) -> None:
+    """
+    Raise when the dendrogram's groups do not cover the groups in the data.
+
+    Notes
+    -----
+    Groups in the data but not in the dendrogram always raise. With `require_all`,
+    dendrogram groups with no cells in the data raise too (plots that draw one row
+    per cell cannot place them).
+    """
+    data_groups = set(data_groups)
+    missing = sorted(data_groups.difference(dendrogram_groups))
+    if missing:
+        msg = (
+            f"The dendrogram for `group_by={group_by!r}` lacks groups in the data: {missing}. "
+            "It was likely computed on other data, or on a same-named column with "
+            "different groups (e.g. a modality's own column of a multimodal object); "
+            "recompute it on this data, or set `dendrogram=False`."
+        )
+        raise DendrogramMismatchError(msg)
+    absent = [group for group in dendrogram_groups if group not in data_groups]
+    if require_all and absent:
+        msg = (
+            f"The dendrogram for `group_by={group_by!r}` includes groups with no cells "
+            f"in the data: {absent}. It was likely computed before the data was "
+            "subset, or on a same-named column with different groups (e.g. a "
+            "modality's own column of a multimodal object); recompute it on this "
+            "data, or set `dendrogram=False`."
+        )
+        raise DendrogramMismatchError(msg)

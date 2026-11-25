@@ -78,13 +78,27 @@ def assert_point_tooltip(
     *,
     expected_values: Collection[str],
 ) -> None:
-    """Hover the first point and assert that its tooltip is usable."""
-    point = page.locator(f"{_PLOT_SELECTOR} circle").first
-    point.wait_for(state="visible")
-    point.hover(force=True)
-
+    """Hover a point and assert that its tooltip is usable."""
     tooltip_text = page.locator(f"{_TOOLTIP_CELL_SELECTOR}:visible")
-    tooltip_text.first.wait_for(state="visible")
+    # ggrust draws large point layers on a canvas; SVG circles are then legend keys.
+    canvas = page.locator(".ggrust-plot canvas").first
+    if canvas.count():
+        box = canvas.bounding_box()
+        assert box is not None, "the point canvas has no layout box"
+        for x in range(int(box["x"]) + 5, int(box["x"] + box["width"]), 10):
+            for y in range(int(box["y"]) + 5, int(box["y"] + box["height"]), 10):
+                page.mouse.move(x, y)
+                if tooltip_text.count():
+                    break
+            else:
+                continue
+            break
+    else:
+        point = page.locator(f"{_PLOT_SELECTOR} circle").first
+        point.wait_for(state="visible")
+        point.hover(force=True)
+
+    tooltip_text.first.wait_for(state="visible", timeout=5_000)
     rendered_text = tooltip_text.all_text_contents()
     assert any(text in expected_values for text in rendered_text), rendered_text
     _assert_no_browser_errors(page, errors)

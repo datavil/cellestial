@@ -42,7 +42,8 @@ def test_resolve_cache_file_bring_and_remove(tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     ("loader", "expected_filename"),
     [
-        (datasets.pbmc3k, "pbmc3k_pped.h5ad"),
+        (datasets.bone_marrow, "bone_marrow_pped.h5ad"),
+        (datasets.pbmc3k, "pbmc3k_10x_pped.h5ad"),
         (datasets.pancreas, "endocrinogenesis_day15_pped.h5ad"),
         (datasets.human_lymph_node, "V1_Human_Lymph_Node_pped.h5ad"),
     ],

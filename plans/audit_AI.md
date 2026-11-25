@@ -2,6 +2,8 @@
 
 AI-generated and AI-modified functions are tracked separately below. A blank check cell means the review is still outstanding.
 
+As of 2026-11-18, functions written only by Claude Opus 5.5 need no audit, and an AI audit replaces human review. The rows audited that day are marked; findings are in `plans/audit_reports/2026-11-18_*.md`.
+
 ## Generated functions
 
 Generated functions require behavioral, visual, edge-case, and line-by-line checks where applicable.
@@ -9,76 +11,76 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | Function | Source | Behavioral | Visual | Edge cases | Line-by-line |
 | --- | --- | --- | --- | --- | --- |
 | `_THEME_SPATIAL` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
-| `DeferredLayer` | Claude 4.7 | ✓ | ✓ |  |  |
-| `bracket` | Claude 4.7 | ✓ | ✓ |  |  |
-| `matrixplot` | Claude 4.7 | ✓ | ✓ |  |  |
-| `stacked_violin` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_bin_within_groups` | Claude 4.7 and Claude Opus 5.5 |  |  |  |  |
-| `volcano` | Claude 4.7 | ✓ | ✓ |  |  |
-| `volcanos` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_build_volcano_frame` | Claude 4.7 | ✓ | ✓ |  |  |
-| `markers` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_build_markers_frame` | Claude 4.7 | ✓ | ✓ |  |  |
-| `marker_genes` | Claude 4.7 | ✓ | ✓ |  |  |
-| `marker_genes_dict` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_marker_names_per_group` | Claude 4.7 | ✓ | ✓ |  |  |
-| `_get_dendrogram` | Claude 4.6 | ✓ | ✓ | ✓ |  |
-| `_get_dendrogram_path_frame` | Claude 4.6 | ✓ | ✓ |  |  |
-| `_select_embedding_keys` | Claude 4.7 |  |  |  |  |
-| `_collect_aes_columns` | Claude 4.7 |  |  |  |  |
-| `_resolve_instance_key` | Claude 4.7 |  |  |  |  |
-| `layout` | Claude 4.8 |  |  |  |  |
-| `_normalize_widths` | Claude 4.8 |  |  |  |  |
-| `_unsupported_data_type` | Claude 4.8 |  |  |  |  |
-| `_reject_sequence_key` | Claude 4.8 |  |  |  |  |
-| `_require_feature_key` | Claude 4.8 |  |  |  |  |
-| `histogram` | Claude 4.8 |  |  |  |  |
-| `histograms` | Claude 4.8 |  |  |  |  |
-| `annotated_heatmap` | Claude 4.8 |  |  |  |  |
-| `_order_observations` | Claude 4.8 |  |  |  |  |
-| `_annotation_strip` | Claude 4.8 |  |  |  |  |
-| `_as_list` | Claude 4.8 |  |  |  |  |
-| `_bin_observations` | Claude 4.8 |  |  |  |  |
-| `_assign_position_y` | Claude 4.8 |  |  |  |  |
-| `_annotation_scale` | Claude 4.8 |  |  |  |  |
-| `_dendrogram_panel` | Claude 4.8 |  |  |  |  |
-| `_blank_strip_theme` | Claude 4.8 |  |  |  |  |
-| `_as_layers` | Claude 4.8 |  |  |  |  |
-| `_apply_layers` | Claude 4.8 |  |  |  |  |
-| `_validate_aesthetic_columns` | Claude Opus 5 |  |  |  |  |
-| `_Container` | Claude Opus 5 |  |  |  |  |
-| `_MuDataContainer` | Claude Opus 5 |  |  |  |  |
-| `_container` | Claude Opus 5 |  |  |  |  |
-| `_Container.observation_metadata` | Claude Opus 5 |  |  |  |  |
-| `_Container.variable_metadata` | Claude Opus 5 |  |  |  |  |
-| `_Container.observation_columns` | Claude Opus 5 |  |  |  |  |
-| `_Container.variable_columns` | Claude Opus 5 |  |  |  |  |
-| `_Container.observation_names` | Claude Opus 5 |  |  |  |  |
-| `_Container.variable_names` | Claude Opus 5 |  |  |  |  |
-| `_Container.n_observations` | Claude Opus 5 |  |  |  |  |
-| `_Container.modality_names` | Claude Opus 5 |  |  |  |  |
-| `_Container.select_modality` | Claude Opus 5 |  |  |  |  |
-| `_Container.modality_column` | Claude Opus 5 |  |  |  |  |
-| `_Container.observation_embeddings` | Claude Opus 5 |  |  |  |  |
-| `_Container.variable_embeddings` | Claude Opus 5 |  |  |  |  |
-| `_Container.owns_variable` | Claude Opus 5 |  |  |  |  |
-| `_Container.resolve_variable` | Claude Opus 5 |  |  |  |  |
-| `_Container.fetch_variable_columns` | Claude Opus 5 and Claude Opus 5.5 |  |  |  |  |
-| `_MuDataContainer._without_modality_masks` | Claude Opus 5 |  |  |  |  |
-| `_MuDataContainer._variable_column` | Claude Opus 5 and Claude Opus 5.5 |  |  |  |  |
-| `_dendrogram_source` | Claude Opus 5 |  |  |  |  |
-| `_read_dataset` | Claude Opus 5 |  |  |  |  |
-| `pbmc_cite` | Claude Opus 5 |  |  |  |  |
-| `AmbiguousVariableError` | Claude Opus 5 |  |  |  |  |
-| `_Container.container_column` | Claude Opus 5 |  |  |  |  |
-| `_container_column` | Claude Opus 5 |  |  |  |  |
-| `_modality_source` | Claude Opus 5 |  |  |  |  |
-| `_as_array` | Claude Opus 5 |  |  |  |  |
-| `_qualified_alternatives` | Claude Opus 5 |  |  |  |  |
-| `_Container._require_unique_variables` | Claude Opus 5 |  |  |  |  |
-| `_resolve_pvalue_column` | Claude Opus 5 |  |  |  |  |
-| `_filter_groups` | Claude Opus 5 |  |  |  |  |
-| `_require_categories` | Claude Opus 5 |  |  |  |  |
+| `DeferredLayer` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `bracket` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `matrixplot` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `stacked_violin` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_bin_within_groups` | Claude 4.7 and Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `volcano` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `volcanos` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_build_volcano_frame` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `markers` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_build_markers_frame` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `marker_genes` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `marker_genes_dict` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_marker_names_per_group` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_get_dendrogram` | Claude 4.6 | ✓ | ✓ | ✓ | ✓ |
+| `_get_dendrogram_path_frame` | Claude 4.6 | ✓ | ✓ | ✓ | ✓ |
+| `_select_embedding_keys` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_collect_aes_columns` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `_resolve_instance_key` | Claude 4.7 | ✓ | ✓ | ✓ | ✓ |
+| `layout` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_normalize_widths` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_unsupported_data_type` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_sequence_key` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_require_feature_key` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `histogram` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `histograms` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `annotated_heatmap` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_order_observations` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_annotation_strip` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_as_list` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_bin_observations` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_assign_position_y` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_annotation_scale` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_dendrogram_panel` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_blank_strip_theme` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_as_layers` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_apply_layers` | Claude 4.8 | ✓ | ✓ | ✓ | ✓ |
+| `_validate_aesthetic_columns` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_MuDataContainer` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_container` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.observation_metadata` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.variable_metadata` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.observation_columns` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.variable_columns` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.observation_names` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.variable_names` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.n_observations` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.modality_names` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.select_modality` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.modality_column` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.observation_embeddings` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.variable_embeddings` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.owns_variable` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.resolve_variable` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.fetch_variable_columns` | Claude Opus 5 and Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_MuDataContainer._without_modality_masks` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_MuDataContainer._variable_column` | Claude Opus 5 and Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_dendrogram_source` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_read_dataset` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `pbmc_cite` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `AmbiguousVariableError` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container.container_column` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_container_column` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_modality_source` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_as_array` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_qualified_alternatives` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container._require_unique_variables` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_resolve_pvalue_column` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_filter_groups` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
+| `_require_categories` | Claude Opus 5 | ✓ | ✓ | ✓ | ✓ |
 | `_is_spatialdata` | Claude Opus 5.5 |  |  |  |  |
 | `_scale_wide_values` | Claude Opus 5.5 |  |  |  |  |
 | `highlight` | Claude Opus 5.5 |  |  |  |  |
@@ -101,8 +103,34 @@ Generated functions require behavioral, visual, edge-case, and line-by-line chec
 | `_key_groups_track_layers` | Claude Opus 5.5 |  |  |  |  |
 | `InvalidArgumentError` | Claude Opus 5.5 |  |  |  |  |
 | `DendrogramMismatchError` | Claude Opus 5.5 |  |  |  |  |
-| `_fixed_cell_padding` | Claude Opus 5.5 |  |  |  |  |
-| `_label_width` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_mapping_conflicts` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
+| `_table_shape_positions` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
+| `_not_found` | Claude Opus 5.5 | ✓ |  | ✓ | ✓ |
+| `_spatial` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_mapping_clash` | Claude Opus 5.5 |  |  |  |  |
+| `_observation_embeddings_cover` | Claude Opus 5.5 |  |  |  |  |
+| `_require_groups_in_every_key` | Claude Opus 5.5 |  |  |  |  |
+| `_MessageKeyError` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_did_you_mean` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_close_matches_sentence` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_categorical_series` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_duplicate_keys` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_reject_id_column_collision` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_Container._require_matrix` | Claude Opus 5.5 | ✓ | ✓ | ✓ | ✓ |
+| `_merge_shortcuts` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_constant_color_fill` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_constant_over_mapping` | Claude Opus 5.5 |  |  |  |  |
+| `_outline_layers` | Claude Opus 5.5 |  |  |  |  |
+| `_check_markers_flag` | Claude Opus 5.5 |  |  |  |  |
+| `_ranking_not_found_message` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_renamed_ranking_key` | Claude Opus 5.5 |  |  |  |  |
+| `UnknownParameterError` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_renamed_embedding_kwargs` | Claude Opus 5.5 |  |  |  |  |
+| `scripts/fix_pbmc3k_labels.py` (`relabel`, `assert_matrix_equal`, `assert_only_labels_changed`, `assert_labels`, `marker_table`, `assert_markers`, `main`) | Claude Opus 5.5 |  |  |  |  |
+| `_key_groups_guide` | Claude Opus 5.5 |  |  |  |  |
+| `_key_groups_theme` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_removed_key_label_text` | Claude Opus 5.5 |  |  |  |  |
+| `_reject_removed_annotated_heatmap_keywords` | Claude Opus 5.5 |  |  |  |  |
 
 ## Modified functions
 
@@ -111,74 +139,74 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | Function | Source | Line-by-line |
 | --- | --- | --- |
 | `_unsupported_data_type` | Claude Opus 5.5 |  |
-| `_spatial_components` | Claude 4.7 |  |
-| `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `cluster_outlines` | Mixed and Claude Opus 5.5 |  |
-| `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `arrow_axis` | Claude 4.7 and Claude Opus 5.5 |  |
+| `_spatial_components` | Claude 4.7 | ✓ |
+| `spatial` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `spatials` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `cluster_outlines` | Mixed and Claude Opus 5.5 | ✓ |
+| `stream` | Claude 4.7 and Claude 4.8 and Claude Opus 5 | ✓ |
+| `arrow_axis` | Claude 4.7 and Claude Opus 5.5 | ✓ |
 | `_axis_arrow_layers` | Claude Opus 5.5 |  |
-| `ondata_legend` | Claude 4.7 |  |
-| `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `ridge` | Claude 4.7 and Claude Opus 5 |  |
-| `ridges` | Claude 4.7 |  |
-| `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `umap` | Claude 4.7 and Claude Opus 5.5 |  |
-| `tsne` | Claude 4.7 and Claude Opus 5.5 |  |
-| `pca` | Claude 4.7 and Claude Opus 5.5 |  |
-| `dimensionals` | Claude 4.7 and Claude Opus 5.5 |  |
-| `umaps` | Claude 4.7 and Claude Opus 5.5 |  |
-| `tsnes` | Claude 4.7 and Claude Opus 5.5 |  |
-| `pcas` | Claude 4.7 and Claude Opus 5.5 |  |
-| `violin` | Claude 4.7 |  |
-| `boxplot` | Claude 4.7 |  |
-| `violins` | Claude 4.7 |  |
-| `boxplots` | Claude 4.7 |  |
-| `_distribution` | Claude 4.7, Claude 4.8, Claude Opus 5, and Claude Opus 5.5 |  |
-| `anndata_observations_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `anndata_variables_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `build_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `_resolve_tooltips` | Claude 4.7 |  |
-| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 |  |
-| `xyplots` | Claude 4.7 and Claude 4.8 |  |
-| `expressions` | Claude 4.7 |  |
-| `stacked_violin` | Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `expression` | Claude 4.7 and Claude 4.8 |  |
-| `volcanos` | Claude 4.8 and Claude Opus 5 |  |
-| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `xyplots` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 |  |
-| `expressions` | Claude 4.7 and Claude Opus 5.5 |  |
-| `stacked_violin` | Claude 4.7 and Claude Opus 5 |  |
-| `expression` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 |  |
-| `volcanos` | Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 |  |
-| `highest_expressed_genes` | Claude 4.8 and Claude Opus 5 |  |
-| `elbow` | Claude 4.8 and Claude Opus 5 |  |
-| `anndata_variable_columns` | Claude Opus 5 |  |
-| `_require_feature_key` | Claude Opus 5 |  |
-| `_is_variable_key` | Claude Opus 5 |  |
-| `_are_variables` | Claude Opus 5 |  |
-| `_is_observation_key` | Claude Opus 5 |  |
-| `_are_observations` | Claude Opus 5 |  |
-| `_select_variable_keys` | Claude Opus 5 |  |
-| `_collect_aes_columns` | Claude Opus 5 |  |
-| `_is_observation_feature` | Claude Opus 5 |  |
-| `_are_observation_features` | Claude Opus 5 |  |
-| `_is_variable_feature` | Claude Opus 5 |  |
-| `_are_variable_features` | Claude Opus 5 |  |
-| `_resolve_embedding_key` | Claude Opus 5 |  |
-| `_determine_axis` | Claude Opus 5 |  |
-| `_get_dendrogram` | Claude Opus 5 |  |
-| `from_url` | Claude Opus 5, Claude Opus 5.5 |  |
-| `annotated_heatmap` | Claude Opus 5 |  |
-| `markers` | Claude Opus 5 and Claude Opus 5.5 |  |
-| `volcano` | Claude Opus 5 and Claude Opus 5.5 |  |
-| `marker_genes` | Claude Opus 5 |  |
-| `marker_genes_dict` | Claude Opus 5 |  |
-| `_build_volcano_frame` | Claude Opus 5 |  |
-| `_range_inclusive` | Claude Opus 5 |  |
-| `bracket` | Claude Opus 5 |  |
-| `_compute_bracket_frame` | Claude Opus 5 |  |
+| `ondata_legend` | Claude 4.7 | ✓ |
+| `dotplot` | Gemini 2.5, Claude 4.6, and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `heatmap` | Claude 4.6 and Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `ridge` | Claude 4.7 and Claude Opus 5 | ✓ |
+| `ridges` | Claude 4.7 | ✓ |
+| `dimensional` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `umap` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `tsne` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `pca` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `dimensionals` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `umaps` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `tsnes` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `pcas` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `violin` | Claude 4.7 | ✓ |
+| `boxplot` | Claude 4.7 | ✓ |
+| `violins` | Claude 4.7 | ✓ |
+| `boxplots` | Claude 4.7 | ✓ |
+| `_distribution` | Claude 4.7, Claude 4.8, Claude Opus 5, and Claude Opus 5.5 | ✓ |
+| `anndata_observations_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 | ✓ |
+| `anndata_variables_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 | ✓ |
+| `build_frame` | Claude 4.7 and Claude 4.8 and Claude Opus 5 | ✓ |
+| `_resolve_tooltips` | Claude 4.7 | ✓ |
+| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 | ✓ |
+| `xyplots` | Claude 4.7 and Claude 4.8 | ✓ |
+| `expressions` | Claude 4.7 | ✓ |
+| `stacked_violin` | Claude 4.7 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `expression` | Claude 4.7 and Claude 4.8 | ✓ |
+| `volcanos` | Claude 4.8 and Claude Opus 5 | ✓ |
+| `xyplot` | Claude 4.7 and Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `xyplots` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 | ✓ |
+| `expressions` | Claude 4.7 and Claude Opus 5.5 | ✓ |
+| `stacked_violin` | Claude 4.7 and Claude Opus 5 | ✓ |
+| `expression` | Claude 4.7 and Claude 4.8 and Claude Opus 5.5 | ✓ |
+| `volcanos` | Claude 4.8 and Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `highest_expressed_genes` | Claude 4.8 and Claude Opus 5 | ✓ |
+| `elbow` | Claude 4.8 and Claude Opus 5 | ✓ |
+| `anndata_variable_columns` | Claude Opus 5 | ✓ |
+| `_require_feature_key` | Claude Opus 5 | ✓ |
+| `_is_variable_key` | Claude Opus 5 | ✓ |
+| `_are_variables` | Claude Opus 5 | ✓ |
+| `_is_observation_key` | Claude Opus 5 | ✓ |
+| `_are_observations` | Claude Opus 5 | ✓ |
+| `_select_variable_keys` | Claude Opus 5 | ✓ |
+| `_collect_aes_columns` | Claude Opus 5 | ✓ |
+| `_is_observation_feature` | Claude Opus 5 | ✓ |
+| `_are_observation_features` | Claude Opus 5 | ✓ |
+| `_is_variable_feature` | Claude Opus 5 | ✓ |
+| `_are_variable_features` | Claude Opus 5 | ✓ |
+| `_resolve_embedding_key` | Claude Opus 5 | ✓ |
+| `_determine_axis` | Claude Opus 5 | ✓ |
+| `_get_dendrogram` | Claude Opus 5 | ✓ |
+| `from_url` | Claude Opus 5, Claude Opus 5.5 | ✓ |
+| `annotated_heatmap` | Claude Opus 5 | ✓ |
+| `markers` | Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `volcano` | Claude Opus 5 and Claude Opus 5.5 | ✓ |
+| `marker_genes` | Claude Opus 5 | ✓ |
+| `marker_genes_dict` | Claude Opus 5 | ✓ |
+| `_build_volcano_frame` | Claude Opus 5 | ✓ |
+| `_range_inclusive` | Claude Opus 5 | ✓ |
+| `bracket` | Claude Opus 5 | ✓ |
+| `_compute_bracket_frame` | Claude Opus 5 | ✓ |
 | `_compute_violin_polygons` | Claude Opus 5.5 |  |
 | `violin` | Claude Opus 5.5 |  |
 | `violins` | Claude Opus 5.5 |  |
@@ -239,3 +267,108 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_resolve_padding` | Claude Opus 5.5 |  |
 | `heatmap` | Claude Opus 5.5 |  |
 | `dotplot` | Claude Opus 5.5 |  |
+| `_bin_within_groups` | Claude Opus 5.5 |  |
+| `spatial` | Claude Opus 5.5 | ✓ |
+| `spatials` | Claude Opus 5.5 | ✓ |
+| `_spatial_components` | Claude Opus 5.5 | ✓ |
+| `_polygon_vertex_frame` | Claude Opus 5.5 | ✓ |
+| `_select_one` | Claude Opus 5.5 | ✓ |
+| `_resolve_shapes_name` | Claude Opus 5.5 | ✓ |
+| `_resolve_coordinate_system` | Claude Opus 5.5 | ✓ |
+| `_resolve_image_name` | Claude Opus 5.5 | ✓ |
+| `_resolve_table` | Claude Opus 5.5 | ✓ |
+| `_distribution` | Claude Opus 5.5 |  |
+| `dimensional` | Claude Opus 5.5 |  |
+| `ridge` | Claude Opus 5.5 |  |
+| `histogram` | Claude Opus 5.5 |  |
+| `histograms` | Claude Opus 5.5 |  |
+| `highest_expressed_genes` | Claude Opus 5.5 |  |
+| `cluster_outlines` | Claude Opus 5.5 |  |
+| `stream` | Claude Opus 5.5 |  |
+| `dimensionals` | Claude Opus 5.5 |  |
+| `xyplot` | Claude Opus 5.5 |  |
+| `xyplots` | Claude Opus 5.5 |  |
+| `expression` | Claude Opus 5.5 |  |
+| `_build_volcano_frame` | Claude Opus 5.5 | ✓ |
+| `volcano` | Claude Opus 5.5 | ✓ |
+| `volcanos` | Claude Opus 5.5 | ✓ |
+| `markers` | Claude Opus 5.5 | ✓ |
+| `_build_markers_frame` | Claude Opus 5.5 | ✓ |
+| `_marker_names_per_group` | Claude Opus 5.5 | ✓ |
+| `_require_categories` | Claude Opus 5.5 | ✓ |
+| `bracket` | Claude Opus 5.5 | ✓ |
+| `_bracket_layout` | Claude Opus 5.5 | ✓ |
+| `_bin_within_groups` | Claude Opus 5.5 | ✓ |
+| `_compute_violin_polygons` | Claude Opus 5.5 | ✓ |
+| `stacked_violin` | Claude Opus 5.5 | ✓ |
+| `matrixplot` | Claude Opus 5.5 | ✓ |
+| `tracksplot` | Claude Opus 5.5 | ✓ |
+| `_bin_observations` | Claude Opus 5.5 | ✓ |
+| `_annotation_scale` | Claude Opus 5.5 | ✓ |
+| `layout` | Claude Opus 5.5 | ✓ |
+| `_normalize_widths` | Claude Opus 5.5 | ✓ |
+| `get_figure` | Claude Opus 5.5 | ✓ |
+| `get_figures` | Claude Opus 5.5 | ✓ |
+| `retrieve` | Claude Opus 5.5 | ✓ |
+| `build_frame` | Claude Opus 5.5 | ✓ |
+| `anndata_observations_frame` | Claude Opus 5.5 | ✓ |
+| `anndata_variables_frame` | Claude Opus 5.5 | ✓ |
+| `anndata_variable_columns` | Claude Opus 5.5 | ✓ |
+| `_select_embedding_keys` | Claude Opus 5.5 | ✓ |
+| `_determine_axis` | Claude Opus 5.5 | ✓ |
+| `_reject_sequence_key` | Claude Opus 5.5 | ✓ |
+| `_resolve_tooltips` | Claude Opus 5.5 | ✓ |
+| `_validate_tooltips` | Claude Opus 5.5 | ✓ |
+| `_require_feature_key` | Claude Opus 5.5 | ✓ |
+| `_filter_groups` | Claude Opus 5.5 | ✓ |
+| `_resolve_embedding_key` | Claude Opus 5.5 | ✓ |
+| `_MuDataContainer.modality_column` | Claude Opus 5.5 | ✓ |
+| `_MuDataContainer.container_column` | Claude Opus 5.5 | ✓ |
+| `_MuDataContainer.resolve_variable` | Claude Opus 5.5 | ✓ |
+| `_Container.fetch_variable_columns` | Claude Opus 5.5 | ✓ |
+| `_select_variable_keys` | Claude Opus 5.5 | ✓ |
+| `ridges` | Claude Opus 5.5 |  |
+| `elbow` | Claude Opus 5.5 |  |
+| `scatter` | Claude Opus 5.5 |  |
+| `bar` | Claude Opus 5.5 |  |
+| `blend` | Claude Opus 5.5 |  |
+| `embedding_density` | Claude Opus 5.5 |  |
+| `spatial` | Claude Opus 5.5 |  |
+| `spatials` | Claude Opus 5.5 |  |
+| `umap` | Claude Opus 5.5 |  |
+| `tsne` | Claude Opus 5.5 |  |
+| `pca` | Claude Opus 5.5 |  |
+| `umaps` | Claude Opus 5.5 |  |
+| `tsnes` | Claude Opus 5.5 |  |
+| `pcas` | Claude Opus 5.5 |  |
+| `expressions` | Claude Opus 5.5 |  |
+| `dimensional` (`outline`, `outline_width`, `outline_color`; threaded through `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`) | Claude Opus 5.5 |  |
+| `CellestialError` (added as a base of every error class in `cellestial/util/errors.py`) | Claude Opus 5.5 |  |
+| `cellestial.errors` (public re-export module) | Claude Opus 5.5 |  |
+| `markers`, `volcano`, `volcanos`, `marker_genes`, `marker_genes_dict` (`key` renamed to `ranking_key`; `key=` rejected) | Claude Opus 5.5 |  |
+| `heatmap`, `matrixplot`, `dotplot`, `stacked_violin`, `tracksplot` (`markers: bool` plus `ranking_key`) | Claude Opus 5.5 |  |
+| `_extract_rank_genes_groups`, `_resolve_rank_genes_groups_args`, `_build_markers_frame`, `_build_volcano_frame`, `_marker_names_per_group` (`ranking_key`) | Claude Opus 5.5 |  |
+| `markers`, `marker_genes`, `marker_genes_dict` (`groups` keyword-only) | Claude Opus 5.5 |  |
+| `dimensional` (`use_key` renamed to `embedding_key`, rejects `use_key`/`basis`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `embedding_density`, `blend`) | Claude Opus 5.5 |  |
+| `_resolve_embedding_key` (`use_key` renamed to `embedding_key`) | Claude Opus 5.5 |  |
+| `save` (thin `ggsave` wrapper) | Claude Opus 5.5 |  |
+| `dimensional` (`variable_keys` removed, rejected with a pointer to `add_keys`; same in `umap`, `tsne`, `pca`, `expression`, `dimensionals`, `umaps`, `tsnes`, `pcas`, `expressions`, `spatial`, `spatials`, and rejected in `blend`) | Claude Opus 5.5 |  |
+| `_reject_removed_variable_keys` | Claude Opus 5.5 |  |
+| `_require_add_keys` (unknown `add_keys` names raise; used by the 12 functions above) | Claude Opus 5.5 |  |
+| `dotplot` (`expression_threshold`; default columns `percent_expressed`, `mean_expression`; canvas wide enough for its legend titles) | Claude Opus 5.5 |  |
+| `_check_sort_by` (dotplot `sort_by` validated) | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` (`minimum_width`) | Claude Opus 5.5 |  |
+| `ridge`, `ridges`, `_check_ridge_scale` (`scale` validated) | Claude Opus 5.5 |  |
+| `_anndata_observations_frame`, `_anndata_variables_frame`, `_anndata_variable_columns` (renamed private, dropped from `cellestial.frames.__all__`) | Claude Opus 5.5 |  |
+| `cellestial.layers` (`DeferredLayer` dropped from `__all__`) | Claude Opus 5.5 |  |
+| `spatial`, `spatials` (`greyscale` renamed to `grayscale`, rejects `greyscale`), `_reject_renamed_greyscale` | Claude Opus 5.5 |  |
+| `UnsupportedGeometryError`, `_plural_type_message`; raise class and message in `umaps`, `tsnes`, `pcas`, `dimensionals`, `expressions`, `violins`, `boxplots`, `histograms`, `ridges`, `spatials`, `volcanos`, `markers`, `volcano`, `heatmap`, `dotplot`, `stacked_violin`, `annotated_heatmap`, `_build_volcano_frame`, `_build_markers_frame`, `_marker_names_per_group`, `_extract_rank_genes_groups`, `_resolve_rank_genes_groups_args`, `_resolve_key_groups`, `_compute_violin_polygons`, `_spatialdata_components` (v1 review D1) | Claude Opus 5.5 |  |
+| `annotated_heatmap` (`variable_group_by`, `key_labels` via `guide_axis_mark`, `group_labels`, `annotation_legends`, `row_track_titles` / `column_track_titles`, dendrogram as `leaf_levels` axis tree, `dendrogram_kwargs` removed, transposed order fix, ggside border blanked, `InvalidArgumentError` messages) | Claude Opus 5.5 |  |
+| `heatmap`, `matrixplot`, `dotplot`, `stacked_violin` (key-group brackets via `guide_axis_nested`, `key_labels_text_size` / `key_labels_text_color` removed and rejected; dotplot / stacked_violin border as panel border) | Claude Opus 5.5 |  |
+| `heatmap` (per-cell dendrogram via `leaf_levels` axis tree) | Claude Opus 5.5 |  |
+| `_dendrogram_y_axis` (`leaf_levels`, `breaks`, `labels`), `_dendrogram_line_theme` (`axis`) | Claude Opus 5.5 |  |
+| `umaps`, `pcas`, `tsnes`, `dimensionals`, `expressions`, `violins`, `boxplots`, `histograms`, `spatials`, `volcanos`, `markers` (`share_*` through `gggrid(axes="collect", axis_titles="collect")`; `_share_axis`, `_share_labels`, `_share_ticks`, `_grid_places` removed) | Claude Opus 5.5 |  |
+| `_fixed_cell_layout` (`key_group_labels`, verification pass for short canvases) | Claude Opus 5.5 |  |
+| `dotplot`, `stacked_violin` (`rectangle=False` axis lines after the theme preset) | Claude Opus 5.5 |  |
+| `bone_marrow` (renamed from `pbmc3k`, docstring and download URL) | Claude Opus 5.5 |  |
+| `pbmc3k` (new: real 10x PBMC 3k, `scripts/build_pbmc3k.py`) | Claude Opus 5.5 |  |

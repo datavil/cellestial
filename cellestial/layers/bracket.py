@@ -2,25 +2,39 @@ from __future__ import annotations
 
 __lazy_modules__ = ["ggrust"]
 
+from difflib import get_close_matches
 from itertools import combinations
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 import polars as pl
 from ggrust import aes, ggsize, stat_compare_means
 
 from cellestial.layers._deferred import DeferredLayer
 from cellestial.util import get_mapping, retrieve
-from cellestial.util.errors import InvalidComparisonError, MissingAestheticError
+from cellestial.util.errors import (
+    InvalidArgumentError,
+    InvalidComparisonError,
+    MissingAestheticError,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from ggrust.plot.core import FeatureSpec, FeatureSpecArray, LayerSpec, PlotSpec
+    from ggrust.plot.core import FeatureSpec, PlotSpec
     from polars import DataFrame
 
-_TEST_METHODS = {"mannwhitney": "wilcox.test", "ttest": "t.test"}
-_CORRECTION_METHODS = {"none": "none", "bonferroni": "bonferroni", "fdr_bh": "BH"}
-_LABELS = {"stars": "p.signif", "pvalue": "p.format"}
+_Option = TypeVar("_Option", bound=str)
+
+_TEST_METHODS: dict[str, Literal["wilcox.test", "t.test"]] = {
+    "mannwhitney": "wilcox.test",
+    "ttest": "t.test",
+}
+_CORRECTION_METHODS: dict[str, Literal["none", "bonferroni", "BH"]] = {
+    "none": "none",
+    "bonferroni": "bonferroni",
+    "fdr_bh": "BH",
+}
+_LABELS: dict[str, Literal["p.signif", "p.format"]] = {"stars": "p.signif", "pvalue": "p.format"}
 # canvas used by ggrust when the plot sets no `ggsize`
 _DEFAULT_PLOT_SIZE = (600, 400)
 # canvas height outside the panel (x axis, margins), in pixels
@@ -33,11 +47,11 @@ _BRACKET_STEP_PIXELS = 22
 _DEFAULT_LABEL_SIZE = 5
 
 
-def _option(name: str, value: str, options: dict[str, str]) -> str:
+def _option(name: str, value: str, options: dict[str, _Option]) -> _Option:
     """Translate a cellestial option into its `stat_compare_means` name."""
     if value not in options:
         msg = f"`{name}` must be one of {list(options)}. Received: {value!r}"
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
     return options[value]
 
 
@@ -111,7 +125,7 @@ def _bracket_layout(
 
     if len(pairs) == 0:
         msg = "No group pairs available to compare."
-        raise ValueError(msg)
+        raise InvalidComparisonError(msg)
 
     # every compared group needs at least 2 finite observations
     counts = dict(finite_frame[x].value_counts().iter_rows())
@@ -131,12 +145,14 @@ def _bracket_layout(
             f"{prefix}Each comparison needs at least 2 observations per group after "
             f"removing non-finite values. Received: {details}."
         )
-        raise ValueError(msg)
+        raise InvalidComparisonError(msg)
 
     # stack the brackets above the data without overlapping
-    data_min = finite_frame[y].min()
-    data_max = finite_frame[y].max()
-    data_range = data_max - data_min  # ty:ignore[unsupported-operator]
+    data_min = cast("float", finite_frame[y].min())
+    data_max = cast("float", finite_frame[y].max())
+    data_range = data_max - data_min
+    # constant data has no range to pad by; use 1, as the continuous scale does
+    data_range = data_range or 1.0
     _y_position = data_max + data_range * y_padding if y_position is None else y_position
     _y_step = data_range * y_padding if y_step is None else y_step
     positions = [_y_position + _y_step * index for index in range(len(pairs))]
@@ -227,13 +243,13 @@ def bracket(
     ------
     MissingAestheticError
         If `x` or `y` cannot be provided explicitly or inferred from the
-        receiving plot.
+        receiving plot, or names a column the plot data lacks.
     InvalidComparisonError
         If `comparisons` contains malformed pairs or groups not present in
-        the plot data.
-    ValueError
-        If `test`, `correction` or `label` is invalid, or there are too few
-        observations to compute brackets.
+        the plot data, or there are too few finite observations to compute
+        brackets.
+    InvalidArgumentError
+        If `test`, `correction` or `label` is invalid.
 
     Notes
     -----
@@ -259,7 +275,7 @@ def bracket(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = cl.violin(
             data,
@@ -311,7 +327,7 @@ def bracket(
     explicit_x = x
     explicit_y = y
 
-    def _build(receiving_plot: PlotSpec) -> LayerSpec | FeatureSpecArray:
+    def _build(receiving_plot: PlotSpec) -> FeatureSpec:
         source = explicit_plot if explicit_plot is not None else receiving_plot
         # extract data and mapping from the plot
         frame = retrieve(source)
@@ -324,14 +340,30 @@ def bracket(
         if y is None:
             msg = "`y` is present neither as argument nor in the plot aesthetics."
             raise MissingAestheticError(msg)
+        for aesthetic, column in (("x", x), ("y", y)):
+            if column not in frame.columns:
+                matches = get_close_matches(column, frame.columns, n=1)
+                hint = f"; did you mean {matches[0]!r}?" if matches else "."
+                msg = (
+                    f"`{aesthetic}` column {column!r} is not in the plot data{hint} "
+                    f"Available columns: {frame.columns}."
+                )
+                raise MissingAestheticError(msg)
 
         # size the stacking step in pixels so labels keep their room on any y range
         plot_width, plot_height = receiving_plot.size or _DEFAULT_PLOT_SIZE
         values = frame.filter(pl.col(y).is_finite())[y]
-        data_max = values.max()
-        data_range = data_max - values.min()  # ty:ignore[unsupported-operator]
+        if values.is_empty():
+            msg = (
+                f"No valid group comparisons available: `y` column {y!r} has no finite "
+                "values. Each comparison needs at least 2 finite observations per group."
+            )
+            raise InvalidComparisonError(msg)
+        data_max = cast("float", values.max())
+        data_range = data_max - cast("float", values.min())
         panel_height = plot_height - _NON_PANEL_HEIGHT
-        units_per_pixel = data_range * (1 + 2 * _Y_EXPAND) / panel_height
+        # constant data: size the step as if the range were 1 so brackets still stack
+        units_per_pixel = (data_range or 1.0) * (1 + 2 * _Y_EXPAND) / panel_height
         step_pixels = _BRACKET_STEP_PIXELS * (label_size or _DEFAULT_LABEL_SIZE)
         step_pixels /= _DEFAULT_LABEL_SIZE
         resolved_y_step = step_pixels * units_per_pixel if y_step is None else y_step
@@ -348,7 +380,7 @@ def bracket(
 
         # build the layer
         local_mapping = mapping or aes()
-        size_kwargs = {} if label_size is None else {"size": label_size}
+        size_kwargs: dict[str, Any] = {} if label_size is None else {"size": label_size}
         local_color = None if "color" in local_mapping.as_dict() else color
         layer = stat_compare_means(
             aes(x=x, y=y, **local_mapping.as_dict()),
@@ -368,8 +400,9 @@ def bracket(
         if data_range == 0:
             return layer
 
-        # grow the canvas by the stack height so the data panel keeps its size
-        stack_pixels = (positions[-1] - data_max) / units_per_pixel + step_pixels
+        # grow the canvas by the stack height so the data panel keeps its size;
+        # a stack placed below the data top (explicit `y_position`) needs no room
+        stack_pixels = max(0.0, (positions[-1] - data_max) / units_per_pixel + step_pixels)
         return layer + ggsize(plot_width, plot_height + stack_pixels)
 
     return DeferredLayer(_build)

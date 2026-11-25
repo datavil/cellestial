@@ -1,25 +1,103 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "mudata"]
+__lazy_modules__ = ["anndata", "mudata", "scipy.sparse"]
 
 from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from anndata import AnnData
 from mudata import MuData
+from scipy.sparse import issparse
 
 from cellestial.frames._container import _container
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import (
+    DuplicateKeysError,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    _did_you_mean,
+    _unsupported_data_type,
+)
 from cellestial.util.utilities import _is_spatialdata
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import pandas as pd
     from polars import DataFrame
     from spatialdata import SpatialData
 
 
-def anndata_variable_columns(
+def _categorical_series(values: pd.Series) -> pl.Series:
+    """
+    Convert a categorical metadata column, keeping its category order.
+
+    Notes
+    -----
+    Categories become a `pl.Enum` in their source order, so legends and group
+    axes list them as the data defines them rather than by first appearance
+    (polars `Categorical` keeps no order of its own). Numeric categories are
+    renamed to strings first, so missing values stay null (`astype(str)` would
+    turn them into a "nan" category). Categoricals that polars reads as another
+    type (e.g. boolean or datetime categories) keep that type.
+    """
+    if values.cat.categories.dtype.kind in "iuf":
+        values = values.cat.rename_categories(str)
+    series = pl.Series(values)
+    if series.dtype == pl.Categorical:
+        levels = list(dict.fromkeys(str(category) for category in values.cat.categories))
+        series = series.cast(pl.String).cast(pl.Enum(levels))
+    return series
+
+
+def _reject_id_column_collision(
+    columns: list[pl.Series], selected_columns: list[str], parameter: str, axis_name: str
+) -> None:
+    """
+    Raise `InvalidArgumentError` when the id column shares its name with a metadata column.
+
+    Notes
+    -----
+    Both would become columns of the same name, which a frame cannot hold.
+    """
+    if columns and columns[0].name in selected_columns:
+        name = columns[0].name
+        msg = (
+            f"`{parameter}={name!r}` collides with the {axis_name} metadata column `{name}`. "
+            f"Pass another name, e.g. `{parameter}='{name}_id'`, or `{parameter}=None` to "
+            f"omit the id column. Where the function has no `{parameter}`, rename the "
+            "metadata column."
+        )
+        raise InvalidArgumentError(msg)
+
+
+def _reject_duplicate_keys(
+    keys: Sequence[str], parameter: str, *, case_sensitive: bool = True
+) -> None:
+    """
+    Raise `DuplicateKeysError` when `keys` names the same key more than once.
+
+    Notes
+    -----
+    With `case_sensitive=False`, case variants (`X_umap`, `x_UMAP`) count as one
+    key, matching how embeddings are looked up.
+    """
+    seen: dict[str, str] = {}
+    repeated: list[str] = []
+    for key in keys:
+        normalized = key if case_sensitive else key.upper()
+        if normalized in seen and key not in repeated:
+            repeated.append(key)
+        seen.setdefault(normalized, key)
+    if repeated:
+        msg = (
+            f"`{parameter}` names {repeated!r} more than once. "
+            f"Pass each key once: {list(seen.values())!r}."
+        )
+        raise DuplicateKeysError(msg)
+
+
+def _anndata_variable_columns(
     data: AnnData | MuData, column_names: list[str], keys: str | Sequence[str]
 ) -> list[pl.Series]:
     """
@@ -31,24 +109,27 @@ def anndata_variable_columns(
         If any key is not present in the variable names.
     AmbiguousVariableError
         If a bare key is present in more than one modality.
+    DuplicateKeysError
+        If a key is repeated.
     """
     if isinstance(keys, str):
         keys = [keys]
-    # remove keys that are already in column_names to avoid repeats
+    _reject_duplicate_keys(keys, "variable_keys")
+    # remove keys that are already in column_names, to avoid repeats
     keys = [key for key in keys if key not in column_names]
 
     return _container(data).fetch_variable_columns(keys)
 
 
-def anndata_observations_frame(
+def _anndata_observations_frame(
     data: AnnData | MuData,
     /,
     variable_keys: str | Sequence[str] | None = None,
     *,
     observation_id_column: str | None = "Barcode",
     include_dimensions: bool | int = False,
-    metadata_columns: Sequence[str] | None = None,
-    dimension_keys: Sequence[str] | None = None,
+    metadata_columns: str | Sequence[str] | None = None,
+    dimension_keys: str | Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build an Observations DataFrame from an AnnData object.
@@ -65,12 +146,14 @@ def anndata_observations_frame(
     include_dimensions : bool | int
         Whether to include dimensions from embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-    metadata_columns : Sequence[str] | None
+    metadata_columns : str | Sequence[str] | None
         Restrict which observation metadata columns are materialised. `None`
         includes all metadata columns (default). An empty sequence skips them.
-    dimension_keys : Sequence[str] | None
+        A single string selects one column.
+    dimension_keys : str | Sequence[str] | None
         Restrict which embeddings are materialised when `include_dimensions`
         is truthy. Case-insensitive. `None` includes all embeddings (default).
+        A single string selects one embedding.
         An empty sequence skips embeddings entirely.
 
     Returns
@@ -86,11 +169,14 @@ def anndata_observations_frame(
         If any `variable_keys` entry is not present in the variable names.
     AmbiguousVariableError
         If a bare `variable_keys` entry is present in more than one modality.
-    KeyError
+    KeyNotFoundError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
-    ValueError
-        If `include_dimensions` is a negative integer.
+    InvalidArgumentError
+        If `include_dimensions` is a negative integer, or the id column shares
+        its name with a selected metadata column.
+    InvalidArgumentTypeError
+        If `include_dimensions` is neither a bool nor an int.
     """
     container = _container(data)
     part = container.observation_metadata()
@@ -101,21 +187,24 @@ def anndata_observations_frame(
     else:
         columns = [pl.Series(observation_id_column, container.observation_names())]
     # PART 2: ADD AnnData.obs
+    if isinstance(metadata_columns, str):
+        metadata_columns = [metadata_columns]
     if metadata_columns is None:
         selected_columns = list(part.columns)
     else:
         missing = [name for name in metadata_columns if name not in part.columns]
         if missing:
-            msg = f"metadata_columns not found in observations: {missing}"
-            raise KeyError(msg)
+            msg = f"`metadata_columns` not found in observations: {missing}."
+            hint = _did_you_mean(missing, part.columns)
+            if hint:
+                msg += f" {hint}"
+            raise KeyNotFoundError(msg)
+        _reject_duplicate_keys(metadata_columns, "metadata_columns")
         selected_columns = list(metadata_columns)
+    _reject_id_column_collision(columns, selected_columns, "observation_id_column", "observation")
     for key in selected_columns:
-        # handle categorical integer data
-        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
-            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Convert to string (str) and then back to categorical
-            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
+        if part.dtypes[key] == "category":
+            columns.append(_categorical_series(part[key]))
         else:
             columns.append(pl.Series(part[key]))
 
@@ -128,18 +217,24 @@ def anndata_observations_frame(
                 if include_dimensions >= 0:
                     column_count = min(include_dimensions, total_columns)
                 else:
-                    msg = "Number of dimensions cannot be a negative number."
-                    raise ValueError(msg)
+                    msg = (
+                        "`include_dimensions` cannot be a negative number, "
+                        f"but received {include_dimensions}."
+                    )
+                    raise InvalidArgumentError(msg)
             elif isinstance(include_dimensions, bool):
                 column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
-                raise TypeError(msg)
+                raise InvalidArgumentTypeError(msg)
 
+            embedding = partm[X]
+            if issparse(embedding):
+                embedding = embedding[:, :column_count].toarray()  # ty:ignore[unresolved-attribute]
             for column_index in range(column_count):
                 columns.append(
-                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                    pl.Series(f"{X.upper()}{column_index + 1}", embedding[:, column_index])
                 )
 
     # PART 4: ADD keys if provided
@@ -147,19 +242,19 @@ def anndata_observations_frame(
     if variable_keys:
         column_names = [column.name for column in columns]
         columns.extend(
-            anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
+            _anndata_variable_columns(data=data, column_names=column_names, keys=variable_keys)
         )
 
     return pl.DataFrame(columns)
 
 
-def anndata_variables_frame(
+def _anndata_variables_frame(
     data: AnnData | MuData,
     *,
     variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
-    metadata_columns: Sequence[str] | None = None,
-    dimension_keys: Sequence[str] | None = None,
+    metadata_columns: str | Sequence[str] | None = None,
+    dimension_keys: str | Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build a Variables DataFrame from an AnnData object.
@@ -174,13 +269,15 @@ def anndata_variables_frame(
     include_dimensions : bool | int
         Whether to include variable-axis embeddings in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-    metadata_columns : Sequence[str] | None
+    metadata_columns : str | Sequence[str] | None
         Restrict which variable metadata columns are materialised. `None`
         includes all metadata columns (default). An empty sequence skips them.
-    dimension_keys : Sequence[str] | None
+        A single string selects one column.
+    dimension_keys : str | Sequence[str] | None
         Restrict which variable-axis embeddings are materialised when
         `include_dimensions` is truthy. Case-insensitive. `None` includes all
         embeddings (default). An empty sequence skips embeddings entirely.
+        A single string selects one embedding.
 
     Returns
     -------
@@ -191,11 +288,14 @@ def anndata_variables_frame(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported data object.
-    KeyError
+    KeyNotFoundError
         If any `metadata_columns` entry is not a known metadata column, or any
         `dimension_keys` entry is not a known embedding.
-    ValueError
-        If `include_dimensions` is a negative integer.
+    InvalidArgumentError
+        If `include_dimensions` is a negative integer, or the id column shares
+        its name with a selected metadata column.
+    InvalidArgumentTypeError
+        If `include_dimensions` is neither a bool nor an int.
     """
     # PART 1: INITIALIZE
     container = _container(data)
@@ -207,21 +307,24 @@ def anndata_variables_frame(
     else:
         columns = [pl.Series(variable_id_column, container.variable_names())]
     # PART 3: ADD AnnData.var
+    if isinstance(metadata_columns, str):
+        metadata_columns = [metadata_columns]
     if metadata_columns is None:
         selected_columns = list(part.columns)
     else:
         missing = [name for name in metadata_columns if name not in part.columns]
         if missing:
-            msg = f"metadata_columns not found in variables: {missing}"
-            raise KeyError(msg)
+            msg = f"`metadata_columns` not found in variables: {missing}."
+            hint = _did_you_mean(missing, part.columns)
+            if hint:
+                msg += f" {hint}"
+            raise KeyNotFoundError(msg)
+        _reject_duplicate_keys(metadata_columns, "metadata_columns")
         selected_columns = list(metadata_columns)
+    _reject_id_column_collision(columns, selected_columns, "variable_id_column", "variable")
     for key in selected_columns:
-        # handle categorical integer data
-        if part.dtypes[key] == "category" and part[key].cat.categories.dtype.kind in "iuf":
-            # Check if the categories are numeric (integer 'i','u' or float 'f' kinds)
-            # Only convert if the category dtype is numeric ('i', 'u', 'f')
-            # Convert to string (str) and then back to categorical
-            columns.append(pl.Series(part[key].astype(str)).cast(pl.Categorical))
+        if part.dtypes[key] == "category":
+            columns.append(_categorical_series(part[key]))
         else:
             columns.append(pl.Series(part[key]))
 
@@ -234,28 +337,37 @@ def anndata_variables_frame(
                 if include_dimensions >= 0:
                     column_count = min(include_dimensions, total_columns)
                 else:
-                    msg = "Number of dimensions cannot be a negative number."
-                    raise ValueError(msg)
+                    msg = (
+                        "`include_dimensions` cannot be a negative number, "
+                        f"but received {include_dimensions}."
+                    )
+                    raise InvalidArgumentError(msg)
             elif isinstance(include_dimensions, bool):
                 column_count = total_columns
             else:
                 msg = "Argument for `include_dimensions` MUST be either a `bool` or an `int` type."
                 msg += f" You provided type {type(include_dimensions)}"
-                raise TypeError(msg)
+                raise InvalidArgumentTypeError(msg)
 
+            embedding = partm[X]
+            if issparse(embedding):
+                embedding = embedding[:, :column_count].toarray()  # ty:ignore[unresolved-attribute]
             for column_index in range(column_count):
                 columns.append(
-                    pl.Series(f"{X.upper()}{column_index + 1}", partm[X][:, column_index])
+                    pl.Series(f"{X.upper()}{column_index + 1}", embedding[:, column_index])
                 )
 
     return pl.DataFrame(columns)
 
 
-def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> list[str]:
+def _select_embedding_keys(embeddings, dimension_keys: str | Sequence[str] | None) -> list[str]:
     """Return the subset of embedding keys to materialise, matched case-insensitively."""
     available = list(embeddings.keys())
+    if isinstance(dimension_keys, str):
+        dimension_keys = [dimension_keys]
     if dimension_keys is None:
         return available
+    _reject_duplicate_keys(dimension_keys, "dimension_keys", case_sensitive=False)
     available_upper = {name.upper(): name for name in available}
     selected = []
     missing = []
@@ -266,8 +378,11 @@ def _select_embedding_keys(embeddings, dimension_keys: Sequence[str] | None) -> 
         else:
             selected.append(actual)
     if missing:
-        msg = f"dimension_keys not found in embeddings: {missing}"
-        raise KeyError(msg)
+        msg = f"`dimension_keys` not found in embeddings: {missing}. Available: {available}."
+        hint = _did_you_mean(missing, available)
+        if hint:
+            msg += f" {hint}"
+        raise KeyNotFoundError(msg)
     return selected
 
 
@@ -279,8 +394,8 @@ def build_frame(
     observation_id_column: str | None = "Barcode",
     variable_id_column: str | None = "Variable",
     include_dimensions: bool | int = False,
-    metadata_columns: Sequence[str] | None = None,
-    dimension_keys: Sequence[str] | None = None,
+    metadata_columns: str | Sequence[str] | None = None,
+    dimension_keys: str | Sequence[str] | None = None,
 ) -> DataFrame:
     """
     Build a DataFrame from a single-cell object.
@@ -302,12 +417,14 @@ def build_frame(
     include_dimensions : bool | int
         Whether to include dimensions in the DataFrame, default is False.
         Providing an integer will limit the number of dimensions to given number.
-    metadata_columns : Sequence[str] | None
+    metadata_columns : str | Sequence[str] | None
         Restrict which metadata columns from the selected axis are materialised.
         `None` includes all metadata columns (default). An empty sequence skips them.
-    dimension_keys : Sequence[str] | None
+        A single string selects one column.
+    dimension_keys : str | Sequence[str] | None
         Restrict which embeddings are materialised when `include_dimensions`
         is truthy. Case-insensitive. `None` includes all embeddings (default).
+        A single string selects one embedding.
 
     Returns
     -------
@@ -322,12 +439,16 @@ def build_frame(
         If any `variable_keys` entry is not present in variable names.
     AmbiguousVariableError
         If a bare `variable_keys` entry is present in more than one modality.
-    KeyError
+    KeyNotFoundError
         If any `metadata_columns` or `dimension_keys` entry is unknown.
-    ValueError
-        If `axis` cannot be inferred, the data object does not resolve to
-        exactly one annotation table, or a multimodal object does not share
-        observations across its modalities.
+    InvalidArgumentError
+        If `axis` is missing or is neither 0 nor 1, `include_dimensions` is
+        negative, an id column shares its name with a selected metadata column,
+        the data object does not resolve to exactly one annotation
+        table, or a multimodal object does not share observations across its
+        modalities.
+    InvalidArgumentTypeError
+        If `include_dimensions` is neither a bool nor an int.
 
     Notes
     -----
@@ -346,7 +467,7 @@ def build_frame(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         frame = cl.build_frame(data, axis=0, include_dimensions=2)
         frame.head()
 
@@ -358,7 +479,7 @@ def build_frame(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         frame = cl.build_frame(data, variable_keys=["CD14", "HBA1"], include_dimensions=2)
         frame.head()
 
@@ -370,14 +491,14 @@ def build_frame(
             data = data.tables[tables[0]]
         elif len(tables) == 0:
             msg = "No annotation tables found in the SpatialData object."
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
         else:
             msg = (
                 f"Multiple annotation tables found: {tables}. "
                 "Pass a SpatialData with a single table, or extract the table "
                 "yourself before calling `build_frame`."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
     if isinstance(data, MuData) and data.axis != 0:
         # Only shared observations keep the observations-frame contract; the
@@ -387,15 +508,18 @@ def build_frame(
             f"(`axis=0`), but this object has `axis={data.axis}`. "
             "Pass a single modality instead, e.g. `data['rna']`."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, (AnnData, MuData)):
+        if isinstance(axis, bool):  # `True == 1`, so a bool would pass as an axis
+            msg = f"`axis` must be 0 for observations or 1 for variables, but received {axis!r}."
+            raise InvalidArgumentError(msg)
         # infer the axis if not provided
         if axis is None and variable_keys is not None:
             axis = 0
 
         if axis == 0:
-            frame = anndata_observations_frame(
+            frame = _anndata_observations_frame(
                 data,
                 variable_keys=variable_keys,
                 observation_id_column=observation_id_column,
@@ -404,7 +528,7 @@ def build_frame(
                 dimension_keys=dimension_keys,
             )
         elif axis == 1:
-            frame = anndata_variables_frame(
+            frame = _anndata_variables_frame(
                 data,
                 variable_id_column=variable_id_column,
                 include_dimensions=include_dimensions,
@@ -413,7 +537,10 @@ def build_frame(
             )
         elif axis is None:
             msg = "`axis` parameter must be specified, 0 for observations, 1 for variables."
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
+        else:
+            msg = f"`axis` must be 0 for observations or 1 for variables, but received {axis!r}."
+            raise InvalidArgumentError(msg)
     else:
         raise _unsupported_data_type(data, AnnData, "SpatialData", MuData)
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
+from difflib import get_close_matches
 from typing import TYPE_CHECKING, Literal
 
 from anndata import AnnData
@@ -16,6 +17,11 @@ from ggrust.plot.core import FeatureSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import (
+    _MAPPING_COLOR_HINT,
+    _reject_constant_color_fill,
+    _reject_constant_over_mapping,
+)
 from cellestial.themes import _THEME_SCATTER
 from cellestial.util import (
     _collect_aes_columns,
@@ -25,13 +31,22 @@ from cellestial.util import (
     _select_variable_keys,
     _validate_tooltips,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import KeyNotFoundError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from ggrust.plot.core import PlotSpec
     from polars import DataFrame
+
+
+def _observation_embeddings_cover(data: AnnData | MuData, feature_keys: Sequence[str]) -> bool:
+    """Whether `data` holds observation embeddings and every key is an observation column or variable."""
+    if isinstance(data, (AnnData, MuData)):
+        return bool(data.obsm) and all(
+            key in data.obs.columns or key in data.var_names for key in feature_keys
+        )
+    raise _unsupported_data_type(data, AnnData, MuData)
 
 
 def xyplot(
@@ -48,6 +63,8 @@ def xyplot(
     observation_id_column: str = "Barcode",
     variable_id_column: str = "Variable",
     include_dimensions: bool | int = False,
+    geom_color: str | None = None,
+    geom_fill: str | None = None,
     **geom_kwargs,
 ) -> PlotSpec:
     """
@@ -84,6 +101,10 @@ def xyplot(
     include_dimensions : bool | int, default=False
         Whether to include dimensions in the DataFrame.
         Providing an integer will limit the number of dimensions to given number.
+    geom_color : str | None, default=None
+        Color for all points in the plot. To color by a column, map it in `mapping`.
+    geom_fill : str | None, default=None
+        Fill color for all points in the plot (filled shapes 21 to 25 only).
     **geom_kwargs
         Additional parameters for the `geom_point` layer.
         For more information on geom_point parameters, see:
@@ -98,6 +119,9 @@ def xyplot(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    KeyNotFoundError
+        If `x` or `y` is not a column of the built frame (e.g. an embedding
+        component the embedding does not have).
 
     Examples
     --------
@@ -110,13 +134,13 @@ def xyplot(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.xyplot(
             data,
             x="n_genes_by_counts",
             y="pct_counts_in_top_50_genes",
-            color="grey",
+            geom_color="grey",
             alpha=0.6,
         )
 
@@ -129,7 +153,7 @@ def xyplot(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.xyplot(
             data,
@@ -148,7 +172,7 @@ def xyplot(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.xyplot(
             data,
@@ -172,6 +196,17 @@ def xyplot(
         merged = _mapping.as_dict() | mapping.as_dict()
         mapping = aes(**merged)
 
+    _reject_constant_color_fill(geom_kwargs, function="xyplot", hint=_MAPPING_COLOR_HINT)
+    _reject_constant_over_mapping(
+        geom_color=geom_color,
+        geom_fill=geom_fill,
+        mapped_by={
+            aesthetic: f"`mapping` column {column!r}"
+            for aesthetic, column in mapping.as_dict().items()
+            if aesthetic in ("color", "fill")
+        },
+    )
+
     # Determine variable keys
     keys = [key for key in mapping.as_dict().values() if key is not None]
     variable_keys = _select_variable_keys(data=data, keys=keys)
@@ -183,8 +218,8 @@ def xyplot(
 
     # BUILD: the dataframe
     if axis is None:
-        observation_dimensions = bool(include_dimensions and data.obsm) and all(
-            key in data.obs.columns or key in data.var_names for key in feature_keys
+        observation_dimensions = bool(include_dimensions) and _observation_embeddings_cover(
+            data, feature_keys
         )
         axis = (
             0
@@ -225,6 +260,17 @@ def xyplot(
             include_dimensions=include_dimensions,
             metadata_columns=metadata_columns,
         )
+    plotted = mapping.as_dict()  # `mapping` may override `x` / `y`
+    for column in (plotted["x"], plotted["y"]):
+        if column not in frame.columns:
+            close_matches = get_close_matches(column, frame.columns, n=3)
+            hint = f"; did you mean {close_matches}?" if close_matches else "."
+            msg = (
+                f"`{column}` not found in the plotted data{hint}\n"
+                "Pass an observation or variable name, or an embedding component "
+                "such as `X_UMAP1` (components are 1-based)."
+            )
+            raise KeyNotFoundError(msg)
     frame = _drop_nonfinite_rows(frame, [x, y])
     _validate_tooltips(tooltips, frame)
 
@@ -233,6 +279,8 @@ def xyplot(
         ggplot(data=frame)
         + geom_point(
             mapping=mapping,
+            color=geom_color,
+            fill=geom_fill,
             tooltips=tooltips,
             **geom_kwargs,
         )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __lazy_modules__ = ["ggrust"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import polars as pl
 from ggrust import aes, geom_label, geom_label_repel, geom_text, geom_text_repel, theme
@@ -123,7 +123,7 @@ def ondata_legend(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=1.5)
         umap
@@ -163,7 +163,7 @@ def ondata_legend(
 
         frame = retrieve(source)
         grouped = _compute_label_positions(frame, x=x, y=y, group_by=group_by)
-        layer_kwargs = dict(geom_kwargs)
+        layer_kwargs: dict[str, Any] = dict(geom_kwargs)
         if label:
             geom = geom_label_repel if repel else geom_label
             layer_kwargs = {

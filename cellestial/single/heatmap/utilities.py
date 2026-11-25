@@ -10,11 +10,28 @@ from typing import TYPE_CHECKING, Literal, cast
 import numpy as np
 import polars as pl
 from anndata import AnnData
-from ggrust import aes, coord_fixed, geom_path, geom_text, ggsize, kernel_density
+from ggrust import (
+    coord_fixed,
+    element_line,
+    ggsize,
+    guide_axis_nested,
+    kernel_density,
+    key_range_manual,
+    theme,
+)
 from ggrust.errors import SpecError
 
 from cellestial.util import _warn
-from cellestial.util.errors import DuplicateKeysError, KeyNotFoundError, _unsupported_data_type
+from cellestial.util.dendrogram import _GEOM_LINE_UNIT
+from cellestial.util.errors import (
+    DuplicateKeysError,
+    InvalidArgumentError,
+    InvalidArgumentTypeError,
+    KeyNotFoundError,
+    UnknownParameterError,
+    _ranking_not_found_message,
+    _unsupported_data_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -51,61 +68,91 @@ def _bin_within_groups(
     Group boundaries are preserved, so group bars/lines remain meaningful.
     Returns `frame` unchanged when the unique observation count fits in `max_rows`.
     """
-    group_key = "_group_key"
-    frame_with_key = frame.with_columns(pl.col(group_by).cast(pl.String).alias(group_key))
-    obs_per_group = (
-        frame_with_key.select(observation_id_column, group_key)
+    # Integer codes stand in for the observation ids and groups: dense ranks keep
+    # the sort order and distinctness of the originals, at a fraction of the memory.
+    observation_code = pl.col(observation_id_column).rank("dense").cast(pl.Int64)
+    group_code = pl.col(group_by).rank("dense").cast(pl.Int64).fill_null(0)
+    # Null groups never get bins, even when `y_order_groups` lists None.
+    group_positions = {
+        group: position for position, group in enumerate(y_order_groups) if group is not None
+    }
+    groups = frame.select(pl.col(group_by).unique()).select(
+        group_code.alias("_group_code"),
+        pl.col(group_by)
+        .cast(pl.String)
+        .replace_strict(group_positions, default=None, return_dtype=pl.Int64)
+        .alias("_group_index"),
+    )
+    codes = frame.select(observation_code.alias("_obs_code"), group_code.alias("_group_code"))
+    # Unique (observation, group) pairs, deduplicated as one packed integer.
+    group_stride = groups.height + 1
+    pairs = codes.select(
+        (pl.col("_obs_code").fill_null(0) * group_stride + pl.col("_group_code"))
         .unique()
-        .group_by(group_key, maintain_order=False)
+        .alias("_pair")
+    ).select(
+        (pl.col("_pair") // group_stride).alias("_obs_code"),
+        (pl.col("_pair") % group_stride).alias("_group_code"),
+    )
+    obs_per_group = (
+        pairs.group_by("_group_code", maintain_order=False)
         .agg(pl.len().alias("_n_cells"))
+        .join(groups, on="_group_code")
     )
     total = int(obs_per_group["_n_cells"].sum())
     if total <= max_rows:
         return frame
 
-    obs_per_group = obs_per_group.with_columns(
-        pl.max_horizontal(
-            pl.lit(1, dtype=pl.Int64),
-            (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
-        ).alias("_bin_count")
-    )
-
-    group_index_frame = pl.DataFrame(
-        {
-            group_key: y_order_groups,
-            "_group_index": list(range(len(y_order_groups))),
-        }
-    )
+    # Groups absent from `y_order_groups` (and null groups) count towards `total`
+    # but get no bins.
     offsets_frame = (
-        obs_per_group.join(group_index_frame, on=group_key)
+        obs_per_group.drop_nulls("_group_index")
+        .with_columns(
+            pl.max_horizontal(
+                pl.lit(1, dtype=pl.Int64),
+                (pl.col("_n_cells") * max_rows / total).round().cast(pl.Int64),
+            ).alias("_bin_count")
+        )
         .sort("_group_index")
         .with_columns((pl.col("_bin_count").cum_sum() - pl.col("_bin_count")).alias("_bin_offset"))
-        .select(group_key, "_bin_count", "_n_cells", "_bin_offset", "_group_index")
+        .select("_group_code", "_group_index", "_bin_count", "_n_cells", "_bin_offset")
     )
 
     obs_frame = (
-        frame_with_key.select(observation_id_column, group_key)
-        .unique(maintain_order=True)
-        .join(offsets_frame, on=group_key)
-        .sort(["_group_index", observation_id_column])
-        .with_columns(pl.int_range(pl.len()).over(group_key).alias("_rank_in_group"))
-        .with_columns(
+        pairs.join(offsets_frame, on="_group_code")
+        .sort(["_group_index", "_obs_code"])
+        .with_columns(pl.int_range(pl.len()).over("_group_code").alias("_rank_in_group"))
+        .select(
+            "_obs_code",
+            "_group_code",
             (
                 (pl.col("_rank_in_group") * pl.col("_bin_count") // pl.col("_n_cells"))
                 + pl.col("_bin_offset")
-            )
-            .cast(pl.String)
-            .alias("_binned_obs")
+            ).alias("_bin"),
         )
-        .select(observation_id_column, "_binned_obs")
     )
 
+    # Join only the narrow integer columns; the wide frame is copied (gathered) only
+    # when observations were dropped or repeated by the join.
+    # Match on the group too: one observation id can appear in several groups.
+    row_bins = codes.with_row_index("_row").join(
+        obs_frame, on=["_obs_code", "_group_code"], maintain_order="left"
+    )
+    binned = frame.select(group_by, *keys)
+    # Zero-padded names sort as text in bin order, so rows keep barcode order.
+    name_width = len(str(int(offsets_frame["_bin_count"].sum()) - 1))
+    rows = row_bins["_row"]
+    if len(rows) != frame.height or rows.n_unique() != frame.height:
+        binned = binned[rows]
     return (
-        frame.join(obs_frame, on=observation_id_column)
-        .drop(observation_id_column)
-        .rename({"_binned_obs": observation_id_column})
-        .group_by(observation_id_column, group_by, maintain_order=False)
+        binned.with_columns(row_bins["_bin"])
+        .group_by("_bin", group_by, maintain_order=False)
         .agg(pl.col(keys).mean())
+        .select(
+            pl.col("_bin").cast(pl.String).str.zfill(name_width).alias(observation_id_column),
+            group_by,
+            *keys,
+        )
     )
 
 
@@ -235,8 +282,10 @@ def _assign_positions(
     cell_frame = cell_frame.with_columns(
         pl.int_range(pl.len()).cast(pl.Float64).alias("position_y")
     )
+    # Match on the group too: one observation id can appear in several groups.
     frame = frame.join(
-        cell_frame.select(observation_id_column, "position_y"), on=observation_id_column
+        cell_frame.select(observation_id_column, group_by, "position_y"),
+        on=[observation_id_column, group_by],
     )
     centers_frame = (
         cell_frame.group_by(group_by, maintain_order=False)
@@ -303,35 +352,13 @@ def _get_group_lines_frame(
 # key_groups helpers (formerly _key_groups.py)
 # ---------------------------------------------------------------------------
 
-# Bracket geometry. Most callers express the bar offset, tip length, and label
-# gap as a fraction of the y-axis total span so they scale with the plot.
-_BAR_OFFSET_FRACTION = 0.030
-_TIP_LENGTH_FRACTION = 0.018
-_LABEL_GAP_FRACTION = 0.012
-
-# Label size is in the default text-size unit (~pt-like). Padding is a
-# fraction of the total y-axis span.
-_ABS_LABEL_PADDING_BASE_FRACTION = 0.060
-_ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION = 0.0051
-_ABS_LABEL_PADDING_MIN_DENSITY_SCALE = 0.45
-_ABS_LABEL_PADDING_FULL_DENSITY_KEYS = 30
-_ABS_LABEL_PADDING_MAX_TARGET_FRACTION = 0.650
+# Label size is in the default text-size unit (~pt-like); used by tracksplot's
+# hand-drawn brackets.
 _ABS_LABEL_TEXT_SIZE_MAX = 6.0
 _ABS_LABEL_TEXT_SIZE_MIN = 3.75
 _ABS_LABEL_TEXT_SIZE_PER_KEY = 0.06
 _ABS_LABEL_TEXT_SIZE_PER_EXTRA_CHAR = 0.08
 _ABS_LABEL_TEXT_SIZE_CHAR_THRESHOLD = 16
-# Fixed-pixel cells: a text size unit renders as this many pixels of font size.
-_TEXT_SIZE_TO_PIXELS = 2.0
-# Sans-serif character widths as a fraction of the font size, rounded up per class.
-_NARROW_CHARACTERS = frozenset("fijlrtI .,;:'!|")
-_WIDE_CHARACTERS = frozenset("mwMW")
-_NARROW_CHARACTER_WIDTH = 0.34
-_REGULAR_CHARACTER_WIDTH = 0.57
-_UPPERCASE_CHARACTER_WIDTH = 0.78
-_WIDE_CHARACTER_WIDTH = 0.95
-# Pixels left free above the longest bracket label.
-_LABEL_TOP_MARGIN = 6
 
 
 def _resolve_key_groups(
@@ -352,22 +379,33 @@ def _resolve_key_groups(
     Raises
     ------
     DuplicateKeysError
-        If the same key appears in more than one group.
+        If the same key appears more than once, in one group or across groups.
     """
     if not isinstance(keys, Mapping):
-        return list(keys), None
+        flat_keys = list(keys)
+        duplicates = sorted({key for key in flat_keys if flat_keys.count(key) > 1})
+        if duplicates:
+            msg = f"`keys` contains duplicates: {duplicates}. Pass each key once."
+            raise DuplicateKeysError(msg)
+        return flat_keys, None
 
     grouped_keys = cast("Mapping[str, Sequence[str]]", keys)
     groups: dict[str, list[str]] = {}
     for label, values in grouped_keys.items():
         if isinstance(values, str):
-            msg = f"Keys for group {label!r} must be a sequence of strings, not a single string."
-            raise TypeError(msg)
+            msg = (
+                f"Keys for group {label!r} must be a list of keys, got the string {values!r}. "
+                f"Wrap it in a list: {{{label!r}: [{values!r}]}}."
+            )
+            raise InvalidArgumentTypeError(msg)
         groups[label] = list(values)
     flat: list[str] = []
     location: dict[str, str] = {}
     for label, values in groups.items():
         for key in values:
+            if location.get(key) == label:
+                msg = f"Key {key!r} appears more than once in group {label!r}. Pass each key once."
+                raise DuplicateKeysError(msg)
             if key in location:
                 msg = (
                     f"Key {key!r} appears in multiple groups: "
@@ -397,198 +435,55 @@ def _label_size_absolute(groups: dict[str, list[str]], *, scale: float = 1.0) ->
     return max(_ABS_LABEL_TEXT_SIZE_MIN, size * scale)
 
 
-def _resolve_padding(
-    groups: dict[str, list[str]],
-    *,
-    padding: float | None,
-    data_range: float | None = None,
-    scale: float = 1.0,
-    label_size_scale: float = 1.0,
-) -> float:
+def _key_groups_guide(groups: dict[str, list[str]], *, width: float) -> FeatureSpec:
     """
-    Compute y-axis padding (in data units) for the bracket area.
+    Axis guide bracketing each key group, across the panel from the key labels.
 
     Notes
     -----
-    `padding` overrides the auto value when given. `scale` is a per-plot
-    multiplier applied to the auto padding (use `<1` for a more compact
-    bracket area).
+    Keys sit at continuous positions `0..n-1` in group order. A group spans its
+    first to last key, extended by `width / 2` on each side.
     """
-    if padding is not None:
-        return padding
-    data = data_range if data_range is not None and data_range > 0 else 5.0
-    max_chars = max((len(label) for label in groups), default=0)
-    n_keys = sum(len(values) for values in groups.values())
-    label_size = _label_size_absolute(groups, scale=label_size_scale)
-    density_scale = max(
-        _ABS_LABEL_PADDING_MIN_DENSITY_SCALE,
-        min(1.0, n_keys / _ABS_LABEL_PADDING_FULL_DENSITY_KEYS),
-    )
-    target_fraction = min(
-        _BAR_OFFSET_FRACTION
-        + _LABEL_GAP_FRACTION
-        + _ABS_LABEL_PADDING_BASE_FRACTION
-        + _ABS_LABEL_PADDING_PER_CHAR_SIZE_FRACTION * max_chars * label_size * density_scale,
-        _ABS_LABEL_PADDING_MAX_TARGET_FRACTION,
-    )
-    resolved = target_fraction * data / (1.0 - target_fraction) * scale
-    if data_range is None or data_range <= 0:
-        return max(1.5, resolved)
-    return resolved
-
-
-def _label_width(label: str) -> float:
-    """Estimated rendered width of `label` in multiples of the font size (never under)."""
-    width = 0.0
-    for character in label:
-        if character in _WIDE_CHARACTERS:
-            width += _WIDE_CHARACTER_WIDTH
-        elif character in _NARROW_CHARACTERS:
-            width += _NARROW_CHARACTER_WIDTH
-        elif character.isupper():
-            width += _UPPERCASE_CHARACTER_WIDTH
-        else:
-            width += _REGULAR_CHARACTER_WIDTH
-    return width
-
-
-def _fixed_cell_padding(
-    groups: dict[str, list[str]],
-    *,
-    reference_span: float,
-    cell_height: float,
-    label_size_scale: float = 1.0,
-) -> float:
-    """
-    Compute y-axis padding (in data units) that fits the brackets and their labels.
-
-    Notes
-    -----
-    For plots whose cells have a fixed pixel height (`cell_height`), the rotated
-    label length is known in pixels, so the padding is solved exactly instead of
-    taken as a fraction of the span. `reference_span` is the span the bracket
-    geometry is scaled against (see `_key_groups_layers`).
-    """
-    label_width = max((_label_width(label) for label in groups), default=0.0)
-    font_size = _TEXT_SIZE_TO_PIXELS * _label_size_absolute(groups, scale=label_size_scale)
-    label_pixels = label_width * font_size + _LABEL_TOP_MARGIN
-    fraction = _BAR_OFFSET_FRACTION + _LABEL_GAP_FRACTION
-    # The bar offset and label gap scale with the total span (reference + padding).
-    return (fraction * reference_span + label_pixels / cell_height) / (1.0 - fraction)
-
-
-def _build_key_groups_frame(
-    groups: dict[str, list[str]],
-    *,
-    y: float,
-    width: float = 0.6,
-) -> pl.DataFrame:
-    """
-    Build the `geom_bracket` data frame spanning column groups on the variable axis.
-
-    Notes
-    -----
-    `width` is the bracket width for a singleton group in column units. For a
-    group of `N >= 2` keys at column indices `first..last`, the bracket
-    extends `width / 2` past the first and last key center on each side.
-    """
-    extension = width / 2
-    xmins: list[float] = []
-    xmaxs: list[float] = []
-    labels: list[str] = []
-    cursor = 0
-    for label, values in groups.items():
-        first = cursor
-        last = cursor + len(values) - 1
-        xmins.append(float(first) - extension)
-        xmaxs.append(float(last) + extension)
-        labels.append(label)
-        cursor += len(values)
-    return pl.DataFrame(
-        {
-            "xmin": xmins,
-            "xmax": xmaxs,
-            "y": [float(y)] * len(labels),
-            "label": labels,
-        }
+    starts: list[float] = []
+    ends: list[float] = []
+    position = 0
+    for values in groups.values():
+        starts.append(position - width / 2)
+        ends.append(position + len(values) - 1 + width / 2)
+        position += len(values)
+    return guide_axis_nested(
+        key_range_manual(starts, ends, list(groups)), bracket="square", side="opposite", angle=90
     )
 
 
-def _key_groups_bar_y(top_edge: float, *, total_span: float = 5.0) -> float:
-    """Y position of the bracket bar above the plot top edge."""
-    return top_edge + _BAR_OFFSET_FRACTION * total_span
+def _key_groups_theme(*, color: str, size: float) -> FeatureSpec:
+    """Style the key-group brackets; `size` stays in the geom line units of the former path layer."""
+    return theme(legendry_bracket=element_line(color=color, size=size * _GEOM_LINE_UNIT))
 
 
-def _key_groups_layers(
-    groups: dict[str, list[str]],
-    *,
-    y: float,
-    total_span: float,
-    text_color: str = "black",
-    bracket_color: str = "black",
-    bracket_size: float = 0.6,
-    width: float = 0.6,
-    label_size_scale: float = 1.0,
-    extra_kwargs: dict | None = None,
-) -> list[FeatureSpec]:
+def _reject_removed_key_label_text(geom_kwargs: dict[str, object], function: str) -> None:
     """
-    Build the layers that annotate column groups above the plot.
+    Reject the removed `key_labels_text_size` and `key_labels_text_color`.
 
-    Notes
-    -----
-    Each bracket is one connected `geom_path` (left tip down, top bar across,
-    right tip down) so the corners join cleanly with no sub-pixel gap. A
-    vertical label is centered on each bracket as a separate `geom_text`.
+    Parameters
+    ----------
+    geom_kwargs : dict[str, object]
+        Extra keyword arguments a plot forwards to its geom.
+    function : str
+        The public function name shown in the message.
+
+    Raises
+    ------
+    UnknownParameterError
+        If `geom_kwargs` holds either removed keyword.
     """
-    frame = _build_key_groups_frame(groups, y=y, width=width)
-    tip_length = _TIP_LENGTH_FRACTION * total_span
-    label_gap = _LABEL_GAP_FRACTION * total_span
-
-    path_records: list[dict] = []
-    label_records: list[dict] = []
-    for group_index, row in enumerate(frame.iter_rows(named=True)):
-        path_records.extend(
-            [
-                {"x": row["xmin"], "y": y - tip_length, "g": group_index},
-                {"x": row["xmin"], "y": y, "g": group_index},
-                {"x": row["xmax"], "y": y, "g": group_index},
-                {"x": row["xmax"], "y": y - tip_length, "g": group_index},
-            ]
-        )
-        label_records.append(
-            {
-                "x": (row["xmin"] + row["xmax"]) / 2,
-                "y": y + label_gap,
-                "label": row["label"],
-            }
-        )
-
-    path_frame = pl.DataFrame(path_records)
-    label_frame = pl.DataFrame(label_records)
-
-    text_kwargs: dict = {
-        "angle": 90,
-        "hjust": 0,
-        "vjust": 0.5,
-    }
-    text_kwargs.update(extra_kwargs or {})
-    label_size = _label_size_absolute(groups, scale=label_size_scale)
-
-    return [
-        geom_path(
-            data=path_frame,
-            mapping=aes(x="x", y="y", group="g"),
-            color=bracket_color,
-            size=bracket_size,
-        ),
-        geom_text(
-            data=label_frame,
-            mapping=aes(x="x", y="y", label="label"),
-            color=text_color,
-            size=label_size,
-            **text_kwargs,
-        ),
-    ]
+    for name in ("key_labels_text_size", "key_labels_text_color"):
+        if name in geom_kwargs:
+            msg = (
+                f"`{name}` was removed from `{function}`: key-group names now take the "
+                "key label style. Style both with `+ theme(axis_text_x=element_text(...))`."
+            )
+            raise UnknownParameterError(msg)
 
 
 # ---------------------------------------------------------------------------
@@ -600,8 +495,6 @@ def _key_groups_layers(
 _CELL_SIZE = 30
 _CHARACTER_WIDTH = 7
 _MARGIN = 20
-# Cells; brackets are sized against a constant span so they keep a fixed pixel size.
-_BRACKET_REFERENCE_SPAN = 20
 
 
 # Pixels. A probe canvas this long never limits the panel along that side.
@@ -641,6 +534,8 @@ def _fixed_cell_layout(
     legend_width: float,
     legend_height: float,
     cell_height_ratio: float = 1.0,
+    minimum_width: float = 0,
+    key_group_labels: Sequence[str] = (),
 ) -> PlotSpec:
     """
     Lock the cell aspect ratio and size the canvas so every cell is `_CELL_SIZE` wide.
@@ -654,7 +549,8 @@ def _fixed_cell_layout(
     shorter than `legend_height`. The panel keeps at least `_PANEL_MIN_SIZE` pixels
     per side, so a single key or group gets wider cells instead of a clipped legend.
     `y_limits` are passed to the fixed coordinates, which replace any coordinates
-    added before.
+    added before. The canvas is never narrower than `minimum_width`.
+    `key_group_labels` are the rotated key-group names drawn above the panel.
     """
     panel_width = x_span * _CELL_SIZE
     panel_height = y_span * _CELL_SIZE * cell_height_ratio
@@ -662,6 +558,13 @@ def _fixed_cell_layout(
     x_label_height = max(len(label) for label in x_labels) * _CHARACTER_WIDTH
     other_width = y_label_width + legend_width + _MARGIN
     other_height = x_label_height + _MARGIN
+    if key_group_labels:
+        # Rotated names above the panel, plus the bracket under them. Overestimated
+        # (any theme font size) so the probe panel is never squeezed; the probes
+        # then measure the real room.
+        other_height += (
+            max(len(label) for label in key_group_labels) * 2 * _CHARACTER_WIDTH + _MARGIN
+        )
     plot += coord_fixed(ratio=cell_height_ratio, ylim=y_limits)
     # Probe panels get twice the minimum size so the backend never squeezes the legend.
     probe_width = min(other_width + max(panel_width, 2 * _PANEL_MIN_SIZE), _PROBE_SPAN)
@@ -673,36 +576,40 @@ def _fixed_cell_layout(
     if tall is not None and wide is not None:
         other_width = probe_width - tall[0]
         other_height = probe_height - wide[1]
-    return plot + ggsize(
-        other_width + max(panel_width, _PANEL_MIN_SIZE),
-        max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height),
-    )
+    width = max(other_width + max(panel_width, _PANEL_MIN_SIZE), minimum_width)
+    height = max(other_height + max(panel_height, _PANEL_MIN_SIZE), legend_height)
+    if key_group_labels and tall is not None and wide is not None:
+        # Tall key-group names leave a short canvas, where a legend taller than the
+        # panel takes more room than the probes measured: grow by what is missing.
+        final = _panel_size(plot + ggsize(width, height))
+        if final is not None and final[1] < panel_height - 1:
+            height += panel_height - final[1]
+    return plot + ggsize(width, height)
 
 
 # ---------------------------------------------------------------------------
 # rank_genes_groups helpers (formerly _rank_genes_groups.py)
 # ---------------------------------------------------------------------------
 
-_DEFAULT_RANK_GENES_KEY = "rank_genes_groups"
 
-
-def _resolve_rank_genes_groups_key(rank_genes_groups: bool | str) -> str:  # noqa: FBT001
-    """Translate the user-facing flag into the `adata.uns` key to read."""
-    if rank_genes_groups is True:
-        return _DEFAULT_RANK_GENES_KEY
-    if isinstance(rank_genes_groups, str):
-        return rank_genes_groups
-    msg = (
-        "`rank_genes_groups` must be True or a string naming the "
-        "`adata.uns` key (e.g. 'rank_genes_groups_wilcoxon')."
-    )
-    raise TypeError(msg)
+def _check_markers_flag(markers: object) -> None:
+    """Raise unless `markers` is a bool, pointing string values at `ranking_key`."""
+    if isinstance(markers, (bool, np.bool_)):
+        return
+    if isinstance(markers, str):
+        msg = (
+            f"`markers` must be True or False, got the string {markers!r}. "
+            f"To read a stored ranking by name, pass `markers=True, ranking_key={markers!r}`."
+        )
+        raise InvalidArgumentTypeError(msg)
+    msg = f"`markers` must be True or False, got {type(markers).__name__}."
+    raise InvalidArgumentTypeError(msg)
 
 
 def _extract_rank_genes_groups(
     data: AnnData,
     *,
-    rank_genes_groups: bool | str,
+    ranking_key: str,
     n_genes: int,
     groups: Sequence[str] | None = None,
 ) -> tuple[dict[str, list[str]], str]:
@@ -713,9 +620,8 @@ def _extract_rank_genes_groups(
     ----------
     data : AnnData
         Source object that already contains a `rank_genes_groups` result.
-    rank_genes_groups : bool | str
-        `True` reads from the default `rank_genes_groups` key; a string
-        reads from the matching custom key (e.g. `rank_genes_groups_wilcoxon`).
+    ranking_key : str
+        The key under which the precomputed ranking is stored on `data`.
     n_genes : int
         Number of top genes to pull per group.
     groups : Sequence[str] | None, default=None
@@ -731,25 +637,20 @@ def _extract_rank_genes_groups(
         The categorical key used when `rank_genes_groups` was computed.
     """
     if n_genes < 1:
-        msg = f"`n_genes` must be >= 1, got {n_genes}."
-        raise ValueError(msg)
-
-    uns_key = _resolve_rank_genes_groups_key(rank_genes_groups)
+        msg = f"`n_genes` must be >= 1, got {n_genes}. Pass a positive integer."
+        raise InvalidArgumentError(msg)
 
     if isinstance(data, AnnData):
-        if uns_key not in data.uns:
-            msg = (
-                f"`adata.uns[{uns_key!r}]` not found. "
-                "Run `scanpy.tl.rank_genes_groups` first "
-                "(or pass the correct `key_added` value as `rank_genes_groups`)."
-            )
+        if ranking_key not in data.uns:
+            msg = _ranking_not_found_message(ranking_key, list(data.uns))
             raise KeyNotFoundError(msg)
 
-        record = data.uns[uns_key]
+        record = data.uns[ranking_key]
         if "names" not in record or "params" not in record:
             msg = (
-                f"`adata.uns[{uns_key!r}]` does not look like a "
-                "`rank_genes_groups` result (missing 'names' or 'params')."
+                f"The stored entry `{ranking_key}` is not a differential expression ranking "
+                "(it has no gene names or parameters). Pass the name of a stored ranking as "
+                "`ranking_key`, or compute a ranking first."
             )
             raise KeyNotFoundError(msg)
 
@@ -763,18 +664,18 @@ def _extract_rank_genes_groups(
             unknown = [group for group in selected if group not in available_groups]
             if unknown:
                 msg = (
-                    f"Groups {unknown!r} not found in "
-                    f"`adata.uns[{uns_key!r}]`. Available: {available_groups!r}."
+                    f"Groups {unknown!r} not found in the ranking `{ranking_key}`. "
+                    f"Available: {available_groups!r}. Pass groups from that list."
                 )
                 raise KeyNotFoundError(msg)
 
         n_available = len(names)
         if n_genes > n_available:
             msg = (
-                f"`n_genes={n_genes}` exceeds the {n_available} ranked genes "
-                f"stored in `adata.uns[{uns_key!r}]`."
+                f"`n_genes={n_genes}` exceeds the {n_available} genes in the ranking "
+                f"`{ranking_key}`. Pass `n_genes` <= {n_available}."
             )
-            raise ValueError(msg)
+            raise InvalidArgumentError(msg)
 
         keys: dict[str, list[str]] = {}
         seen: dict[str, str] = {}
@@ -808,8 +709,8 @@ def _extract_rank_genes_groups(
         stored_group_by = params.get("groupby")
         if stored_group_by is None:
             msg = (
-                f"`adata.uns[{uns_key!r}]['params']` is missing 'groupby'; "
-                "cannot infer `group_by`."
+                f"The ranking `{ranking_key}` does not record the column it grouped by, "
+                "so `group_by` cannot be inferred. Recompute the ranking for a grouping column."
             )
             raise KeyNotFoundError(msg)
 
@@ -821,7 +722,7 @@ def _extract_rank_genes_groups(
 def _resolve_rank_genes_groups_args(
     data: AnnData,
     *,
-    rank_genes_groups: bool | str,
+    ranking_key: str,
     n_genes: int,
     groups: Sequence[str] | None,
     keys: object,
@@ -837,14 +738,15 @@ def _resolve_rank_genes_groups_args(
     """
     if keys is not None:
         msg = (
-            "`keys` must be omitted when `rank_genes_groups` is set; "
-            "genes are derived from the stored ranking."
+            "`keys` must be omitted when `markers=True`; "
+            "genes are derived from the stored ranking. "
+            "Remove `keys`, or set `markers=False` to pass genes yourself."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     resolved_keys, stored_group_by = _extract_rank_genes_groups(
         data,
-        rank_genes_groups=rank_genes_groups,
+        ranking_key=ranking_key,
         n_genes=n_genes,
         groups=groups,
     )
@@ -852,10 +754,10 @@ def _resolve_rank_genes_groups_args(
     if group_by is not None and group_by != stored_group_by:
         msg = (
             f"`group_by={group_by!r}` does not match the value used when "
-            f"`rank_genes_groups` was computed ({stored_group_by!r}). "
-            "Omit `group_by` to inherit it, or recompute with the desired key."
+            f"the ranking `{ranking_key}` was computed ({stored_group_by!r}). "
+            "Omit `group_by` to inherit it, or recompute the ranking for the desired column."
         )
-        raise ValueError(msg)
+        raise InvalidArgumentError(msg)
 
     return resolved_keys, stored_group_by
 
@@ -910,7 +812,7 @@ def _compute_violin_polygons(
         if var_key not in var_range:
             continue
         var_min, var_max = var_range[var_key]
-        if var_min is None or var_max is None or var_max <= var_min:
+        if var_min is None or var_max is None:
             continue
         value_span = var_max - var_min
 
@@ -923,9 +825,35 @@ def _compute_violin_polygons(
                 .drop_nulls()
                 .to_numpy()
             )
-            if len(group_values) < 2 or group_values.std() == 0:
+            if len(group_values) == 0:
                 continue
-            if rng is not None and len(group_values) > kde_max_samples:
+            aggregated_value = (
+                float(np.median(group_values))
+                if aggregate == "median"
+                else float(group_values.mean())
+            )
+            if group_values.std() == 0:
+                # No density to estimate: draw a flat line at the value, full width.
+                value_fraction = (group_values[0] - var_min) / value_span if value_span else 0.0
+                y_flat = (y_index - half_height) + value_fraction * height_scale
+                for px in (x_index + half_width_max, x_index - half_width_max):
+                    rows.append(
+                        {
+                            "polygon_id": polygon_id,
+                            "x": px,
+                            "y": y_flat,
+                            variable_column: var_key,
+                            group_by: group_key,
+                            aggregate_column: aggregated_value,
+                        }
+                    )
+                polygon_id += 1
+                continue
+            if (
+                rng is not None
+                and kde_max_samples is not None
+                and len(group_values) > kde_max_samples
+            ):
                 kde_input = group_values[
                     rng.choice(len(group_values), size=kde_max_samples, replace=False)
                 ]
@@ -941,11 +869,6 @@ def _compute_violin_polygons(
                     "its values are too uniform to estimate a density."
                 )
                 continue
-            aggregated_value = (
-                float(np.median(group_values))
-                if aggregate == "median"
-                else float(group_values.mean())
-            )
             kde_results[group_key] = (
                 y_index,
                 grid,
@@ -966,8 +889,8 @@ def _compute_violin_polygons(
             global_max = max(float(d.max()) for _, _, d, _, _ in kde_results.values())
             normalizers = dict.fromkeys(kde_results, global_max)
         else:
-            msg = f"scale must be one of 'area', 'count', 'width' (got {scale!r})"
-            raise ValueError(msg)
+            msg = f"`scale` must be one of 'area', 'count', 'width', got {scale!r}. Pick one of those."
+            raise InvalidArgumentError(msg)
 
         for group_key, (
             y_index,

@@ -10,7 +10,7 @@
 # set -euo pipefail
 
 REPLICAS=(1 2 3)
-SCRNA_DATASETS=(data/atlas200k.h5ad data/pbmc3k_pped.h5ad)
+SCRNA_DATASETS=(data/pbmc200k.h5ad data/pbmc3k_pped.h5ad)
 SPATIAL_DATASETS=(human_lymph_node visium_hne)
 GENE_COUNTS=(5 20 100 200)
 

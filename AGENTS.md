@@ -92,7 +92,10 @@ where future backends plug in. MuData routes through `frames/_container.py`.
   **what is accepted**, and **how to fix it** (a close match for typos:
   `key 'leidn' not found; did you mean 'leiden'?`).
 - Use the specific classes in `cellestial/util/errors.py` (they subclass the matching
-  builtin). Add a new class with a docstring when none fits; no bare `ValueError`.
+  builtin first, then `CellestialError`). Add a new class with a docstring when none
+  fits; no bare `ValueError`. A new class inherits `CellestialError` too
+  (`class XError(ValueError, CellestialError)`) and is re-exported from the public
+  `cellestial/errors.py` (`__all__`), which is the path users import from.
 - Fail early, before building the plot.
 - Tests assert on the error type and the key parts of the message (`tests/test_errors.py`).
 
@@ -140,6 +143,9 @@ Adding a plot = one file in the right `single/` subpackage + export in `__init__
 5. Bug-hunting sub agent. Fix confirmed bugs.
 6. Update `CHANGELOG.md` / `plans/audit_AI.md` if applicable.
 7. Format, test, commit, push.
+8. Work done in a separate session or worktree: when it is finished, merge its branch
+   into `dev`, run the full test suite on `dev`, push `dev`, then delete the stale
+   worktree and its merged branch.
 
 ## Commands
 

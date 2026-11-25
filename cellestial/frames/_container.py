@@ -12,9 +12,11 @@ from mudata import MuData
 from scipy.sparse import issparse
 
 from cellestial.util.errors import (
+    AmbiguousColumnError,
     AmbiguousVariableError,
     KeyNotFoundError,
     VariableNotFoundError,
+    _did_you_mean,
     _unsupported_data_type,
 )
 
@@ -172,8 +174,29 @@ class _Container:
         """
         if key not in self._data.var_names:
             msg = f"Keys not found in variable names: [{key!r}]"
+            hint = _did_you_mean(key, self._data.var_names)
+            if hint:
+                msg += f". {hint}"
             raise VariableNotFoundError(msg)
         return None, key
+
+    @staticmethod
+    def _require_matrix(part: AnnData | MuData, keys: Sequence[str], where: str) -> None:
+        """
+        Reject reading variables from an object that has no main expression matrix.
+
+        Raises
+        ------
+        KeyNotFoundError
+            If the main matrix is absent (values only stored elsewhere).
+        """
+        if keys and part.X is None:
+            msg = (
+                f"Cannot read variables {list(keys)!r}: {where} has no main expression "
+                "matrix. Store the values to plot as the main matrix (e.g. copy a layer "
+                "into it) and try again."
+            )
+            raise KeyNotFoundError(msg)
 
     @staticmethod
     def _require_unique_variables(names: pd.Index, keys: Sequence[str], where: str) -> None:
@@ -211,16 +234,22 @@ class _Container:
             If any key is not present in the variable names.
         AmbiguousVariableError
             If any key matches more than one variable.
+        KeyNotFoundError
+            If the data object has no main expression matrix.
         """
         missing = [key for key in keys if key not in self._data.var_names]
         if missing:
             msg = f"Keys not found in variable names: {missing}"
+            hint = _did_you_mean(missing, self._data.var_names)
+            if hint:
+                msg += f". {hint}"
             raise VariableNotFoundError(msg)
         self._require_unique_variables(self._data.var_names, keys, "the data")
+        self._require_matrix(self._data, keys, "the data")
 
         # Index `X` directly: an AnnData view also slices `.raw`, copying all of it.
-        positions = self._data.var_names.get_indexer_for(keys)
-        matrix = self._data.X[:, positions]
+        positions = self._data.var_names.get_indexer_for(list(keys))
+        matrix = self._data.X[:, positions]  # ty: ignore[not-subscriptable]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         else:
@@ -257,6 +286,9 @@ class _MuDataContainer(_Container):
             modality = available[0]
         elif modality not in self._data.mod:
             msg = f"Unknown modality `{modality}`. Available: {available}."
+            hint = _did_you_mean(modality, available)
+            if hint:
+                msg += f" {hint}"
             raise KeyNotFoundError(msg)
         part = self._data.mod[modality]
         if not isinstance(part, AnnData):
@@ -268,14 +300,40 @@ class _MuDataContainer(_Container):
         """
         Return `column` as the selected modality names it.
 
+        Raises
+        ------
+        AmbiguousColumnError
+            If a bare `column` names both a container column and a column of
+            the modality.
+
         Notes
         -----
         A container carries modality columns prefixed as `modality:column`,
         while the modality itself holds them unprefixed. Callers that hand a
-        container-level column name to a single modality translate it here.
+        container-level column name to a single modality translate it here. A
+        bare name the container also holds is its own column, unrelated to the
+        modality's, so translating it would pair one column's groups with
+        results computed on another.
         """
+        if modality is None and len(self._data.mod) == 1:
+            modality = next(iter(self._data.mod))  # the one `select_modality` picks
         prefix = f"{modality}:"
-        return column.removeprefix(prefix) if column.startswith(prefix) else column
+        if column.startswith(prefix):
+            return column.removeprefix(prefix)
+        if (
+            column in self._data.obs.columns
+            and modality in self._data.mod
+            and column in self._data.mod[modality].obs.columns
+        ):
+            msg = (
+                f"`group_by={column!r}` is ambiguous: the container has its own `{column}` "
+                f"column and modality `{modality}` has another one. Results stored in the "
+                f"modality (rankings, dendrograms) describe the modality's column, so pass "
+                f"`group_by='{prefix}{column}'`. The container's `{column}` cannot be used "
+                "with results stored in a modality."
+            )
+            raise AmbiguousColumnError(msg)
+        return column
 
     def container_column(self, modality: str | None, column: str) -> str:
         """
@@ -284,7 +342,8 @@ class _MuDataContainer(_Container):
         Raises
         ------
         KeyNotFoundError
-            If the column has no counterpart on the container.
+            If the column has no counterpart on the container, or `modality` is
+            omitted on an object with several modalities.
 
         Notes
         -----
@@ -294,6 +353,14 @@ class _MuDataContainer(_Container):
         preferring the bare name would silently group results by the wrong
         clustering.
         """
+        if modality is None:
+            if len(self._data.mod) != 1:
+                msg = (
+                    "`modality` is required for this data object. "
+                    f"Available: {self.modality_names()}."
+                )
+                raise KeyNotFoundError(msg)
+            modality = next(iter(self._data.mod))  # the one `select_modality` picks
         qualified = f"{modality}:{column}"
         columns = self._data.obs.columns
         if qualified in columns:
@@ -365,11 +432,19 @@ class _MuDataContainer(_Container):
         if not owners:
             if is_qualified:
                 msg = f"`{name}` not found in the variable names of modality `{modality}`."
+                hint = _did_you_mean(name, self._data.mod[modality].var_names)
+                if hint:
+                    msg += f" {hint}"
                 raise VariableNotFoundError(msg)
             msg = (
                 f"Keys not found in variable names: [{key!r}]. "
                 f"Searched modalities: {self.modality_names()}."
             )
+            hint = _did_you_mean(
+                key, [name for part in self._data.mod.values() for name in part.var_names]
+            )
+            if hint:
+                msg += f" {hint}"
             raise VariableNotFoundError(msg)
         if len(owners) > 1:
             qualified = [f"{owner}:{key}" for owner in owners]
@@ -394,7 +469,8 @@ class _MuDataContainer(_Container):
         modality, name = self.resolve_variable(key)
         part = self._data.mod[modality]
         self._require_unique_variables(part.var_names, [name], f"modality `{modality}`")
-        matrix = part.X[:, part.var_names.get_indexer_for([name])]
+        self._require_matrix(part, [name], f"modality `{modality}`")
+        matrix = part.X[:, part.var_names.get_indexer_for([name])]  # ty: ignore[not-subscriptable]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
         values = np.asarray(matrix).reshape(-1)

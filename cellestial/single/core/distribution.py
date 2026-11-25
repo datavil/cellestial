@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-__lazy_modules__ = ["anndata", "ggrust.plot.core", "mudata"]
+__lazy_modules__ = ["anndata", "ggrust", "ggrust.plot.core", "mudata"]
 
 from typing import TYPE_CHECKING, Any, Literal
 
 from anndata import AnnData
+from ggrust import element_text, theme
 from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.single.core.utilities import _distribution
+from cellestial.util import _reject_sequence_key
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -136,8 +138,10 @@ def violin(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
-    ValueError
-        If `point_geom` is not one of the supported point geoms.
+    InvalidArgumentError
+        If `point_geom` is not one of the supported point geoms, if `mapping`
+        sets `x` or `y`, which the function sets itself, or if `key` is not
+        numeric or is also the `group_by` / `color` / `fill` column.
 
     Examples
     --------
@@ -149,7 +153,7 @@ def violin(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = (
             cl.violin(
@@ -178,7 +182,7 @@ def violin(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = (
             cl.violin(
@@ -208,7 +212,7 @@ def violin(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = (
             cl.violin(
@@ -377,8 +381,10 @@ def boxplot(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
-    ValueError
-        If `point_geom` is not one of the supported point geoms.
+    InvalidArgumentError
+        If `point_geom` is not one of the supported point geoms, if `mapping`
+        sets `x` or `y`, which the function sets itself, or if `key` is not
+        numeric or is also the `group_by` / `color` / `fill` column.
 
     Examples
     --------
@@ -390,7 +396,7 @@ def boxplot(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         boxplot = (
             cl.boxplot(
@@ -417,7 +423,7 @@ def boxplot(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         boxplot = (
             cl.boxplot(
@@ -445,7 +451,7 @@ def boxplot(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         boxplot = (
             cl.boxplot(
@@ -495,7 +501,7 @@ def boxplot(
 
 def histogram(
     data: AnnData | MuData,
-    key: str | Sequence[str],
+    key: str,
     *,
     frame: DataFrame | None = None,
     group_by: str | None = None,
@@ -526,8 +532,8 @@ def histogram(
     ----------
     data : AnnData | MuData
         The single-cell data object.
-    key : str | Sequence[str]
-        The key(s) to get the values (numerical).
+    key : str
+        The key to get the values (numerical).
         e.g., 'total_counts' or a gene name.
     frame : DataFrame | None, default=None
         A prebuilt frame to plot from. If provided, the frame is used directly and
@@ -594,6 +600,11 @@ def histogram(
     ------
     UnsupportedDataTypeError
         If `data` is not a supported single-cell data object.
+    TypeError
+        If `key` is a sequence of keys; use `histograms` for multiple keys.
+    InvalidArgumentError
+        If `mapping` sets `x`, which holds the values of `key`, or if `key` is
+        not numeric or is also the `group_by` / `color` / `fill` column.
 
     Examples
     --------
@@ -605,7 +616,7 @@ def histogram(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         histogram = (
             cl.histogram(data, "n_genes_by_counts", bins=50)
@@ -625,11 +636,12 @@ def histogram(
 
         histogram
     """
+    _reject_sequence_key(key, singular="histogram", plural="histograms")
     if bins is not None:
         geom_kwargs.setdefault("bins", bins)
     if binwidth is not None:
         geom_kwargs.setdefault("binwidth", binwidth)
-    return _distribution(
+    plot = _distribution(
         data=data,
         key=key,
         frame=frame,
@@ -654,3 +666,5 @@ def histogram(
         variable_column=variable_column,
         **geom_kwargs,
     )
+    # The value is on the x-axis, so it keeps the title the distribution theme blanks.
+    return plot + theme(axis_title_x=element_text())

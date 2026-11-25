@@ -24,6 +24,7 @@ from ggrust.plot.core import FeatureSpec, PlotSpec
 from mudata import MuData
 
 from cellestial.frames import build_frame
+from cellestial.layers.utilities import _reject_mapping_clash
 from cellestial.themes import _THEME_DIST
 from cellestial.util import (
     _collect_aes_columns,
@@ -35,7 +36,7 @@ from cellestial.util import (
     _validate_tooltips,
     _warn,
 )
-from cellestial.util.errors import _unsupported_data_type
+from cellestial.util.errors import InvalidArgumentError, _unsupported_data_type
 
 if TYPE_CHECKING:
     from ggrust.plot.core import PlotSpec
@@ -78,6 +79,22 @@ def _distribution(
         raise _unsupported_data_type(data, AnnData, MuData)
 
     # HANDLE: mapping
+    value_axis = {"x": "the values of `key`"}
+    if geom != "histogram":
+        value_axis = {"x": "`group_by`", "y": "the values of `key`"}
+    _reject_mapping_clash(mapping, function=geom, set_by=value_axis)
+    if points:
+        _reject_mapping_clash(
+            point_mapping,
+            function=geom,
+            set_by={"x": "`group_by`", "y": "the values of `key`"},
+        )
+        if point_geom not in ("jitter", "point", "sina"):
+            msg = (
+                "`point_geom` must be one of ['jitter', 'point', 'sina'], "
+                f"but received {point_geom!r}."
+            )
+            raise InvalidArgumentError(msg)
     mapping = mapping or aes()
     point_mapping = point_mapping or aes()
 
@@ -101,6 +118,20 @@ def _distribution(
     # handle value_column if single key is provided
     if len(keys) == 1:
         value_column = keys[0]
+
+    # the values are unpivoted out of `keys`, so a key cannot also group the rows
+    for parameter, column in (
+        ("group_by", group_by),
+        ("color", mapping_color),
+        ("fill", mapping_fill),
+    ):
+        if column in keys:
+            msg = (
+                f"`key` {column!r} is also the `{parameter}` column; a key holds the "
+                f"values to plot and cannot group them as well.\nPass a numeric key "
+                f"(an observation column or a gene) and a categorical `{parameter}`."
+            )
+            raise InvalidArgumentError(msg)
 
     # determine separator (group_by)
     group_by = group_by or mapping_fill or mapping_color
@@ -183,12 +214,33 @@ def _distribution(
         frame, data=data, color=mapping_color, fill=mapping_fill, group_by=group_by
     )
 
+    # booleans plot as 0 / 1, as they did before this check existed
+    non_numeric = [
+        key
+        for key in keys
+        if not (frame[key].dtype.is_numeric() or frame[key].dtype == pl.Boolean)
+    ]
+    if non_numeric:
+        msg = (
+            f"`key` {non_numeric[0]!r} is not numeric ({frame[non_numeric[0]].dtype}); "
+            f"a {geom} plots numeric values.\nPass a numeric observation column or a "
+            "gene as `key`, and a categorical column as `group_by`."
+        )
+        raise InvalidArgumentError(msg)
+
     if group_by is not None:
         frame = frame.filter(pl.col(group_by).is_not_null())
 
     # HANDLE: groups / drop filters (categorical-only) on the grouping column
     if group_by is not None:
         frame = _filter_groups(frame, column=group_by, groups=groups, drop=drop)
+    else:
+        for parameter, value in (("groups", groups), ("drop", drop)):
+            if value is not None:
+                _warn(
+                    f"`{parameter}` filters the `group_by` column, but no `group_by` "
+                    f"was given; `{parameter}` filter ignored. Pass `group_by=` to use it."
+                )
 
     # unpivot into a temporary name: for a single key `value_column` equals the key,
     # which polars >= 1.44 rejects as a duplicate column
@@ -260,37 +312,33 @@ def _distribution(
 
     # handle the points (jitter,point,sina)
     if points:
-        if point_geom in ["jitter", "point", "sina"]:
-            geom_functions = {
-                "jitter": geom_jitter,
-                "point": geom_point,
-                "sina": geom_sina,
-            }
-            dodge_width = geom_kwargs.get("width", 0.95)
-            positions = {
-                "jitter": position_jitterdodge(dodge_width=dodge_width),
-                "point": position_dodge(width=dodge_width),
-                "sina": None,
-            }
-            geom_function = geom_functions.get(point_geom, geom_jitter)
-            if "position" not in point_kwargs:
-                position = positions.get(point_geom, position_jitterdodge())
-            else:
-                position = point_kwargs.pop("position")
-
-            point_kwargs.update(color=point_color, alpha=point_alpha, size=point_size)
-            for key in point_mapping.as_dict():
-                point_kwargs.pop(key, None)
-            dst += geom_function(
-                data=frame,
-                mapping=aes(x=group_by, y=value_column, **point_mapping.as_dict()),
-                tooltips=tooltips,
-                position=position,
-                **point_kwargs,
-            )
+        geom_functions = {
+            "jitter": geom_jitter,
+            "point": geom_point,
+            "sina": geom_sina,
+        }
+        dodge_width = geom_kwargs.get("width", 0.95)
+        positions = {
+            "jitter": position_jitterdodge(dodge_width=dodge_width),
+            "point": position_dodge(width=dodge_width),
+            "sina": None,
+        }
+        geom_function = geom_functions.get(point_geom, geom_jitter)
+        if "position" not in point_kwargs:
+            position = positions.get(point_geom, position_jitterdodge())
         else:
-            msg = "point_geom must be one of ['jitter','point','sina']."
-            raise ValueError(msg)
+            position = point_kwargs.pop("position")
+
+        point_kwargs.update(color=point_color, alpha=point_alpha, size=point_size)
+        for key in point_mapping.as_dict():
+            point_kwargs.pop(key, None)
+        dst += geom_function(
+            data=frame,
+            mapping=aes(x=group_by, y=value_column, **point_mapping.as_dict()),
+            tooltips=tooltips,
+            position=position,
+            **point_kwargs,
+        )
 
     # handle interactive
     if interactive:
