@@ -221,6 +221,12 @@ change. Versions absent from the list were never released.
 
 ### Changed
 
+- pandas 3 is supported on Python 3.12 and later (`pandas>=2.2.3,<4`, was
+  `<3`), together with anndata 0.13. Python 3.11 keeps `pandas<3`, since
+  anndata 0.13 needs Python 3.12.
+- The `spatial` extra needs `spatialdata>=0.8` on Python 3.12 and later (was
+  `>=0.7`): spatialdata 0.7 fails to validate tables on pandas 3. Python 3.11
+  keeps `spatialdata>=0.7,<0.8`, since spatialdata 0.8 needs Python 3.12.
 - The per-cell `heatmap(aggregate=False, dendrogram=True)` draws the group
   dendrogram with ggrust's axis tree (each leaf spanning its group's rows) in a
   band right of the panel, instead of a path layer inside it.

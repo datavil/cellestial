@@ -248,7 +248,7 @@ class _Container:
         self._require_matrix(self._data, keys, "the data")
 
         # Index `X` directly: an AnnData view also slices `.raw`, copying all of it.
-        positions = self._data.var_names.get_indexer_for(keys)
+        positions = self._data.var_names.get_indexer_for(list(keys))
         matrix = self._data.X[:, positions]  # ty: ignore[not-subscriptable]
         if issparse(matrix):
             matrix = matrix.toarray()  # ty:ignore[unresolved-attribute]
