@@ -1,7 +1,7 @@
 # Math Audit: Remaining Fixes
 
 > **Status: planned.** Findings 1 to 6 of the 2026-08-05 audit of mathematical
-> transformations are fixed and shipped in `## [Unreleased]`; see `CHANGELOG.md`
+> transformations are fixed and shipped in 1.0.0; see `CHANGELOG.md`
 > and the regression tests in `tests/test_audit_regressions.py`. The four items
 > below are what is left. Numbering follows the original audit so it maps to the
 > report.
@@ -13,9 +13,16 @@ Ordered by impact: 7 changes what half of all bracket labels say, 10 draws wrong
 geometry silently, 8 needs a product decision before any code. 9 is resolved,
 kept below for the reasoning.
 
+Status 2026-11-25 (1.0.0): 7 and 10 are resolved, kept below for the reasoning.
+Only the open question in 8 (the default) remains.
+
 ---
 
-## 7. `p = 0` is printed as a value
+## 7. `p = 0` is printed as a value (RESOLVED)
+
+`bracket(label="pvalue")` now hands the adjusted p-value to the backend's
+`p.format` label, which prints an underflowed p-value as `<2e-16` (checked
+2026-11-25 on pbmc3k LYZ by `cell_type_lvl1`: three pairs show `<2e-16`).
 
 **Problem.** `scipy` returns a flat `0.0` once a p-value underflows double
 precision. No test yields a true zero, but with the default `prefix_style="="`
@@ -185,7 +192,12 @@ greyscale image luminance, so this needs its own name.
 
 ---
 
-## 10. Polygon holes are merged into the exterior ring
+## 10. Polygon holes are merged into the exterior ring (RESOLVED)
+
+`_polygon_vertex_frame` lists the exterior ring, then each hole, with rings
+oriented so holes are drawn as holes (`CHANGELOG.md`, 1.0.0). Left to ggrust:
+the outline still draws a connecting line from the exterior to each hole until
+ggrust splits polygon rings.
 
 **Problem.** `_polygon_vertex_frame` in `cellestial/spatial/utilities.py:191`
 calls `shapely.get_coordinates(geoms)`, which concatenates interior ring

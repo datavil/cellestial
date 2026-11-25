@@ -7,7 +7,7 @@ Entries for 0.58.2 and earlier were reconstructed from the commit history after
 the fact, so they summarize each release in a line or two rather than list every
 change. Versions absent from the list were never released.
 
-## [Unreleased]
+## [1.0.0] - 2026-11-25
 
 ### Breaking
 

@@ -1,6 +1,6 @@
 [project]
 name = "cellestial"
-version = "0.62.1"
+version = "1.0.0"
 description = "Interactive single-cell and spatial omics visualization library"
 authors = [
     { name = "Zaf4", email = "zafermolbio@gmail.com" },
@@ -18,7 +18,7 @@ keywords = [
     "spatial-omics",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
