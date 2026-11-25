@@ -168,7 +168,7 @@ def blend(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.blend(data, keys=("CD3E", "CD8A"))
 

@@ -58,14 +58,14 @@ def _resolve_cache_file(
     return cache_file
 
 
-def pbmc3k(
+def bone_marrow(
     cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
     *,
     use_cache: bool = True,
     bring: bool = True,
 ) -> AnnData:
     """
-    Download and load the preprocessed pbmc3k dataset.
+    Download and load the preprocessed human bone marrow dataset.
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def pbmc3k(
     Returns
     -------
     AnnData
-        The preprocessed pbmc3k dataset.
+        The preprocessed bone marrow dataset.
 
     Raises
     ------
@@ -91,15 +91,17 @@ def pbmc3k(
 
     Notes
     -----
-    Despite the name, the cells are the bone marrow multiome sample (`s1d1`,
-    `s1d3`) used in the scanpy "Preprocessing and clustering" tutorial. The
+    About 17,000 bone marrow mononuclear cells from two samples (`s1d1`, `s1d3`)
+    of healthy donors, measured with 10x Multiome (gene expression only). They
+    come from the NeurIPS 2021 benchmarking dataset (Luecken et al., 2021) and
+    are the cells of the scanpy "Preprocessing and clustering" tutorial. The
     `cell_type_lvl1` labels follow that tutorial's coarse annotation of the
     `leiden_res_0.02` clusters: Lymphocytes, Monocytes, B Cells and Erythroid.
     """
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/pbmc3k/resolve/main/pbmc3k_pped_v2.h5ad",
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/bone_marrow_pped.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,
@@ -141,7 +143,7 @@ def pancreas(
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/pancreas/resolve/main/endocrinogenesis_day15_pped.h5ad",
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/endocrinogenesis_day15_pped.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,
@@ -474,7 +476,7 @@ def human_lymph_node(
     return cast(
         "AnnData",
         from_url(
-            "https://huggingface.co/datasets/datavil/human_lymph_node/resolve/main/V1_Human_Lymph_Node_pped.h5ad",
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/V1_Human_Lymph_Node_pped.h5ad",
             cache_directory=cache_directory,
             use_cache=use_cache,
             bring=bring,

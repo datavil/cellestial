@@ -57,7 +57,7 @@ def save(
     --------
     >>> import tempfile
     >>> import cellestial as cl
-    >>> adata = cl.datasets.pbmc3k(cache_directory="data")
+    >>> adata = cl.datasets.bone_marrow(cache_directory="data")
     >>> plot = cl.umap(adata, "leiden")
     >>> folder = tempfile.mkdtemp()
     >>> output = cl.save(plot, "umap.png", path=folder)

@@ -145,7 +145,7 @@ def layout(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         first = cl.umap(data, key="CD14", axis_type="arrow")
         second = cl.tsne(data, key="MALAT1", axis_type="arrow")
@@ -226,7 +226,7 @@ def get_figure(grid: SupPlotsSpec, index: int) -> PlotSpec | SupPlotsSpec:
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         grid = cl.expressions(
             data,
@@ -304,7 +304,7 @@ def get_figures(grid: SupPlotsSpec, indices: Sequence[int], **kwargs) -> SupPlot
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         grid = cl.expressions(
             data,
@@ -363,7 +363,7 @@ def get_mapping(plot: PlotSpec, *, index: int = 0) -> dict:
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
         cl.get_mapping(umap)
@@ -410,7 +410,7 @@ def retrieve(plot: PlotSpec | SupPlotsSpec, index: int = 0) -> DataFrame:
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         umap = cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
         cl.retrieve(umap).head()

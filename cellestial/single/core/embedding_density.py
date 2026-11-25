@@ -158,7 +158,7 @@ def embedding_density(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.embedding_density(data)
 

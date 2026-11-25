@@ -27,7 +27,7 @@ CLUSTER_KEY = "leiden"
 
 @pytest.fixture(scope="session")
 def adata():
-    return cl.datasets.pbmc3k()
+    return cl.datasets.bone_marrow()
 
 
 @pytest.fixture(scope="session")

@@ -8,7 +8,7 @@
 - [Project: Cellestial function inventory](project_cellestial_functions.md) — What every function does: frames, single plots, layers, util, themes
 - [Project: Cellestial tooling](project_cellestial_tooling.md) — Uses Poetry (not uv/pip) for deps and running commands
 - [Project: Cellestial code patterns](project_cellestial_patterns.md) — Naming conventions, parameter patterns, singular/plural pairs, type annotations, data transformation patterns
-- [Feedback: Test code changes](feedback_test_code.md) — Run actual test code against data/pbmc3k_pped.h5ad before reporting success
+- [Feedback: Test code changes](feedback_test_code.md) — Run actual test code (load data via cl.datasets.bone_marrow(cache_directory="data")) before reporting success
 
 - [Feedback: Sync repo MEMORY.md](feedback_sync_repo_memory.md) — Mirror every auto-memory change in repo's `MEMORY.md` (index line + inlined source block)
 - [Feedback: Avoid shortened variable names](feedback_naming.md) — No abbreviations like `grp_idx`/`obs`/`cfg`; use full words (only `n`-style counts OK)
@@ -35,7 +35,7 @@
 - [Project: Math audit open findings](project_math_audit_open_findings.md) — 2026-08-05 audit of volcano/bracket/KDE/spatial math; 4 defects fixed, 6 open items listed
 - [Feedback: Refactors preserve behavior](feedback_refactor_preserves_behavior.md) — Helper extraction/refactor must keep behavior identical (rows, dtypes, messages); behavior changes only for bugs, proposed separately
 - [Project: ggrust tile width is relative](project_ggrust_tile_width_relative.md) — geom_tile width/height are fractions of data resolution, not data units; omit them for touching tiles
-- [Project: pbmc3k labels fixed](project_pbmc3k_labels.md): Bundled pbmc3k is bone marrow; swapped/null cell_type_lvl1 labels fixed in pbmc3k_pped_v2.h5ad (scanpy tutorial mapping), old caches still wrong
+- [Project: bone_marrow dataset (was pbmc3k)](project_pbmc3k_labels.md): Bundled dataset is bone marrow; loader renamed pbmc3k -> bone_marrow (no alias), labels fixed with the scanpy tutorial mapping
 - [Project: build_frame categoricals are pl.Enum](project_build_frame_enum.md) — Source category order via pl.Enum; accept Enum in dtype checks, cast to String before string compares/joins
 - [Feedback: Quick plots keep default fill](feedback_quick_plots_keep_default_fill.md) — `highest_expressed_genes` keeps per-gene fill; no-promotion rule not applied to convenience plots
 - [Project: Layer 0 carries the mapping](project_layer_zero_mapping.md) — Deferred `+` layers read aesthetics from layer 0; underlays (e.g. `outline=True`) must carry the main mapping with constants overriding
@@ -267,7 +267,7 @@ type: feedback
 
 Test code changes by running them against the actual dataset before reporting success.
 
-**Why:** User called out that I should have tested the code myself instead of just checking syntax. The project has test data at `data/pbmc3k_pped.h5ad`.
+**Why:** User called out that I should have tested the code myself instead of just checking syntax. Load the test data with `cl.datasets.bone_marrow(cache_directory="data")`.
 
 **How to apply:** After implementing changes to plot functions, run the user's example code (or a minimal equivalent) via Bash to confirm it executes without error. Don't rely on syntax checks or linting alone.
 
@@ -1009,7 +1009,7 @@ Two ggrust 0.8 limits that shaped `cl.tracksplot` (issue #73, 2026-11-08):
 
 ---
 name: project-pbmc3k-labels
-description: "Bundled pbmc3k is bone marrow; its swapped/null cell_type_lvl1 labels were fixed 2026-11-22 in pbmc3k_pped_v2.h5ad (scanpy tutorial mapping)"
+description: "Bundled dataset is bone marrow (loader renamed pbmc3k -> bone_marrow 2026-11-25); its swapped/null cell_type_lvl1 labels were fixed 2026-11-22 (scanpy tutorial mapping)"
 metadata:
   node_type: memory
   type: project
@@ -1017,7 +1017,7 @@ metadata:
   modified: 2026-11-22T20:30:00.000Z
 ---
 
-`cl.datasets.pbmc3k()` (17041 cells, samples s1d1/s1d3) is the bone marrow sample of the scanpy "Preprocessing and clustering" tutorial, not PBMC. Its `cell_type_lvl1` used to be wrong: `test/get_data.py` mistyped the tutorial mapping of `leiden_res_0.02` (clusters 2 "B Cells" and 3 "Erythroid" swapped, cluster 4 left null). Fixed 2026-11-22: the loader now downloads `pbmc3k_pped_v2.h5ad` (built by `scripts/fix_pbmc3k_labels.py`) with scanpy's mapping {0: Lymphocytes, 1: Monocytes, 2: B Cells, 3: Erythroid, 4: Erythroid}, no null labels. Record: `plans/pbmc3k_labels.md`. The loader name `pbmc3k` is still an open decision (`plans/v1_api_review.md` F19/E2).
+`cl.datasets.bone_marrow()` (renamed from `pbmc3k` on 2026-11-25, no alias; file `bone_marrow_pped.h5ad`, hosted in the datavil/cellestial-datasets Hugging Face repo with the other bundled datasets) (17041 cells, samples s1d1/s1d3) is the bone marrow sample of the scanpy "Preprocessing and clustering" tutorial, not PBMC. Its `cell_type_lvl1` used to be wrong: `test/get_data.py` mistyped the tutorial mapping of `leiden_res_0.02` (clusters 2 "B Cells" and 3 "Erythroid" swapped, cluster 4 left null). Fixed 2026-11-22: the loader now downloads `pbmc3k_pped_v2.h5ad` (built by `scripts/fix_pbmc3k_labels.py`) with scanpy's mapping {0: Lymphocytes, 1: Monocytes, 2: B Cells, 3: Erythroid, 4: Erythroid}, no null labels. Record: `plans/pbmc3k_labels.md`.
 
 **Why:** Old caches (`pbmc3k_pped.h5ad`) still carry the wrong labels and 1767 null cells; the versioned file name is what moves users off them.
 

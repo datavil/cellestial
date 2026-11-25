@@ -290,7 +290,7 @@ def dimensionals(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.dimensionals(
             data,
@@ -643,7 +643,7 @@ def umaps(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umaps(
             data,
@@ -994,7 +994,7 @@ def tsnes(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsnes(
             data,
@@ -1344,7 +1344,7 @@ def pcas(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pcas(
             data,
@@ -1688,7 +1688,7 @@ def expressions(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.expressions(
             data,

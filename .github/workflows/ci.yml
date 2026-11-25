@@ -59,14 +59,14 @@ jobs:
       - name: Install project
         run: poetry install --with dev --without docs --no-interaction
 
-      - name: Cache preprocessed pbmc3k fixture
+      - name: Cache preprocessed bone marrow fixture
         uses: actions/cache@v4
         with:
-          path: ~/.cache/cellestial/datasets/pbmc3k_pped.h5ad
-          key: pbmc3k-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
+          path: ~/.cache/cellestial/datasets/bone_marrow_pped.h5ad
+          key: bone_marrow-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
 
       - name: Prepare test fixture
-        run: poetry run python -c "import cellestial as cl; cl.datasets.pbmc3k()"
+        run: poetry run python -c "import cellestial as cl; cl.datasets.bone_marrow()"
 
       - name: Run tests with coverage
         run: poetry run pytest -m "not browser"
@@ -111,14 +111,14 @@ jobs:
       - name: Install Chromium
         run: poetry run playwright install --with-deps chromium
 
-      - name: Cache preprocessed pbmc3k fixture
+      - name: Cache preprocessed bone marrow fixture
         uses: actions/cache@v4
         with:
-          path: ~/.cache/cellestial/datasets/pbmc3k_pped.h5ad
-          key: pbmc3k-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
+          path: ~/.cache/cellestial/datasets/bone_marrow_pped.h5ad
+          key: bone_marrow-${{ runner.os }}-${{ hashFiles('cellestial/datasets/datasets.py') }}
 
       - name: Prepare test fixture
-        run: poetry run python -c "import cellestial as cl; cl.datasets.pbmc3k()"
+        run: poetry run python -c "import cellestial as cl; cl.datasets.bone_marrow()"
 
       - name: Run browser rendering tests
         run: poetry run pytest tests/test_browser_plots.py -m browser -n 2 --no-cov

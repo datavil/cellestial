@@ -58,12 +58,12 @@
     "xyplots": [["data", "POSITIONAL_OR_KEYWORD", null], ["x", "POSITIONAL_OR_KEYWORD", null], ["y", "POSITIONAL_OR_KEYWORD", null], ["mapping", "KEYWORD_ONLY", "None"], ["axis", "KEYWORD_ONLY", "None"], ["add_keys", "KEYWORD_ONLY", "None"], ["tooltips", "KEYWORD_ONLY", "None"], ["interactive", "KEYWORD_ONLY", "False"], ["observation_id_column", "KEYWORD_ONLY", "'Barcode'"], ["variable_id_column", "KEYWORD_ONLY", "'Variable'"], ["include_dimensions", "KEYWORD_ONLY", "False"], ["layers", "KEYWORD_ONLY", "None"], ["ncol", "KEYWORD_ONLY", "None"], ["sharex", "KEYWORD_ONLY", "None"], ["sharey", "KEYWORD_ONLY", "None"], ["widths", "KEYWORD_ONLY", "None"], ["heights", "KEYWORD_ONLY", "None"], ["hspace", "KEYWORD_ONLY", "None"], ["vspace", "KEYWORD_ONLY", "None"], ["fit", "KEYWORD_ONLY", "None"], ["align", "KEYWORD_ONLY", "None"], ["guides", "KEYWORD_ONLY", "'auto'"], ["geom_color", "KEYWORD_ONLY", "None"], ["geom_fill", "KEYWORD_ONLY", "None"], ["geom_kwargs", "VAR_KEYWORD", null]]
   },
   "cellestial.datasets": {
+    "bone_marrow": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "breast_cancer_atlas": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "from_cellxgene": [["source", "POSITIONAL_OR_KEYWORD", null], ["name", "KEYWORD_ONLY", "None"], ["cache_directory", "KEYWORD_ONLY", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "from_url": [["url", "POSITIONAL_OR_KEYWORD", null], ["name", "KEYWORD_ONLY", "None"], ["cache_directory", "KEYWORD_ONLY", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"], ["extension", "KEYWORD_ONLY", "'.h5ad'"]],
     "human_lymph_node": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "pancreas": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
-    "pbmc3k": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "pbmc_cite": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]]
   }
 }

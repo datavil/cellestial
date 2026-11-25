@@ -187,7 +187,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -200,7 +200,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -210,7 +210,7 @@ def umap(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data,key="leiden") + cl.highlight(["0","3"])
 
@@ -425,7 +425,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsne(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -438,7 +438,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsne(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -448,7 +448,7 @@ def tsne(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.tsne(data,key="leiden") + cl.highlight(["0","3"])
 
@@ -663,7 +663,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pca(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -676,7 +676,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pca(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -686,7 +686,7 @@ def pca(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.pca(data,key="leiden") + cl.highlight(["0","3"])
 
@@ -898,7 +898,7 @@ def expression(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.expression(data,key="CD14",axis_type="arrow",color_high="red")
 

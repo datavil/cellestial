@@ -370,3 +370,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `umaps`, `pcas`, `tsnes`, `dimensionals`, `expressions`, `violins`, `boxplots`, `histograms`, `spatials`, `volcanos`, `markers` (`share_*` through `gggrid(axes="collect", axis_titles="collect")`; `_share_axis`, `_share_labels`, `_share_ticks`, `_grid_places` removed) | Claude Opus 5.5 |  |
 | `_fixed_cell_layout` (`key_group_labels`, verification pass for short canvases) | Claude Opus 5.5 |  |
 | `dotplot`, `stacked_violin` (`rectangle=False` axis lines after the theme preset) | Claude Opus 5.5 |  |
+| `bone_marrow` (renamed from `pbmc3k`, docstring and download URL) | Claude Opus 5.5 |  |

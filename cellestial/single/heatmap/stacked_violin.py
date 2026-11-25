@@ -269,7 +269,7 @@ def stacked_violin(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         markers = ["C1QA", "PSAP", "CD79A", "CD79B", "CST3", "LYZ"]
 

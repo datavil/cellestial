@@ -895,8 +895,8 @@ def _assert_binning_matches_reference(frame: pl.DataFrame, **kwargs: object) -> 
 
 
 @pytest.mark.parametrize("max_rows", [1, 7, 100, 999])
-def test_bin_within_groups_matches_reference_on_pbmc3k(adata, markers, cluster_key, max_rows):
-    """Binning matches the reference implementation on pbmc3k."""
+def test_bin_within_groups_matches_reference_on_bone_marrow(adata, markers, cluster_key, max_rows):
+    """Binning matches the reference implementation on the bone marrow data."""
     frame = pl.DataFrame(
         {
             "observation_id": adata.obs_names.to_list(),

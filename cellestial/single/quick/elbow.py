@@ -118,7 +118,7 @@ def elbow(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         sc.tl.pca(data)
 
         cl.elbow(data)

@@ -87,7 +87,7 @@ def scatter(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.scatter(
             data,
@@ -105,7 +105,7 @@ def scatter(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
 
         cl.scatter(
@@ -123,7 +123,7 @@ def scatter(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
 
         cl.scatter(

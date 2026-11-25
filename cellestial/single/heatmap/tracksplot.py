@@ -222,7 +222,7 @@ def tracksplot(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
         cl.tracksplot(data, keys=["CD3D", "MS4A1", "LYZ", "NKG7"], group_by="leiden")
 
     Color the tracks by group and draw them as areas.

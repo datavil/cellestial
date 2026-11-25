@@ -11,6 +11,12 @@ change. Versions absent from the list were never released.
 
 ### Breaking
 
+- `datasets.pbmc3k` is renamed to `datasets.bone_marrow`. The data was never
+  the 10x pbmc3k: it is about 17,000 bone marrow mononuclear cells (samples
+  `s1d1`, `s1d3`) from the scanpy "Preprocessing and clustering" tutorial.
+  Same cells and labels; the file is now `bone_marrow_pped.h5ad`, so it is
+  downloaded once more. `pbmc3k` raises `AttributeError`. Migration:
+  `cl.datasets.pbmc3k(...)` -> `cl.datasets.bone_marrow(...)`.
 - `anndata_observations_frame`, `anndata_variables_frame` and
   `anndata_variable_columns` are no longer exported from `cellestial.frames`
   (now private helpers), and `DeferredLayer` is no longer exported from
@@ -221,6 +227,9 @@ change. Versions absent from the list were never released.
 
 ### Changed
 
+- The bundled datasets (`bone_marrow`, `pancreas`, `human_lymph_node`) download
+  from one Hugging Face repo, `datavil/cellestial-datasets`. File names of
+  `pancreas` and `human_lymph_node` are unchanged, so existing caches are reused.
 - pandas 3 is supported on Python 3.12 and later (`pandas>=2.2.3,<4`, was
   `<3`), together with anndata 0.13. Python 3.11 keeps `pandas<3`, since
   anndata 0.13 needs Python 3.12.

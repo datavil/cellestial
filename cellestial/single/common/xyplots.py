@@ -158,7 +158,7 @@ def xyplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.xyplots(
             data,
@@ -179,7 +179,7 @@ def xyplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.xyplots(
             data,

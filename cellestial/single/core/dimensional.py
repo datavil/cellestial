@@ -328,7 +328,7 @@ def dimensional(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.dimensional(data,key="cell_type_lvl1",axis_type="arrow",legend_ondata=True)
 
@@ -341,7 +341,7 @@ def dimensional(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.dimensional(data,key="CD14",axis_type="arrow",color_high="red")
 
@@ -351,7 +351,7 @@ def dimensional(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.dimensional(data,key="leiden") + cl.highlight(["0","3"])
 

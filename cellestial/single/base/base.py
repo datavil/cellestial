@@ -68,7 +68,7 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         p1 = (
             cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))
@@ -83,7 +83,7 @@ def plot(
         import cellestial as cl
         import scanpy as sc
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         p2 = (
             cl.plot(data, aes(x='cell_type_lvl1', y='n_genes'))

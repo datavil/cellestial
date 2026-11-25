@@ -411,7 +411,7 @@ def test_bracket_layer_requires_x_and_y_aesthetics():
 
 def test_stream_requires_velocity(adata):
     """Stream requires velocity."""
-    # pbmc3k fixture has no velocity columns; stream should raise at `+` time.
+    # The bone marrow fixture has no velocity columns; stream should raise at `+` time.
     umap = cl.umap(adata)
     with pytest.raises(KeyNotFoundError, match="Velocity columns not found"):
         _ = umap + cl.stream()

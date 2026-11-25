@@ -207,7 +207,7 @@ def violins(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.violins(
             data,
@@ -511,7 +511,7 @@ def boxplots(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.boxplots(
             data,
@@ -794,7 +794,7 @@ def histograms(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.histograms(
             data,

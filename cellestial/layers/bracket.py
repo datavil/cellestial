@@ -275,7 +275,7 @@ def bracket(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = cl.violin(
             data,

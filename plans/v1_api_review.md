@@ -306,8 +306,9 @@ Rank = cost of fixing after the freeze x how often users hit it.
 - Recommendation: fix the hosted labels before v1 (data change, not API), and decide
   whether the loader name stays (it is in every tutorial). Rename `bring` to
   `copy_from_global_cache`. **Breaking** for the rename.
-- Status 2026-11-22: labels fixed (`plans/pbmc3k_labels.md`, resolved); loader name
-  and `bring` rename still open.
+- Status 2026-11-22: labels fixed (`plans/pbmc3k_labels.md`, resolved).
+- Status 2026-11-25: loader renamed to `bone_marrow` (no alias). `bring` rename
+  still open.
 
 ### F20. Docstring gaps (non-breaking)
 
@@ -365,7 +366,7 @@ Recommended choice first. Approve batch by batch.
 **Batch E: identity**
 - E1. `blend`: keep, documented as a composite exception (F10). / move to `cellestial.complex`. **Kept (2026-11-22).** Stays at the top level.
 - E2. Fix the hosted pbmc3k labels before v1; keep the loader name (F19). / rename the loader too.
-  Labels part done 2026-11-22 (`pbmc3k_pped_v2.h5ad`, scanpy tutorial mapping); loader name still open.
+  Labels part done 2026-11-22 (`pbmc3k_pped_v2.h5ad`, scanpy tutorial mapping). Loader renamed to `bone_marrow` 2026-11-25, `pbmc3k` removed without an alias.
 - E3. `bring` -> `copy_from_global_cache` (F19). / keep. **Kept (2026-11-22).**
 - E4. Grid params: keep the explicit `gggrid` list, add new options additively (F18). / add `grid_kwargs`. **Kept (2026-11-22).**
 

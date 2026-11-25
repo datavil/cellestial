@@ -123,7 +123,7 @@ def ondata_legend(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         umap = cl.umap(data, key="cell_type_lvl1", axis_type="arrow", size=1.5)
         umap

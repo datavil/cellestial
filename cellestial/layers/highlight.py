@@ -86,7 +86,7 @@ def highlight(
 
         import cellestial as cl
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         cl.umap(data, key="leiden") + cl.highlight(["0", "3"])
 

@@ -153,7 +153,7 @@ def violin(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = (
             cl.violin(
@@ -182,7 +182,7 @@ def violin(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = (
             cl.violin(
@@ -212,7 +212,7 @@ def violin(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         violin = (
             cl.violin(
@@ -396,7 +396,7 @@ def boxplot(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         boxplot = (
             cl.boxplot(
@@ -423,7 +423,7 @@ def boxplot(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         boxplot = (
             cl.boxplot(
@@ -451,7 +451,7 @@ def boxplot(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         boxplot = (
             cl.boxplot(
@@ -616,7 +616,7 @@ def histogram(
 
         from ggrust import *
 
-        data = cl.datasets.pbmc3k()
+        data = cl.datasets.bone_marrow()
 
         histogram = (
             cl.histogram(data, "n_genes_by_counts", bins=50)

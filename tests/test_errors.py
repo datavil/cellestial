@@ -218,7 +218,7 @@ def test_highlight_on_a_grid_points_to_singular(adata, cluster_key):
 
 @pytest.fixture(scope="module")
 def ranked_pbmc(adata):
-    """pbmc3k with a ranking on `leiden_res_0.02` stored under a custom key."""
+    """Bone marrow data with a ranking on `leiden_res_0.02` stored under a custom key."""
     import scanpy as sc
 
     data = adata.copy()
