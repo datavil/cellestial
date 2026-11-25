@@ -64,6 +64,7 @@
     "from_url": [["url", "POSITIONAL_OR_KEYWORD", null], ["name", "KEYWORD_ONLY", "None"], ["cache_directory", "KEYWORD_ONLY", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"], ["extension", "KEYWORD_ONLY", "'.h5ad'"]],
     "human_lymph_node": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "pancreas": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
+    "pbmc3k": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]],
     "pbmc_cite": [["cache_directory", "POSITIONAL_OR_KEYWORD", "<path>"], ["use_cache", "KEYWORD_ONLY", "True"], ["bring", "KEYWORD_ONLY", "True"]]
   }
 }

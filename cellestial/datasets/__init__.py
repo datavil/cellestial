@@ -5,6 +5,7 @@ from cellestial.datasets.datasets import (
     from_url,
     human_lymph_node,
     pancreas,
+    pbmc3k,
     pbmc_cite,
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "from_url",
     "human_lymph_node",
     "pancreas",
+    "pbmc3k",
     "pbmc_cite",
 ]

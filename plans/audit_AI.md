@@ -371,3 +371,4 @@ Modified functions require only a line-by-line check. Repeated modifications are
 | `_fixed_cell_layout` (`key_group_labels`, verification pass for short canvases) | Claude Opus 5.5 |  |
 | `dotplot`, `stacked_violin` (`rectangle=False` axis lines after the theme preset) | Claude Opus 5.5 |  |
 | `bone_marrow` (renamed from `pbmc3k`, docstring and download URL) | Claude Opus 5.5 |  |
+| `pbmc3k` (new: real 10x PBMC 3k, `scripts/build_pbmc3k.py`) | Claude Opus 5.5 |  |

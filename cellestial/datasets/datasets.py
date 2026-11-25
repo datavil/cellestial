@@ -109,6 +109,69 @@ def bone_marrow(
     )
 
 
+def pbmc3k(
+    cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
+    *,
+    use_cache: bool = True,
+    bring: bool = True,
+) -> AnnData:
+    """
+    Download and load the preprocessed 10x Genomics PBMC 3k dataset.
+
+    Parameters
+    ----------
+    cache_directory : str | Path | PathLike
+        Directory where the `.h5ad` file is cached.
+    use_cache : bool, default=True
+        If True, load from the cached file when present. If False, remove any
+        existing cached file and re-download.
+    bring : bool, default=True
+        If True and `cache_directory` is not the default global cache, copy the
+        file from the global cache when it already exists there. Set to False
+        to disable this behavior.
+
+    Returns
+    -------
+    AnnData
+        The preprocessed PBMC 3k dataset.
+
+    Raises
+    ------
+    IncompleteDownloadError
+        If the downloaded file size does not match the expected size.
+
+    Notes
+    -----
+    2,638 peripheral blood mononuclear cells from a healthy donor (10x Genomics),
+    processed as in the scanpy "Preprocessing and clustering 3k PBMCs" tutorial.
+    Every gene that passes QC is log-normalized, so any gene can be plotted. The
+    `cell_type` labels are that tutorial's annotation: CD4 T cells, CD14+
+    Monocytes, B cells, CD8 T cells, NK cells, FCGR3A+ Monocytes, Dendritic cells
+    and Megakaryocytes.
+
+    Versions of cellestial before 1.0 loaded the bone marrow dataset under this
+    name; it is now `bone_marrow`.
+
+    Examples
+    --------
+    .. jupyter-execute::
+
+        import cellestial as cl
+
+        data = cl.datasets.pbmc3k()
+        cl.umap(data, "cell_type")
+    """
+    return cast(
+        "AnnData",
+        from_url(
+            "https://huggingface.co/datasets/datavil/cellestial-datasets/resolve/main/pbmc3k_10x_pped.h5ad",
+            cache_directory=cache_directory,
+            use_cache=use_cache,
+            bring=bring,
+        ),
+    )
+
+
 def pancreas(
     cache_directory: str | Path | PathLike = _GLOBAL_CACHE,
     *,

@@ -15,8 +15,15 @@ change. Versions absent from the list were never released.
   the 10x pbmc3k: it is about 17,000 bone marrow mononuclear cells (samples
   `s1d1`, `s1d3`) from the scanpy "Preprocessing and clustering" tutorial.
   Same cells and labels; the file is now `bone_marrow_pped.h5ad`, so it is
-  downloaded once more. `pbmc3k` raises `AttributeError`. Migration:
-  `cl.datasets.pbmc3k(...)` -> `cl.datasets.bone_marrow(...)`.
+  downloaded once more. Migration: `cl.datasets.pbmc3k(...)` ->
+  `cl.datasets.bone_marrow(...)`.
+- `datasets.pbmc3k` now loads the real 10x Genomics PBMC 3k: 2,638 cells
+  processed as in the scanpy PBMC 3k tutorial, with its annotation in
+  `cell_type` (CD4 T cells, CD14+ Monocytes, B cells, CD8 T cells, NK cells,
+  FCGR3A+ Monocytes, Dendritic cells, Megakaryocytes). Code written for the old
+  `pbmc3k` fails on the bone marrow columns (`cell_type_lvl1`,
+  `leiden_res_0.02`) with `KeyNotFoundError`. Migration: switch to
+  `bone_marrow` to keep the old data.
 - `anndata_observations_frame`, `anndata_variables_frame` and
   `anndata_variable_columns` are no longer exported from `cellestial.frames`
   (now private helpers), and `DeferredLayer` is no longer exported from
